@@ -27,6 +27,7 @@ const browser = await chromium.launch({
     executablePath: process.env.CHROMIUM_PATH,
   }),
   results = [];
+let activePage = null;
 const escape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 async function actor() {
   const a = await referenceAccount();
@@ -56,19 +57,29 @@ async function contextFor(a, width, scheme) {
 // Echte gebruikersscroll beëindigt eventueel lopend centraal scrollherstel.
 // Daarna pas vastleggen; een lege compositortegel is geen bruikbaar screenshotbewijs.
 async function showReading(page, heading, path) {
+  await page.waitForFunction(()=>document.activeElement?.tagName==="H1");
   await page.evaluate(() => document.fonts.ready);
-  await page.mouse.wheel(0, 1);
+  await page.mouse.wheel(0, await page.evaluate(()=>scrollY>0) ? -1 : 1);
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   await heading.evaluate((el) => {
-    el.scrollIntoView({ block: "start", behavior: "instant" });
     const header = document.querySelector("[data-sticky-header]");
-    window.scrollBy({ top: -(header?.getBoundingClientRect().height ?? 0) - 12, behavior: "instant" });
+    window.scrollTo({top:Math.max(0,scrollY+el.getBoundingClientRect().top-(header?.getBoundingClientRect().height??0)-12),behavior:"instant"});
   });
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   await heading.waitFor({ state: "visible" });
+  assert.ok(await heading.evaluate(el=>{const r=el.getBoundingClientRect(),header=document.querySelector("[data-sticky-header]")?.getBoundingClientRect().height??0;return r.top>=header-1&&r.bottom<=innerHeight+1;}),"bedoelde lezing/bediening volledig in beeld");
   await page.screenshot({ animations: "disabled", path });
   const sharp = createRequire(import.meta.url)("sharp");
   const stats = await sharp(path).stats();
   assert.ok(Math.max(...stats.channels.map(c => c.stdev)) > 5, "screenshot toont leesbare inhoud, geen lege achtergrond");
+}
+// Playwrights programmascroll is geen gebruikersinvoer: beëindig eerst het bestaande
+// centrale scrollherstel zoals bij een echte veeg, vóór op een footercoördinaat te tikken.
+async function touchNavigation(page, selector) {
+  await page.waitForFunction(()=>document.activeElement?.tagName==="H1");
+  await page.mouse.wheel(0,await page.evaluate(()=>scrollY>0)?-1:1);
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  await page.locator(selector).tap();
 }
 async function noOverflow(page) {
   const layout = await page.evaluate(() => ({
@@ -95,7 +106,7 @@ async function accepted(issued) {
   });
   return new Map(rows.map((row) => [row.id, JSON.parse(row.answers)]));
 }
-async function answer(page, q, values, wrong = false, touch = false) {
+async function answer(page, q, values, wrong = false, touch = false, retryCheck = false) {
   if (q.type === "WORD_BANK")
     for (const word of wrong ? [...values].reverse() : values)
       await page
@@ -121,6 +132,11 @@ async function answer(page, q, values, wrong = false, touch = false) {
   });
   await check.focus();
   await page.keyboard.press("Enter");
+  if (retryCheck) {
+    await page.getByRole("alert").filter({hasText:t("courses.error")}).waitFor();
+    assert.equal(await page.getByRole("button",{name:t("lesson.continue"),exact:true}).count(),0,"netwerkfout is geen fout antwoord");
+    await check.click();
+  }
   const next = page.getByRole("button", {
     name: t("lesson.continue"),
     exact: true,
@@ -139,6 +155,7 @@ try {
       context = await contextFor(a, width, scheme),
       page = await context.newPage(),
       errors = [];
+    activePage = page;
     page.on("pageerror", (e) => errors.push(e.message));
     if (!step) {
       await page.goto(base + lessonPath + "/stappen/1");
@@ -180,7 +197,8 @@ try {
       );
     await showReading(page, page.locator("[data-study-scripture-readings]").getByRole("heading").first(), `${out}/scripture-${step ?? "week"}-${width}-${scheme}.png`);
     await noOverflow(page);
-    const practice = page.locator("[data-study-exercises]");
+    const practice = page.locator(step ? "[data-step-next]" : "[data-study-exercises]");
+    if (step) assert.equal(await page.locator("[data-study-exercises], [data-complete-step]").count(), 0);
     assert.equal(
       await practice.evaluate((el) =>
         Boolean(
@@ -369,26 +387,15 @@ try {
     await page.screenshot({animations:"disabled",
       path: `${out}/result-${step ?? "week"}-${width}-${scheme}.png`,
     });
-    await page
-      .getByRole("link", { name: t("misc.backToLesson"), exact: true })
-      .click();
+    if (step) await page.locator("[data-study-result-continue]").click();
+    else await page.getByRole("link", { name: t("misc.backToLesson"), exact: true }).click();
     await page.locator("[data-study-reader-body]").waitFor();
     assert.equal(
       new URL(page.url()).pathname,
-      lessonPath + (step ? `/stappen/${step}` : ""),
+      lessonPath + (step ? `/stappen/${step + 1}` : ""),
     );
     assert.equal(await page.evaluate(() => history.length), historyBefore);
-    assert.equal(
-      await page.locator("[data-study-reader-body]").innerText(),
-      body,
-    );
-    if (step)
-      await page
-        .getByText(t("cfmStudy.statusCompleted"), { exact: true })
-        .waitFor();
     if (step) {
-      await page.locator("[data-step-next]").tap();
-      await page.waitForURL(base + lessonPath + `/stappen/${step + 1}`);
       await page.locator("[data-study-scripture-readings]").waitFor();
       assert.equal(await page.locator("[data-study-scripture-readings] [data-scripture-verse]").count(), 3);
       await noOverflow(page);
@@ -396,9 +403,13 @@ try {
       await page.keyboard.press("Enter");
       await page.waitForURL(base + lessonPath + `/stappen/${step}`);
       await page.getByText(t("cfmStudy.statusCompleted"), { exact: true }).waitFor();
+      assert.equal(await page.locator("[data-study-reader-body]").innerText(), body);
+      await touchNavigation(page,"[data-step-next]");
+      await page.waitForURL(base + lessonPath + `/stappen/${step + 1}`);
+      assert.equal(await prisma.exerciseSession.count({where:{userId:a.user.id}}), 1, "afgeronde vragen niet opnieuw verplicht");
       await noOverflow(page);
       assert.equal(await prisma.xPTransaction.count({ where: { userId: a.user.id, reason: "LESSON_COMPLETED" } }), 1);
-    }
+    } else assert.equal(await page.locator("[data-study-reader-body]").innerText(), body);
     assert.deepEqual(errors, []);
     results.push({
       officialPilot: true,
@@ -410,7 +421,8 @@ try {
       step,
       visibleVerses: step ? 3 : 15,
       questions: issued.exercises.length,
-      returnToLesson: true,
+      returnToLesson: !step,
+      automaticStepContinuation: Boolean(step),
       bodyUnchanged: true,
       noOverflow: true,
       resumedSameSession: !step,
@@ -422,9 +434,152 @@ try {
     });
     await context.close();
   }
+  // Alle zes echte stappen achter elkaar: de normale vervolgactie is de enige ingang.
+  {
+    const a = await actor(), context = await contextFor(a,390,"light"), page = await context.newPage();
+    activePage=page;
+    let failedContinue=false, failedCheck=false;
+    await page.route("**/api/study-steps",async route=>{
+      if(route.request().method()==="POST" && route.request().postDataJSON()?.action==="CONTINUE" && !failedContinue){
+        failedContinue=true;
+        const committed=await route.fetch(); await committed.body(); assert.equal(committed.status(),200);
+        await route.fulfill({status:503,contentType:"application/json",body:JSON.stringify({error:t("apiErrors.notSaved")})});return;
+      }
+      await route.continue();
+    });
+    await page.route("**/api/study-exercises",async route=>{
+      if(route.request().postDataJSON()?.action==="check" && !failedCheck){failedCheck=true;await route.abort("failed");return;}
+      await route.continue();
+    });
+    await page.goto(base+"/courses");
+    await page.goto(base+lessonPath+"/stappen/1");
+    for(let n=1;n<=6;n++){
+      await page.waitForURL(base+lessonPath+`/stappen/${n}`);
+      await page.locator("[data-study-reader-body]").waitFor();
+      assert.equal(await page.locator("[data-complete-step], [data-study-exercises]").count(),0);
+      if(n===1){
+        assert.equal(await page.locator("[data-step-prev]").count(),0);
+        assert.equal(await prisma.studyStepProgress.count({where:{userId:a.user.id,status:"COMPLETED"}}),0,"alleen openen rondt niet af");
+      } else assert.equal(await page.locator("[data-study-scripture-reading] [data-scripture-verse]").count(),3);
+      const next=page.locator(n===6?"[data-step-to-path]":"[data-step-next]");
+      await showReading(page,next,`${out}/flow-step${n}-390-light.png`);
+      await noOverflow(page);
+      if(n===1){
+        await next.tap();
+        await page.getByRole("status").filter({hasText:t("cfmStudy.completeFailed")}).waitFor();
+        assert.equal(new URL(page.url()).pathname,lessonPath+"/stappen/1");
+        assert.equal(await prisma.studyStepProgress.count({where:{userId:a.user.id,status:"COMPLETED"}}),1,"verloren vervolgresponse behoudt leesvoortgang");
+        assert.equal(await prisma.exerciseSession.count({where:{userId:a.user.id}}),0);
+      }
+      const issuing=page.waitForResponse(r=>r.url().endsWith("/api/study-exercises")&&r.request().postDataJSON()?.action==="issue");
+      await next.focus(); await page.keyboard.press("Enter");
+      const issued=await(await issuing).json(), values=await accepted(issued);
+      assert.equal(issued.exercises.length,3);
+      assert.equal(await prisma.studyStepProgress.count({where:{userId:a.user.id,status:"COMPLETED"}}),n,"lezen blijft onafhankelijk van goede antwoorden");
+      for(const [i,q] of issued.exercises.entries()){
+        if(n===3 && i===1){
+          await page.waitForFunction(()=>Object.keys(sessionStorage).some(k=>k.startsWith("cfm-exercise:")&&!k.endsWith(":visit")&&JSON.parse(sessionStorage.getItem(k))?.checkpoint?.index===1));
+          await page.locator("[data-subpage-back-bar] button").first().click();
+          await page.waitForURL(base+lessonPath+"/stappen/3");
+          const resuming=page.waitForResponse(r=>r.url().endsWith("/api/study-exercises")&&r.request().postDataJSON()?.action==="resume");
+          await touchNavigation(page,"[data-step-next]");
+          assert.equal((await(await resuming).json()).issued.sessionId,issued.sessionId,"dezelfde onderbroken sessie na terugkeer");
+        }
+        await page.locator("[data-exercise-progress]").waitFor();
+        await answer(page,q,values.get(q.id),n===2&&i===1,true,n===1&&i===0);
+      }
+      await page.locator("[data-study-result-continue]").waitFor();
+      assert.match(new URL(page.url()).pathname,/\/vragen$/,"resultaat wordt niet overgeslagen");
+      await noOverflow(page);
+      await page.screenshot({animations:"disabled",path:`${out}/flow-result${n}-390-light.png`});
+      await page.locator("[data-study-result-continue]").tap();
+      if(n<6){
+        await page.waitForURL(base+lessonPath+`/stappen/${n+1}`);
+        await page.locator("[data-study-reader-body]").waitFor();
+        await page.waitForFunction(()=>document.activeElement?.tagName==="H1");
+        if(n===1){
+          await page.goBack();await page.waitForURL(base+"/courses");
+          const celebration=page.getByRole("button",{name:t("streakCelebration.close"),exact:true});
+          if(await celebration.isVisible()) await celebration.click();
+          await page.goForward();await page.waitForURL(base+lessonPath+"/stappen/2");
+        }
+        if(n===2){
+          const before=await prisma.studyStepProgress.findMany({where:{userId:a.user.id,status:"COMPLETED"},select:{stepFingerprint:true,completedAt:true},orderBy:{stepIndex:"asc"}});
+          await touchNavigation(page,"[data-step-prev]");await page.waitForURL(base+lessonPath+"/stappen/2");
+          assert.deepEqual(await prisma.studyStepProgress.findMany({where:{userId:a.user.id,status:"COMPLETED"},select:{stepFingerprint:true,completedAt:true},orderBy:{stepIndex:"asc"}}),before,"vorige stap registreert geen afronding");
+          await touchNavigation(page,"[data-step-next]");await page.waitForURL(base+lessonPath+"/stappen/3");
+          assert.equal(await prisma.exerciseSession.count({where:{userId:a.user.id}}),2,"afgeronde vragen met een fout niet opnieuw verplicht");
+        }
+      } else {
+        await page.waitForURL(url=>/^\/courses(?:\/|$)/.test(url.pathname));
+        assert.doesNotMatch(page.url(),/stappen\/7/);
+      }
+    }
+    assert.equal(await prisma.studyStepProgress.count({where:{userId:a.user.id,status:"COMPLETED"}}),6);
+    assert.equal(await prisma.exerciseSession.count({where:{userId:a.user.id,submittedAt:{not:null}}}),6);
+    assert.equal((await prisma.user.findUniqueOrThrow({where:{id:a.user.id}})).xpTotal,a.user.xpTotal+17*XP_PER_CORRECT);
+    assert.equal(await countCanonicalReadContributions(prisma,[a.user.id]),0);
+    results.push({officialPilot:true,allSixSteps:true,width:390,scheme:"light",automaticReadingProgress:true,automaticQuestionStart:true,existingResultBeforeNextStep:true,wrongAnswersDoNotBlock:true,continueResponseLossRecovered:true,checkNetworkFailureRecovered:true,interruptedStepResumed:true,completedQuestionsNotForced:true,browserBackForward:true,keyboardFocus:true,lastStepReturnsToExistingCourse:true,questions:18,dorpContributions:0});
+    await context.close();
+  }
+  // Oefenen is vrijwillig: overslaan bewaart het concept, schrijft geen fictieve antwoorden of beloning.
+  {
+    const a=await actor(),context=await contextFor(a,390,"light"),page=await context.newPage();
+    await page.goto(base+lessonPath+"/stappen/2");
+    const issuing=page.waitForResponse(r=>r.url().endsWith("/api/study-exercises")&&r.request().postDataJSON()?.action==="issue");
+    await touchNavigation(page,"[data-step-next]");
+    const issued=await(await issuing).json(),values=await accepted(issued);
+    await answer(page,issued.exercises[0],values.get(issued.exercises[0].id));
+    await page.getByRole("button",{name:t("lesson.skip"),exact:true}).click();
+    await page.waitForURL(base+lessonPath+"/stappen/3");
+    assert.equal(await prisma.xPTransaction.count({where:{userId:a.user.id}}),0);
+    assert.equal((await prisma.exerciseSession.findUniqueOrThrow({where:{id:issued.sessionId}})).submittedAt,null);
+    await touchNavigation(page,"[data-step-prev]");await page.waitForURL(base+lessonPath+"/stappen/2");
+    const resuming=page.waitForResponse(r=>r.url().endsWith("/api/study-exercises")&&r.request().postDataJSON()?.action==="resume");
+    await touchNavigation(page,"[data-step-next]");
+    assert.equal((await(await resuming).json()).issued.sessionId,issued.sessionId);
+    await page.locator("[data-exercise-progress]").waitFor();
+    assert.match(await page.locator("[data-exercise-progress]").innerText(),/1\s*\/\s*3/);
+    for(const q of issued.exercises.slice(1)) await answer(page,q,values.get(q.id));
+    await page.locator("[data-study-result-continue]").waitFor();
+    assert.equal(await prisma.xPTransaction.count({where:{userId:a.user.id,reason:"LESSON_COMPLETED"}}),1);
+    assert.equal((await prisma.user.findUniqueOrThrow({where:{id:a.user.id}})).xpTotal,a.user.xpTotal+3*XP_PER_CORRECT);
+    results.push({officialPilot:true,skipPreservesReading:true,partialAnswersPreserved:true,skipXp:0,resumedSameSession:true,answersAfterResume:3});
+    await context.close();
+  }
+  // Verloren bevestigde inzendresponse → terug lezen → normale vervolgactie → hetzelfde resultaat.
+  {
+    const a=await actor(),context=await contextFor(a,390,"dark"),page=await context.newPage();activePage=page;
+    const dropped=Promise.withResolvers();dropped.promise.catch(()=>{});
+    await page.route("**/api/study-exercises",async route=>{
+      if(route.request().postDataJSON()?.action==="submit"){
+        try{const committed=await route.fetch();await committed.body();assert.equal(committed.status(),200);await route.abort("failed");dropped.resolve();}
+        catch(error){dropped.reject(error);}return;
+      }
+      await route.continue();
+    });
+    await page.goto(base+lessonPath+"/stappen/4");
+    const issuing=page.waitForResponse(r=>r.url().endsWith("/api/study-exercises")&&r.request().postDataJSON()?.action==="issue");
+    await touchNavigation(page,"[data-step-next]");const issued=await(await issuing).json(),values=await accepted(issued);
+    for(const q of issued.exercises) await answer(page,q,values.get(q.id));
+    await dropped.promise;
+    await page.getByRole("alert").filter({has:page.getByRole("button",{name:t("studyReader.retry"),exact:true})}).waitFor();
+    await page.locator("[data-subpage-back-bar] button").first().click();await page.waitForURL(base+lessonPath+"/stappen/4");
+    const resuming=page.waitForResponse(r=>r.url().endsWith("/api/study-exercises")&&r.request().postDataJSON()?.action==="resume");
+    await touchNavigation(page,"[data-step-next]");const restored=await(await resuming).json();
+    assert.equal(restored.issued.sessionId,issued.sessionId);assert.ok(restored.result);
+    await page.locator("[data-study-result-continue]").waitFor();
+    assert.equal(await page.locator("[data-exercise-progress]").count(),0,"geen nieuwe vragen na bevestigde inzending");
+    assert.equal(await prisma.exerciseSession.count({where:{userId:a.user.id}}),1);
+    assert.equal(await prisma.xPTransaction.count({where:{userId:a.user.id,reason:"LESSON_COMPLETED"}}),1);
+    await page.locator("[data-study-result-continue]").click();await page.waitForURL(base+lessonPath+"/stappen/5");
+    results.push({officialPilot:true,lostSubmitResponseThroughReaderRecovered:true,sameSessionAndResult:true,noRepeatedQuestions:true,xpTransactions:1});
+    await context.close();
+  }
   const a = await actor(),
     context = await contextFor(a, 320, "light"),
     page = await context.newPage();
+  activePage=page;
   await prisma.contentCollection.update({
     where: { id: f.pgpCollection.id },
     data: { visibleToUsers: false },
@@ -439,18 +594,24 @@ try {
       0,
     );
     assert.equal(await page.locator("[data-study-exercises]").count(), 0);
-    await page.locator("[data-complete-step]").click();
-    await page
-      .getByText(t("cfmStudy.statusCompleted"), { exact: true })
-      .waitFor();
+    await touchNavigation(page,"[data-step-next]");
+    await page.waitForURL(base + lessonPath + "/stappen/4");
+    const saved = await prisma.studyStepProgress.findMany({where:{userId:a.user.id,lessonEditionId:f.edition.id,stepIndex:3}});
+    assert.ok(saved.some(row=>row.status==="COMPLETED"));
     assert.equal(
       await prisma.xPTransaction.count({ where: { userId: a.user.id } }),
       0,
     );
     await noOverflow(page);
-    await page.screenshot({animations:"disabled", path: out + "/missing-scripture-320-light.png" });
+    await showReading(page,page.locator("[data-step-next]"),out+"/missing-scripture-320-light.png");
+    await page.goto(base+lessonPath+"/stappen/6");
+    await touchNavigation(page,"[data-step-to-path]");
+    await page.waitForURL(url=>/^\/courses(?:\/|$)/.test(url.pathname));
+    assert.equal(await prisma.exerciseSession.count({where:{userId:a.user.id}}),0);
+    assert.ok(await prisma.studyStepProgress.count({where:{userId:a.user.id,stepIndex:6,status:"COMPLETED"}}));
     results.push({
       missingSource: true,
+      lastStepWithoutQuestions: true,
       readingAndStepCompletionPreserved: true,
       xp: 0,
     });
@@ -464,6 +625,10 @@ try {
   writeFileSync(out + "/results.json", JSON.stringify(results, null, 2));
   console.log(JSON.stringify({ officialCfmPilotBrowser: results }));
 } catch (error) {
+  if(activePage && !activePage.isClosed()) {
+    await activePage.screenshot({path:out+"/failure.png",fullPage:false}).catch(()=>{});
+    console.error("Pilotbrowserdiagnose",JSON.stringify(await activePage.evaluate(()=>({url:location.pathname+location.search,scrollY,focused:document.activeElement?.outerHTML?.slice(0,300),links:[...document.querySelectorAll("[data-step-prev],[data-step-next],[data-step-to-path]")].map(el=>({text:el.textContent,href:el.getAttribute("href"),disabled:el.getAttribute("aria-disabled"),bounds:JSON.stringify(el.getBoundingClientRect())})),heading:document.querySelector("[data-study-reader] header")?.innerText})).catch(()=>null)));
+  }
   console.error(
     "::error title=Officiële CFM-pilot::" +
       String(error?.stack ?? error)

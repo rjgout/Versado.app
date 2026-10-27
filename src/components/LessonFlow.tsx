@@ -229,6 +229,8 @@ export function ExerciseSessionQuestions<Result>({
   groupForIndex,
   initialCheckpoint,
   onCheckpoint,
+  onSkipRemaining,
+  retryCheckErrors = false,
 }: {
   exercises: Exercise[];
   review: boolean;
@@ -242,6 +244,9 @@ export function ExerciseSessionQuestions<Result>({
   groupForIndex?: (index: number) => string;
   initialCheckpoint?: ExerciseCheckpoint | null;
   onCheckpoint?: (checkpoint: ExerciseCheckpoint) => void;
+  /** CFM: verder lezen met behoud van de nog niet ingeleverde vragenset. */
+  onSkipRemaining?: () => void;
+  retryCheckErrors?: boolean;
 }) {
   const t = useT();
   const [index, setIndex] = useState(initialCheckpoint?.index ?? 0),
@@ -325,7 +330,7 @@ export function ExerciseSessionQuestions<Result>({
           key={(reviewQueue ? "review:" : "question:") + current.id}
           exercise={current}
           onDone={done}
-          onSkip={reviewQueue ? () => advance(answers) : undefined}
+          onSkip={reviewQueue ? () => advance(answers) : onSkipRemaining}
           disabled={busy}
           focus
           progress={{
@@ -333,6 +338,7 @@ export function ExerciseSessionQuestions<Result>({
             total: reviewQueue ? reviewQueue.length : exercises.length,
           }}
           onCheck={onCheck ? (given) => onCheck(current, given) : undefined}
+          retryCheckErrors={retryCheckErrors}
           feedbackContext={feedbackContext?.(current)}
         />
       )}
@@ -641,6 +647,7 @@ export function ExerciseCard({
   checkEndpoint,
   onCheck,
   showHint = true,
+  retryCheckErrors = false,
   focus = false,
   progress,
   feedbackContext,
@@ -655,6 +662,8 @@ export function ExerciseCard({
   onCheck?: (given: string[]) => Promise<{ correct: boolean; correctAnswer: string[] | null }>;
   /** Hints uit bij een wedstrijd tegen anderen, waar iedereen gelijke kansen moet hebben. */
   showHint?: boolean;
+  /** Optioneel: verbindingsfouten bewaren het antwoord voor opnieuw controleren. */
+  retryCheckErrors?: boolean;
   /** Een actieve focusflow gebruikt de pagina zelf als canvas i.p.v. een buitenkaart. */
   focus?: boolean;
   /** Progressie binnen deze uitgedeelde oefenset/stap. */
@@ -665,6 +674,7 @@ export function ExerciseCard({
   const t = useT();
   const [checked, setChecked] = useState(false);
   const [checking, setChecking] = useState(false);
+  const [checkError, setCheckError] = useState(false);
   const [wasCorrect, setWasCorrect] = useState(false);
   const [correctAnswer, setCorrectAnswer] = useState<string[] | null>(null);
   const [givenAnswer, setGivenAnswer] = useState<string[]>([]);
@@ -698,6 +708,8 @@ export function ExerciseCard({
           : placed.map((p) => p.word);
 
     setChecking(true);
+    setCheckError(false);
+    let failed = false;
     try {
       if (onCheck) {
         const result = await onCheck(given);
@@ -716,12 +728,13 @@ export function ExerciseCard({
       setCorrectAnswer(Array.isArray(data.correctAnswer) ? data.correctAnswer : null);
       setGivenAnswer(given);
     } catch {
+      if (retryCheckErrors) { failed = true; setCheckError(true); return; }
       setWasCorrect(false);
       setCorrectAnswer(null);
       setGivenAnswer(given);
     } finally {
       setChecking(false);
-      setChecked(true);
+      if (!failed) setChecked(true);
     }
   }
 
@@ -737,6 +750,8 @@ export function ExerciseCard({
   const progressState = progress ? exerciseProgress(progress.current, progress.total, checked) : null;
 
   const actionArea = (
+    <>
+    {checkError && <p role="alert" className="text-sm text-vs-danger">{t("courses.error")}</p>}
     <ExerciseActionArea
       focus={focus}
       checked={checked}
@@ -753,6 +768,7 @@ export function ExerciseCard({
       canCheck={canCheck}
       disabled={disabled}
     />
+    </>
   );
 
   const progressHeader = progressState && (
@@ -1103,12 +1119,15 @@ export function SummaryScreen({
   term,
   courseId,
   returnHref,
+  continuation,
 }: {
   summary: SummaryResult;
   nextChapterId: string | null;
   term: ChapterTerm;
   courseId?: string;
   returnHref?: string;
+  /** Eén bestaande resultaatvervolgactie, zonder tussenliggende terugkeer naar de leesstap. */
+  continuation?: { label: string; onContinue: () => void };
 }) {
   const t = useT();
   return (
@@ -1172,9 +1191,9 @@ export function SummaryScreen({
       )}
 
       <div className="flex gap-3 mt-4">
-        <Link href={returnHref??"/dashboard"} replace={!!returnHref} className="btn-secondary">
+        {continuation ? <button type="button" data-study-result-continue className="btn-primary" onClick={continuation.onContinue}>{continuation.label}</button> : <Link href={returnHref??"/dashboard"} replace={!!returnHref} className="btn-secondary">
           {t(returnHref?"misc.backToLesson":"lesson.backToLessons")}
-        </Link>
+        </Link>}
         {nextChapterId && (
           <Link href={`/lesson/${nextChapterId}${courseId ? `?cursus=${courseId}` : ""}`} className="btn-primary">
             {t(`terms.${term.kind}.next`)}

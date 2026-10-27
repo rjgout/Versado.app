@@ -143,6 +143,7 @@ function ReaderVisit({
   const stepState = stepQuery.data?.state ?? personal.progress;
   const stepStatus = currentStep ? stepState?.steps.find((step) => step.fingerprint === currentStep.fingerprint)?.status ?? "NOT_STARTED" : null;
   const [completing, setCompleting] = useState(false);
+  const continuing = useRef(false);
   const [stepError, setStepError] = useState<string | null>(null);
   async function postStep(action: "OPEN" | "COMPLETE") {
     if (!currentStep) return;
@@ -163,15 +164,39 @@ function ReaderVisit({
     stepQuery.setData({ revisionId: data.lesson.revisionId, state: result.state });
     return result;
   }
-  async function completeStep() {
-    if (completing) return;
+  async function continueStep() {
+    if (!currentStep || continuing.current) return;
+    continuing.current = true;
     setCompleting(true);
     setStepError(null);
+    const entry = currentEntryKey();
     try {
-      await postStep("COMPLETE");
+      await control.flush();
+      if (!control.canLeave()) throw new Error("READING_POSITION_NOT_SAVED");
+      const key = studyExerciseDraftKey(sessionKey, data.lesson.editionId, data.lesson.revisionId, currentStep.index);
+      let exerciseSessionId: string | undefined;
+      try {
+        const saved = JSON.parse(sessionStorage.getItem(key) ?? "null");
+        if (typeof saved?.sessionId === "string") exerciseSessionId = saved.sessionId;
+      } catch {}
+      const result = await jsonMutation<{ state: StepProgressState; questions: "available" | "completed" | "unavailable" }>(
+        "/api/study-steps", {
+          json: { lessonEditionId: data.lesson.editionId, revisionId: data.lesson.revisionId, stepIndex: currentStep.index, stepFingerprint: currentStep.fingerprint, action: "CONTINUE", exerciseSessionId },
+          headers: { "X-Reading-Session": sessionKey },
+        }, { invalidates: "studyStepsChanged" },
+      );
+      if (!moreAlive.current || moreSession.current !== sessionKey || currentEntryKey() !== entry) return;
+      stepQuery.setData({ revisionId: data.lesson.revisionId, state: result.state });
+      if (result.questions === "available") {
+        if (exerciseVisitProof) try { sessionStorage.setItem(key + ":visit", exerciseVisitProof); } catch {}
+        router.replace(`${base}/vragen?stap=${currentStep.index}${exerciseVisitProof ? `#leesbewijs=${encodeURIComponent(exerciseVisitProof)}` : ""}`);
+      } else if (currentStep.index < PERSONAL_STUDY_STEPS) router.replace(`${base}/stappen/${currentStep.index + 1}`);
+      else returnToPath();
     } catch (error) {
-      setStepError(error instanceof ApiRequestError && error.status === 409 ? t("cfmStudy.stepRevisionChanged") : t("cfmStudy.completeFailed"));
+      if (moreAlive.current && currentEntryKey() === entry)
+        setStepError(error instanceof ApiRequestError && error.status === 409 ? t("cfmStudy.stepRevisionChanged") : t("cfmStudy.completeFailed"));
     } finally {
+      continuing.current = false;
       setCompleting(false);
     }
   }
@@ -310,24 +335,19 @@ function ReaderVisit({
           <CheckCircle2 className="h-5 w-5 shrink-0" aria-hidden />
           {t("cfmStudy.statusCompleted")}
         </p>
-      ) : (
-        <button type="button" data-complete-step className={`${primaryButton} min-h-12`} onClick={() => void completeStep()} disabled={completing || busy}>
-          <CheckCircle2 className="h-5 w-5 shrink-0" aria-hidden />
-          {completing ? t("cfmStudy.completing") : t("cfmStudy.completeStep")}
-        </button>
-      )}
+      ) : null}
       {stepError && <p role="status" className="text-sm text-vs-danger">{stepError}</p>}
       {stepStatus === "COMPLETED" && <p className="text-sm text-vs-fg-2">{t("cfmStudy.stepDone")}</p>}
       <nav className="flex flex-wrap gap-2" aria-label={t("cfmStudy.stepNavigation")}>
         {stepNumber > 1 && (
-          <Link href={`${base}/stappen/${stepNumber - 1}`} prefetch={false} replace data-step-prev className={`${secondaryButton} min-h-12 flex-1`}>
+          <Link href={`${base}/stappen/${stepNumber - 1}`} prefetch={false} replace data-step-prev onClick={event => { if (completing) event.preventDefault(); }} aria-disabled={completing} className={`${secondaryButton} min-h-12 flex-1`}>
             <ChevronLeft aria-hidden className="h-5 w-5 shrink-0" />
             {t("cfmStudy.previousStep")}
           </Link>
         )}
         {stepNumber < PERSONAL_STUDY_STEPS ? (
-          <Link href={`${base}/stappen/${stepNumber + 1}`} prefetch={false} replace data-step-next className={`${stepStatus === "COMPLETED" ? primaryButton : secondaryButton} min-h-12 flex-1`}>
-            {t("cfmStudy.nextStep")}
+          <Link href={`${base}/stappen/${stepNumber + 1}`} prefetch={false} replace data-step-next aria-disabled={completing || busy} onClick={event => { event.preventDefault(); if (!busy) void continueStep(); }} className={`${primaryButton} min-h-12 flex-1`}>
+            {completing ? t("courses.busy") : t("cfmStudy.nextStep")}
             <ChevronRight aria-hidden className="h-5 w-5 shrink-0" />
           </Link>
         ) : (
@@ -339,11 +359,12 @@ function ReaderVisit({
             onClick={(event) => {
               // Komt de gebruiker van het weekpad, dan terug in plaats van een tweede weekpad op de geschiedenis te zetten.
               event.preventDefault();
-              returnToPath();
+              if (!busy) void continueStep();
             }}
+            aria-disabled={completing || busy}
             className={`${stepStatus === "COMPLETED" ? primaryButton : secondaryButton} min-h-12 flex-1`}
           >
-            {t("cfmStudy.backToPath")}
+            {completing ? t("courses.busy") : t("cfmStudy.nextStep")}
             <ChevronRight aria-hidden className="h-5 w-5 shrink-0" />
           </Link>
         )}
@@ -628,8 +649,8 @@ function ReaderVisit({
             {data.scriptureReadingSteps?.some(index=>(!currentStep || index===currentStep.index) && (data.scriptureReadings??[]).filter(reading=>reading.stepIndex===index).reduce((count,reading)=>count+reading.verses.length,0)<3) && <p role="status" className="text-sm text-vs-fg-2">{t("cfmExercises.scriptureUnavailable")}</p>}
           </section>
         )}
-        {!legacy && data.exerciseCounts && <div className="border-t border-vs-line pt-4">
-          {(currentStep?data.exerciseCounts[currentStep.index-1]===3:data.exerciseCounts.every(n=>n===3)) ? <Link data-study-exercises replace onClick={()=>{const proof=exerciseVisitProof;if(proof)try{sessionStorage.setItem(studyExerciseDraftKey(sessionKey,data.lesson.editionId,data.lesson.revisionId,currentStep?.index??null)+":visit",proof);}catch{}}} href={`${base}/vragen${currentStep?`?stap=${currentStep.index}`:pageMode==='full'?'?volledig=1':''}${exerciseVisitProof?`#leesbewijs=${encodeURIComponent(exerciseVisitProof)}`:""}`} prefetch={false} className="btn-primary">{t('progress.practice',{n:currentStep?3:18})}</Link>:<p role="status" className="text-sm text-vs-fg-2">{t('cfmExercises.unavailable')}</p>}
+        {!legacy && !currentStep && data.exerciseCounts && <div className="border-t border-vs-line pt-4">
+          {data.exerciseCounts.every(n=>n===3) ? <Link data-study-exercises replace onClick={()=>{const proof=exerciseVisitProof;if(proof)try{sessionStorage.setItem(studyExerciseDraftKey(sessionKey,data.lesson.editionId,data.lesson.revisionId,null)+":visit",proof);}catch{}}} href={`${base}/vragen${pageMode==='full'?'?volledig=1':''}${exerciseVisitProof?`#leesbewijs=${encodeURIComponent(exerciseVisitProof)}`:""}`} prefetch={false} className="btn-primary">{t('progress.practice',{n:18})}</Link>:<p role="status" className="text-sm text-vs-fg-2">{t('cfmExercises.unavailable')}</p>}
         </div>}
         {!legacy && pageMode !== "step" && (
           <footer className="space-y-4 border-t border-vs-line pt-4">

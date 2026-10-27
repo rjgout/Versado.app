@@ -5613,12 +5613,13 @@
     },
     {
       "file": "src/app/api/study-steps/route.ts",
-      "sha256": "0c3b0e4732be8d3c9a0711d749c0a010a37eeb0ff1253b618380fe30a7a8a52d",
+      "sha256": "a6952f221a25d9b0b65af5301d80954176c2a347661ec4ee302a81705d628df5",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/content-inventory/origin",
         "@/lib/i18n",
         "@/lib/session",
+        "@/lib/studyContent/exerciseSource",
         "@/lib/studyContent/stepProgress",
         "next/server",
         "zod"
@@ -8265,7 +8266,7 @@
     },
     {
       "file": "src/app/study-lesson/[lessonId]/[collectionId]/vragen/page.tsx",
-      "sha256": "e4c221a875719e3cff5239ca9c5b14b25ff6857e0ea2bd907c92b0302f610af2",
+      "sha256": "848dc104563c1a017b2fba4f0b9b29b6019796d4e74ffdc71c4383ffb1111563",
       "boundary": "context-dependent",
       "imports": [
         "@/components/ReaderBackTarget",
@@ -8273,6 +8274,7 @@
         "@/lib/db",
         "@/lib/i18n",
         "@/lib/session",
+        "@/lib/studyContent/cfmCourses",
         "@/lib/studyContent/exerciseSource",
         "@/lib/studyContent/pilotReadings",
         "@/lib/studyContent/revisions",
@@ -10087,7 +10089,7 @@
     },
     {
       "file": "src/components/LessonFlow.tsx",
-      "sha256": "284c9b0fc4a008ee9efb03f9a67457497bae7355824386779209e93a7a193425",
+      "sha256": "1f35b65564359a47426c2556b15a465ef384f05d7c3a85d17150ab089b180b6d",
       "boundary": "client",
       "imports": [
         "@/components/ExerciseFeedbackSheet",
@@ -14105,7 +14107,7 @@
     },
     {
       "file": "src/components/study/PersonalStudyParts.tsx",
-      "sha256": "14a03fbc27cdd39700570566604d78c119b51fd266c9c1d0d85b3b5a297531d1",
+      "sha256": "ded5414101366c39b6bf5c7db33a8d5c237136c632a5c8004ed371b6ac02cd78",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -14304,7 +14306,7 @@
     },
     {
       "file": "src/components/study/StudyExerciseClient.tsx",
-      "sha256": "68cf4eae9a3e865a1b1decfa5ff93298a1d3a3d30735199f24d7bd07b2b49118",
+      "sha256": "bff240d39d95f082c57573d9994af1cb81cb726e4a2e80079e569dc1240a9d1a",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -14314,6 +14316,7 @@
         "@/lib/data/mutation",
         "@/lib/learning/contentProgress",
         "@/lib/learning/exerciseCheckpoint",
+        "@/lib/studyOrigin",
         "@/lib/xpBroadcast",
         "next/link",
         "next/navigation",
@@ -14330,7 +14333,7 @@
     },
     {
       "file": "src/components/study/StudyReader.tsx",
-      "sha256": "cdef9c930c7e545701053e53c604b8e3d17b4379975d9d02642e9a7d9d34c9e2",
+      "sha256": "4beec9db80f534872c00a93f94bde86d9815946cf8da17da89f26b21dca3fcd4",
       "boundary": "client",
       "imports": [
         "./PersonalStudyParts",
@@ -23958,7 +23961,7 @@
     },
     {
       "file": "src/lib/studyContent/exerciseSource.ts",
-      "sha256": "adcc6c2b8d4283dbac94c3878cda50e45e5968f045b765b8b8be7bace8f1c395",
+      "sha256": "c227ad0104ab9bb01205ede068e66258551e484556ee100ca6af02d2507f1700",
       "boundary": "context-dependent",
       "imports": [
         "./exercisePlan",
@@ -23966,6 +23969,8 @@
         "./readStatus",
         "./revisions",
         "@/generated/prisma/client",
+        "@/lib/db",
+        "@/lib/learning/exercisePlan",
         "zod"
       ],
       "methods": [],
@@ -23973,7 +23978,8 @@
       "checks": [],
       "exports": [
         "loadStudyExerciseSource",
-        "studyExerciseContextSchema"
+        "studyExerciseContextSchema",
+        "studyStepQuestionState"
       ]
     },
     {
@@ -48455,12 +48461,13 @@
     },
     {
       "file": "src/app/api/study-steps/route.ts",
-      "sha256": "0c3b0e4732be8d3c9a0711d749c0a010a37eeb0ff1253b618380fe30a7a8a52d",
+      "sha256": "a6952f221a25d9b0b65af5301d80954176c2a347661ec4ee302a81705d628df5",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/content-inventory/origin",
         "@/lib/i18n",
         "@/lib/session",
+        "@/lib/studyContent/exerciseSource",
         "@/lib/studyContent/stepProgress",
         "next/server",
         "zod"
@@ -48483,10 +48490,20 @@
       "domain": "overig-vandaag",
       "dependencies": [
         "src/app/api/study-steps/route.ts",
+        "src/lib/achievements.ts",
+        "src/lib/activityFeed.ts",
         "src/lib/auth.ts",
+        "src/lib/baseUrl.ts",
+        "src/lib/brand.ts",
+        "src/lib/competitionXp.ts",
         "src/lib/content-inventory/origin.ts",
         "src/lib/contentAccess.ts",
+        "src/lib/crypto.ts",
+        "src/lib/data/scopes.ts",
+        "src/lib/dates.ts",
         "src/lib/db.ts",
+        "src/lib/email.ts",
+        "src/lib/exerciseGen.ts",
         "src/lib/i18n/core.ts",
         "src/lib/i18n/index.ts",
         "src/lib/i18n/messages/de.ts",
@@ -48500,19 +48517,46 @@
         "src/lib/i18n/messages/kompas/nl.ts",
         "src/lib/i18n/messages/nl.ts",
         "src/lib/languages.ts",
+        "src/lib/leagueTiers.ts",
+        "src/lib/leagues.ts",
+        "src/lib/learning/exercisePlan.ts",
+        "src/lib/learning/streakReturnRules.ts",
+        "src/lib/learning/streakRules.ts",
+        "src/lib/mailHistory.ts",
+        "src/lib/mailHistoryTypes.ts",
+        "src/lib/notificationGroups.ts",
+        "src/lib/notify.ts",
+        "src/lib/notifyCategories.ts",
+        "src/lib/push.ts",
+        "src/lib/pushEndpoint.ts",
+        "src/lib/puzzle/puzzleNotify.ts",
+        "src/lib/realtime.ts",
+        "src/lib/references/evidence.ts",
         "src/lib/session.ts",
+        "src/lib/streak.ts",
+        "src/lib/streakContinuation.ts",
+        "src/lib/studyContent/exercisePlan.ts",
+        "src/lib/studyContent/exerciseSource.ts",
         "src/lib/studyContent/personalStudy.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
+        "src/lib/studyContent/pilotReadingSource.ts",
+        "src/lib/studyContent/pilotReadings.ts",
+        "src/lib/studyContent/readStatus.ts",
         "src/lib/studyContent/readingPositionContract.ts",
         "src/lib/studyContent/revisions.ts",
         "src/lib/studyContent/schema.ts",
         "src/lib/studyContent/stepProgress.ts",
-        "src/lib/studyContextContract.ts"
+        "src/lib/studyContextContract.ts",
+        "src/lib/timeZone.ts",
+        "src/lib/unsubscribe.ts",
+        "src/lib/xp.ts",
+        "src/lib/xpRules.ts"
       ],
       "directModules": [
         "src/lib/content-inventory/origin.ts",
         "src/lib/i18n/index.ts",
         "src/lib/session.ts",
+        "src/lib/studyContent/exerciseSource.ts",
         "src/lib/studyContent/stepProgress.ts"
       ],
       "clientBoundaries": [],
@@ -64874,7 +64918,7 @@
     },
     {
       "file": "src/app/study-lesson/[lessonId]/[collectionId]/vragen/page.tsx",
-      "sha256": "e4c221a875719e3cff5239ca9c5b14b25ff6857e0ea2bd907c92b0302f610af2",
+      "sha256": "848dc104563c1a017b2fba4f0b9b29b6019796d4e74ffdc71c4383ffb1111563",
       "boundary": "context-dependent",
       "imports": [
         "@/components/ReaderBackTarget",
@@ -64882,6 +64926,7 @@
         "@/lib/db",
         "@/lib/i18n",
         "@/lib/session",
+        "@/lib/studyContent/cfmCourses",
         "@/lib/studyContent/exerciseSource",
         "@/lib/studyContent/pilotReadings",
         "@/lib/studyContent/revisions",
@@ -64947,6 +64992,9 @@
         "src/lib/contentMetadata.ts",
         "src/lib/contentPickerContract.ts",
         "src/lib/contentRouting.ts",
+        "src/lib/courseIntegrity.ts",
+        "src/lib/courseText.ts",
+        "src/lib/courses.ts",
         "src/lib/crypto.ts",
         "src/lib/data/client.ts",
         "src/lib/data/fetchJson.ts",
@@ -65031,11 +65079,13 @@
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
         "src/lib/platform.ts",
+        "src/lib/podcasts.ts",
         "src/lib/push.ts",
         "src/lib/pushEndpoint.ts",
         "src/lib/puzzle/puzzleNotify.ts",
         "src/lib/readAloud.ts",
         "src/lib/readAloudPlayerContext.tsx",
+        "src/lib/readingCourses.ts",
         "src/lib/realtime.ts",
         "src/lib/references/evidence.ts",
         "src/lib/session.ts",
@@ -65053,6 +65103,7 @@
         "src/lib/streakBanner.ts",
         "src/lib/streakCelebration.ts",
         "src/lib/streakContinuation.ts",
+        "src/lib/studyContent/cfmCourses.ts",
         "src/lib/studyContent/cfmProgramme.ts",
         "src/lib/studyContent/cfmVolumes.ts",
         "src/lib/studyContent/exercisePlan.ts",
@@ -65085,6 +65136,7 @@
         "src/lib/db.ts",
         "src/lib/i18n/index.ts",
         "src/lib/session.ts",
+        "src/lib/studyContent/cfmCourses.ts",
         "src/lib/studyContent/exerciseSource.ts",
         "src/lib/studyContent/pilotReadings.ts",
         "src/lib/studyContent/revisions.ts"
@@ -69290,7 +69342,7 @@
     },
     {
       "file": "src/app/study-lesson/[lessonId]/[collectionId]/vragen/page.tsx",
-      "sha256": "e4c221a875719e3cff5239ca9c5b14b25ff6857e0ea2bd907c92b0302f610af2",
+      "sha256": "848dc104563c1a017b2fba4f0b9b29b6019796d4e74ffdc71c4383ffb1111563",
       "boundary": "context-dependent",
       "imports": [
         "@/components/ReaderBackTarget",
@@ -69298,6 +69350,7 @@
         "@/lib/db",
         "@/lib/i18n",
         "@/lib/session",
+        "@/lib/studyContent/cfmCourses",
         "@/lib/studyContent/exerciseSource",
         "@/lib/studyContent/pilotReadings",
         "@/lib/studyContent/revisions",
@@ -71112,7 +71165,7 @@
     },
     {
       "file": "src/components/LessonFlow.tsx",
-      "sha256": "284c9b0fc4a008ee9efb03f9a67457497bae7355824386779209e93a7a193425",
+      "sha256": "1f35b65564359a47426c2556b15a465ef384f05d7c3a85d17150ab089b180b6d",
       "boundary": "client",
       "imports": [
         "@/components/ExerciseFeedbackSheet",
@@ -74968,7 +75021,7 @@
     },
     {
       "file": "src/components/study/PersonalStudyParts.tsx",
-      "sha256": "14a03fbc27cdd39700570566604d78c119b51fd266c9c1d0d85b3b5a297531d1",
+      "sha256": "ded5414101366c39b6bf5c7db33a8d5c237136c632a5c8004ed371b6ac02cd78",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -75141,7 +75194,7 @@
     },
     {
       "file": "src/components/study/StudyExerciseClient.tsx",
-      "sha256": "68cf4eae9a3e865a1b1decfa5ff93298a1d3a3d30735199f24d7bd07b2b49118",
+      "sha256": "bff240d39d95f082c57573d9994af1cb81cb726e4a2e80079e569dc1240a9d1a",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -75151,6 +75204,7 @@
         "@/lib/data/mutation",
         "@/lib/learning/contentProgress",
         "@/lib/learning/exerciseCheckpoint",
+        "@/lib/studyOrigin",
         "@/lib/xpBroadcast",
         "next/link",
         "next/navigation",
@@ -75167,7 +75221,7 @@
     },
     {
       "file": "src/components/study/StudyReader.tsx",
-      "sha256": "cdef9c930c7e545701053e53c604b8e3d17b4379975d9d02642e9a7d9d34c9e2",
+      "sha256": "4beec9db80f534872c00a93f94bde86d9815946cf8da17da89f26b21dca3fcd4",
       "boundary": "client",
       "imports": [
         "./PersonalStudyParts",

@@ -161,14 +161,18 @@ try {
     await run("npx",["tsx","tests/fixtures/mystery-learning.mjs"],env);
     await run("npx",["tsx","tests/cfm-pilot.browser.mjs"],env);
   }
+  if(process.argv.includes("--cfm-personal-browser")){
+    await run("npx",["tsx","tests/fixtures/mystery-learning.mjs"],env);
+    await run("npx",["tsx","tests/cfm-personal.browser.mjs"],env);
+  }
   if(process.argv.includes("--cfm-exercises")) {
-    await run("npx",["tsx","--test","tests/cfm-exercises.test.ts","tests/cfm-pilot.test.ts","tests/cfm-exercises.integration.test.ts"],env);
+    await run("npx",["tsx","--test","tests/cfm-exercises.test.ts","tests/cfm-pilot.test.ts","tests/cfm-card-improvements.test.ts","tests/cfm-exercises.integration.test.ts"],env);
     await run("npx",["tsx","--test","tests/cfm-pilot.integration.test.ts"],env);
     await run("npx",["tsx","--test","tests/study-steps.integration.test.ts"],env);
     await run("npx",["tsx","tests/fixtures/mystery-learning.mjs"],env);
     await run("npm",["run","test:learning"],env);
     await run("npm",["run","test:kompas"],env);
-    if(process.argv.includes("--browser")){await run("npx",["tsx","tests/cfm-exercises.browser.mjs"],env);await run("npx",["tsx","tests/cfm-pilot.browser.mjs"],env);}
+    if(process.argv.includes("--browser")){await run("npx",["tsx","tests/cfm-exercises.browser.mjs"],env);await run("npx",["tsx","tests/cfm-pilot.browser.mjs"],env);await run("npx",["tsx","tests/cfm-personal.browser.mjs"],env);}
   }
   if(process.argv.includes("--lesson-word-pools")) {
     await run("npx",["tsx","--test","tests/lesson-word-pool.test.ts","tests/lesson-word-pool.integration.test.mjs"],env);

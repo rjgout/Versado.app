@@ -64,14 +64,14 @@ try {
       base + lessonPath + (fullWeek ? "?weergave=volledig" : "/stappen/1"),
     );
     await page.locator("[data-study-reader]").waitFor();
-    await page.locator("[data-study-exercises]").waitFor();
+    await page.locator(fullWeek ? "[data-study-exercises]" : "[data-step-next]").waitFor();
     const historyBefore = await page.evaluate(() => history.length);
     const issuing = page.waitForResponse(
       (r) =>
         r.url().endsWith("/api/study-exercises") &&
         r.request().postDataJSON()?.action === "issue",
     );
-    await page.locator("[data-study-exercises]").click();
+    await page.locator(fullWeek ? "[data-study-exercises]" : "[data-step-next]").click();
     await page.waitForURL(base + questionPath);
     assert.equal(
       await page.evaluate(() => history.length),
@@ -224,18 +224,14 @@ try {
       path: `${out}/result-${width}-${scheme}.png`,
       fullPage: false,
     });
-    await page
-      .getByRole("link", { name: t("misc.backToLesson"), exact: true })
-      .click();
+    if (fullWeek) await page.getByRole("link", { name: t("misc.backToLesson"), exact: true }).click();
+    else await page.locator("[data-study-result-continue]").click();
     await page.locator("[data-study-reader]").waitFor();
     assert.equal(
       new URL(page.url()).pathname,
-      lessonPath + (fullWeek ? "" : "/stappen/1"),
+      lessonPath + (fullWeek ? "" : "/stappen/2"),
     );
-    if (!fullWeek)
-      await page
-        .getByText(t("cfmStudy.statusCompleted"), { exact: true })
-        .waitFor();
+
     assert.equal(
       await page.evaluate(() => history.length),
       historyBefore,
@@ -280,7 +276,7 @@ try {
   await realPage.goto(
     `${base}/study-lesson/${real.lesson.id}/${real.key}/stappen/1`,
   );
-  await realPage.locator("[data-study-exercises]").click();
+  await realPage.locator("[data-step-next]").click();
   await realPage.locator("[data-exercise-progress]").waitFor();
   await realPage.screenshot({
     path: out + "/official-2027-question-390-dark.png",
@@ -360,14 +356,10 @@ try {
   ]);
   const page = await context.newPage();
   await page.goto(`${base}/study-lesson/${f.lesson.id}/${f.key}/stappen/1`);
-  await page
-    .getByText(t("cfmExercises.unavailable"), { exact: true })
-    .waitFor();
+  await page.locator("[data-step-next]").waitFor();
   assert.equal(await page.locator("[data-study-exercises]").count(), 0);
-  await page.locator("[data-complete-step]").click();
-  await page
-    .getByText(t("cfmStudy.statusCompleted"), { exact: true })
-    .waitFor();
+  await page.locator("[data-step-next]").click();
+  await page.waitForURL(`${base}/study-lesson/${f.lesson.id}/${f.key}/stappen/2`);
   assert.equal(
     await prisma.xPTransaction.count({ where: { userId: a.user.id } }),
     0,

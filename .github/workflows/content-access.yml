@@ -642,3 +642,4 @@ jobs:
           path: |
             /tmp/versado-cfm-exercises-browser
             /tmp/versado-cfm-pilot-browser
+            /tmp/versado-cfm-personal-browser
