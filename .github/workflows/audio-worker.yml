@@ -1,0 +1,20 @@
+name: Audio Worker infrastructuur
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'deploy/audio-worker/**'
+      - 'tests/audio-worker/**'
+      - 'src/lib/audio/contract.ts'
+      - '.github/workflows/audio-worker.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audio-worker-infrastructure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - name: Compose- en containergrenzen, geen generator of NAS
+        run: python3 -m unittest discover -s tests/audio-worker -v

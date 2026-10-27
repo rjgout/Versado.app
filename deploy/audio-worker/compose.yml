@@ -1,0 +1,53 @@
+name: versado-audio-worker
+services:
+  audio-worker:
+    image: ${AUDIO_WORKER_IMAGE:-versado-audio-worker:local}
+    build:
+      context: ../..
+      dockerfile: deploy/audio-worker/Dockerfile
+    profiles: [manual]
+    # Standaard geen replica. Ook expliciet starten voert uitsluitend de statuscontrole uit.
+    deploy:
+      replicas: 0
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+          pids: 64
+    command: [status]
+    restart: 'no'
+    init: true
+    user: '${AUDIO_WORKER_UID:?Vul de gecontroleerde DSM-UID in}:${AUDIO_WORKER_GID:?Vul de gecontroleerde DSM-GID in}'
+    network_mode: none
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    cpus: '1.0'
+    mem_limit: 512M
+    pids_limit: 64
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=64m,mode=1777
+    environment:
+      WORKER_STORAGE_BUDGET_BYTES: '21474836480'
+    volumes:
+      - type: bind
+        source: ${AUDIO_WORKER_ROOT:-/volume1/versado-audio-worker}/jobs
+        target: /jobs
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${AUDIO_WORKER_ROOT:-/volume1/versado-audio-worker}/work
+        target: /work
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${AUDIO_WORKER_ROOT:-/volume1/versado-audio-worker}/outbox
+        target: /outbox
+        bind:
+          create_host_path: false
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'

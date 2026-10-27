@@ -277,3 +277,13 @@ hetzelfde. Publicatie-rollback wisselt uitsluitend een gevalideerde revisiepoint
 
 De eigenaar beheert dagelijkse Synology Hyper Backup. Er is geen onafhankelijke
 herstelproef uitgevoerd; dat is het eerder expliciet geaccepteerde restrisico.
+
+## Afzonderlijke Audio Worker voorbereiden
+
+De optionele, standaard uitgeschakelde stack `versado-audio-worker` staat in
+[de eigen Portainer-handleiding](../deploy/audio-worker/README.md). Zij deelt geen appdata,
+productiecredentials of database en publiceert geen poorten. Deze voorbereidende image genereert
+geen audio; de Nederlandse legacy-conversie blijft de bestaande appworker gebruiken.
+Controleer DSM-quota en niet-root maprechten zelf. Een stack aanmaken, image bouwen of statuscontainer
+op de NAS starten is een afzonderlijke wijzigingshandeling en vereist voorafgaande toestemming;
+deze handleiding start niets automatisch.
