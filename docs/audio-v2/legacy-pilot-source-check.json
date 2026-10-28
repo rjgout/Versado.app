@@ -1,0 +1,63 @@
+{
+  "scope": "Alleen eigen ontwikkelwerkmap en wegwerpdatabase; geen NAS/productie of fysieke telefoon",
+  "recordings": [
+    {
+      "id": "15e98edea75885a3babb27e7123ceda35945a0175c22ac2fbb357240570adc76",
+      "bookKey": "bofm/2-ne",
+      "chapterNumber": 22,
+      "language": "nl",
+      "editionKey": "bofm",
+      "sourceHash": "f0ca7bf508358be96b1bd900aab0f499a73ef03a5498dda775fde3d9e7139d88",
+      "url": "https://assets.churchofjesuschrist.org/ljfnju2jbpxqwaqopik0elpdzb03sbio6vkoauom-64k-nl.mp3",
+      "pageUrl": "https://www.churchofjesuschrist.org/study/api/v3/language-pages/type/content?lang=nld&uri=/scriptures/bofm/2-ne/22",
+      "sha256": "d4a86010697594745a72fea6a17d5e7aef0d3375207f21de115cbef459fb4d70",
+      "bytes": 557518,
+      "duration": 67.536,
+      "verses": 6,
+      "checkedAt": "2026-10-27T16:19:24.949461+00:00",
+      "httpStatus": 200,
+      "sha256Match": true,
+      "bytesMatch": true,
+      "mp3FullDecode": true
+    },
+    {
+      "id": "ed5800214d909cd2bf0f051611840449af6845d224f3bfe5b5ee4b46e87cf09b",
+      "bookKey": "bofm/1-ne",
+      "chapterNumber": 21,
+      "language": "nl",
+      "editionKey": "bofm",
+      "sourceHash": "3cb3eb4c33f2a90105b99b408a27edec2f62383bc8c732d30c82ba4cbb4f034c",
+      "url": "https://assets.churchofjesuschrist.org/pjekxwcxcgpsw73noj5w6t711r87any8scgjaj0c-64k-nl.mp3",
+      "pageUrl": "https://www.churchofjesuschrist.org/study/api/v3/language-pages/type/content?lang=nld&uri=/scriptures/bofm/1-ne/21",
+      "sha256": "f2581b2cd27328fdbab6929f17a76ce2b63425b1b7c72642a91e0b0ce55f62d9",
+      "bytes": 3486875,
+      "duration": 433.704,
+      "verses": 26,
+      "checkedAt": "2026-10-27T16:19:25.061420+00:00",
+      "httpStatus": 200,
+      "sha256Match": true,
+      "bytesMatch": true,
+      "mp3FullDecode": true
+    },
+    {
+      "id": "e83065189d4fdbe535b612fb8e86fc427aad79257bef9ed79e425d7aed493722",
+      "bookKey": "bofm/jacob",
+      "chapterNumber": 5,
+      "language": "nl",
+      "editionKey": "bofm",
+      "sourceHash": "f1dd4aba755c5ca84c76ee216125f139cbd89c19df74fc33e5bc54e52f335d3e",
+      "url": "https://assets.churchofjesuschrist.org/f99u1tnzhmdv5vlryrfo6bqlfyf6on8ikioct2k4-64k-nl.mp3",
+      "pageUrl": "https://www.churchofjesuschrist.org/study/api/v3/language-pages/type/content?lang=nld&uri=/scriptures/bofm/jacob/5",
+      "sha256": "c71393ab4dc22d0b78cb91f7029e33ebba3aba36b85284a50b852dd5700bb2be",
+      "bytes": 10540092,
+      "duration": 1315.368,
+      "verses": 77,
+      "checkedAt": "2026-10-27T16:19:26.693223+00:00",
+      "httpStatus": 200,
+      "sha256Match": true,
+      "bytesMatch": true,
+      "mp3FullDecode": true
+    }
+  ],
+  "isolatedChain": "Drie daadwerkelijke officiële bestanden; bron/tekst/alle 109 segmenten gecontroleerd; registratie, preview en afzonderlijke publicatie in eigen wegwerpdatabase; 205 legacy-hoofdstukgegevens en drie aanwezige oude bestanden ongewijzigd. Auditieve acceptatie door eigenaar blijft vereist."
+}

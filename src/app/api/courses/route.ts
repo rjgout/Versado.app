@@ -1,3 +1,4 @@
+import { cfmCourseListWhere } from "@/lib/studyContent/cfmCourses";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCourseChapterProgress } from "@/lib/learning/courseProgress";
@@ -11,6 +12,7 @@ import { courseArtworkKeys } from "@/lib/artwork";
 import { readingResumeHref } from "@/lib/courseResume";
 import { isStudyCourseType } from "@/lib/readingCourses";
 import { getStudyCourseSummary } from "@/lib/studyContent/courseSummary";
+import { courseTypeMatchesContent } from "@/lib/courseContent";
 
 export async function GET() {
   const user = await getCurrentUser();
@@ -21,7 +23,7 @@ export async function GET() {
 
   const [courses, userProgress] = await Promise.all([
     prisma.course.findMany({
-      where: { enabled: true, contentCollectionId: contentContext.active.id },
+      where: cfmCourseListWhere(user, contentContext.active.id),
       orderBy: { order: "asc" },
       include: {
         _count: { select: { chapters: true } },
@@ -42,7 +44,7 @@ export async function GET() {
   // Alleen de cursussen die deze gebruiker aan zijn persoonlijke lijst
   // toevoegde (zie subscribeUserToCourse) — de rest staat in de catalogus
   // (/api/courses/catalog, "Voeg nieuwe cursus toe").
-  const subscribedCourses = courses.filter((c) => progressByCourseId.has(c.id));
+  const subscribedCourses = courses.filter((c) => courseTypeMatchesContent(c.type, c.contentCollection.work) && progressByCourseId.has(c.id));
 
   const result = await Promise.all(
     subscribedCourses.map(async (course) => {

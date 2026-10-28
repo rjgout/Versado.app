@@ -8,7 +8,7 @@ import { getStreakContinuation } from "@/lib/streakContinuation";
 import { getTextOfTheDay, type DailyText } from "@/lib/dailyText";
 import { wordGamePeriod } from "@/lib/wordGame";
 import { getSubscribedCourseSummaries } from "@/lib/courseSummaries";
-import { BOFM_WORK, getContentContext } from "@/lib/contentCollections";
+import { getContentContext } from "@/lib/contentCollections";
 import { getGameSettings } from "@/lib/gameSettings";
 import { GAME_CATALOG, gameTitle, isGameVisible, type GameCatalogEntry } from "@/lib/gameCatalog";
 import { getFriendStatusMap } from "@/lib/presence";
@@ -208,14 +208,9 @@ export async function getTodayData(user: User): Promise<TodayData> {
         },
       },
     }),
-    // Gebruik de werkelijk actieve uitgave. Die is de bron van waarheid nadat
-    // de contentselector een werk of taal heeft gewisseld; zo blijft de tekst
-    // van de dag op Vandaag gelijk aan de gekozen contenttaal.
-    getTextOfTheDay(
-      new Date(),
-      contentContext.active.language,
-      contentContext.active.work === BOFM_WORK ? contentContext.active.id : undefined,
-    ),
+    // Vandaag volgt de actieve content, onafhankelijk van de bronkeuze voor push/mail.
+    getTextOfTheDay({ actor: user, collectionId: contentContext.active.id,
+      language: contentContext.active.language, timeZone: user.timeZone }),
     getGameSettings(),
     prisma.wordGame.findFirst({ where: { userId: user.id, dayKey: wordGameDay }, select: { status: true } }),
     prisma.alleskennerSoloRun.findFirst({ where: { userId: user.id, mode: "DAILY", dayKey: today }, select: { status: true } }),

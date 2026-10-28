@@ -93,6 +93,7 @@ export async function importKidsStories(
   if (!courseId) throw new Error("Kindercursus ontbreekt; draai eerst de import van de boeken (syncCourses).");
   const t = getT(language);
   const allImages = stories.flatMap((s) => s.images);
+  const totals = { items: 0, kept: 0, created: 0, deleted: 0 };
 
   for (let i = 0; i < stories.length; i++) {
     const seed = stories[i];
@@ -202,6 +203,8 @@ export async function importKidsStories(
       create: async (rows, options) => { await prisma.kidsExercise.createMany({ data: rows }); if (options.length > 0) await prisma.kidsExerciseOption.createMany({ data: options }); },
     });
 
+    totals.items++; totals.kept += stats.kept; totals.created += stats.created; totals.deleted += stats.deleted;
     log(`  - Verhaal ${seed.number} (${seed.title}): ${order} oefeningen (${stats.kept} behouden, ${stats.created} nieuw, ${stats.deleted} verwijderd)`);
   }
+  return totals;
 }

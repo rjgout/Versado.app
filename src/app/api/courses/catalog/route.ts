@@ -1,3 +1,4 @@
+import { cfmCourseListWhere } from "@/lib/studyContent/cfmCourses";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
@@ -7,6 +8,7 @@ import { localizedCourse } from "@/lib/courseText";
 import { getT } from "@/lib/i18n";
 import { apiError } from "@/lib/apiError";
 import { courseArtworkKeys } from "@/lib/artwork";
+import { courseTypeMatchesContent } from "@/lib/courseContent";
 
 // Cursussen die nog NIET in de persoonlijke lijst staan — voor de "Voeg
 // nieuwe cursus toe"-catalogus op /courses (en /courses/per-boek, dat dit
@@ -21,7 +23,7 @@ export async function GET() {
 
   const [courses, subscriptions] = await Promise.all([
     prisma.course.findMany({
-      where: { enabled: true, contentCollectionId: contentContext.active.id },
+      where: cfmCourseListWhere(user, contentContext.active.id),
       orderBy: { order: "asc" },
       include: {
         _count: { select: { chapters: true } },
@@ -36,7 +38,7 @@ export async function GET() {
   ]);
 
   const subscribedIds = new Set(subscriptions.map((s) => s.courseId));
-  const available = courses.filter((c) => !subscribedIds.has(c.id));
+  const available = courses.filter((c) => courseTypeMatchesContent(c.type, c.contentCollection.work) && !subscribedIds.has(c.id));
 
   return NextResponse.json({
     courses: available.map((c) => ({

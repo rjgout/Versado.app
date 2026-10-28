@@ -51,7 +51,35 @@ try{
  check('ontbrekende opname gebruikt apparaat-TTS',await page.evaluate(()=>window.__spoken[0].text==='Synthetische TTS-terugval'));
  await page.close();
  const adminContext=await browser.newContext({viewport:{width:320,height:900},serviceWorkers:'block'});await adminContext.addCookies([{name:SESSION_COOKIE,value:admin.token,url:base}]);page=await adminContext.newPage();
- const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto(base+'/adminbackend/content/audio');await page.getByRole('heading',{name:t('audioLibrary.title'),exact:true}).waitFor();
+ check('Schriftbeheer blijft achter webauthenticatie',(await fetch(base+'/api/admin/scripture-update')).status===401&&(await req('/api/admin/scripture-update')).status===403);
+ check('audiocontrole blijft achter beheerrechten',(await req('/api/admin/audio-checks')).status===403);
+ check('Schriftpublicatie weert vreemde origin',(await fetch(base+'/api/admin/scripture-update',{method:'POST',headers:{cookie:adminCookie,origin:'https://foreign.invalid','content-type':'application/json'},body:JSON.stringify({action:'publish',planHash:'a'.repeat(64)})})).status===403);
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ // Alleen de UI-transportlaag simuleren: echte publicatie/planvalidatie wordt afzonderlijk in content-update.integration getest.
+ const posts=[],planHash='a'.repeat(64);
+ let job={status:'done',action:'prepare',results:[],upToDate:false,logs:[],error:null};
+ await page.route('**/api/admin/scripture-update',async route=>{
+  if(route.request().method()==='POST') {posts.push(route.request().postDataJSON());job={...job,status:'running',action:'publish'};await route.fulfill({json:{started:true,job}});}
+  else await route.fulfill({json:{job,needsReview:0,runs:[{id:'browser-plan',kind:'SCRIPTURE_PREPARE',status:'OK',startedAt:'2026-01-01T00:00:00Z',durationMs:1,planHash}]}});
+ });
+ const openScripture=async()=>{await page.goto(base+'/adminbackend/systeem');const button=page.getByRole('button',{name:t('adminContentUpdate.publish'),exact:true,includeHidden:true});await button.waitFor({state:'attached'});await page.locator('details').filter({has:button}).locator('summary').first().click();return button;};
+ for(const width of [320,390,768]) {
+  job={...job,status:'done',action:'prepare'};await page.setViewportSize({width,height:900});const publish=await openScripture();
+  await page.evaluate(()=>document.documentElement.style.fontSize='200%');
+  check(`Schriftbeheer past op ${width}px met 200% tekst`,await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
+  await publish.click();await page.getByRole('dialog').getByRole('button',{name:t('common.cancel'),exact:true}).click();
+  check(`annuleren publiceert niets op ${width}px`,posts.length===0);
+ }
+ await page.getByRole('button',{name:t('adminContentUpdate.publish'),exact:true}).click();
+ const sent=page.waitForResponse(r=>r.url().endsWith('/api/admin/scripture-update')&&r.request().method()==='POST');
+ await page.getByRole('dialog').getByRole('button',{name:t('adminContentUpdate.publish'),exact:true}).click();await sent;
+ check('Schriftpublicatie stuurt uitsluitend het voorbereide plan',posts.length===1&&posts[0].action==='publish'&&posts[0].planHash===planHash);
+ await page.getByRole('button',{name:t('adminContentUpdate.check'),exact:true}).waitFor();
+ await page.waitForFunction(label=>[...document.querySelectorAll('button')].find(b=>b.textContent===label)?.disabled,t('adminContentUpdate.check'));
+ check('lopende Schriftpublicatie blokkeert dubbele acties',await page.getByRole('button',{name:t('adminContentUpdate.prepare'),exact:true}).isDisabled());
+ const running=await openScripture();check('herladen behoudt de lopende taak',await running.isDisabled());
+ await page.setViewportSize({width:320,height:900});
+ await page.goto(base+'/adminbackend/content/audio');await page.getByRole('heading',{name:t('audioLibrary.title'),exact:true}).waitFor();
  check('beheeroverzicht rendert',await page.getByText(t('audioLibrary.legacy'),{exact:true}).count()===1);
  await page.locator('summary').filter({hasText:'Audio test · nl'}).first().click();await page.locator('details[open] summary').filter({hasText:t('audioLibrary.view')}).first().click();
  check('beheer toont opnamen en kwaliteitsstatus',await page.locator('details[open] > div > details[open]').getByText(/Kwaliteit: VALIDATED/).first().isVisible());

@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
     // dit eindpunt worden misbruikt om iemand met e-mails lastig te vallen.
     if (await isEmailConfigured() && maySendRegistrationNotice(email)) {
       const { subject, html, text } = registrationAttemptTemplate(getT(existingEmail.uiLanguage));
-      await sendMail({ to: existingEmail.email, subject, html, text });
+      await sendMail({ to: existingEmail.email, subject, html, text, meta: { kind: "REGISTRATION_NOTICE", userId: existingEmail.id } });
     }
     return NextResponse.json(GENERIC_RESPONSE);
   }

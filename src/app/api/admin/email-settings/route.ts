@@ -6,6 +6,7 @@ import { apiError } from "@/lib/apiError";
 
 const schema = z.object({
   enabled: z.boolean(),
+  trackOpens: z.boolean().optional(),
   smtpHost: z.string().trim(),
   smtpPort: z.number().int().min(1).max(65535),
   smtpSecure: z.boolean(),

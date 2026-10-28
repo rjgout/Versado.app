@@ -90,7 +90,9 @@ Een celebration die volgt uit het afronden van een activiteit (reeksviering,
 mijlpaal, beloning) verdringt nooit de resultaatkaart van die activiteit: de
 primaire completion-flow heeft voorrang en secundaire vieringen verschijnen pas
 als de gebruiker de activiteit verlaat. Gebruik daarvoor
-`src/lib/celebrationGate.ts`; zie "Voorrangsregel voor vieringen" in
+`src/lib/celebrationGate.ts`. Een compacte, wegveegbare reeksbanner mag direct
+verschijnen zonder het spel te pauzeren of de fullscreen viering te claimen.
+Zie "Voorrangsregel voor vieringen" in
 `docs/VERSADO-DESIGN.md`.
 
 Snelle Zendeling gebruikt specifieke glide/boost-gameplaysprites; die zijn

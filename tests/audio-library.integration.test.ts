@@ -6,7 +6,9 @@ import { execFileSync, spawn } from "node:child_process";
 import { prisma } from "../src/lib/db";
 import { chapterSourceHash, sha256, type AudioManifest } from "../src/lib/audio/contract";
 import { importAudioPackage, publishAudio, activeChapterAudio, accessibleRecording, scanAudioPackages } from "../src/lib/audio/library";
+import { syncCourses } from "../src/lib/courses";
 import { ensureHiddenAudioTextEditions } from "../src/lib/audio/hiddenEditions";
+import { flagAudioForTextChanges, markAudioCurrent } from "../src/lib/audioCheck";
 import { importChapterAudio } from "../prisma/importAudio";
 const url = new URL(process.env.AUDIO_TEST_DATABASE_URL ?? "http://invalid");
 if (url.hostname !== "127.0.0.1" || url.pathname !== "/versado_audio_test" || process.env.DATABASE_URL !== url.href) throw new Error("Eigen audiorunner vereist");
@@ -16,7 +18,8 @@ async function chapter(id = chapterId) { return prisma.chapter.findUniqueOrThrow
 async function fixture(name: string, options: { chapterId?: string; quality?: "VALIDATED" | "NEEDS_REVIEW"; mutate?: (manifest: AudioManifest) => void } = {}) {
  const ch=await chapter(options.chapterId),folder=path.join(root,"incoming",name);await fs.mkdir(folder,{recursive:true});
  const segments=Buffer.from(JSON.stringify({schemaVersion:1,segments:ch.verses.map((v,i)=>({id:v.id,kind:"VERSE",sourceHash:sha256(v.text),start:i+0.2,end:i+1.2}))}));
- const manifest:AudioManifest={schemaVersion:1,packageId:name,collectionId:"audio-test-nl",work:"bofm",editionKey:"default",language:"nl",target:{kind:"CHAPTER",bookKey:"bofm/audio-test",chapterNumber:ch.number},sourceHash:chapterSourceHash(ch),sourceKind:"OFFICIAL",source:{name:"Synthetische bron",url:"https://assets.churchofjesuschrist.org/audio-fixture.mp3",checkedAt:new Date().toISOString(),rights:"Uitsluitend testfixture"},voice:{name:"test"},audio:{file:"audio.mp3",sha256:sha256(bytes),bytes:bytes.length,duration,format:"mp3"},segments:{file:"segments.json",sha256:sha256(segments)},quality:options.quality??"VALIDATED"};
+ // Afzonderlijke testopnamen hebben een eigen bron-URL; gelijke canonieke identiteit hoort voortaan één opname te geven.
+ const manifest:AudioManifest={schemaVersion:1,packageId:name,collectionId:"audio-test-nl",work:"bofm",editionKey:"default",language:"nl",target:{kind:"CHAPTER",bookKey:"bofm/audio-test",chapterNumber:ch.number},sourceHash:chapterSourceHash(ch),sourceKind:"OFFICIAL",source:{name:"Synthetische bron",url:`https://assets.churchofjesuschrist.org/audio-fixture-${name}.mp3`,checkedAt:new Date().toISOString(),rights:"Uitsluitend testfixture"},voice:{name:"test"},audio:{file:"audio.mp3",sha256:sha256(bytes),bytes:bytes.length,duration,format:"mp3"},segments:{file:"segments.json",sha256:sha256(segments)},quality:options.quality??"VALIDATED"};
  options.mutate?.(manifest);
  await fs.writeFile(path.join(folder,"audio.mp3"),bytes);await fs.writeFile(path.join(folder,"segments.json"),segments);await fs.writeFile(path.join(folder,"manifest.json"),JSON.stringify(manifest));await fs.writeFile(path.join(folder,"READY"),"1\n");
  return {folder,manifest};
@@ -61,6 +64,30 @@ test("beheerpublicatie en toegang: gewone gebruiker geen preview of beheerrechte
  const p=await publishAudio(admin,first,0);assert.equal(p.version,1);
  assert.ok(await accessibleRecording(ordinary,first));assert.ok(await activeChapterAudio(await chapter()));
  await assert.rejects(publishAudio(admin,first,0),/PUBLICATION_CONFLICT/);
+});
+test("twee pakket-ID's met een nieuw checkedAt geven op twee processen één canonieke officiële opname",async()=>{
+ const source="https://assets.churchofjesuschrist.org/canonical-retry.mp3";
+ const first=await fixture("canonical-first",{mutate:m=>{m.source.url=source;}}),second=await fixture("canonical-second",{mutate:m=>{m.source.url=source;m.source.checkedAt=new Date(Date.now()+1000).toISOString();}});
+ await Promise.all([first,second].map(f=>new Promise<void>((resolve,reject)=>{
+  const child=spawn(process.execPath,["--import","tsx","tests/fixtures/audio/import-worker.ts",f.folder],{env:process.env,stdio:["ignore","pipe","pipe"]});let errors="";child.stderr.on("data",d=>{errors+=d;});child.on("error",reject);child.on("exit",code=>code===0?resolve():reject(Error(errors)));
+ })));
+ assert.equal(await prisma.audioRecording.count({where:{sourceMetadata:{path:["url"],equals:source}}}),1);
+ assert.equal(await prisma.audioPackage.count({where:{id:{in:["canonical-first","canonical-second"]},status:"READY"}}),2);
+});
+test("nieuwe kwaliteit en tijdcodes blijven aparte onveranderlijke versies; een echte replay dupliceert niet",async()=>{
+ const source="https://assets.churchofjesuschrist.org/versioned-alignment.mp3";
+ const review=await fixture("version-review",{quality:"NEEDS_REVIEW",mutate:m=>{m.source.url=source;}});
+ const checked=await fixture("version-checked",{mutate:m=>{m.source.url=source;}});
+ assert.equal((await importAudioPackage(review.folder)).status,"READY");assert.equal((await importAudioPackage(checked.folder)).status,"READY");
+ const revised=await fixture("version-revised",{mutate:m=>{m.source.url=source;}});
+ const payload=JSON.parse(await fs.readFile(path.join(revised.folder,"segments.json"),"utf8"));
+ for(const segment of payload.segments){segment.start+=0.05;segment.end+=0.05;}
+ const data=Buffer.from(JSON.stringify(payload));revised.manifest.segments.sha256=sha256(data);await fs.writeFile(path.join(revised.folder,"segments.json"),data);await fs.writeFile(path.join(revised.folder,"manifest.json"),JSON.stringify(revised.manifest));
+ assert.equal((await importAudioPackage(revised.folder)).status,"READY");
+ const replay=await fixture("version-replay",{mutate:m=>{m.source.url=source;m.segments.sha256=sha256(data);}});await fs.writeFile(path.join(replay.folder,"segments.json"),data);
+ assert.equal((await importAudioPackage(replay.folder)).status,"READY");
+ assert.equal(await prisma.audioRecording.count({where:{sourceMetadata:{path:["url"],equals:source}}}),3,"review, geldig en nieuwe grenzen behouden ieder hun eigen versie");
+ assert.equal((await prisma.audioRecording.findUniqueOrThrow({where:{packageId:"version-review"}})).quality&&((await prisma.audioRecording.findUniqueOrThrow({where:{packageId:"version-review"}})).quality as {status:string}).status,"NEEDS_REVIEW");
 });
 test("defecte checksum en verkeerde editie blijven FAILED; actieve opname blijft behouden",async()=>{
  for(const [name,mutate] of [["bad-checksum",(m:AudioManifest)=>{m.audio.sha256="0".repeat(64);}],["bad-language",(m:AudioManifest)=>{m.language="en";}],["bad-source",(m:AudioManifest)=>{m.sourceHash="0".repeat(64);}]] as const){
@@ -164,10 +191,22 @@ test("intrekking tijdens lockwachten verhindert een nieuwe beheerpublicatie",asy
  admin={...admin,sessionVersion:admin.sessionVersion+1};
 });
 test("tekstupdate blokkeert oude opname én publicatie, behoudt bestanden en legacygegevens",async()=>{
- const previous=await chapter();await prisma.verse.update({where:{id:previous.verses[0].id},data:{text:"Gewijzigde tekst"}});
- assert.equal(await activeChapterAudio(await chapter()),null);assert.equal(await accessibleRecording({isAdmin:false},first),null);
- await assert.rejects(publishAudio(admin,first,2),/SOURCE_MISMATCH/);
- await prisma.verse.update({where:{id:previous.verses[0].id},data:{text:previous.verses[0].text}});
+ const previous=await chapter();
+ await flagAudioForTextChanges(prisma,[{chapterId,hasAudio:true,before:previous.verses.map(v=>v.text),after:["Gewijzigde tekst",previous.verses[1].text]}]);
+ await prisma.verse.update({where:{id:previous.verses[0].id},data:{text:"Gewijzigde tekst"}});
+ try {
+  assert.equal((await prisma.chapterAudioCheck.findUniqueOrThrow({where:{chapterId}})).status,"NEEDS_REVIEW");
+  assert.equal(await activeChapterAudio(await chapter()),null);assert.equal(await accessibleRecording({isAdmin:false},first),null);
+  await assert.rejects(publishAudio(admin,first,2),/SOURCE_MISMATCH/);
+  await markAudioCurrent(prisma,chapterId,admin.id);
+  assert.equal(await activeChapterAudio(await chapter()),null,"legacy-bevestiging omzeilt nooit de V2-brontekstbinding");
+  await assert.rejects(publishAudio(admin,first,2),/SOURCE_MISMATCH/);
+  assert.equal((await chapter()).audioUrl,previous.audioUrl);
+  assert.deepEqual((await chapter()).verses.map(v=>v.audioStart),previous.verses.map(v=>v.audioStart));
+ } finally {
+  await prisma.verse.update({where:{id:previous.verses[0].id},data:{text:previous.verses[0].text}});
+  await markAudioCurrent(prisma,chapterId);
+ }
 });
 test("ontbrekend of corrupt gepubliceerd object valt terug op TTS en kan niet opnieuw worden gepubliceerd",async()=>{
  const file=path.join(root,"objects",sha256(bytes)+".mp3");
@@ -187,6 +226,48 @@ test("contenttoegang volgt publicatie en zichtbaarheid; adminpreview blijft expl
 test("onvolledige legacy-import wist geen Nederlandse hoofdstukaudio of verstijdcodes",async()=>{
  const previous=await chapter();await importChapterAudio(prisma,[],"audio-test-nl",()=>{});assert.deepEqual(await chapter(),previous);
 });
+test("ongeldige legacy-tijdcodes behouden audio en markeren de controle; ongewijzigde gegevens lossen die niet op",async()=>{
+ const previous=await chapter();
+ const entry={book:"bofm/audio-test",chapter:1,url:previous.audioUrl!,headingStart:previous.audioHeadingStart??0,headingEnd:previous.audioHeadingEnd??0,verseStarts:previous.verses.map(v=>v.audioStart!)};
+ for(const invalid of [
+  {...entry,headingStart:Number.NaN}, {...entry,headingEnd:Number.POSITIVE_INFINITY},
+  {...entry,headingStart:2,headingEnd:1}, {...entry,headingStart:-1},
+  {...entry,verseStarts:[0.2]}, {...entry,verseStarts:[1.2,0.2]},
+  {...entry,verseStarts:[-1,1]}, {...entry,verseStarts:[0,Number.NaN]},
+ ]) {
+  await importChapterAudio(prisma,[invalid],"audio-test-nl",()=>{});
+  assert.deepEqual(await chapter(),previous);
+  assert.equal((await prisma.chapterAudioCheck.findUniqueOrThrow({where:{chapterId}})).status,"NEEDS_REVIEW");
+ }
+ // Maak kopgegevens gelijk voordat een ongewijzigde import wordt beoordeeld.
+ await prisma.chapter.update({where:{id:chapterId},data:{audioHeadingStart:entry.headingStart,audioHeadingEnd:entry.headingEnd}});
+ await importChapterAudio(prisma,[entry],"audio-test-nl",()=>{});
+ assert.equal((await prisma.chapterAudioCheck.findUniqueOrThrow({where:{chapterId}})).status,"NEEDS_REVIEW");
+ await prisma.chapter.update({where:{id:chapterId},data:{audioHeadingStart:previous.audioHeadingStart,audioHeadingEnd:previous.audioHeadingEnd}});
+});
+test("legacy-audio, verstijdcodes en controle rollen samen terug; een geldige retry behoudt V2-publicatie",async()=>{
+ const previous=await chapter(),publication=await prisma.audioPublication.findUniqueOrThrow({where:{targetKey:`chapter:${chapterId}`}});
+ const check=await prisma.chapterAudioCheck.findUniqueOrThrow({where:{chapterId}});
+ const entry={book:"bofm/audio-test",chapter:1,url:"https://assets.churchofjesuschrist.org/replacement.mp3",headingStart:0,headingEnd:0.5,verseStarts:[0.75,1.75]};
+ await prisma.$executeRawUnsafe(`CREATE FUNCTION audio_legacy_fail() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW."audioStart" = 0.75 THEN RAISE EXCEPTION 'legacy timing test failure'; END IF; RETURN NEW; END $$`);
+ await prisma.$executeRawUnsafe(`CREATE TRIGGER audio_legacy_fail BEFORE UPDATE ON "Verse" FOR EACH ROW EXECUTE FUNCTION audio_legacy_fail()`);
+ try {
+  await assert.rejects(importChapterAudio(prisma,[entry],"audio-test-nl",()=>{}),/legacy timing test failure/);
+  assert.deepEqual(await chapter(),previous);
+  assert.deepEqual(await prisma.chapterAudioCheck.findUniqueOrThrow({where:{chapterId}}),check);
+ } finally {
+  await prisma.$executeRawUnsafe(`DROP TRIGGER audio_legacy_fail ON "Verse"`);
+  await prisma.$executeRawUnsafe(`DROP FUNCTION audio_legacy_fail()`);
+ }
+ await importChapterAudio(prisma,[entry],"audio-test-nl",()=>{});
+ assert.equal((await prisma.chapterAudioCheck.findUniqueOrThrow({where:{chapterId}})).status,"CURRENT");
+ assert.deepEqual((await chapter()).verses.map(v=>v.audioStart),entry.verseStarts);
+ const approved=await prisma.chapterAudioCheck.findUniqueOrThrow({where:{chapterId}});
+ await importChapterAudio(prisma,[entry],"audio-test-nl",()=>{});
+ assert.deepEqual(await prisma.chapterAudioCheck.findUniqueOrThrow({where:{chapterId}}),approved,"een identieke retry schrijft geen controle opnieuw");
+ assert.deepEqual(await prisma.audioPublication.findUniqueOrThrow({where:{targetKey:`chapter:${chapterId}`}}),publication);
+ assert.ok(await activeChapterAudio(await chapter()));
+});
 test("automatische scanner registreert een volgende vraag zonder publicatie of Redis",async()=>{
  for(let i=0;i<25;i++)await fs.mkdir(path.join(root,"incoming",`aaa-incomplete-${i}`));
  const f=await fixture("scanner",{chapterId:otherChapter});assert.ok(f.folder);await scanAudioPackages();
@@ -201,6 +282,9 @@ test("databaseconstraints beschermen collectiebinding, target en verwijdercascad
 
 test("zes goedgekeurde ontbrekende tekstuitgaven blijven verborgen, idempotent en zonder leereffecten",async()=>{
  await ensureHiddenAudioTextEditions(prisma);
+ // De volledige Contentbeheer-naloop mag deze tekstuitgaven niet tot cursussen promoveren.
+ await syncCourses(prisma);
+ await syncCourses(prisma, { scriptures: false });
  for(const prefix of ["dc","pgp"])for(const language of ["de","fr","es"]){
   const id=`content_${prefix}_${language}`,c=await prisma.contentCollection.findUniqueOrThrow({where:{id}});
   assert.equal(c.editionKey,prefix === "dc" ? "dc-testament" : "pgp");assert.equal(c.enabled,false);assert.equal(c.visibleToUsers,false);assert.equal(c.publicationState,"DRAFT");
@@ -212,4 +296,29 @@ test("zes goedgekeurde ontbrekende tekstuitgaven blijven verborgen, idempotent e
  await prisma.verse.update({where:{id:verse.id},data:{text:"Bestaande beheerwijziging voor idempotentietest"}});
  try {await ensureHiddenAudioTextEditions(prisma);assert.equal(await prisma.verse.count({where:{chapter:{book:{contentCollectionId:"content_dc_de"}}}}),count);assert.equal((await prisma.verse.findUniqueOrThrow({where:{id:verse.id}})).text,"Bestaande beheerwijziging voor idempotentietest");}
  finally{await prisma.verse.update({where:{id:verse.id},data:{text:verse.text}});}
+});
+
+
+test("alle 205 Nederlandse legacy-audiohoofdstukken blijven exact behouden bij herimport en aanvullende cursussynchronisatie", async () => {
+ const { seedBooks } = await import("../prisma/content");
+ const { importBooks } = await import("../prisma/importContent");
+ const { default: entries } = await import("../prisma/bomAudio.json");
+ assert.equal(entries.length, 205);
+ await importBooks(prisma, seedBooks, () => {}, "content_bom", { syncCourses: false });
+ await importChapterAudio(prisma, entries, "content_bom", () => {});
+ const state = () => prisma.chapter.findMany({ where: { book: { contentCollectionId: "content_bom" }, audioUrl: { not: null } }, orderBy: { id: "asc" }, select: { id: true, audioUrl: true, audioHeadingStart: true, audioHeadingEnd: true, audioCheck: true, verses: { orderBy: { number: "asc" }, select: { id: true, text: true, audioStart: true } } } });
+ // De migratiefixture heeft één extra synthetisch audiohoofdstuk, buiten de beschermde bron.
+ const before = await state();
+ assert.equal(before.filter((c) => c.id !== "audio-before-chapter").length, 205);
+ const filesBefore = await fs.readdir(root);
+ const pointers = await prisma.audioPublication.findMany({ orderBy: { targetKey: "asc" } });
+ await syncCourses(prisma);
+ const courses = await prisma.course.findMany({ where: { type: { in: ["FREE_CHOICE", "FRONT_TO_BACK", "READING_LESSONS"] } }, orderBy: { id: "asc" }, include: { lessons: { orderBy: { id: "asc" }, include: { exercises: true } } } });
+ await importBooks(prisma, seedBooks, () => {}, "content_bom", { syncCourses: false });
+ await importChapterAudio(prisma, entries, "content_bom", () => {});
+ await syncCourses(prisma, { scriptures: false });
+ assert.deepEqual(await state(), before, "tekst, id's, audio, koppen, vers-tijdcodes en controlemarkeringen blijven gelijk");
+ assert.deepEqual(await fs.readdir(root), filesBefore, "geen audiobestanden gedownload, verwijderd of toegevoegd");
+ assert.deepEqual(await prisma.audioPublication.findMany({ orderBy: { targetKey: "asc" } }), pointers, "geen Audio V2-publicatie gewijzigd");
+ assert.deepEqual(await prisma.course.findMany({ where: { type: { in: ["FREE_CHOICE", "FRONT_TO_BACK", "READING_LESSONS"] } }, orderBy: { id: "asc" }, include: { lessons: { orderBy: { id: "asc" }, include: { exercises: true } } } }), courses, "aanvullende update raakt schriftcursussen en leskoppelingen niet");
 });

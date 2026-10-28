@@ -4,6 +4,10 @@ Alle belangrijke gebruikersgerichte wijzigingen en releases worden hieronder bij
 
 ## Nog niet uitgebracht
 
+- Verbeterd (Kom dan en volg Mij): Volgende stap bewaart de leesvoortgang en opent beschikbare leesvragen. De bestaande resultaatweergave gaat rechtstreeks verder; handmatig afvinken en de losse oefenknop zijn uit de persoonlijke stapweergave verwijderd. Ontbrekende vragen blokkeren lezen niet; onderbroken oefeningen blijven hervatbaar.
+
+- Nieuw (Kom dan en volg Mij): de Nederlandse pilotweek 5–11 januari 2026 biedt officiële schriftlezing en drie leesvragen per stap. De volledige week gebruikt dezelfde achttien vragen en bestaande XP-regels. Lezen zonder vragen blijft mogelijk; bestaande notities en voortgang blijven behouden.
+
 - Nieuw (beheer): audiobibliotheek met zelfstandige pakketontvangst, bron- en tekstversiecontrole en bewuste publicatie per opname. Bestaande hoofdstukaudio en apparaat-TTS blijven beschikbaar; onzekere verstijdcodes blijven ter beoordeling afgeschermd.
 
 - Beveiliging: Next.js bijgewerkt naar 16.4.2 voor de gepubliceerde kwetsbaarheden in afbeeldingsoptimalisatie, Server Actions en caching.

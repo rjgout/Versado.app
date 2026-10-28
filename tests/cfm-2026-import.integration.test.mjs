@@ -40,7 +40,7 @@ async function bulkPublicationScenarios({ f, collection, editions, report, befor
   assert.equal(review.ready, 52);
   assert.equal(review.blocked + review.missing, 0);
   assert.equal(review.totals.blocking, 0);
-  assert.equal(review.totals.displayOnly, 553, "de 553 bekende, gecontroleerde niet-klikbare verwijzingen");
+  assert.equal(review.totals.displayOnly, 554, "553 beoordeelde gevallen plus de foutieve Johannes/Exodus-bronlink");
   assert.equal(review.totals.figures, review.totals.mediaReady);
   assert.equal(review.lessons.length, 52);
   await assert.rejects(studyProgramReview(f.owner.actor, collection.id), (e) => e.code === "FORBIDDEN");
@@ -371,12 +371,12 @@ test("52 officiële CFM-concepten: echte OTB-doelen, persistente media, idempote
   }
   const refs = report.lessons.flatMap((l) => l.references),
     internal = refs.filter((r) => r.diagnosis === "INTERNAL_VERIFIED");
-  assert.equal(internal.length, 1960);
+  assert.equal(internal.length, 1959); // Johannes 1:14 met een Exodus-bron blijft veilig geblokkeerd.
   assert.equal(
     refs.filter((r) => r.diagnosis === "EXTERNAL_VERIFIED").length,
     1001,
   );
-  assert.equal(refs.filter((r) => r.diagnosis === "UNRESOLVED").length, 553);
+  assert.equal(refs.filter((r) => r.diagnosis === "UNRESOLVED").length, 554);
   const adminOverview = await fetch(`${assertReferenceTestEnvironment()}/api/admin/study-publications`, { headers: { cookie: f.admin.cookie } });
   assert.equal(adminOverview.status, 200);
   const overview = await adminOverview.json();
@@ -408,19 +408,31 @@ test("52 officiële CFM-concepten: echte OTB-doelen, persistente media, idempote
     }),
     media: await prisma.contentMedia.count(),
   };
-  // Echte API → achtergrondjob → runSeed → CFM. Stop de legacyfase vóór iedere boekwrite/netwerkimport.
+  // Echte API → achtergrondjob → runSeed → CFM. De gewone update schrijft geen Schriften meer (die lopen via de aparte Schriftpublicatie):
+  // een Book-trigger bewaakt dat, en een stop vóór de eerste netwerkstap (podcastfeed) houdt de test lokaal en deterministisch.
   const orderBefore=collection.order;
   await prisma.contentCollection.update({where:{id:collection.id},data:{order:-1000}});
-  await prisma.$executeRawUnsafe(`CREATE FUNCTION "testCfmSeedBoundary"() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW."contentCollectionId" <> 'content_bom' THEN RAISE EXCEPTION 'WRONG_CANONICAL_SOURCE'; END IF; RAISE EXCEPTION 'SYNTHETIC_LEGACY_BOUNDARY'; END $$`);
-  await prisma.$executeRawUnsafe(`CREATE TRIGGER "testCfmSeedBoundary" BEFORE INSERT OR UPDATE ON "Book" FOR EACH ROW EXECUTE FUNCTION "testCfmSeedBoundary"()`);
+  await prisma.$executeRawUnsafe(`CREATE FUNCTION "testCfmSeedBook"() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'SCRIPTURE_WRITTEN_BY_RESEED'; END $$`);
+  await prisma.$executeRawUnsafe(`CREATE TRIGGER "testCfmSeedBook" BEFORE INSERT OR UPDATE ON "Book" FOR EACH ROW EXECUTE FUNCTION "testCfmSeedBook"()`);
+  await prisma.$executeRawUnsafe(`CREATE FUNCTION "testCfmSeedBoundary"() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'SYNTHETIC_LEGACY_BOUNDARY'; END $$`);
+  await prisma.$executeRawUnsafe(`CREATE TRIGGER "testCfmSeedBoundary" BEFORE INSERT OR UPDATE ON "Podcast" FOR EACH ROW EXECUTE FUNCTION "testCfmSeedBoundary"()`);
+  // De gewone cursussynchronisatie na CFM mag in deze fixture geen andere cursus dan de twee CFM-cursussen aanraken.
+  const cfmSlugSql=`ARRAY[${cfmCourseSlugs.map((slug)=>`'${slug.replace(/'/g,"''")}'`).join(",")}]::text[]`;
+  await prisma.$executeRawUnsafe(`CREATE FUNCTION "testCfmSeedCourse"() RETURNS trigger LANGUAGE plpgsql AS $$ DECLARE s text; BEGIN IF TG_OP = 'DELETE' THEN s := OLD."slug"; ELSE s := NEW."slug"; END IF; IF s = ANY(${cfmSlugSql}) THEN IF TG_OP = 'DELETE' THEN RETURN OLD; END IF; RETURN NEW; END IF; RAISE EXCEPTION 'SYNTHETIC_LEGACY_BOUNDARY'; END $$`);
+  await prisma.$executeRawUnsafe(`CREATE TRIGGER "testCfmSeedCourse" BEFORE INSERT OR UPDATE OR DELETE ON "Course" FOR EACH ROW EXECUTE FUNCTION "testCfmSeedCourse"()`);
   try {
     const start=async()=>fetch(base+"/api/admin/reseed",{method:"POST",headers:{cookie:f.admin.cookie,Origin:base,"Content-Type":"application/json"},body:JSON.stringify({approvedSnapshot:await cfmApprovedSnapshot(),confirmDraftsOnly:true})});
     const response=await start();assert.equal(response.status,200);assert.equal((await response.json()).started,true);
     const duplicate=await start();assert.equal((await duplicate.json()).started,false);
     let status;
     for(let n=0;n<180;n++){status=(await (await fetch(base+"/api/admin/reseed",{headers:{cookie:f.admin.cookie}})).json()).job;if(status.status!=="running")break;await delay(500);}
-    assert.equal(status.status,"error");assert.match(status.error,/SYNTHETIC_LEGACY_BOUNDARY/);assert.ok(!status.error.includes("WRONG_CANONICAL_SOURCE"));assert.equal(status.progress.current,52);assert.equal(status.progress.work,"cfm-old-testament-2026");
-  } finally {await prisma.$executeRawUnsafe(`DROP TRIGGER "testCfmSeedBoundary" ON "Book"`);await prisma.$executeRawUnsafe(`DROP FUNCTION "testCfmSeedBoundary"()`);await prisma.contentCollection.update({where:{id:collection.id},data:{order:orderBefore}});}
+    assert.equal(status.status,"error");assert.match(status.error,/SYNTHETIC_LEGACY_BOUNDARY/);assert.ok(!status.error.includes("SCRIPTURE_WRITTEN_BY_RESEED"));assert.equal(status.progress.current,52);assert.equal(status.progress.work,"cfm-old-testament-2026");
+  } finally {
+    await prisma.$executeRawUnsafe(`DROP TRIGGER IF EXISTS "testCfmSeedBoundary" ON "Podcast"`);await prisma.$executeRawUnsafe(`DROP FUNCTION IF EXISTS "testCfmSeedBoundary"()`);
+    await prisma.$executeRawUnsafe(`DROP TRIGGER IF EXISTS "testCfmSeedCourse" ON "Course"`);await prisma.$executeRawUnsafe(`DROP FUNCTION IF EXISTS "testCfmSeedCourse"()`);
+    await prisma.$executeRawUnsafe(`DROP TRIGGER IF EXISTS "testCfmSeedBook" ON "Book"`);await prisma.$executeRawUnsafe(`DROP FUNCTION IF EXISTS "testCfmSeedBook"()`);
+    await prisma.contentCollection.update({where:{id:collection.id},data:{order:orderBefore}});
+  }
   for (const flags of [
     { visibleToUsers: true, publicationState: "DRAFT" },
     { visibleToUsers: false, publicationState: "LEGACY" },

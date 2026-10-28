@@ -122,8 +122,9 @@ test("navigatiescenario's A–E volgens het contract", () => {
 
 test("stapvoortgang en leespositie blijven aan de stap en de revisie hangen, niet aan de navigatie", () => {
   const reader = read("src/components/study/StudyReader.tsx");
-  assert.match(reader, /completeStep/);
-  assert.match(reader, /data-complete-step/);
+  assert.match(reader, /continueStep/);
+  assert.doesNotMatch(reader, /data-complete-step/);
+  assert.match(reader, /action: "CONTINUE"/);
   assert.match(reader, /studyReader\.updateAvailable/, "de melding over een nieuwere leespositie/versie blijft");
   const stepRoute = read("src/app/study-lesson/[lessonId]/[collectionId]/stappen/[stap]/page.tsx");
   assert.match(stepRoute, /markCfmCourseStarted\(prisma, user\.id, parsed\.data\.collectionId, "STEPS"\)/);
