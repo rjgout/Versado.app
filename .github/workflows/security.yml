@@ -13,6 +13,9 @@ on:
       - 'prisma/**'
       - 'package*.json'
       - 'scripts/security/**'
+      - 'scripts/privacy/**'
+      - 'tests/personal-data-inventory*'
+      - 'docs/PERSOONSGEGEVENS-INVENTARIS.md'
       - 'tests/security*'
       - '.github/workflows/security.yml'
       - '.env.example'
@@ -20,6 +23,11 @@ on:
 
 permissions:
   contents: read
+
+# De typecontrole van `next build` en `tsc` raakt op main de standaard Node-heap (OOM, gemeten op 28 oktober 2026);
+# een ruimere heap voorkomt dat elke build willekeurig faalt. Alleen CI, geen productiegedrag.
+env:
+  NODE_OPTIONS: --max-old-space-size=4096
 
 jobs:
   security:
@@ -37,6 +45,6 @@ jobs:
       - run: npm ci
       - run: npx prisma validate && npm run db:generate && npm run build
       - run: npm run test:security:integration
-      - run: npm run test:native && npm run test:profile && npm run test:exercise-feedback
+      - run: npm run test:native && npm run test:profile && npm run test:exercise-feedback && npm run test:privacy
       - run: npx tsc --noEmit && npm run lint
       - run: npm audit --omit=dev --audit-level=high

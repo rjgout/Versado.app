@@ -278,7 +278,7 @@ De onafhankelijke review volgt door ChatGPT. #176 en #178 blijven ongemerged.
 <!-- BEGIN NATIVE PARITY INVENTORY -->
 ## Volledige broninventaris (gegenereerd)
 
-Gevonden: **143 pagina's**, **244 fysieke routehandlers**, **431 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
+Gevonden: **145 pagina's**, **244 fysieke routehandlers**, **436 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
 
 De JSON-bijlage bevat per route alle transitief bereikbare lokale modules, clientgrenzen en statische requestpaden. Dat is een afhankelijkheidsinventaris, geen autorisatiebewijs; voorwaarden per HTTP-methode blijven apart te controleren. Een Client Component kan via een gedeelde helper nog een serverafhankelijkheid hebben. Een module zonder eigen `use client` is contextafhankelijk, niet automatisch browsergeschikt.
 
@@ -287,6 +287,7 @@ De JSON-bijlage bevat per route alle transitief bereikbare lokale modules, clien
 Route | Bron / rendergrens | Domeinbeleid | Native scherm / status | Data- en authbewijs in bron | Testbewijs
 --- | --- | --- | --- | --- | ---
 `/` | [src/app/page.tsx](../src/app/page.tsx); Server Component-entry | overig-vandaag | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/brand.ts; src/lib/branding.ts; src/lib/gameSettings.ts; src/lib/i18n/index.ts; src/lib/requestLanguage.ts; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
+`/account-verwijderen` | [src/app/account-verwijderen/page.tsx](../src/app/account-verwijderen/page.tsx); Server Component-entry | overig-vandaag | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/acties` | [src/app/acties/page.tsx](../src/app/acties/page.tsx); Server Component-entry | overig-vandaag | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/activity` | [src/app/activity/page.tsx](../src/app/activity/page.tsx); Server Component-entry | sociaal | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/adminbackend` | [src/app/adminbackend/page.tsx](../src/app/adminbackend/page.tsx); Server Component-entry | beheer | Zelfde doel-URL; ontbreekt in lokale router | requireAdminPage; src/lib/adminGuard.ts; src/lib/contentCollections.ts; src/lib/db.ts; src/lib/deployAgent.ts; src/lib/email.ts; src/lib/i18n/index.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
@@ -425,6 +426,7 @@ Route | Bron / rendergrens | Domeinbeleid | Native scherm / status | Data- en au
 `/uitnodiging/groep/[token]` | [src/app/uitnodiging/groep/[token]/page.tsx](../src/app/uitnodiging/groep/[token]/page.tsx); Server Component-entry | sociaal | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/brand.ts; src/lib/branding.ts; src/lib/i18n/index.ts; src/lib/requestLanguage.ts; src/lib/session.ts; src/lib/social/joinLinks.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/uitschrijven/[token]` | [src/app/uitschrijven/[token]/page.tsx](../src/app/uitschrijven/[token]/page.tsx); Server Component-entry | hulp-juridisch | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; verifyPodcastUnsubscribeToken; verifyUnsubscribeToken; src/lib/i18n/index.ts; src/lib/languages.ts; src/lib/mailAddress.ts; src/lib/notifyCategories.ts; src/lib/requestLanguage.ts; src/lib/session.ts; src/lib/unsubscribe.ts; src/lib/unsubscribeActions.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/verify-email` | [src/app/verify-email/page.tsx](../src/app/verify-email/page.tsx); Server Component-entry | account | Lokale gedeelde bevestigingsflow; apparaatbewijs open | getCurrentUser; src/lib/i18n/index.ts; src/lib/i18n/rich.tsx; src/lib/requestLanguage.ts; src/lib/returnTo.ts; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
+`/voorwaarden` | [src/app/voorwaarden/page.tsx](../src/app/voorwaarden/page.tsx); Server Component-entry | overig-vandaag | Zelfde doel-URL; ontbreekt in lokale router | src/lib/legal/terms.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/word-game` | [src/app/word-game/page.tsx](../src/app/word-game/page.tsx); Server Component-entry | spelen | Zelfde doel-URL; ontbreekt in lokale router | canResumeGameContent; canStartGame; getCurrentUser; src/lib/db.ts; src/lib/gameAvailability.ts; src/lib/session.ts; src/lib/wordGame.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/word-search` | [src/app/word-search/page.tsx](../src/app/word-search/page.tsx); Server Component-entry | spelen | Zelfde doel-URL; ontbreekt in lokale router | assertWordSearchContext; getCurrentUser; src/lib/gameSettings.ts; src/lib/session.ts; src/lib/wordSearch/game.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/word-search/[gameId]` | [src/app/word-search/[gameId]/page.tsx](../src/app/word-search/[gameId]/page.tsx); Server Component-entry | spelen | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/session.ts; src/lib/wordSearch/game.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
@@ -683,6 +685,7 @@ Endpoint | Methoden | Bron | Domein / authenticatie | Native beschikbaarheid
 
 Module | Eigen grens | Geëxporteerde namen
 --- | --- | ---
+[src/app/account-verwijderen/page.tsx](../src/app/account-verwijderen/page.tsx) | contextafhankelijk / server-entry waar page/layout | AccountDeletionPage, dynamic
 [src/app/acties/page.tsx](../src/app/acties/page.tsx) | contextafhankelijk / server-entry waar page/layout | ActionsPage
 [src/app/activity/page.tsx](../src/app/activity/page.tsx) | contextafhankelijk / server-entry waar page/layout | ActivityPage
 [src/app/adminbackend/communicatie/page.tsx](../src/app/adminbackend/communicatie/page.tsx) | contextafhankelijk / server-entry waar page/layout | AdminCommunicationPage
@@ -824,10 +827,12 @@ Module | Eigen grens | Geëxporteerde namen
 [src/app/uitnodiging/groep/[token]/page.tsx](../src/app/uitnodiging/groep/[token]/page.tsx) | contextafhankelijk / server-entry waar page/layout | GroupLinkPage
 [src/app/uitschrijven/[token]/page.tsx](../src/app/uitschrijven/[token]/page.tsx) | contextafhankelijk / server-entry waar page/layout | UnsubscribePage, metadata
 [src/app/verify-email/page.tsx](../src/app/verify-email/page.tsx) | contextafhankelijk / server-entry waar page/layout | VerifyEmailPage
+[src/app/voorwaarden/page.tsx](../src/app/voorwaarden/page.tsx) | contextafhankelijk / server-entry waar page/layout | TermsPage
 [src/app/word-game/page.tsx](../src/app/word-game/page.tsx) | contextafhankelijk / server-entry waar page/layout | WordGamePage
 [src/app/word-search/[gameId]/page.tsx](../src/app/word-search/[gameId]/page.tsx) | contextafhankelijk / server-entry waar page/layout | WordSearchGamePage
 [src/app/word-search/page.tsx](../src/app/word-search/page.tsx) | contextafhankelijk / server-entry waar page/layout | WordSearchPage
 [src/app/xp/page.tsx](../src/app/xp/page.tsx) | contextafhankelijk / server-entry waar page/layout | XpPage
+[src/components/AccountDeletionClient.tsx](../src/components/AccountDeletionClient.tsx) | use client | AccountDeletionClient
 [src/components/ActionsClient.tsx](../src/components/ActionsClient.tsx) | use client | ActionsClient
 [src/components/ActiveGamesBanner.tsx](../src/components/ActiveGamesBanner.tsx) | use client | ActiveGamesBanner
 [src/components/ActivityFeedClient.tsx](../src/components/ActivityFeedClient.tsx) | use client | ActivityFeedClient
@@ -950,6 +955,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/WordSearchClient.tsx](../src/components/WordSearchClient.tsx) | use client | WordSearchClient
 [src/components/XpHistoryClient.tsx](../src/components/XpHistoryClient.tsx) | use client | XpHistoryClient
 [src/components/account/AccountActionsProvider.tsx](../src/components/account/AccountActionsProvider.tsx) | use client | AccountActionsProvider, useAccountActions
+[src/components/account/AccountDeletionForm.tsx](../src/components/account/AccountDeletionForm.tsx) | use client | AccountDeletionForm
 [src/components/account/EmailConfirmationCard.tsx](../src/components/account/EmailConfirmationCard.tsx) | contextafhankelijk / server-entry waar page/layout | EmailConfirmationCard
 [src/components/account/MailLinkForm.tsx](../src/components/account/MailLinkForm.tsx) | use client | MailLinkForm
 [src/components/account/PasswordChangeForm.tsx](../src/components/account/PasswordChangeForm.tsx) | use client | PasswordChangeForm
@@ -1004,6 +1010,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/legal/CookiesContent.tsx](../src/components/legal/CookiesContent.tsx) | use client | CookiesContent
 [src/components/legal/DisclaimerContent.tsx](../src/components/legal/DisclaimerContent.tsx) | use client | DisclaimerContent
 [src/components/legal/PrivacyContent.tsx](../src/components/legal/PrivacyContent.tsx) | use client | PrivacyContent
+[src/components/legal/TermsContent.tsx](../src/components/legal/TermsContent.tsx) | contextafhankelijk / server-entry waar page/layout | TermsContent
 [src/components/mysteries/Mystery001aClient.tsx](../src/components/mysteries/Mystery001aClient.tsx) | use client | MysteryClient
 [src/components/mysteries/MysteryDetailPage.tsx](../src/components/mysteries/MysteryDetailPage.tsx) | contextafhankelijk / server-entry waar page/layout | MysteryDetailPage
 [src/components/mysteries/MysteryPlayPage.tsx](../src/components/mysteries/MysteryPlayPage.tsx) | contextafhankelijk / server-entry waar page/layout | MysteryPlayPage
@@ -1161,3 +1168,10 @@ Socket-events (web; native handshake nog niet aanwezig):
 - `use_hint`
 
 <!-- END NATIVE PARITY INVENTORY -->
+
+### WP4-consolidatie: accountverwijdering
+
+PR #202 levert het gedeelde herauthenticatiecontract en de transactionele verwijdering op web/native.
+Dit is nog geen volledige native accountpariteit: het lokale scherm en de openbare uitleg volgen in #205;
+Apple-only-herauthenticatie en Apple-tokenintrekking blijven expliciete releaseblokkades.
+Geen platformuitzonderingen of bestaand pariteitsbeleid zijn hiermee gewijzigd.
