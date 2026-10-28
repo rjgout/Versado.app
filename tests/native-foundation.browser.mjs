@@ -47,7 +47,7 @@ try{
  for(const [width,height,scheme,scale,locale]of [[320,844,'light',2,'nl-NL'],[390,844,'dark',1,'nl-NL'],[1280,900,'light',1,'de-DE'],[844,390,'dark',1,'fr-FR']]){
   const context=await browser.newContext({viewport:{width,height},locale,hasTouch:width<900,isMobile:width<900,colorScheme:scheme});
   await context.addInitScript(({scale})=>{const apply=()=>{document.documentElement.style.fontSize=`${100*scale}%`;for(const [edge,size]of Object.entries({top:24,bottom:18,left:12,right:12}))document.documentElement.style.setProperty(`--safe-area-inset-${edge}`,`${size}px`);};if(document.documentElement)apply();else document.addEventListener('DOMContentLoaded',apply,{once:true});},{scale});
-  let page=await context.newPage();const errors=[],failedResponses=[],expectedAuthFailures=[];let expectExpired=false;const recordResponse=r=>{if(r.status()>=400){const path=new URL(r.url()).pathname;if(expectExpired&&r.status()===401&&['/api/v1/native/account/password','/api/v1/native/refresh'].includes(path)){expectedAuthFailures.push(path);return;}failedResponses.push({path,status:r.status()});console.error('Native testresponse:',path,r.status());}};page.on('pageerror',e=>{errors.push(e.message);console.error('Native browserfout:',e.message);});page.on('response',recordResponse);network=false;
+  let page=await context.newPage();const errors=[],failedResponses=[],expectedAuthFailures=[];let expectExpired=false,expectDeletedLogout=false;const recordResponse=r=>{if(r.status()>=400){const path=new URL(r.url()).pathname;if(expectDeletedLogout&&r.status()===401&&path==='/api/v1/native/logout'){expectedAuthFailures.push(path);return;}if(expectExpired&&r.status()===401&&['/api/v1/native/account/password','/api/v1/native/refresh'].includes(path)){expectedAuthFailures.push(path);return;}failedResponses.push({path,status:r.status()});console.error('Native testresponse:',path,r.status());}};page.on('pageerror',e=>{errors.push(e.message);console.error('Native browserfout:',e.message);});page.on('response',recordResponse);network=false;
   try{
   const device=`${width}-${randomUUID()}`;
   await page.goto(`${origin}/?device=${device}`);await page.getByRole('heading',{level:1}).waitFor();await page.getByRole('alert').waitFor();
@@ -168,11 +168,32 @@ try{
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);assert.equal(await page.evaluate(()=>localStorage.length+sessionStorage.length),0);assert.equal([...secrets.values()].some(value=>value.includes(verifyToken)),false);
    await page.screenshot({path:`${out}/email-confirmation-${width}-${scheme}-${scale}.png`,fullPage:true});
    await page.getByRole('button',{name:'Log in',exact:true}).click();await page.getByRole('heading',{name:'Welkom bij Versado'}).waitFor();
-   await login(verifiedEmail,password);await page.getByRole('heading',{name:/Vandaag/}).waitFor();await page.getByRole('button',{name:'Uitloggen',exact:true}).click();await page.getByRole('heading',{name:'Welkom bij Versado'}).waitFor();
+   // De werkelijk lokale WP4-bediening: apart synthetisch account, registratie
+   // blijft bij de andere schermproeven bestaan; alleen dit bevestigde account gaat weg.
+   await login(verifiedEmail,password);await page.getByRole('heading',{name:/Vandaag/}).waitFor();
+   await page.getByRole('button',{name:'Accountinstellingen',exact:true}).click();
+   await page.getByRole('link',{name:'Account verwijderen',exact:true}).click();
+   await page.getByRole('heading',{name:'Account verwijderen',exact:true}).waitFor();
+   const deleteButton=page.getByRole('button',{name:'Account definitief verwijderen',exact:true});
+   assert.equal(await deleteButton.isDisabled(),true,'Zonder herauthenticatie geen verwijderverzoek');
+   await page.getByLabel('Huidig wachtwoord',{exact:true}).fill(password);
+   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'Native verwijderformulier past bij grote tekst');
+   const fieldWidth=await page.getByLabel('Huidig wachtwoord',{exact:true}).evaluate(el=>el.getBoundingClientRect().width);
+   assert.ok(fieldWidth>=160,'Herauthenticatieveld blijft ook bij 320px/200% bruikbaar breed');
+   const buttonLines=await deleteButton.evaluate(el=>el.getBoundingClientRect().height/parseFloat(getComputedStyle(el).lineHeight));
+   assert.ok(buttonLines<=4.5,'De bevestigingsactie mag niet tot een letterkolom versmallen');
+   await page.screenshot({path:`${out}/account-deletion-${width}-${scheme}-${scale}.png`,fullPage:true});
+   expectDeletedLogout=true;
+   await deleteButton.click();await page.getByRole('heading',{name:'Welkom bij Versado'}).waitFor();
+   await page.waitForFunction(async path=>!(await(await fetch(path)).json()).value,`/test-keychain/${encodeURIComponent(device)}`);
+   expectDeletedLogout=false;
+   assert.equal(await prisma.user.count({where:{id:confirmed.id}}),0,'Alleen het expliciet bevestigde account verwijderd');
+   assert.equal(await prisma.nativeSession.count({where:{userId:confirmed.id}}),0,'Native sessies door cascade ingetrokken');
+   assert.equal(await prisma.user.count({where:{id:user.id}}),1,'Andere synthetische account behouden');
 
   }
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'Geen horizontale overflow');assert.deepEqual(errors,[]);assert.deepEqual(failedResponses,[],'Geen ontbrekende stylesheets/assets of geweigerde geldige API-acties');
-  await page.screenshot({path:`${out}/welcome-${width}-${scheme}-${scale}-${locale}.png`,fullPage:true});results.push({width,height,scheme,scale,locale,offlineStartup:true,localLegalRoutes:true,routeReload:true,historyBack:true,systemTheme:true,safeAreaInsets:true,accountSetup:locale==='nl-NL',passwordReset:locale==='nl-NL',emailConfirmation:locale==='nl-NL',overflow:false});
+  await page.screenshot({path:`${out}/welcome-${width}-${scheme}-${scale}-${locale}.png`,fullPage:true});results.push({width,height,scheme,scale,locale,offlineStartup:true,localLegalRoutes:true,routeReload:true,historyBack:true,systemTheme:true,safeAreaInsets:true,accountSetup:locale==='nl-NL',passwordReset:locale==='nl-NL',emailConfirmation:locale==='nl-NL',accountDeletion:locale==='nl-NL',overflow:false});
   }catch(error){console.error('Native testscherm:',await page.locator('body').innerText());await page.screenshot({path:`${out}/failure-${width}.png`,fullPage:true});throw error;}finally{await context.close();}
  }
  // Dezelfde geëxtraheerde formulieren/kaarten blijven op de echte Next-site werken.

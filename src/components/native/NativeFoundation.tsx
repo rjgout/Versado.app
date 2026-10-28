@@ -59,7 +59,8 @@ export default function NativeFoundation({ client, termsUrl = null, onLanguage, 
     if (key === "network_unavailable") setOffline(true);
     if (err instanceof NativeClientError && err.status === 401 && key !== "two_factor_required" && key !== "wrong_credentials") { setUser(null); setChapter(null); setSetup(null); setRecoveryCodes(null); }
   }, [t]);
-  const accountActions = useMemo(() => nativeAccountActions(client, () => report(new NativeClientError("session_expired", 401)), () => { const { navigation: nav } = current.current; setUser(null); setChapter(null); setRecoveryCodes(null); setSetup(null); nav.replace("/login"); }), [client, report]);
+  const accountDeleted = useCallback(() => { setUser(null); setChapter(null); setRecoveryCodes(null); setSetup(null); navigation.replace("/login"); }, [navigation]);
+  const accountActions = useMemo(() => nativeAccountActions(client, () => report(new NativeClientError("session_expired", 401)), accountDeleted), [client, report, accountDeleted]);
   const load = useCallback(async () => {
     const [me, today] = await Promise.all([client.api<Account>("me"), client.api<{ activity: typeof activity }>("today")]);
     return { me: nativeAccountSchema.parse(me), today: nativeTodaySchema.parse(today) };
