@@ -14,6 +14,10 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+# Actuele main heeft voor volledige TypeScript-controle meer dan 2 GiB heap nodig.
+# Geen typechecks overslaan; begrens alleen de build-/testprocessen op 4 GiB.
+env:
+  NODE_OPTIONS: --max-old-space-size=4096
 jobs:
   inventory:
     runs-on: ubuntu-latest
