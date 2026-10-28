@@ -11439,7 +11439,7 @@
     },
     {
       "file": "src/components/account/AccountDeletionForm.tsx",
-      "sha256": "c570d611100609dd1d12822feac3b0d639b18a6a0015095659dab65110ece3b1",
+      "sha256": "0ce018ee001fff742b935e29224c9a09b6d1d246a4a59f17d7a772b2eaf904ac",
       "boundary": "client",
       "imports": [
         "./AccountActionsProvider",
@@ -73147,7 +73147,7 @@
     },
     {
       "file": "src/components/account/AccountDeletionForm.tsx",
-      "sha256": "c570d611100609dd1d12822feac3b0d639b18a6a0015095659dab65110ece3b1",
+      "sha256": "0ce018ee001fff742b935e29224c9a09b6d1d246a4a59f17d7a772b2eaf904ac",
       "boundary": "client",
       "imports": [
         "./AccountActionsProvider",
