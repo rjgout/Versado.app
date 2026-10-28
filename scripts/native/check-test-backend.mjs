@@ -7,7 +7,7 @@ const require = createRequire(import.meta.url);
 const { parseDistributionOrigin, loadAllowedOrigins } = require("./profiles.cjs");
 
 const NATIVE_HEADERS = { Origin: "capacitor://localhost", "X-Versado-Client": "native-v1" };
-const DEFAULT_CAPABILITIES = ["security-setup-v1", "account-password-v1", "password-reset-v1", "email-confirmation-v1"];
+const DEFAULT_CAPABILITIES = ["security-setup-v1", "account-password-v1", "account-deletion-v1", "password-reset-v1", "email-confirmation-v1"];
 
 /** Pure beoordeling van de antwoorden; los testbaar zonder netwerk. */
 export function evaluate({ origin, production, allowlist, profile, capabilities, native, cross, root, expectCapabilities = DEFAULT_CAPABILITIES }) {

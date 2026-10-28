@@ -16,7 +16,7 @@ lezen en oefenen, zonder risico voor productie. Zonder deze stack blijft de allo
 | Geheimen | Eigen `SESSION_SECRET`, `NATIVE_SESSION_SECRET` (≥ 32 tekens, willekeurig, anders dan productie), SMTP uit of naar een sink. |
 | Content | Alleen de content die nodig is voor de te testen functies (eigen import via "Content opnieuw laden"; geen productie-import, geen publicatie vanzelf). Content blijft standaard verborgen tenzij een beheerder het openzet (CLAUDE.md contentregels). |
 | E-mail | Uit, of een testinbox; geen echte gebruikers aanschrijven. |
-| Netwerk | Aparte container(s) en netwerk; niet bereikbaar vanuit productiecontainers. |
+| Netwerk | Eigen Docker-netwerken; geen koppeling aan productienetwerken. Database/Redis uitsluitend intern, alleen proxy heeft een hostpoort. De app heeft uitgaand netwerk voor officiële bronnen en Apple-verificatie; NAS-firewallbeleid blijft een eigenaarstaak. |
 
 ## 3. Architectuur (zelfde 3 containers als productie, eigen namen)
 Appcontainer + PostgreSQL + Redis, met de bestaande images uit `ghcr.io` (zelfde build als productie, andere configuratie).
@@ -31,7 +31,7 @@ zijn vast (`capacitor://localhost`, `https://localhost`); er komt **geen** wildc
 ## 5. Stappen voor de eigenaar
 1. Kies de testhostnaam en stel DNS in (alleen de eigenaar bepaalt het domein).
 2. Verkrijg een geldig TLS-certificaat (publiek vertrouwd; geen zelfondertekend certificaat, want de apps valideren HTTPS).
-3. Maak de teststack (compose-bestand met aparte namen/volumes), start database, Redis en app; draai `prisma migrate deploy` op de **lege** testdatabase.
+3. Maak de teststack (compose-bestand met aparte namen/volumes), start database, Redis en app. **Wijzigende handeling:** de bestaande image-entrypoint voert bij starten `prisma migrate deploy` en initialisatie uit, uitsluitend op de eigen lege testdatabase. Dit is geen alleen-lezen controle; voer niet daarnaast blind dezelfde opdrachten op een andere database uit.
 4. Maak een testbeheerder en synthetische testaccounts (inclusief een reviewer-account voor de stores).
 5. Laad de benodigde content via "Content opnieuw laden" op de testomgeving en geef gewenste content bewust vrij.
 6. Controleer met de bestaande native integratietests (`npm run test:native:integration`-scenario) en handmatig: registratie, inloggen, lezen, oefenen, uitloggen.
@@ -72,3 +72,14 @@ origin in de allowlist van het gekozen profiel staat. Met `VERSADO_PRODUCTION_OR
 en content aanmaken, en de allowlist-PR. Claude/Codex rolt niets uit en heeft geen NAS-toegang.
 
 **Eerste controle na uitrol:** `npm run native:check-test-backend -- <jouw-testorigin> --profile store-test`; daarna `npm run test:native:integration`-scenario's of handmatig inloggen met een synthetisch account.
+
+
+## Consolidatie en M0
+
+Zie [MOBILE-1-0-INTEGRATIE.md](MOBILE-1-0-INTEGRATIE.md) voor de actuele mergevolgorde, ontwikkelbuilds en het fysieke M0-protocol.
+#206 richt op main zodat de controles werkelijk worden uitgevoerd; #199 blijft de voorafgaande documentatieafhankelijkheid.
+Het controlescript verlangt nu ook `account-deletion-v1`; dit bewijst alleen het backendcontract, niet het native scherm of Apple-only-verwijdering.
+De app is aangesloten op het **eigen** uitgaande edge-netwerk, anders zouden officiële bronverificatie en Apple-JWKS nooit bereikbaar zijn.
+Er zijn geen verbindingen met productienetwerken, database of volumes toegevoegd. De twee datacontainers blijven uitsluitend intern.
+Een image-start initialiseert de testdatabase; synthetische accounts aanmaken en content importeren zijn afzonderlijke bewuste testhandelingen.
+Geen NAS-validatie, DNS-inrichting of deployment uitgevoerd door Codex.

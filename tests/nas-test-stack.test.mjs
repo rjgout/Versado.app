@@ -90,3 +90,13 @@ test("check(): alleen leesverzoeken, nooit een redirect volgen, en alleen na exa
   const production = await check("https://test.versado-test.com", { fetchImpl, allowlist: { internal: [], "store-test": [] }, env: { VERSADO_PRODUCTION_ORIGIN: "https://test.versado-test.com" } });
   assert.equal(production.ok, false);
 });
+
+
+test("alleen app en proxy hebben uitgaand netwerk; database en Redis blijven intern", () => {
+  const app = code.split("\n  versado-test-app:")[1].split("\n  versado-test-db:")[0];
+  assert.match(app, /versado-test-edge: \{\}/);
+  const db = code.split("\n  versado-test-db:")[1].split("\n  versado-test-redis:")[0];
+  const redis = code.split("\n  versado-test-redis:")[1].split("\nnetworks:")[0];
+  assert.doesNotMatch(db + redis, /versado-test-edge/);
+  assert.equal(evaluate({ ...base, capabilities: { ...ok.capabilities, body: { apiVersion: 1, features: ok.capabilities.body.features.filter(x => x !== "account-deletion-v1") } } }).ok, false);
+});

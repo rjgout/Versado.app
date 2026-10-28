@@ -64,6 +64,10 @@ services:
       start_period: 20s
       retries: 3
     networks:
+      # Eigen uitgaand netwerk voor officiële bron-/Apple-verificatie en een
+      # eventueel expliciet geconfigureerde testmailvoorziening. Database en
+      # Redis blijven uitsluitend op het interne netwerk, zonder hostpoorten.
+      versado-test-edge: {}
       versado-test-internal:
         # De productie-proxy-image verwijst vast naar de hostnaam "jehova-app". Deze alias bestaat alleen op het
         # eigen interne testnetwerk en raakt dus nooit een productiecontainer.
