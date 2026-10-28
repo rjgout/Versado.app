@@ -9,6 +9,7 @@ on:
       - 'ios/**'
       - 'capacitor.config.ts'
       - 'scripts/native/**'
+      - 'tests/native-android-release*'
       - 'package*.json'
       - 'tailwind.config.ts'
       - 'tsconfig.json'
@@ -86,12 +87,51 @@ jobs:
           node scripts/native/verify-distribution.mjs android
           cd android
           bash ./gradlew :app:bundleRelease --no-daemon
+      - name: Signingpoort weigert een compileproef (wegwerpsleutel, nooit opgeslagen)
+        # Bewijst dat de uploadsleutel een compileProbe-bundel nooit tekent, ook niet met een geldige sleutel.
+        env:
+          CAPACITOR_BUILD_PROFILE: local-store-test
+          NATIVE_COMPILE_PROBE: '1'
+          NATIVE_DISTRIBUTION_CHANNEL: play-test
+          VERSADO_VERSION_NAME: 0.1.0
+          VERSADO_VERSION_CODE: '1'
+        run: |
+          npm run native:build
+          npx cap sync android
+          if node scripts/native/android-release-guard.mjs before; then echo "de poort liet een compileproef door"; exit 1; fi
+          keystore="$RUNNER_TEMP/selftest.jks"; pw="$(openssl rand -hex 16)"
+          keytool -genkeypair -keystore "$keystore" -storepass "$pw" -keypass "$pw" -alias selftest -dname "CN=CI Selftest" -keyalg RSA -keysize 2048 -validity 1
+          cd android
+          if VERSADO_UPLOAD_KEYSTORE_PATH="$keystore" VERSADO_UPLOAD_KEYSTORE_PASSWORD="$pw" VERSADO_UPLOAD_KEY_ALIAS=selftest VERSADO_UPLOAD_KEY_PASSWORD="$pw" bash ./gradlew :app:bundleRelease --no-daemon; then echo "Gradle tekende een compileproef"; exit 1; fi
+      - name: Signingketen met wegwerpsleutel en tijdelijke allowlist (alleen in deze runner, niet uploadbaar)
+        # Een niet-compileproef-bundel is alleen te bouwen met een origin uit de allowlist. Voor deze zelftest wordt de
+        # allowlist uitsluitend in de runner-werkmap aangevuld (niet gecommit); het resultaat wordt door een wegwerpsleutel
+        # getekend, gecontroleerd en weggegooid. Er is geen netwerkverbinding naar die origin.
+        env:
+          CAPACITOR_BUILD_PROFILE: local-store-test
+          NATIVE_API_BASE_URL: https://ci-selftest.versado-test.com
+          NATIVE_DISTRIBUTION_CHANNEL: play-test
+          NATIVE_APP_VERSION: 0.1.0
+          NATIVE_BUILD_NUMBER: '1'
+          VERSADO_VERSION_NAME: 0.1.0
+          VERSADO_VERSION_CODE: '1'
+        run: |
+          node -e 'const f="scripts/native/distribution-origins.json";const j=require("./"+f);j["store-test"]=["https://ci-selftest.versado-test.com"];require("fs").writeFileSync(f,JSON.stringify(j,null,2))'
+          trap 'git checkout -- scripts/native/distribution-origins.json' EXIT
+          npm run native:build
+          npx cap sync android
+          git checkout -- scripts/native/distribution-origins.json
+          node scripts/native/android-release-guard.mjs before
+          keystore="$RUNNER_TEMP/selftest2.jks"; pw="$(openssl rand -hex 16)"
+          keytool -genkeypair -keystore "$keystore" -storepass "$pw" -keypass "$pw" -alias selftest -dname "CN=CI Selftest" -keyalg RSA -keysize 2048 -validity 1
+          (cd android && VERSADO_UPLOAD_KEYSTORE_PATH="$keystore" VERSADO_UPLOAD_KEYSTORE_PASSWORD="$pw" VERSADO_UPLOAD_KEY_ALIAS=selftest VERSADO_UPLOAD_KEY_PASSWORD="$pw" bash ./gradlew :app:bundleRelease --no-daemon)
+          node scripts/native/android-release-guard.mjs after android/app/build/outputs/bundle/release/app-release.aab
+          rm -f "$keystore" android/app/build/outputs/bundle/release/app-release.aab
       - uses: actions/upload-artifact@v4
         with:
           name: versado-android-development-compileprobe
           path: |
             android/app/build/outputs/apk/debug/app-debug.apk
-            dist/native/build.json
           retention-days: 7
   ios-simulator:
     runs-on: macos-latest

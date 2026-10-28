@@ -17,8 +17,10 @@ const completeFiles = () => ({
   "scripts/native/profiles.cjs": 'const APP_ID = "app.versado.app"; const PROFILE_IDS = ["remote-preview", "local-development", "local-internal", "local-store-test"]; DISTRIBUTION_PROFILES local-internal local-store-test releaseApproved: false; "Het releaseprofiel blijft geblokkeerd"; ',
   "scripts/native/distribution-origins.json": JSON.stringify({ internal: ["https://intern.example.test"], "store-test": ["https://test.example.test"] }),
   "scripts/native/build.ts": "releaseApproved: false",
+  ".github/workflows/native-android-release.yml": "on:\n  workflow_dispatch:\njobs:\n  x:\n    if: github.ref == 'refs/heads/main'\n    environment: android-play-test\n    steps: gradlew :app:bundleRelease",
+  "scripts/native/android-release-guard.mjs": 'metadata.compileProbe !== false local-store-test',
   "android/variables.gradle": "targetSdkVersion = 36",
-  "android/app/build.gradle": 'applicationId "app.versado.app"\nVERSADO_VERSION_CODE VERSADO_VERSION_NAME\nsigningConfigs {\nVERSADO_UPLOAD_KEYSTORE_PATH',
+  "android/app/build.gradle": 'applicationId "app.versado.app"\nVERSADO_VERSION_CODE VERSADO_VERSION_NAME\nsigningConfigs {\nVERSADO_UPLOAD_KEYSTORE_PATH\nmetadata.compileProbe != false local-store-test play-test GradleException',
   "android/app/src/main/AndroidManifest.xml": '<intent-filter android:autoVerify="true"/>',
   "android/app/src/main/java/app/versado/app/MainActivity.java": "ActivityInfo.SCREEN_ORIENTATION_PORTRAIT",
   "ios/App/App.xcodeproj/project.pbxproj": "PRODUCT_BUNDLE_IDENTIFIER = app.versado.app;\nIPHONEOS_DEPLOYMENT_TARGET = 15.0;\nCODE_SIGN_ENTITLEMENTS = App/App.entitlements;",
@@ -95,4 +97,13 @@ test("zonder vastgelegde origins blijft de eigenaarsblokkade open, ook als de co
     assert.equal(report.blockers.find((item) => item.id === "distribution-origins-configured").ok, false);
   }
   assert.equal(evaluate(memoryFs({ ...files, "scripts/native/distribution-origins.json": "{kapot" })).blockers.find((item) => item.id === "distribution-origins-configured").ok, false);
+});
+
+test("de signingpoort-guard faalt zodra Gradle compileproeven doorlaat of de workflow automatisch uploadt of op een PR draait", () => {
+  const files = completeFiles();
+  const guard = (patch) => evaluate(memoryFs({ ...files, ...patch })).guards.find((item) => item.id === "android-signing-refuses-probe").ok;
+  assert.equal(guard({}), true);
+  assert.equal(guard({ "android/app/build.gradle": files["android/app/build.gradle"].replace("compileProbe != false", "") }), false);
+  assert.equal(guard({ ".github/workflows/native-android-release.yml": files[".github/workflows/native-android-release.yml"] + "\n      - uses: r0adkll/upload-google-play@v1" }), false);
+  assert.equal(guard({ ".github/workflows/native-android-release.yml": files[".github/workflows/native-android-release.yml"].replace("on:\n", "on:\n  pull_request:\n") }), false);
 });

@@ -8,6 +8,24 @@ def versadoSetting = { String name, String fallback ->
 }
 def uploadKeystorePath = versadoSetting("VERSADO_UPLOAD_KEYSTORE_PATH", "")
 
+// Verdediging in de diepte (WP3): de uploadsleutel tekent uitsluitend een bundel die bij het profiel
+// local-store-test (kanaal play-test) hoort, geen compileproef is en niet release-goedgekeurd is. De workflow
+// en scripts/native/android-release-guard.mjs controleren hetzelfde; dit is de laatste, niet te omzeilen poort.
+def versadoBundleMetadataProblems = { File metadataFile ->
+    def problems = []
+    if (!metadataFile.exists()) return ["build.json ontbreekt in de assets; draai npm run native:build en npx cap sync android"]
+    def metadata = new groovy.json.JsonSlurper().parse(metadataFile)
+    if (metadata.profile != "local-store-test") problems << "profiel is ${metadata.profile}, verwacht local-store-test"
+    if (metadata.channel != "play-test") problems << "kanaal is ${metadata.channel}, verwacht play-test"
+    if (metadata.compileProbe != false) problems << "compileproef-bundels worden nooit getekend"
+    if (metadata.releaseApproved != false) problems << "releaseApproved moet false zijn"
+    if (metadata.appId != "app.versado.app") problems << "appId is ${metadata.appId}"
+    if (!(metadata.apiOrigin ==~ '^https://[^/\\s*@?#]+$') || metadata.apiOrigin.endsWith(".invalid")) problems << "apiOrigin is geen exacte, echte HTTPS-origin"
+    if (metadata.buildNumber == null || metadata.buildNumber.toString() != versadoSetting("VERSADO_VERSION_CODE", "1")) problems << "buildNumber ${metadata.buildNumber} wijkt af van VERSADO_VERSION_CODE"
+    if (metadata.version != versadoSetting("VERSADO_VERSION_NAME", "0.1.0")) problems << "version ${metadata.version} wijkt af van VERSADO_VERSION_NAME"
+    return problems
+}
+
 android {
     namespace = "app.versado.app"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -36,9 +54,19 @@ android {
     }
     buildTypes {
         release {
+            // Zonder uploadsleutel blijft de release ongetekend (compileproef); met sleutel geldt de poort hierboven.
             if (uploadKeystorePath) signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+tasks.configureEach { task ->
+    if (uploadKeystorePath && (task.name == "bundleRelease" || task.name == "assembleRelease" || task.name == "packageRelease" || task.name == "signReleaseBundle")) {
+        task.doFirst {
+            def problems = versadoBundleMetadataProblems(file("src/main/assets/public/build.json"))
+            if (!problems.isEmpty()) throw new GradleException("Ondertekenen geweigerd: " + problems.join("; "))
         }
     }
 }

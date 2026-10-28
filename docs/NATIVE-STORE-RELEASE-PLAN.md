@@ -124,6 +124,7 @@ beslissing. Een blokkade met "alleen bij …" geldt alleen als die functie in de
 | `android-version-injectable` | Versiecode/-naam hard gecodeerd | code | **WP0 (deze PR)** |
 | `android-release-signing` | Geen release-signing vanuit CI-secrets | code | **WP0 (deze PR)** |
 | `android-ci-bundle` | Geen CI-bewijs voor een Android App Bundle-release-build | code | **WP0 (deze PR)** |
+| `android-play-test-workflow` | Beschermde handmatige workflow voor een getekende Play-testbundel (**opgelost in WP3**; draaien vereist de secrets van de eigenaar) | code | WP3 |
 | `android-app-links` | Geen `autoVerify`-intent-filter | code + eigenaar (fingerprint) | WP7 |
 | `well-known-association` | Geen `apple-app-site-association` / `assetlinks.json` | code + eigenaar (Team ID, fingerprint) | WP7 |
 | `native-account-deletion` | Accountverwijdering niet vanuit de native app te starten | code | WP4 |
@@ -143,6 +144,7 @@ er geen credentials in git komen.
 |---|---|
 | `release-profile-blocked` | Het profiel komt uitsluitend uit `scripts/native/profiles.cjs`; `PROFILE_IDS` bevat geen `release` en geen enkele omgevingsvariabele opent het; `release` blijft geweigerd |
 | `bundle-never-release-approved` | De lokale bundel schrijft altijd `releaseApproved:false` |
+| `android-signing-refuses-probe` | Gradle en `android-release-guard.mjs` tekenen alleen een niet-compileproef `local-store-test`/`play-test`-bundel; de release-workflow is alleen handmatig en bevat geen Play-upload |
 | `bundle-identity-consistent` | Eén bundle-/applicatie-ID `app.versado.app` in Capacitor, Android en iOS |
 | `phones-portrait` | Telefoons portrait-only (iPhone via Info.plist, Android via `MainActivity`) |
 | `android-target-sdk` | `targetSdkVersion` ≥ 36 (Google Play, vanaf 31 augustus 2026) |
@@ -418,6 +420,50 @@ uit secrets, allowlist-origin.
 | 6. **Gesloten test**: ≥ 12 testers, 14 aaneengesloten dagen bij een persoonlijk account na 13 nov 2023 | Eigenaar | Toegang tot productie |
 | 7. Pre-launch-rapportage controleren (16 KB, crashes, toegankelijkheid) | Claude/Codex + eigenaar | M2 |
 
+### 7.1 WP3 — gerealiseerd (Android-releasetechniek)
+
+**Besluit eigenaar (testbackend):** een afzonderlijke HTTPS-testbackend op de NAS. Er is bewust géén URL ingevuld en de
+productie-origin staat nergens in de allowlist; `distribution-origins.json` blijft leeg (veilige blokkering actief) totdat
+teststack, DNS en TLS zijn ingericht. Dat is een eigenaartaak (blokkade `distribution-origins-configured`).
+
+**Signing en poorten (drie lagen, dezelfde regels):**
+1. `android/app/build.gradle`: ondertekent alleen als `VERSADO_UPLOAD_KEYSTORE_PATH` gezet is, en dan alleen wanneer
+   `build.json` in de assets bij `local-store-test`/`play-test` hoort, `compileProbe:false`, `releaseApproved:false`,
+   een echte HTTPS-origin heeft en `buildNumber`/`version` gelijk zijn aan `VERSADO_VERSION_CODE`/`VERSADO_VERSION_NAME`;
+   anders `GradleException`. Zonder sleutel blijft de release ongetekend (geen terugval op de debugsleutel).
+2. `scripts/native/android-release-guard.mjs before|after`: dezelfde regels vóór het bouwen, plus controle dat de
+   metadata in dist en assets gelijk zijn en dat `sourceCommit` gelijk is aan `GITHUB_SHA`; achteraf `jarsigner`-verificatie,
+   afkeuring van ongetekend of debug-getekend, en de sha256.
+3. `.github/workflows/native-android-release.yml`: uitsluitend `workflow_dispatch`, uitsluitend vanaf `main`, in de beschermde
+   omgeving `android-play-test`. Controleert de aanwezigheid van secrets zonder waarden te tonen, schrijft de sleutel met
+   `umask 077` naar de runner-temp en verwijdert hem altijd, bouwt `bundleRelease`, controleert de bundel en bewaart het
+   artifact zeven dagen. **Er is geen Play-upload**: de eigenaar plaatst de bundel handmatig in de interne test.
+
+**Secrets en variabelen (de eigenaar maakt ze aan in omgeving `android-play-test`, met vereiste goedkeurders):**
+`ANDROID_UPLOAD_KEYSTORE_B64` (base64 van de uploadsleutel), `ANDROID_UPLOAD_KEYSTORE_PASSWORD`, `ANDROID_UPLOAD_KEY_ALIAS`,
+`ANDROID_UPLOAD_KEY_PASSWORD`; variabele (niet geheim) `NATIVE_STORE_TEST_API_ORIGIN`. De versiecode is het workflow-runnummer
+(monotoon stijgend), de versienaam de invoer `app_version`. Geen waarden in git of logs.
+
+**Minificatie-besluit:** R8 blijft voorlopig uit (`minifyEnabled false`) totdat M0 op een echt toestel de plugin
+(`VersadoNative`, Keystore) en Capacitor onder R8 heeft bewezen; een niet op toestel getest R8-profiel is een groter risico dan
+een iets grotere bundel. Heroverwegen vóór M2. Manifest: `allowBackup=false`, geen `usesCleartextTraffic`, geen `debuggable`.
+
+**CI-bewijs:** `native-platform-builds` bouwt per push de ongetekende AAB (play-test, compileproef), bewijst dat een
+geldige wegwerpsleutel een compileproef **niet** tekent (guard en Gradle), en doorloopt de volledige signingketen met een
+wegwerpsleutel en een tijdelijke, niet-gecommitte allowlist-aanvulling in de runner; het resultaat wordt gecontroleerd en weggegooid.
+Lokaal: `npm run test:native:android-release` (echte `jarsigner`-controle met een wegwerpsleutel).
+
+**Route naar M0 (eerste echte toesteltest, Android):**
+1. Debug-APK via `native-platform-builds` of lokaal (`local-development`) op een telefoon én een tablet installeren.
+2. Controleren: Keystore-opslag, WebView-layout/safe areas, toetsenbord, terugknop, lifecycle (achtergrond/voorgrond), offline herstel,
+   portrait op telefoon en landscape op tablet; resultaten vastleggen in `docs/NATIVE-DEVICE-TEST-REPORT.md`.
+3. Zodra de testbackend en de signingsecrets bestaan: workflow `native-android-release` starten, AAB plaatsen in de interne Play-test (M1).
+Voor M0 zelf zijn geen signingsleutels of backend nodig als de debugbuild naar een lokale of tijdelijke testbackend wijst
+(`local-development`, expliciet HTTPS of loopback-HTTP).
+
+**Eigenaartaken WP3:** Play Console-account en app-record, Play App Signing, uploadsleutel genereren en als secrets opslaan,
+omgeving `android-play-test` met goedkeurders, `NATIVE_STORE_TEST_API_ORIGIN` na inrichting van de NAS-teststack, en de allowlist-PR.
+
 ## 8. Vereiste fysieke apparaattests
 
 Geen enkele test hieronder is vandaag uitgevoerd. De resultaten komen in `docs/NATIVE-DEVICE-TEST-REPORT.md`
@@ -468,7 +514,7 @@ WP1 en de eigenaargegevens. WP15/16 lopen mee en sluiten M2/M3 af.
 - Tests: archive op CI, `native:store-readiness`, handmatige installatie op een toestel (M0).
 - Blokkades: Team ID, privacylabels (D5/D8).
 
-**WP3 — Android-releasetechniek**
+**WP3 — Android-releasetechniek (geïmplementeerd; zie §7.1)**
 - Afhankelijk van: WP1; eigenaar: uploadsleutel.
 - Scope: `bundleRelease` signed in een beschermde workflow, versiecode uit CI-runnummer, minificatie-besluit
   (R8 aan/uit met ProGuard-regels voor Capacitor), manifesthardening, optioneel upload naar interne test.
