@@ -278,7 +278,7 @@ De onafhankelijke review volgt door ChatGPT. #176 en #178 blijven ongemerged.
 <!-- BEGIN NATIVE PARITY INVENTORY -->
 ## Volledige broninventaris (gegenereerd)
 
-Gevonden: **143 pagina's**, **244 fysieke routehandlers**, **431 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
+Gevonden: **143 pagina's**, **244 fysieke routehandlers**, **432 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
 
 De JSON-bijlage bevat per route alle transitief bereikbare lokale modules, clientgrenzen en statische requestpaden. Dat is een afhankelijkheidsinventaris, geen autorisatiebewijs; voorwaarden per HTTP-methode blijven apart te controleren. Een Client Component kan via een gedeelde helper nog een serverafhankelijkheid hebben. Een module zonder eigen `use client` is contextafhankelijk, niet automatisch browsergeschikt.
 
@@ -1111,6 +1111,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/versado/SystemIcon.tsx](../src/components/versado/SystemIcon.tsx) | contextafhankelijk / server-entry waar page/layout | SystemIcon
 [src/components/versado/ToggleSwitch.tsx](../src/components/versado/ToggleSwitch.tsx) | use client | ToggleSwitch
 [src/components/versado/VisualIdentityIcon.tsx](../src/components/versado/VisualIdentityIcon.tsx) | use client | VisualIdentityIcon
+[src/lib/data/nativeHooks.tsx](../src/lib/data/nativeHooks.tsx) | use client | NativeDataProvider, useNativeData, useNativeLiveQuery
 [src/lib/i18n/rich.tsx](../src/lib/i18n/rich.tsx) | contextafhankelijk / server-entry waar page/layout | rich
 [src/lib/podcastPlayerContext.tsx](../src/lib/podcastPlayerContext.tsx) | use client | PodcastPlayerProvider, usePodcastPlayer
 [src/lib/readAloudPlayerContext.tsx](../src/lib/readAloudPlayerContext.tsx) | use client | ReadAloudPlayerProvider, getVoice, useReadAloudPlayer
