@@ -27,6 +27,10 @@ concurrency:
   group: word-game-hints-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 
+# Actuele main heeft voor volledige TypeScript-controle meer dan 2 GiB heap nodig.
+# Geen typechecks overslaan; begrens alleen de build-/testprocessen op 4 GiB.
+env:
+  NODE_OPTIONS: --max-old-space-size=4096
 jobs:
   word-game-hints:
     runs-on: ubuntu-latest
