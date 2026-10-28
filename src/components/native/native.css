@@ -6,11 +6,13 @@
   --vs-safe-area-left: max(env(safe-area-inset-left, 0px), var(--safe-area-inset-left, 0px));
   --vs-safe-area-right: max(env(safe-area-inset-right, 0px), var(--safe-area-inset-right, 0px));
 }
+/* Zijruimte volgt ook bij 200% tekst de viewport; veilige insets worden
+ * niet nogmaals bij een meegroeiende rem-gutter opgeteld. */
 .native-foundation {
   padding-top: var(--main-pad-top);
   padding-bottom: var(--main-pad-bottom);
-  padding-left: calc(var(--vs-safe-area-left) + 1.25rem);
-  padding-right: calc(var(--vs-safe-area-right) + 1.25rem);
+  padding-left: max(var(--vs-safe-area-left), min(1.25rem, 4vw));
+  padding-right: max(var(--vs-safe-area-right), min(1.25rem, 4vw));
   overflow-wrap: anywhere;
 }
 .native-foundation input { min-height: 3rem; font-size: 1rem; }

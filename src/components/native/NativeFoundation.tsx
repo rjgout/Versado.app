@@ -69,7 +69,8 @@ function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBan
     if (key === "network_unavailable") setOffline(true);
     if (err instanceof NativeClientError && err.status === 401 && key !== "two_factor_required" && key !== "wrong_credentials") { setUser(null); dataRuntime.reset(); setSetup(null); setRecoveryCodes(null); }
   }, [t, dataRuntime]);
-  const accountActions = useMemo(() => nativeAccountActions(client, () => report(new NativeClientError("session_expired", 401)), () => { const { navigation: nav } = current.current; setUser(null); dataRuntime.reset(); setRecoveryCodes(null); setSetup(null); nav.replace("/login"); }), [client, report, dataRuntime]);
+  const accountDeleted = useCallback(() => { setUser(null); dataRuntime.reset(); setRecoveryCodes(null); setSetup(null); navigation.replace("/login"); }, [navigation, dataRuntime]);
+  const accountActions = useMemo(() => nativeAccountActions(client, () => report(new NativeClientError("session_expired", 401)), accountDeleted), [client, report, accountDeleted]);
   const load = useCallback(async () => {
     const [me, today] = await Promise.all([dataRuntime.account(), dataRuntime.today()]);
     return { me, today };

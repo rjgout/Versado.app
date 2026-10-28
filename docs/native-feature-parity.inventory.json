@@ -12847,7 +12847,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "516bfda200a89b7682b9d3f18ac80d1d36419e501dd685b22ff44d05b9f5dfac",
+      "sha256": "279c04118bcc36d14645b49e432fe449a19b8b81006d0954bd0bd828936b848e",
       "boundary": "client",
       "imports": [
         "./NativeEmailConfirmation",
@@ -74451,7 +74451,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "516bfda200a89b7682b9d3f18ac80d1d36419e501dd685b22ff44d05b9f5dfac",
+      "sha256": "279c04118bcc36d14645b49e432fe449a19b8b81006d0954bd0bd828936b848e",
       "boundary": "client",
       "imports": [
         "./NativeEmailConfirmation",
