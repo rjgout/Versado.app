@@ -87,3 +87,23 @@ Er is geen grote gidssectie meer op het overzicht.
   prestatiesonderdeel. Alleen ids van werkelijk behaalde prestaties en hun
   volgorde worden opgeslagen in `FeaturedAchievement`; de selectie blijft
   bestaan wanneer delen tijdelijk wordt uitgeschakeld.
+
+## Tekst van de dag
+
+Bij Meldingen staat de bronkeuze voor push en e-mail (`User.dailyTextSource`,
+standaard het permanente programma `kom-dan-en-volg-mij`). Dit is een werkkeuze,
+geen collectie- of jaargangkeuze; de contenttaal bepaalt de toegankelijke uitgave.
+De keuze wijzigt geen kanalen, verzendtijden, contentselectie of voortgang.
+Een niet langer beschikbare keuze blijft bewaard; de selectie valt terug op CFM.
+
+Op Vandaag volgt de dagtekst de exacte actieve contentuitgave. Een geschikte
+Schrifttekst komt uit die uitgave; studiecontent gebruikt Schriftverwijzingen
+of een kort letterlijk citaat uit gepubliceerde lesstof. Zonder geschikte tekst
+volgt uitsluitend de actuele gepubliceerde CFM-kalenderweek in de lokale tijdzone.
+CFM gebruikt de bestaande registerjaargangen en leesrechten; nooit een hervatweek,
+conceptles of willekeurige andere week. Eerst komen bewezen interne Schriftteksten
+uit de lesverwijzingen, anders een volledige korte quote/alinea uit dezelfde les.
+Als ook die ontbreekt, wordt geen dagtekst getoond of verzonden.
+
+De bestaande categorie- en kanaalschakelaars blijven opt-in. De migratie voegt
+alleen de bronkolom toe en schakelt meldingen voor niemand in.

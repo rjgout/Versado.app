@@ -1,0 +1,24 @@
+{
+  "beforeHeight": 633.28125,
+  "afterHeight": 433.6875,
+  "closedUnchanged": true,
+  "viewports": [
+    320,
+    375,
+    390
+  ],
+  "textScale": [
+    100,
+    200
+  ],
+  "themes": [
+    "light",
+    "dark"
+  ],
+  "keyboard": true,
+  "imageErrorFallback": true,
+  "slowImage": true,
+  "http404": true,
+  "freeUnchanged": true,
+  "errors": []
+}

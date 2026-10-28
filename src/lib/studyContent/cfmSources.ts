@@ -88,8 +88,9 @@ export const CFM_SOURCE_2026: CfmVolumeSource = {
 };
 
 /**
- * Nieuwe Testament 2027. Geen schriftuurprofiel: de OTB-index dekt alleen het Oude Testament, dus verwijzingen blijven de
- * officiële bron-URL en worden zonder bewijs veilige, niet-klikbare tekst.
+ * Nieuwe Testament 2027. De importadapter houdt de officiële bron-URL omdat deze gepinde index alleen het Oude Testament
+ * dekt. De centrale resolver controleert daarna de werkelijk beschikbare interne editie; ook oude diagnoses worden bij
+ * bewezen overeenstemming opnieuw beoordeeld, zonder herimport.
  */
 export const CFM_SOURCE_2027: CfmVolumeSource = {
   volume: volumeOfWork(cfmNewTestament2027NlManifest.workKey),

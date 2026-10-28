@@ -97,7 +97,7 @@ export async function settleMatch(tx: Tx, matchId: string, at: Date, playedRunId
   const match = await tx.quickMissionaryMatch.findUniqueOrThrow({ where: { id: matchId } });
   if (match.status === "ENDED") return { ended: true, streaks: [], decision: { over: true, reason: (match.endReason as "LAST_STANDING" | "NOBODY_FLYING") ?? "NOBODY_FLYING", survivorId: null, voidedIds: [] } };
 
-  const runs = await tx.quickMissionaryRun.findMany({ where: { matchId }, select: { id: true, userId: true, status: true, score: true, reviveUsed: true, eliminatedHow: true, eliminatedSeq: true, user: { select: { timeZone: true } } } });
+  const runs = await tx.quickMissionaryRun.findMany({ where: { matchId }, select: { id: true, userId: true, contentCollectionId: true, status: true, score: true, reviveUsed: true, eliminatedHow: true, eliminatedSeq: true, user: { select: { timeZone: true } } } });
   const decision = decideMatch(runs.map((run) => ({ userId: run.userId, state: participantState(run), reviveGranted: run.status === "REVIVE_READY" })));
   const streaks: RunStreakEvent[] = [];
   // Bij meerdere deelnemers altijd dezelfde gebruikersvolgorde, na de wedstrijd/run.

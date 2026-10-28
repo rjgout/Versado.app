@@ -11,9 +11,9 @@ punten voor de eigenaar (D8). Of een veld persoonsgegeven *is*, blijft een oorde
 ## 1. Velden op `User` die waarschijnlijk persoonsgegevens zijn
 `email`, `handle`, `discriminator`, `passwordHash`, `totpEnabled`, `totpSecretEncrypted`, `totpRecoveryCodes`, `uiLanguage`, `contentLanguage`, `avatarEmoji`, `avatarCharacterId`, `avatarBackgroundId`, `avatarFrameId`, `avatarDecorationId`, `avatarLightAccentId`, `timeZone`, `dailyReminderTime`, `dailyTextTime`.
 
-## 2. Wat er bij verwijderen met rijen gebeurt (102 relaties met `User` in 163 modellen)
+## 2. Wat er bij verwijderen met rijen gebeurt (103 relaties met `User` in 167 modellen)
 
-### 2.1 Verdwijnt mee (Cascade): 96
+### 2.1 Verdwijnt mee (Cascade): 97
 | Model | Veld | Verwijzing | Regel |
 |---|---|---|---|
 | `ActivityFeedItem` | `user` (`userId`) | verplicht | Cascade |
@@ -66,6 +66,7 @@ punten voor de eigenaar (D8). Of een veld persoonsgegeven *is*, blijft een oorde
 | `LiveGame` | `host` (`hostId`) | verplicht | Cascade |
 | `LiveGameInvite` | `user` (`userId`) | verplicht | Cascade |
 | `LiveGamePlayer` | `user` (`userId`) | verplicht | Cascade |
+| `MailMessage` | `user` (`userId`) | optioneel | Cascade |
 | `MysteryAttempt` | `user` (`userId`) | verplicht | Cascade |
 | `MysteryProgress` | `user` (`userId`) | verplicht | Cascade |
 | `NativeAuthChallenge` | `user` (`userId`) | optioneel | Cascade |
@@ -128,11 +129,12 @@ Deze rijen blijven bestaan zonder koppeling aan de gebruiker. Controleer per mod
 Een rij die hierop verwijst, laat `user.delete` mislukken zolang zij bestaat. Alleen relevant als zulke rijen voor een gebruiker kunnen bestaan.
 _Geen._
 
-## 3. Verwijzingen zonder relatie (blijven bij verwijderen ongemoeid): 6
+## 3. Verwijzingen zonder relatie (blijven bij verwijderen ongemoeid): 7
 Tekstvelden met een naam als `userId` of `ownerId` zonder bijbehorende `@relation` naar `User`. Deze worden **niet** automatisch opgeruimd.
 | Model | Veld |
 |---|---|
 | `Challenge` | `winnerUserId` |
+| `ContentUpdateRun` | `createdById` |
 | `LiveQuizAction` | `userId` |
 | `PuzzleAction` | `userId` |
 | `ScrabbleGame` | `turnUserId` |

@@ -59,7 +59,7 @@ try {
       await delay(500);
     }
     if (!available) throw new Error("Testapp werd niet beschikbaar");
-    const browserCases = ["flow", "mobile", "drag", "parking", "visibility", "immersive", "difficulty", "hint-inventory", "feedback"];
+    const browserCases = ["flow", "mobile", "drag", "parking", "visibility", "immersive", "difficulty", "hint-inventory", "feedback", "streak-banner"];
     const selected = process.argv.find(arg => arg.startsWith("--browser-case="))?.slice("--browser-case=".length);
     if (selected && !browserCases.includes(selected)) throw new Error("Onbekende bestaande browsercase");
     for (const name of browserCases.filter(name => !selected || name === selected)) await run("npx", ["tsx", `tests/puzzle-${name}.browser.mjs`], env);

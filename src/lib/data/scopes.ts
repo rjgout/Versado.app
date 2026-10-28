@@ -5,6 +5,7 @@
 
 /** Eén scope = één soort gegevens dat samen verouderd raakt. */
 export const DATA_SCOPES = [
+  "mailLog",
   "today",
   "progress",
   "courses",

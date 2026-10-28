@@ -1,4 +1,6 @@
+import { cleanupMailHistory } from "@/lib/mailHistory";
 import { scanAudioPackages } from "./audio/library";
+import { runOfficialAudioTick } from "./audio/officialJobs";
 import { prisma } from "@/lib/db";
 import { addDays, weekStartKey, amsterdamNow, type AmsterdamTime } from "@/lib/dates";
 import { tierForWeek, getLeagueSettings, TIER_ORDER } from "@/lib/leagues";
@@ -67,8 +69,7 @@ async function zoneGroups(now: Date): Promise<{ timeZone: string | null; time: s
   });
 }
 
-async function runDailyTextTick(): Promise<void> {
-  const now = new Date();
+export async function runDailyTextTick(now = new Date(), deliver = notifyDailyText): Promise<void> {
   for (const group of await zoneGroups(now)) {
     const candidates = await prisma.user.findMany({
       where: {
@@ -78,20 +79,21 @@ async function runDailyTextTick(): Promise<void> {
         OR: [{ emailNotificationsEnabled: true }, { pushNotificationsEnabled: true }],
         AND: [{ OR: [{ lastDailyTextSentDate: null }, { lastDailyTextSentDate: { not: group.today } }] }],
       },
-      select: { id: true, contentLanguage: true },
+      select: { id: true, isAdmin: true, contentLanguage: true, dailyTextSource: true },
     });
     if (candidates.length === 0) continue;
 
-    // Hetzelfde vers voor iedereen, maar in de contenttaal van elke ontvanger;
-    // per taal maar één keer opzoeken.
-    const textByLanguage = new Map<string, Awaited<ReturnType<typeof getTextOfTheDay>>>();
+    // Alleen binnen dezelfde bron, taal, rechten en lokale dag hergebruiken.
+    const textBySource = new Map<string, Awaited<ReturnType<typeof getTextOfTheDay>>>();
     for (const user of candidates) {
-      if (!textByLanguage.has(user.contentLanguage)) {
-        textByLanguage.set(user.contentLanguage, await getTextOfTheDay(now, user.contentLanguage));
+      const key = JSON.stringify([user.dailyTextSource, user.contentLanguage, user.isAdmin, group.today]);
+      if (!textBySource.has(key)) {
+        textBySource.set(key, await getTextOfTheDay({ actor: user, date: now, language: user.contentLanguage,
+          source: user.dailyTextSource, timeZone: group.timeZone }));
       }
-      const text = textByLanguage.get(user.contentLanguage);
+      const text = textBySource.get(key);
       if (!text) continue;
-      await notifyDailyText(user.id, { ...text, content: text.text }).catch(() => {});
+      await deliver(user.id, { ...text, content: text.text }).catch(() => {});
       await prisma.user.update({ where: { id: user.id }, data: { lastDailyTextSentDate: group.today } }).catch(() => {});
     }
   }
@@ -410,6 +412,7 @@ async function runRegistrationCleanupTick(): Promise<void> {
   const now = Date.now();
   if (now - lastRegistrationCleanup < 60 * 60_000) return;
   lastRegistrationCleanup = now;
+  await cleanupMailHistory(new Date(now));
   const { pending, accounts } = await cleanupRegistrations(new Date(now));
   if (pending || accounts) console.log(`Opgeruimd: ${pending} aanmelding(en), ${accounts} onbevestigd(e) account(s).`);
 }
@@ -474,6 +477,7 @@ export function startNotificationSchedulers(): void {
     runActivityReactionNotificationTick().catch((e) => console.error("Reactiemeldingen bundelen mislukt:", e));
     runFsyWeeklyCheckIfDue(prisma).catch((e) => console.error("FSY-weekcontrole mislukt:", e));
     scanAudioPackages().catch(() => console.error("Audiopakketten controleren mislukt."));
+    runOfficialAudioTick().catch(() => console.error("Officiële audiotaken controleren mislukt."));
     runPodcastFeedSyncTick().catch((e) => console.error("Podcastfeed-synchronisatie mislukt:", e instanceof Error ? e.message : String(e)));
   }, TICK_MS);
 }

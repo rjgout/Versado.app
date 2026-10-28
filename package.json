@@ -47,12 +47,14 @@
     "test:artwork": "tsx --test tests/artwork.test.ts",
     "test:character-assets": "tsx --test tests/character-assets.test.ts",
     "test:avatar-editor": "tsx --test tests/avatar-editor.test.ts",
+    "test:mail-history:integration": "node scripts/content-architecture/test-access-isolated.mjs --focused --mail-history --browser",
+    "test:weekly-result:integration": "node scripts/content-architecture/test-access-isolated.mjs --focused --weekly-result --browser",
     "test:leagues": "tsx --test tests/leagues.test.ts",
     "test:profile": "tsx --test tests/profile-settings.test.ts tests/profile-footer.test.ts",
     "test:cards": "tsx --test tests/cards.test.ts",
     "test:conference": "tsx --test tests/generalConference.test.ts",
     "test:streak-calendar": "tsx --test tests/streak-calendar.test.ts",
-    "test:streak-return": "tsx --test tests/streak-return.test.ts tests/streak-return.integration.test.ts tests/streak-celebration.integration.test.ts tests/streak-celebration-deferral.test.ts",
+    "test:streak-return": "tsx --test tests/streak-return.test.ts tests/streak-return.integration.test.ts tests/streak-celebration.integration.test.ts tests/streak-celebration-deferral.test.ts tests/streak-banner.test.ts",
     "test:activity-reactions": "tsx --test tests/activity-reactions.test.ts tests/activity-reactions.integration.test.ts",
     "test:social": "tsx --test tests/social-rules.test.ts tests/social.integration.test.ts tests/social-links.integration.test.ts",
     "test:time": "tsx --test tests/timeZone.test.ts tests/wordGameTime.test.ts tests/streakTravel.integration.test.ts tests/wordGame.integration.test.ts",
@@ -90,7 +92,7 @@
     "test:study-reader": "tsx --test tests/reading-position.test.ts tests/study-content.test.ts",
     "test:study-reader:integration": "node scripts/content-architecture/test-access-isolated.mjs --study-reader --study-content --browser",
     "test:study-read:integration": "node scripts/content-architecture/test-access-isolated.mjs --focused --study-read --browser",
-    "test:references": "tsx --test tests/reference-resolver.test.ts",
+    "test:references": "tsx --test tests/reference-resolver.test.ts tests/cfm-card-improvements.test.ts",
     "test:references:integration": "node scripts/content-architecture/test-access-isolated.mjs --focused --reference-preview --browser",
     "test:study-publication": "tsx --test tests/study-publication.test.ts",
     "test:study-publication:integration": "node scripts/content-architecture/test-access-isolated.mjs --study-publication --browser",
@@ -116,9 +118,12 @@
     "audio:inventory": "python3 scripts/audio/official_inventory.py --download",
     "audio:align": "python3 scripts/audio/align_official.py",
     "audio:import-official": "tsx scripts/audio/import-official.ts",
-    "test:audio": "tsx --test tests/audio-library.test.ts",
+    "test:audio": "tsx --test tests/audio-library.test.ts tests/audio-official.test.ts",
     "test:audio:integration": "node scripts/audio/test-isolated.mjs",
-    "test:audio:browser": "node scripts/audio/test-isolated.mjs --browser"
+    "test:audio:browser": "node scripts/audio/test-isolated.mjs --browser",
+    "test:daily-text": "tsx --test tests/daily-text.test.ts",
+    "test:daily-text:integration": "node scripts/content-architecture/test-access-isolated.mjs --focused --daily-text --browser",
+    "test:cfm-content:integration": "node scripts/content-architecture/test-access-isolated.mjs --focused --cfm-content --browser"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.2",
@@ -140,7 +145,7 @@
     "lucide-react": "1.51.0",
     "nanoid": "6.0.1",
     "next": "16.4.2",
-    "nodemailer": "^10.0.13",
+    "nodemailer": "10.2.1",
     "opensheetmusicdisplay": "^2.2.1",
     "parse5": "8.0.0",
     "pg": "^8.16.3",
@@ -155,7 +160,7 @@
     "socket.io-client": "4.8.4",
     "tsx": "4.23.15",
     "web-push": "^3.6.7",
-    "zod": "4.6.5"
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@capacitor/android": "^8.5.2",
