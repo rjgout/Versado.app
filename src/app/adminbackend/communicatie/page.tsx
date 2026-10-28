@@ -1,3 +1,4 @@
+import MailHistoryClient from "@/components/MailHistoryClient";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import AdminChangelogClient from "@/components/AdminChangelogClient";
 import EmailSettingsClient from "@/components/EmailSettingsClient";
@@ -13,6 +14,7 @@ export default async function AdminCommunicationPage() {
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-4">
       <AdminPageHeader title={t("adminHub.commsTitle")} text={t("adminHub.commsText")} />
+      <MailHistoryClient />
       <FeedbackAdminClient />
       <EmailSettingsClient initial={emailSettings} />
       <AdminChangelogClient />

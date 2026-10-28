@@ -13,6 +13,17 @@ oplevering. Android-/iOS-compilatie is uitsluitend een regressiecontrole. Fysiek
 achtergrondaudio, hoofdtelefoonbediening en herstel na lifecycle-wissels zijn niet hiermee bewezen.
 Zie [Audioarchitectuur V2](AUDIO-ARCHITECTUUR-V2.md).
 
+## CFM-leesvragen — fase-A-pilot
+
+De web/PWA-vragenroute en de gedeelde backend ondersteunen de gecontroleerde
+CFM-bronadapter. De lokale native router mist de CFM-studielezer en heeft nog
+geen lokale vragenroute of expliciet Bearer-contract voor deze endpoint.
+Er is geen cookie-terugval of remote-webview als native implementatie toegevoegd.
+Chromium-controles bewijzen geen iPhone/iPad/Android-pariteit. Er is geen
+platformuitzondering goedgekeurd; deze pilot claimt geen volledige native of
+functionele oplevering. Zie [fase-A-verslag](CFM-LEESVRAGEN-FASE-A.md) en de
+[inhoudelijke dekking](CFM-VRAAGDEKKING.md).
+
 ## Doel, bewijs en grens
 
 Iedere bestaande functie moet bruikbaar zijn op web/PWA, lokaal gebundeld iOS/iPadOS en Android. Er zijn **geen goedgekeurde web-only uitzonderingen**. Remote-preview, een link naar de website, een lege route of een route in deze inventaris is geen native equivalent. `CAPACITOR_BUILD_PROFILE=release` blijft geblokkeerd.
@@ -29,6 +40,21 @@ webbrowsertests (`tests/game-streak-completion.integration.test.ts`,
 `tests/puzzle-completion.browser.mjs`). De bestaande beperkingen voor lokale
 native spelschermen in de matrix blijven open; er is geen apparaatvalidatie
 uitgevoerd voor deze wijziging.
+
+De deelknop in de persoonlijke reeksviering gebruikt de centrale platformadapter
+(`shareContent`): Capacitor Share op iOS/Android, Web Share in ondersteunde browsers,
+en tekst kopiëren als browserterugval. De webflow wordt gecontroleerd in
+`tests/puzzle-streak-banner.browser.mjs`. De lokale native reeksviering en echte
+apparaatvalidatie blijven onderdeel van de bestaande open native pariteitsdekking;
+deze wijziging claimt geen volledige native oplevering.
+
+De contentgebonden dagtekst gebruikt gedeelde serverselectie voor Vandaag en de
+scheduler, met `User.dailyTextSource` (standaard CFM) als additieve profielinstelling.
+De bronkeuze verandert geen sessies, kanalen of voortgang. De webprofielkeuze en
+serverselectie worden geïsoleerd getest; lokale native profielinstellingen/Vandaag
+en echte push-/mailontvangst op iOS en Android zijn hiermee niet gevalideerd. De
+bestaande ontbrekende native dekking blijft open; geen web-only uitzondering of
+volledige native oplevering geclaimd.
 
 ## Gedeelde voorwaarden per functie
 
@@ -252,7 +278,7 @@ De onafhankelijke review volgt door ChatGPT. #176 en #178 blijven ongemerged.
 <!-- BEGIN NATIVE PARITY INVENTORY -->
 ## Volledige broninventaris (gegenereerd)
 
-Gevonden: **140 pagina's**, **235 fysieke routehandlers**, **418 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
+Gevonden: **143 pagina's**, **244 fysieke routehandlers**, **431 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
 
 De JSON-bijlage bevat per route alle transitief bereikbare lokale modules, clientgrenzen en statische requestpaden. Dat is een afhankelijkheidsinventaris, geen autorisatiebewijs; voorwaarden per HTTP-methode blijven apart te controleren. Een Client Component kan via een gedeelde helper nog een serverafhankelijkheid hebben. Een module zonder eigen `use client` is contextafhankelijk, niet automatisch browsergeschikt.
 
@@ -267,7 +293,7 @@ Route | Bron / rendergrens | Domeinbeleid | Native scherm / status | Data- en au
 `/adminbackend/communicatie` | [src/app/adminbackend/communicatie/page.tsx](../src/app/adminbackend/communicatie/page.tsx); Server Component-entry | beheer | Zelfde doel-URL; ontbreekt in lokale router | requireAdminPage; src/lib/adminGuard.ts; src/lib/email.ts; src/lib/i18n/index.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/adminbackend/content` | [src/app/adminbackend/content/page.tsx](../src/app/adminbackend/content/page.tsx); Server Component-entry | beheer | Zelfde doel-URL; ontbreekt in lokale router | requireAdminPage; src/lib/adminGuard.ts; src/lib/i18n/index.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/adminbackend/content-preview` | [src/app/adminbackend/content-preview/page.tsx](../src/app/adminbackend/content-preview/page.tsx); Server Component-entry | beheer | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/chapterTerm.ts; src/lib/contentAccess.ts; src/lib/db.ts; src/lib/i18n/index.ts; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
-`/adminbackend/content/audio` | [src/app/adminbackend/content/audio/page.tsx](../src/app/adminbackend/content/audio/page.tsx); Server Component-entry | beheer | Zelfde doel-URL; ontbreekt in lokale router | requireAdminPage; src/lib/adminGuard.ts; src/lib/audio/library.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
+`/adminbackend/content/audio` | [src/app/adminbackend/content/audio/page.tsx](../src/app/adminbackend/content/audio/page.tsx); Server Component-entry | beheer | Zelfde doel-URL; ontbreekt in lokale router | requireAdminPage; src/lib/adminGuard.ts; src/lib/audio/library.ts; src/lib/audio/officialJobs.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/adminbackend/content/inspect` | [src/app/adminbackend/content/inspect/page.tsx](../src/app/adminbackend/content/inspect/page.tsx); Server Component-entry | beheer | Zelfde doel-URL; ontbreekt in lokale router | requireAdminPage; src/lib/adminContentInspection.ts; src/lib/adminGuard.ts; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/adminbackend/content/study-publications` | [src/app/adminbackend/content/study-publications/page.tsx](../src/app/adminbackend/content/study-publications/page.tsx); Server Component-entry | beheer | Zelfde doel-URL; ontbreekt in lokale router | requireAdminPage; src/lib/adminGuard.ts; src/lib/studyContent/admin.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/adminbackend/gebruikers` | [src/app/adminbackend/gebruikers/page.tsx](../src/app/adminbackend/gebruikers/page.tsx); Server Component-entry | beheer | Zelfde doel-URL; ontbreekt in lokale router | requireAdminPage; src/lib/adminGuard.ts; src/lib/dates.ts; src/lib/db.ts; src/lib/i18n/index.ts; src/lib/i18n/serverTexts.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
@@ -284,16 +310,18 @@ Route | Bron / rendergrens | Domeinbeleid | Native scherm / status | Data- en au
 `/chapter-guess` | [src/app/chapter-guess/page.tsx](../src/app/chapter-guess/page.tsx); Server Component-entry | spelen | Zelfde doel-URL; ontbreekt in lokale router | canStartGame; getCurrentUser; src/lib/gameAvailability.ts; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/chapter-guess/solo/[gameId]` | [src/app/chapter-guess/solo/[gameId]/page.tsx](../src/app/chapter-guess/solo/[gameId]/page.tsx); Server Component-entry | spelen | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/competition` | [src/app/competition/page.tsx](../src/app/competition/page.tsx); Server Component-entry | sociaal | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
+`/contact` | [src/app/contact/page.tsx](../src/app/contact/page.tsx); Server Component-entry | hulp-juridisch | Lokale gedeelde inhoud; apparaatbewijs open | Zie bron en rootlayout; nog expliciet beoordelen | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/content` | [src/app/content/page.tsx](../src/app/content/page.tsx); Server Component-entry | leren | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/contentCollections.ts; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/cookies` | [src/app/cookies/page.tsx](../src/app/cookies/page.tsx); Server Component-entry | hulp-juridisch | Lokale gedeelde inhoud; apparaatbewijs open | Zie bron en rootlayout; nog expliciet beoordelen | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/courses` | [src/app/courses/page.tsx](../src/app/courses/page.tsx); Server Component-entry | leren | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/i18n/index.ts; src/lib/session.ts; src/lib/studyContent/catalogue.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
-`/courses/[courseId]` | [src/app/courses/[courseId]/page.tsx](../src/app/courses/[courseId]/page.tsx); Server Component-entry | leren | Zelfde doel-URL; ontbreekt in lokale router | canStartStudy; getCurrentUser; src/lib/contentCollections.ts; src/lib/courseText.ts; src/lib/db.ts; src/lib/email.ts; src/lib/podcastChapters.ts; src/lib/readingCourses.ts; src/lib/session.ts; src/lib/study/startAvailability.ts; src/lib/studyContent/revisions.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
-`/courses/[courseId]/archief` | [src/app/courses/[courseId]/archief/page.tsx](../src/app/courses/[courseId]/archief/page.tsx); Server Component-entry | leren | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/contentCollections.ts; src/lib/courseText.ts; src/lib/db.ts; src/lib/email.ts; src/lib/readingCourses.ts; src/lib/session.ts; src/lib/studyContent/catalogue.ts; src/lib/studyContent/cfmProgramme.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
+`/courses/[courseId]` | [src/app/courses/[courseId]/page.tsx](../src/app/courses/[courseId]/page.tsx); Server Component-entry | leren | Zelfde doel-URL; ontbreekt in lokale router | canStartStudy; getCurrentUser; src/lib/contentCollections.ts; src/lib/courseContent.ts; src/lib/courseText.ts; src/lib/db.ts; src/lib/email.ts; src/lib/podcastChapters.ts; src/lib/readingCourses.ts; src/lib/session.ts; src/lib/study/startAvailability.ts; src/lib/studyContent/revisions.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
+`/courses/[courseId]/archief` | [src/app/courses/[courseId]/archief/page.tsx](../src/app/courses/[courseId]/archief/page.tsx); Server Component-entry | leren | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/contentCollections.ts; src/lib/courseContent.ts; src/lib/courseText.ts; src/lib/db.ts; src/lib/email.ts; src/lib/readingCourses.ts; src/lib/session.ts; src/lib/studyContent/catalogue.ts; src/lib/studyContent/cfmProgramme.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/courses/[courseId]/chapter/[chapterId]` | [src/app/courses/[courseId]/chapter/[chapterId]/page.tsx](../src/app/courses/[courseId]/chapter/[chapterId]/page.tsx); Server Component-entry | leren | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/chapterTerm.ts; src/lib/contentAccess.ts; src/lib/db.ts; src/lib/i18n/index.ts; src/lib/learning/contentProgress.ts; src/lib/readingLessons.ts; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
-`/courses/[courseId]/pad` | [src/app/courses/[courseId]/pad/page.tsx](../src/app/courses/[courseId]/pad/page.tsx); Server Component-entry | leren | Zelfde doel-URL; ontbreekt in lokale router | canStartStudy; getCurrentUser; src/lib/chapterPathData.ts; src/lib/chapterTerm.ts; src/lib/contentCollections.ts; src/lib/courseText.ts; src/lib/db.ts; src/lib/email.ts; src/lib/i18n/index.ts; src/lib/readingCourses.ts; src/lib/readingPathData.ts; src/lib/session.ts; src/lib/study/startAvailability.ts; src/lib/studyContent/catalogue.ts; src/lib/studyContent/weekSelection.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
+`/courses/[courseId]/pad` | [src/app/courses/[courseId]/pad/page.tsx](../src/app/courses/[courseId]/pad/page.tsx); Server Component-entry | leren | Zelfde doel-URL; ontbreekt in lokale router | canStartStudy; getCurrentUser; src/lib/chapterPathData.ts; src/lib/chapterTerm.ts; src/lib/contentCollections.ts; src/lib/courseContent.ts; src/lib/courseText.ts; src/lib/db.ts; src/lib/email.ts; src/lib/i18n/index.ts; src/lib/readingCourses.ts; src/lib/readingPathData.ts; src/lib/session.ts; src/lib/study/startAvailability.ts; src/lib/studyContent/catalogue.ts; src/lib/studyContent/weekSelection.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/dashboard` | [src/app/dashboard/page.tsx](../src/app/dashboard/page.tsx); Server Component-entry | overig-vandaag | Lokale route; Foundation gedeeltelijk, geen volledige functiepariteit | getCurrentUser; src/lib/email.ts; src/lib/generalConference.ts; src/lib/hymns/sunday.ts; src/lib/session.ts; src/lib/timeZone.ts; src/lib/today.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/dev/lofzangen` | [src/app/dev/lofzangen/page.tsx](../src/app/dev/lofzangen/page.tsx); Server Component-entry | media-hulpmiddelen | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; getHymnsAccess; src/lib/hymnAvailability.ts; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/dev/versado-dorp` | [src/app/dev/versado-dorp/page.tsx](../src/app/dev/versado-dorp/page.tsx); Server Component-entry | dorp | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/dorp/access.ts; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
+`/disclaimer` | [src/app/disclaimer/page.tsx](../src/app/disclaimer/page.tsx); Server Component-entry | hulp-juridisch | Lokale gedeelde inhoud; apparaatbewijs open | Zie bron en rootlayout; nog expliciet beoordelen | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/dorp` | [src/app/dorp/page.tsx](../src/app/dorp/page.tsx); Server Component-entry | dorp | Zelfde doel-URL; ontbreekt in lokale router | src/lib/dorp/pageAccess.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/dorp/groups/[groupId]` | [src/app/dorp/groups/[groupId]/page.tsx](../src/app/dorp/groups/[groupId]/page.tsx); Server Component-entry | dorp | Zelfde doel-URL; ontbreekt in lokale router | src/lib/db.ts; src/lib/dorp/pageAccess.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/dorp/visit/[userId]` | [src/app/dorp/visit/[userId]/page.tsx](../src/app/dorp/visit/[userId]/page.tsx); Server Component-entry | dorp | Zelfde doel-URL; ontbreekt in lokale router | src/lib/dorp/pageAccess.ts; src/lib/dorp/service.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
@@ -387,6 +415,7 @@ Route | Bron / rendergrens | Domeinbeleid | Native scherm / status | Data- en au
 `/study-lesson/[lessonId]/[collectionId]` | [src/app/study-lesson/[lessonId]/[collectionId]/page.tsx](../src/app/study-lesson/[lessonId]/[collectionId]/page.tsx); Server Component-entry | leren | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/annotations/studyFocus.ts; src/lib/db.ts; src/lib/i18n/index.ts; src/lib/session.ts; src/lib/studyContent/cfmCourses.ts; src/lib/studyContent/personalStudyPage.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/study-lesson/[lessonId]/[collectionId]/stappen` | [src/app/study-lesson/[lessonId]/[collectionId]/stappen/page.tsx](../src/app/study-lesson/[lessonId]/[collectionId]/stappen/page.tsx); Server Component-entry | leren | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/session.ts; src/lib/studyContent/personalStudyPage.ts; src/lib/studyContent/stepProgress.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/study-lesson/[lessonId]/[collectionId]/stappen/[stap]` | [src/app/study-lesson/[lessonId]/[collectionId]/stappen/[stap]/page.tsx](../src/app/study-lesson/[lessonId]/[collectionId]/stappen/[stap]/page.tsx); Server Component-entry | leren | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/db.ts; src/lib/session.ts; src/lib/studyContent/cfmCourses.ts; src/lib/studyContent/personalStudyPage.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
+`/study-lesson/[lessonId]/[collectionId]/vragen` | [src/app/study-lesson/[lessonId]/[collectionId]/vragen/page.tsx](../src/app/study-lesson/[lessonId]/[collectionId]/vragen/page.tsx); Server Component-entry | leren | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/db.ts; src/lib/i18n/index.ts; src/lib/session.ts; src/lib/studyContent/cfmCourses.ts; src/lib/studyContent/exerciseSource.ts; src/lib/studyContent/pilotReadings.ts; src/lib/studyContent/revisions.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/tools` | [src/app/tools/page.tsx](../src/app/tools/page.tsx); Server Component-entry | media-hulpmiddelen | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/contentCollections.ts; src/lib/db.ts; src/lib/dictionary.ts; src/lib/i18n/index.ts; src/lib/i18n/core.ts; src/lib/languages.ts; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/tools/dictionary` | [src/app/tools/dictionary/page.tsx](../src/app/tools/dictionary/page.tsx); Server Component-entry | media-hulpmiddelen | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/tools/dictionary/[word]` | [src/app/tools/dictionary/[word]/page.tsx](../src/app/tools/dictionary/[word]/page.tsx); Server Component-entry | media-hulpmiddelen | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
@@ -417,6 +446,9 @@ Endpoint | Methoden | Bron | Domein / authenticatie | Native beschikbaarheid
 `/api/admin/alleskenner` | GET | [src/app/api/admin/alleskenner/route.ts](../src/app/api/admin/alleskenner/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/alleskenner/[id]` | PUT | [src/app/api/admin/alleskenner/[id]/route.ts](../src/app/api/admin/alleskenner/[id]/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/audio` | GET, POST | [src/app/api/admin/audio/route.ts](../src/app/api/admin/audio/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
+`/api/admin/audio-checks` | GET, POST | [src/app/api/admin/audio-checks/route.ts](../src/app/api/admin/audio-checks/route.ts) | beheer; getCurrentUser, requireAdmin | Geen algemene bearer-toegang; expliciet contract vereist
+`/api/admin/audio/legacy` | GET, POST | [src/app/api/admin/audio/legacy/route.ts](../src/app/api/admin/audio/legacy/route.ts) | beheer; assertLegacySource, getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
+`/api/admin/audio/official` | GET, POST | [src/app/api/admin/audio/official/route.ts](../src/app/api/admin/audio/official/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/branding` | GET, PUT | [src/app/api/admin/branding/route.ts](../src/app/api/admin/branding/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/changelog` | GET, POST | [src/app/api/admin/changelog/route.ts](../src/app/api/admin/changelog/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/changelog/[entryId]` | DELETE, PATCH | [src/app/api/admin/changelog/[entryId]/route.ts](../src/app/api/admin/changelog/[entryId]/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
@@ -441,7 +473,10 @@ Endpoint | Methoden | Bron | Domein / authenticatie | Native beschikbaarheid
 `/api/admin/league-settings` | GET, PUT | [src/app/api/admin/league-settings/route.ts](../src/app/api/admin/league-settings/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/live-games` | GET | [src/app/api/admin/live-games/route.ts](../src/app/api/admin/live-games/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/live-games/[gameId]` | DELETE | [src/app/api/admin/live-games/[gameId]/route.ts](../src/app/api/admin/live-games/[gameId]/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
+`/api/admin/mail-history` | GET | [src/app/api/admin/mail-history/route.ts](../src/app/api/admin/mail-history/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
+`/api/admin/mail-history/[id]/resend` | POST | [src/app/api/admin/mail-history/[id]/resend/route.ts](../src/app/api/admin/mail-history/[id]/resend/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/reseed` | GET, POST | [src/app/api/admin/reseed/route.ts](../src/app/api/admin/reseed/route.ts) | beheer; getCurrentUser, requireAdmin, requireCfmApproval | Geen algemene bearer-toegang; expliciet contract vereist
+`/api/admin/scripture-update` | GET, POST | [src/app/api/admin/scripture-update/route.ts](../src/app/api/admin/scripture-update/route.ts) | beheer; getCurrentUser, requireAdmin | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/study-media/[mediaId]` | GET | [src/app/api/admin/study-media/[mediaId]/route.ts](../src/app/api/admin/study-media/[mediaId]/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/study-publications` | GET, POST | [src/app/api/admin/study-publications/route.ts](../src/app/api/admin/study-publications/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/study-publications/report` | GET | [src/app/api/admin/study-publications/report/route.ts](../src/app/api/admin/study-publications/report/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
@@ -487,6 +522,7 @@ Endpoint | Methoden | Bron | Domein / authenticatie | Native beschikbaarheid
 `/api/chapters/[chapterId]/audio-languages` | GET | [src/app/api/chapters/[chapterId]/audio-languages/route.ts](../src/app/api/chapters/[chapterId]/audio-languages/route.ts) | leren; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/chapters/[chapterId]/read` | POST | [src/app/api/chapters/[chapterId]/read/route.ts](../src/app/api/chapters/[chapterId]/read/route.ts) | leren; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/chapters/[chapterId]/submit` | POST | [src/app/api/chapters/[chapterId]/submit/route.ts](../src/app/api/chapters/[chapterId]/submit/route.ts) | leren; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
+`/api/competition/result` | GET, POST | [src/app/api/competition/result/route.ts](../src/app/api/competition/result/route.ts) | sociaal; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/content-api/status` | GET | [src/app/api/content-api/status/route.ts](../src/app/api/content-api/status/route.ts) | leren; verifyContentApiKey | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/content-context` | GET, PUT | [src/app/api/content-context/route.ts](../src/app/api/content-context/route.ts) | leren; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/courses` | GET | [src/app/api/courses/route.ts](../src/app/api/courses/route.ts) | leren; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
@@ -547,6 +583,7 @@ Endpoint | Methoden | Bron | Domein / authenticatie | Native beschikbaarheid
 `/api/live/create-alleskenner` | POST | [src/app/api/live/create-alleskenner/route.ts](../src/app/api/live/create-alleskenner/route.ts) | spelen; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/live/create-chapter-guess` | POST | [src/app/api/live/create-chapter-guess/route.ts](../src/app/api/live/create-chapter-guess/route.ts) | spelen; canStartGame, getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/live/create-family-game` | POST | [src/app/api/live/create-family-game/route.ts](../src/app/api/live/create-family-game/route.ts) | spelen; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
+`/api/mail/open/[token]` | GET, HEAD | [src/app/api/mail/open/[token]/route.ts](../src/app/api/mail/open/[token]/route.ts) | overig-vandaag; controle in bron/service nodig | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/me` | GET | [src/app/api/me/route.ts](../src/app/api/me/route.ts) | overig-vandaag; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/mysteries/[mystery]/[variant]/progress` | GET, POST | [src/app/api/mysteries/[mystery]/[variant]/progress/route.ts](../src/app/api/mysteries/[mystery]/[variant]/progress/route.ts) | spelen; controle in bron/service nodig | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/mysteries/[mystery]/hint` | POST | [src/app/api/mysteries/[mystery]/hint/route.ts](../src/app/api/mysteries/[mystery]/hint/route.ts) | spelen; controle in bron/service nodig | Geen algemene bearer-toegang; expliciet contract vereist
@@ -615,6 +652,7 @@ Endpoint | Methoden | Bron | Domein / authenticatie | Native beschikbaarheid
 `/api/streak/celebration` | GET, POST | [src/app/api/streak/celebration/route.ts](../src/app/api/streak/celebration/route.ts) | overig-vandaag; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/streak/continuation` | GET, POST | [src/app/api/streak/continuation/route.ts](../src/app/api/streak/continuation/route.ts) | overig-vandaag; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/study-context` | GET, PUT | [src/app/api/study-context/route.ts](../src/app/api/study-context/route.ts) | overig-vandaag; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
+`/api/study-exercises` | POST | [src/app/api/study-exercises/route.ts](../src/app/api/study-exercises/route.ts) | overig-vandaag; assertReadingOffered, getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/study-folder` | GET | [src/app/api/study-folder/route.ts](../src/app/api/study-folder/route.ts) | leren; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/study-media/[mediaId]` | GET | [src/app/api/study-media/[mediaId]/route.ts](../src/app/api/study-media/[mediaId]/route.ts) | overig-vandaag; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/study-preference` | PUT | [src/app/api/study-preference/route.ts](../src/app/api/study-preference/route.ts) | overig-vandaag; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
@@ -668,6 +706,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/app/chapter-guess/page.tsx](../src/app/chapter-guess/page.tsx) | contextafhankelijk / server-entry waar page/layout | ChapterGuessPage
 [src/app/chapter-guess/solo/[gameId]/page.tsx](../src/app/chapter-guess/solo/[gameId]/page.tsx) | contextafhankelijk / server-entry waar page/layout | ChapterGuessSoloPage
 [src/app/competition/page.tsx](../src/app/competition/page.tsx) | contextafhankelijk / server-entry waar page/layout | CompetitionPage
+[src/app/contact/page.tsx](../src/app/contact/page.tsx) | contextafhankelijk / server-entry waar page/layout | ContactPage
 [src/app/content/page.tsx](../src/app/content/page.tsx) | contextafhankelijk / server-entry waar page/layout | ContentPage
 [src/app/cookies/page.tsx](../src/app/cookies/page.tsx) | contextafhankelijk / server-entry waar page/layout | CookiesPage
 [src/app/courses/[courseId]/archief/page.tsx](../src/app/courses/[courseId]/archief/page.tsx) | contextafhankelijk / server-entry waar page/layout | CfmArchivePage
@@ -678,6 +717,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/app/dashboard/page.tsx](../src/app/dashboard/page.tsx) | contextafhankelijk / server-entry waar page/layout | DashboardPage
 [src/app/dev/lofzangen/page.tsx](../src/app/dev/lofzangen/page.tsx) | contextafhankelijk / server-entry waar page/layout | HymnsPocPage, dynamic, metadata
 [src/app/dev/versado-dorp/page.tsx](../src/app/dev/versado-dorp/page.tsx) | contextafhankelijk / server-entry waar page/layout | VersadoDorpPrototypePage, metadata
+[src/app/disclaimer/page.tsx](../src/app/disclaimer/page.tsx) | contextafhankelijk / server-entry waar page/layout | DisclaimerPage
 [src/app/dorp/groups/[groupId]/page.tsx](../src/app/dorp/groups/[groupId]/page.tsx) | contextafhankelijk / server-entry waar page/layout | GroupDorpPage
 [src/app/dorp/page.tsx](../src/app/dorp/page.tsx) | contextafhankelijk / server-entry waar page/layout | DorpPage
 [src/app/dorp/visit/[userId]/page.tsx](../src/app/dorp/visit/[userId]/page.tsx) | contextafhankelijk / server-entry waar page/layout | VisitDorpPage
@@ -773,6 +813,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/app/study-lesson/[lessonId]/[collectionId]/page.tsx](../src/app/study-lesson/[lessonId]/[collectionId]/page.tsx) | contextafhankelijk / server-entry waar page/layout | Page
 [src/app/study-lesson/[lessonId]/[collectionId]/stappen/[stap]/page.tsx](../src/app/study-lesson/[lessonId]/[collectionId]/stappen/[stap]/page.tsx) | contextafhankelijk / server-entry waar page/layout | Page
 [src/app/study-lesson/[lessonId]/[collectionId]/stappen/page.tsx](../src/app/study-lesson/[lessonId]/[collectionId]/stappen/page.tsx) | contextafhankelijk / server-entry waar page/layout | Page
+[src/app/study-lesson/[lessonId]/[collectionId]/vragen/page.tsx](../src/app/study-lesson/[lessonId]/[collectionId]/vragen/page.tsx) | contextafhankelijk / server-entry waar page/layout | Page
 [src/app/tools/dictionary/[word]/page.tsx](../src/app/tools/dictionary/[word]/page.tsx) | contextafhankelijk / server-entry waar page/layout | DictionaryWordPage
 [src/app/tools/dictionary/page.tsx](../src/app/tools/dictionary/page.tsx) | contextafhankelijk / server-entry waar page/layout | DictionaryPage
 [src/app/tools/page.tsx](../src/app/tools/page.tsx) | contextafhankelijk / server-entry waar page/layout | ToolsPage
@@ -853,12 +894,13 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/KidsLessonFlow.tsx](../src/components/KidsLessonFlow.tsx) | use client | KidsLessonFlow
 [src/components/LanguageSettings.tsx](../src/components/LanguageSettings.tsx) | use client | LanguageSettings
 [src/components/LeaderboardClient.tsx](../src/components/LeaderboardClient.tsx) | use client | LeaderboardClient
-[src/components/LessonFlow.tsx](../src/components/LessonFlow.tsx) | use client | ExerciseCard, LessonFlow, LessonResultMascot, ReaderView
+[src/components/LessonFlow.tsx](../src/components/LessonFlow.tsx) | use client | ExerciseCard, ExerciseSessionQuestions, LessonFlow, LessonResultMascot, ReaderView, SummaryScreen
 [src/components/LiveDataProvider.tsx](../src/components/LiveDataProvider.tsx) | use client | LiveDataProvider
 [src/components/LiveLobbyForm.tsx](../src/components/LiveLobbyForm.tsx) | use client | LiveLobbyForm
 [src/components/LiveRefresh.tsx](../src/components/LiveRefresh.tsx) | use client | LiveRefresh
 [src/components/LobbyClosedNotice.tsx](../src/components/LobbyClosedNotice.tsx) | use client | LobbyClosedNotice
 [src/components/LobbyInviteCard.tsx](../src/components/LobbyInviteCard.tsx) | use client | LobbyInviteCard
+[src/components/MailHistoryClient.tsx](../src/components/MailHistoryClient.tsx) | use client | MailHistoryClient
 [src/components/NativeAppBridge.tsx](../src/components/NativeAppBridge.tsx) | use client | NativeAppBridge
 [src/components/NavUserBadges.tsx](../src/components/NavUserBadges.tsx) | use client | NavUserBadges
 [src/components/NotificationCenter.tsx](../src/components/NotificationCenter.tsx) | use client | NotificationCenter
@@ -893,6 +935,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/StreakCelebrationFlow.tsx](../src/components/StreakCelebrationFlow.tsx) | use client | StreakCelebrationFlow
 [src/components/StreakClient.tsx](../src/components/StreakClient.tsx) | use client | StreakClient
 [src/components/StreakContinuation.tsx](../src/components/StreakContinuation.tsx) | use client | StreakContinuationCard, StreakContinuationProvider, useStreakContinuation
+[src/components/StreakEarnedBanner.tsx](../src/components/StreakEarnedBanner.tsx) | use client | StreakEarnedBanner
 [src/components/SubpageBackBar.tsx](../src/components/SubpageBackBar.tsx) | use client | SubpageBackBar
 [src/components/ThemePreference.tsx](../src/components/ThemePreference.tsx) | use client | ThemePreference
 [src/components/ThemeScript.tsx](../src/components/ThemeScript.tsx) | contextafhankelijk / server-entry waar page/layout | ThemeScript
@@ -900,6 +943,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/TwoFactorSettings.tsx](../src/components/TwoFactorSettings.tsx) | use client | TwoFactorSettings
 [src/components/UserAvatar.tsx](../src/components/UserAvatar.tsx) | use client | UserAvatar, invalidateAvatarCache, setAvatarAppearance
 [src/components/UserTag.tsx](../src/components/UserTag.tsx) | contextafhankelijk / server-entry waar page/layout | UserTag
+[src/components/WeeklyResultCelebration.tsx](../src/components/WeeklyResultCelebration.tsx) | use client | WeeklyResultCelebration
 [src/components/WordDetailClient.tsx](../src/components/WordDetailClient.tsx) | use client | WordDetailClient
 [src/components/WordGameClient.tsx](../src/components/WordGameClient.tsx) | use client | WordGameClient
 [src/components/WordGameHintPanel.tsx](../src/components/WordGameHintPanel.tsx) | use client | WordGameHintPanel
@@ -919,6 +963,9 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/admin/AdminSection.tsx](../src/components/admin/AdminSection.tsx) | contextafhankelijk / server-entry waar page/layout | AdminSection
 [src/components/admin/AdminStudyPublicationsClient.tsx](../src/components/admin/AdminStudyPublicationsClient.tsx) | use client | AdminStudyPublicationsClient
 [src/components/admin/AdminTable.tsx](../src/components/admin/AdminTable.tsx) | contextafhankelijk / server-entry waar page/layout | AdminTable
+[src/components/admin/LegacyAudioClient.tsx](../src/components/admin/LegacyAudioClient.tsx) | use client | LegacyAudioClient
+[src/components/admin/OfficialAudioClient.tsx](../src/components/admin/OfficialAudioClient.tsx) | use client | OfficialAudioClient
+[src/components/admin/ScriptureUpdateClient.tsx](../src/components/admin/ScriptureUpdateClient.tsx) | use client | ScriptureUpdateClient
 [src/components/admin/StudyRevisionContent.tsx](../src/components/admin/StudyRevisionContent.tsx) | contextafhankelijk / server-entry waar page/layout | StudyRevisionContent
 [src/components/alleskenner/AlleskennerGame.tsx](../src/components/alleskenner/AlleskennerGame.tsx) | use client | AlleskennerGame, TEAM_DOTS
 [src/components/alleskenner/AlleskennerRoom.tsx](../src/components/alleskenner/AlleskennerRoom.tsx) | use client | AlleskennerRoom
@@ -953,7 +1000,9 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/kompas/TourButton.tsx](../src/components/kompas/TourButton.tsx) | use client | TourButton
 [src/components/kompas/TourOverlay.tsx](../src/components/kompas/TourOverlay.tsx) | use client | TourOverlay
 [src/components/learning/ContentStatus.tsx](../src/components/learning/ContentStatus.tsx) | use client | ContentStatusInline, ContentStatusLine, LongChapterNotice, SharedProgressHint
+[src/components/legal/ContactContent.tsx](../src/components/legal/ContactContent.tsx) | use client | ContactContent
 [src/components/legal/CookiesContent.tsx](../src/components/legal/CookiesContent.tsx) | use client | CookiesContent
+[src/components/legal/DisclaimerContent.tsx](../src/components/legal/DisclaimerContent.tsx) | use client | DisclaimerContent
 [src/components/legal/PrivacyContent.tsx](../src/components/legal/PrivacyContent.tsx) | use client | PrivacyContent
 [src/components/mysteries/Mystery001aClient.tsx](../src/components/mysteries/Mystery001aClient.tsx) | use client | MysteryClient
 [src/components/mysteries/MysteryDetailPage.tsx](../src/components/mysteries/MysteryDetailPage.tsx) | contextafhankelijk / server-entry waar page/layout | MysteryDetailPage
@@ -1025,6 +1074,8 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/study/ReferencePreview.tsx](../src/components/study/ReferencePreview.tsx) | use client | ReferencePreview
 [src/components/study/ReferenceReturn.tsx](../src/components/study/ReferenceReturn.tsx) | use client | ReferenceReturn
 [src/components/study/RichContentBlocks.tsx](../src/components/study/RichContentBlocks.tsx) | use client | InlineContent, RichContentBlocks
+[src/components/study/ScriptureVerses.tsx](../src/components/study/ScriptureVerses.tsx) | contextafhankelijk / server-entry waar page/layout | ScriptureVerses
+[src/components/study/StudyExerciseClient.tsx](../src/components/study/StudyExerciseClient.tsx) | use client | StudyExerciseClient
 [src/components/study/StudyReader.tsx](../src/components/study/StudyReader.tsx) | use client | StudyReader
 [src/components/study/StudyRoom.tsx](../src/components/study/StudyRoom.tsx) | use client | StudyRoom
 [src/components/study/StudyTogetherButton.tsx](../src/components/study/StudyTogetherButton.tsx) | use client | StudyTogetherButton

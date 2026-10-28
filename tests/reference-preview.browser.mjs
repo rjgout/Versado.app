@@ -7,6 +7,7 @@ import { getT } from "../src/lib/i18n/index.ts";
 import { SESSION_COOKIE } from "../src/lib/auth.ts";
 import {
   referenceFixture,
+  ensureReferenceOtbScripture,
   assertReferenceTestEnvironment,
 } from "./fixtures/reference-content.mjs";
 const base = assertReferenceTestEnvironment(),
@@ -605,8 +606,36 @@ async function runSuite() {
     results.push({ latePickerDoesNotStartMore: true });
   }
 }
+async function recoveredBibleReference() {
+  const f = await referenceFixture();
+  const { collection, chapter } = await ensureReferenceOtbScripture();
+  await prisma.contentCollection.update({ where: { id: collection.id }, data: { publicationState: "PUBLISHED", enabled: true, visibleToUsers: true } });
+  const { appendStudyRevision } = await import("../src/lib/studyContent/revisions.ts");
+  const original = await prisma.studyRevision.findUniqueOrThrow({ where: { id: f.item.revisionId } });
+  const body = structuredClone(original.body);
+  const ref = body.sections[0].blocks.find(b => b.type === "reference");
+  ref.label = "Genesis 1:2–3";
+  ref.target = { sourceKey: "https://www.churchofjesuschrist.org/study/scriptures/ot/gen/1?lang=nld&id=p2-p3" };
+  const revision = await appendStudyRevision(f.admin.actor, f.item.lessonEditionId, { schemaVersion: 1, title: original.title, body, sourceMetadata: original.sourceMetadata, rightsMetadata: original.rightsMetadata });
+  const row = await prisma.contentReference.create({ data: { revisionId: revision.id, occurrenceKey: "reference-intro", label: ref.label, originalTarget: ref.target, normalizedTarget: {}, diagnosis: "UNRESOLVED" } });
+  await prisma.studyLessonEdition.update({ where: { id: f.item.lessonEditionId }, data: { publishedRevisionId: revision.id, publicationVersion: { increment: 1 } } });
+  const { c, page } = await context(f, { width: 375, height: 844 }, "dark");
+  await page.goto(base + f.href);
+  const button = page.getByRole("button", { name: ref.label, exact: true });
+  await button.waitFor();await delay(1200);await button.click();
+  await page.locator("dialog[open] [data-reference-preview]").getByText(/OTB-vers 2/).waitFor();
+  await page.screenshot({ path: output + "/recovered-bible-mobile.png" });
+  await page.getByRole("button", { name: getT("nl")("referencePreview.more"), exact: true }).click();
+  await page.locator("[data-scripture-readonly]").waitFor();
+  assert.ok(page.url().includes(`/scripture/${chapter.id}`));
+  await page.goBack();await page.locator("[data-study-reader]").waitFor();
+  assert.equal((await prisma.contentReference.findUniqueOrThrow({ where: { id: row.id } })).diagnosis, "UNRESOLVED");
+  await c.close();results.push({ recoveredUnresolvedBible: true, internalReader: true, returnToLesson: true, noReimport: true });
+}
+
 try {
   await runSuite();
+  await recoveredBibleReference();
   assert.deepEqual(errors, []);
   console.log(
     JSON.stringify({

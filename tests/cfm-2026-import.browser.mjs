@@ -54,11 +54,11 @@ try {
     const c=await browser.newContext({viewport:{width,height:900},colorScheme:scheme,hasTouch:width<500});await c.addCookies([{name:SESSION_COOKIE,value:flow.adminToken,url:base}]);const page=await c.newPage();
     const proposal=await (await c.request.get(base+"/api/admin/reseed")).json();let posted=[];
     await page.route("**/api/admin/**",async route=>{const r=route.request(),pathname=new URL(r.url()).pathname;if(pathname === "/api/admin/reseed" && r.method()==="POST"){posted.push(r.postDataJSON());await route.fulfill({json:{started:false,job:{status:"idle",logs:[],error:null,startedAt:null,finishedAt:null,progress:null}}});}else if(pathname === "/api/admin/reseed")await route.continue();else await route.fulfill({status:503,json:{error:"Isolated unrelated admin panel"}});});
-    await page.goto(base+"/adminbackend/systeem");const run=page.getByRole("button",{name:"Content opnieuw laden",exact:true,includeHidden:true});await run.waitFor({state:"attached"});await page.locator("details").filter({has:run}).locator("summary").first().click();
+    await page.goto(base+"/adminbackend/systeem");const run=page.getByRole("button",{name:"Nieuwe content ophalen",exact:true,includeHidden:true});await run.waitFor({state:"attached"});await page.locator("details").filter({has:run}).locator("summary").first().click();
     await page.getByLabel("Kom dan en volg Mij bijwerken en automatisch publiceren").waitFor();if(scale===200)await page.addStyleTag({content:"html{font-size:200% !important}"});
     await run.click();await page.getByRole("dialog").getByRole("button",{name:"Annuleren",exact:true}).click();assert.equal(posted.length,0);
-    await run.click();await page.getByRole("dialog").getByRole("button",{name:"Content opnieuw laden",exact:true}).click();await page.locator("dialog[open]").getByText(proposal.studySource.snapshot,{exact:false}).waitFor();await page.keyboard.press("Escape");assert.equal(posted.length,0);
-    await run.click();await page.getByRole("dialog").getByRole("button",{name:"Content opnieuw laden",exact:true}).click();const modal=page.locator("dialog[open]");await modal.getByText(proposal.studySource.snapshot,{exact:false}).waitFor();await page.screenshot({path:`${output}/cfm-snapshot-confirm-${width}-${scheme}.png`});const box=await modal.boundingBox();assert.ok(box.x>=0&&box.x+box.width<=width+1&&box.y>=0&&box.y+box.height<=900);for(const button of await modal.getByRole("button").all()){const b=await button.boundingBox();assert.ok(b.y>=box.y&&b.y+b.height<=box.y+box.height,"Bevestigingsacties blijven zichtbaar bij grote tekst: "+JSON.stringify({dialog:box,button:b,display:await modal.evaluate(el=>getComputedStyle(el).display)}));assert.equal(await button.evaluate(el=>el.scrollWidth<=el.clientWidth+1),true);}assert.equal(await modal.evaluate(el=>el.scrollWidth<=el.clientWidth+1),true);await page.screenshot({path:`${output}/cfm-snapshot-confirm-${width}-${scheme}.png`});
+    await run.click();await page.getByRole("dialog").getByRole("button",{name:"Nieuwe content ophalen",exact:true}).click();await page.locator("dialog[open]").getByText(proposal.studySource.snapshot,{exact:false}).waitFor();await page.keyboard.press("Escape");assert.equal(posted.length,0);
+    await run.click();await page.getByRole("dialog").getByRole("button",{name:"Nieuwe content ophalen",exact:true}).click();const modal=page.locator("dialog[open]");await modal.getByText(proposal.studySource.snapshot,{exact:false}).waitFor();await page.screenshot({path:`${output}/cfm-snapshot-confirm-${width}-${scheme}.png`});const box=await modal.boundingBox();assert.ok(box.x>=0&&box.x+box.width<=width+1&&box.y>=0&&box.y+box.height<=900);for(const button of await modal.getByRole("button").all()){const b=await button.boundingBox();assert.ok(b.y>=box.y&&b.y+b.height<=box.y+box.height,"Bevestigingsacties blijven zichtbaar bij grote tekst: "+JSON.stringify({dialog:box,button:b,display:await modal.evaluate(el=>getComputedStyle(el).display)}));assert.equal(await button.evaluate(el=>el.scrollWidth<=el.clientWidth+1),true);}assert.equal(await modal.evaluate(el=>el.scrollWidth<=el.clientWidth+1),true);await page.screenshot({path:`${output}/cfm-snapshot-confirm-${width}-${scheme}.png`});
     const sent=page.waitForResponse(r=>new URL(r.url()).pathname==="/api/admin/reseed"&&r.request().method()==="POST");await modal.getByRole("button",{name:"Bevestigen",exact:true}).click();await sent;assert.deepEqual(posted,[{approvedSnapshot:proposal.studySource.snapshot,confirmDraftsOnly:true}]);results.push({width,scheme,text:scale,reloadApprovalUi:true,cancelAndEscapeNoPost:true,legacySeedNotExecuted:true});await c.close();
   }
   // Echte verborgen concepten via bestaande beheerpagina; publieke reader blijft dicht.
@@ -86,7 +86,7 @@ try {
       await card.locator("[data-program-review]").focus();
       await page.keyboard.press("Enter");
       await card.locator('[data-count="known"]').waitFor({ timeout: 90000 });
-      assert.equal(await card.locator('[data-count="known"]').innerText(), "553");
+      assert.equal(await card.locator('[data-count="known"]').innerText(), "554");
       assert.equal(await card.locator("[data-lesson-status]").count(), 52);
       for (const control of await card.locator("input, select, button, a[download]").all()) {
         if (!(await control.isVisible())) continue;
@@ -147,7 +147,7 @@ try {
     await program.locator("[data-program-review]").click();
     await program.locator('[data-count="blocking"]').waitFor({ timeout: 90000 });
     assert.equal(await program.locator('[data-count="ready"]').innerText(), "52");
-    assert.equal(await program.locator('[data-count="known"]').innerText(), "553");
+    assert.equal(await program.locator('[data-count="known"]').innerText(), "554");
     assert.equal(await program.locator('[data-count="blocking"]').innerText(), "Geen");
     assert.equal(await program.locator("[data-lesson-status=ready]").count(), 52);
     await program.scrollIntoViewIfNeeded();
@@ -615,9 +615,30 @@ try {
     const page = await context.newPage();
     await page.goto(base + flow.ntHref);
     await page.locator("[data-study-reader]").waitFor();
-    assert.equal(await page.locator('[data-reference-key="ref-b-p2-1"]').count(),0,"Geblokkeerde verwijzing is geen knop");
-    const label=page.getByText("Johannes 6:48",{exact:true}).first();await label.waitFor();assert.equal(await label.evaluate(e=>e.closest("a,button")===null),true);
-    results.push({ width: 390, newTestamentNoOtbFallback: true });
+    const reference = page.getByRole("button", { name: "Johannes 6:48", exact: true }).first();
+    await reference.waitFor();
+    const response = page.waitForResponse(r => new URL(r.url()).pathname === "/api/study-references" && r.request().method() === "POST");
+    await reference.click();
+    const resolved = await (await response).json();
+    assert.equal(resolved.kind, "external", "zonder interne NT-editie blijft de officiële bron beschikbaar");
+    const source = new URL(resolved.url);
+    assert.equal(source.hostname, "www.churchofjesuschrist.org");
+    assert.equal(source.pathname, "/study/scriptures/nt/john/6");
+    assert.equal(source.searchParams.get("id"), "p48");
+    await page.locator("dialog[open]").getByRole("link", { name: "Open de officiële bron", exact: true }).waitFor();
+    assert.equal(await page.locator("dialog[open]").getByRole("button", { name: "Meer lezen", exact: true }).count(), 0, "geen vervanging door een Oude Testament-hoofdstuk");
+    results.push({ width: 390, newTestamentOfficialFallback: true, noOldTestamentSubstitution: true });
+
+    // Een echte nummeringsafwijking blijft expliciet geblokkeerd, ook na de nieuwe runtime-resolutie.
+    const editions = await prisma.studyLessonEdition.findMany({ where: { collectionId: flow.collectionId, publishedRevisionId: { not: null } }, select: { lessonId: true, publishedRevisionId: true } });
+    const unresolved = await prisma.contentReference.findMany({ where: { revisionId: { in: editions.map(e => e.publishedRevisionId) }, diagnosis: "UNRESOLVED" }, select: { occurrenceKey: true, originalTarget: true, revisionId: true } });
+    const mismatch = unresolved.find(r => String(r.originalTarget.sourceKey).startsWith("unverified-numbering:"));
+    assert.ok(mismatch, "de gepinde bron bevat echte nummeringsafwijkingen");
+    const edition = editions.find(e => e.publishedRevisionId === mismatch.revisionId);
+    await page.goto(`${base}/study-lesson/${edition.lessonId}/${flow.collectionId}?weergave=volledig`);
+    await page.locator(`[data-blocked-reference="${mismatch.occurrenceKey}"]`).first().waitFor();
+    assert.equal(await page.locator(`[data-reference-key="${mismatch.occurrenceKey}"]`).count(), 0, "een nummeringsafwijking wordt nooit een interne knop");
+    results.push({ numberingMismatchStillBlocked: true });
     await context.close();
   }
   const after = await prisma.user.findUniqueOrThrow({

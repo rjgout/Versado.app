@@ -18,6 +18,7 @@ import { getStudyCatalogue } from "@/lib/studyContent/catalogue";
 import { resolveWeekSelection } from "@/lib/studyContent/weekSelection";
 import CfmCourseView from "@/components/study/CfmCourseView";
 import { navigationSessionKey } from "@/lib/session";
+import { courseTypeMatchesContent } from "@/lib/courseContent";
 
 // Het leespad van de drie schriftuurlijke leescursussen (Stap voor stap, Hoofdstuk voor hoofdstuk, Vrije keuze) in
 // Focusmodus (zie focusMode.ts): een navigatie- en selectiescherm, geen activiteit. Andere cursustypes horen hier niet en
@@ -34,6 +35,7 @@ export default async function ReadingPathPage({ params }: { params: Promise<{ co
     include: { contentCollection: { select: { work: true } } },
   });
   if (!course) redirect("/courses");
+  if (!courseTypeMatchesContent(course.type, course.contentCollection.work)) redirect("/courses");
   if (!(await isContentCollectionSelectable(course.contentCollectionId, user.isAdmin))) redirect("/courses");
   // "Kom dan en volg Mij" (CFM): dezelfde cursuspagina met de weken als leerlijn; de leeswijze volgt uit de cursus.
   if (isStudyCourseType(course.type)) {

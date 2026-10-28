@@ -82,6 +82,7 @@ export default function ProfileClient() {
   const [resetReadingError, setResetReadingError] = useState<string | null>(null);
   const [savingPrivacy, setSavingPrivacy] = useState(false);
   const [savingNotifications, setSavingNotifications] = useState(false);
+  const [dailyTextSourceError, setDailyTextSourceError] = useState<string | null>(null);
   const [pushError, setPushError] = useState<string | null>(null);
   const [testingPush, setTestingPush] = useState(false);
   const [pushTestMessage, setPushTestMessage] = useState<string | null>(null);
@@ -185,6 +186,22 @@ export default function ProfileClient() {
   // deze instellingen doorwerken (Vandaag toont bv. begroeting, afteltimer en spelkaarten) als verouderd markeren.
   function afterAccountChange() {
     invalidateData(["today"]);
+  }
+
+  async function changeDailyTextSource(source: string) {
+    if (savingNotifications) return;
+    setSavingNotifications(true);
+    setDailyTextSourceError(null);
+    try {
+      const response = await fetch("/api/account", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ dailyTextSource: source }) });
+      if (!response.ok) throw new Error("daily_text_source");
+      setData(current => current ? { ...current, dailyTextSource: source } : current);
+      afterAccountChange();
+    } catch {
+      setDailyTextSourceError(t("profile.dailyTextSourceSaveFailed"));
+    } finally {
+      setSavingNotifications(false);
+    }
   }
 
   async function saveAccountPatch(patch: Record<string, boolean | string | number | null>) {
@@ -456,7 +473,7 @@ export default function ProfileClient() {
         {view === "language" && <LanguageSettings uiLanguage={data.uiLanguage} isAdmin={data.isAdmin} />}
         {view === "gameFeedback" && <GameFeedbackView />}
         {view === "readAloud" && <ReadAloudView voices={readAloudVoices} selectedVoice={selectedReadAloudVoice} speed={readAloudSpeed} testing={testingReadAloudVoice} onVoice={changeReadAloudVoice} onSpeed={changeReadAloudSpeed} onTest={testReadAloudVoice} />}
-        {view === "notifications" && <NotificationsView data={data} saving={savingNotifications} pushError={pushError} testingPush={testingPush} pushCountdown={pushCountdown} pushTestMessage={pushTestMessage} onEmail={toggleEmailNotifications} onPush={togglePushNotifications} onTest={sendTestPush} onCategory={toggleCategory} onReminder={changeReminderTime} onDailyText={(time) => saveAccountPatch({ dailyTextTime: time }).then(() => setData((current) => current ? { ...current, dailyTextTime: time } : current))} onPodcast={togglePodcastNotifications} />}
+        {view === "notifications" && <NotificationsView data={data} saving={savingNotifications} pushError={pushError} testingPush={testingPush} pushCountdown={pushCountdown} pushTestMessage={pushTestMessage} onEmail={toggleEmailNotifications} onPush={togglePushNotifications} onTest={sendTestPush} onCategory={toggleCategory} onReminder={changeReminderTime} onDailyText={(time) => saveAccountPatch({ dailyTextTime: time }).then(() => setData((current) => current ? { ...current, dailyTextTime: time } : current))} onDailyTextSource={changeDailyTextSource} dailyTextSourceError={dailyTextSourceError} onPodcast={togglePodcastNotifications} />}
         {view === "privacy" && <PrivacyView data={data} saving={savingPrivacy} onToggleSearchable={toggleSearchableByEmail} onToggleAchievements={toggleShareAchievements} onTogglePuzzleRecords={toggleSharePuzzleRecords} onToggleVillage={toggleShareVillage} villageError={villagePrivacyError} />}
         {view === "presence" && <PresenceView data={data} saving={savingPresence} onOnline={toggleShareOnlineStatus} onActivity={toggleShareCurrentActivity} onIncognito={activateIncognito} onIncognitoOff={deactivateIncognito} />}
         {view === "about" && <WhatsNewView enabled={data.changelogEnabled} saving={savingNotifications} onToggle={() => toggleCategory("changelogEnabled")} />}

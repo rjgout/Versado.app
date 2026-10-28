@@ -81,7 +81,18 @@ test("Een onbekende oude bron wordt nooit uit profiel/BOM afgeleid en kost geen 
  const run=await db.quickMissionaryRun.create({data:{userId:user,dayKey:"2026-10-11",status:"DEAD_AWAITING_REVIVE",reviveUsed:true}});
  const view=await runs.getQuickMissionaryRunView(run.id,user); assert.equal(view.reviveUnavailableReason,"legacy-source"); assert.equal(view.deathOption,"none");
  await assert.rejects(runs.requestReviveQuestion(run.id,user),/NO_QUESTION/); assert.equal((await runs.buyGeneesInRun(run.id,user)).result.ok,false);
- await runs.finishQuickMissionaryRun(run.id,user,0); assert.equal((await db.quickMissionaryRun.findUniqueOrThrow({where:{id:run.id}})).contentCollectionId,null); assert.deepEqual(await economy(user),before);
+ assert.deepEqual(await economy(user),before,"een geweigerde vraag/aankoop verandert de economie of reeks niet");
+ assert.equal(await db.streakActivity.count({where:{userId:user}}),0);
+ assert.equal(await db.quickMissionaryReviveSeen.count({where:{runId:run.id}}),0);
+ // De actuele main-regel: automatisch afsluiten van een bronloze oude run is geen inhoudelijke activiteit.
+ await runs.finishQuickMissionaryRun(run.id,user,0);
+ assert.equal((await db.quickMissionaryRun.findUniqueOrThrow({where:{id:run.id}})).contentCollectionId,null);
+ assert.deepEqual(await economy(user),before);
+ assert.equal(await db.streakActivity.count({where:{userId:user}}),0,"automatisch afsluiten geeft geen reeksbeloning");
+ assert.equal(await db.xPTransaction.count({where:{userId:user}}),0);
+ await runs.finishQuickMissionaryRun(run.id,user,0);
+ assert.deepEqual(await economy(user),before,"afrondingsretry verandert de economie of reeks niet");
+ assert.equal(await db.streakActivity.count({where:{userId:user}}),0,"herhaald afsluiten blijft zonder bijeffecten");
 });
 
 test("Oude reeds uitgegeven vraag herstelt alleen haar bewezen bron onder de runlock", {skip},async()=>{

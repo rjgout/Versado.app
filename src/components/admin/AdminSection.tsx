@@ -35,7 +35,7 @@ export default function AdminSection({
           <span className={`block text-base font-extrabold ${danger ? "text-vs-danger" : "text-vs-fg"}`}>{title}</span>
           {description && <span className="mt-0.5 block text-xs font-medium text-vs-fg-2">{description}</span>}
         </span>
-        {badge && <span className="shrink-0 rounded-full bg-vs-subtle px-2.5 py-1 text-xs font-bold text-vs-fg-2">{badge}</span>}
+        {badge && <span className="min-w-0 max-w-[55%] shrink rounded-full bg-vs-subtle px-2.5 py-1 text-xs font-bold text-vs-fg-2 [overflow-wrap:anywhere]">{badge}</span>}
         <ChevronDown className="h-5 w-5 shrink-0 text-vs-fg-3 transition-transform motion-reduce:transition-none group-open:rotate-180" aria-hidden />
       </summary>
       <div className="flex min-w-0 flex-col gap-4 border-t border-vs-line p-4">{children}</div>

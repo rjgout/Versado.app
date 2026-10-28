@@ -5,6 +5,13 @@ jaargangen (2026 Oude Testament, 2027 Nieuwe Testament, 2028 Boek van Mormon, â€
 `CFM-PERSOONLIJKE-STUDIE.md`, `CFM-TECHNICAL-FINALIZATION.md` en
 `content-architecture-v2/24-CFM-MANAGED-IMPORT-AND-RELEASE.md`; er is geen tweede CFM-systeem.
 
+**Vervolgplanning (25 oktober 2026):** leesvragen en XP volgens de bestaande
+learning-regels hebben prioriteit, daarna validatie en later Het Verborgen Woord.
+Zie de [bestaande roadmap, Aâ€“D](content-architecture-v2/04-IMPLEMENTATION-ROADMAP.md#vervolg-a-d--cfm-leesvragen-eerst)
+en het [brononderzoek/ontwerp](content-architecture-v2/31-CFM-LEESVRAGEN-XP-EN-VERBORGEN-WOORD.md).
+Dit is alleen voorbereid; de huidige stapafronding verdient geen XP en wordt
+niet met terugwerkende kracht een beantwoorde oefenset.
+
 ## 1. Programma, jaargang en les
 
 | Laag | Wat | Waar |

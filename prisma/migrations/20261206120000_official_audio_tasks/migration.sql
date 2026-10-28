@@ -1,0 +1,26 @@
+CREATE TABLE "OfficialAudioTask" (
+ "id" TEXT NOT NULL PRIMARY KEY,
+ "status" TEXT NOT NULL DEFAULT 'QUEUED',
+ "phase" TEXT NOT NULL DEFAULT 'DOWNLOAD',
+ "actorId" TEXT NOT NULL,
+ "actorSessionVersion" INTEGER NOT NULL,
+ "attempts" INTEGER NOT NULL DEFAULT 0,
+ "bytesDownloaded" INTEGER NOT NULL DEFAULT 0,
+ "leaseToken" TEXT,
+ "leaseUntil" TIMESTAMP(3),
+ "checkedAt" TIMESTAMP(3),
+ "registrationApprovedAt" TIMESTAMP(3),
+ "manifest" JSONB,
+ "recordingId" TEXT,
+ "errorCode" TEXT,
+ "pilotApprovalKey" TEXT,
+ "pilotApprovedById" TEXT,
+ "pilotApprovedAt" TIMESTAMP(3),
+ "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ "updatedAt" TIMESTAMP(3) NOT NULL,
+ CONSTRAINT "OfficialAudioTask_recordingId_fkey" FOREIGN KEY ("recordingId") REFERENCES "AudioRecording"("id") ON DELETE SET NULL ON UPDATE CASCADE,
+ CONSTRAINT "OfficialAudioTask_status_check" CHECK ("status" IN ('QUEUED','RUNNING','VALIDATED','REGISTERED','FAILED')),
+ CONSTRAINT "OfficialAudioTask_phase_check" CHECK ("phase" IN ('DOWNLOAD','REGISTER')),
+ CONSTRAINT "OfficialAudioTask_bytes_check" CHECK ("bytesDownloaded" >= 0)
+);
+CREATE INDEX "OfficialAudioTask_status_leaseUntil_idx" ON "OfficialAudioTask"("status","leaseUntil");

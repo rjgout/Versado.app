@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { sendMail } from "@/lib/email";
+import { sendMail, type SendMailInput } from "@/lib/email";
 import { sendPushToUser } from "@/lib/push";
 import { getAppUrl } from "@/lib/baseUrl";
 import { APP_NAME } from "@/lib/brand";
@@ -122,7 +122,11 @@ async function notifyUser(input: NotifyInput): Promise<void> {
     // periodieke client-sync blijft de terugval wanneer realtime ontbreekt.
     emitToUser(input.userId, "notifications_changed");
   }
-  if (user.onlineSocketCount > 0) return;
+  if (user.onlineSocketCount > 0 || !user.emailNotificationsEnabled) {
+    if (!input.pushOnly) await sendMail({ to: user.email, subject: content.subject, text: content.emailText, html: "",
+      meta: { kind: "NOTIFICATION", userId: input.userId, category: input.category, skipReason: user.onlineSocketCount > 0 ? "ONLINE" : "PREFERENCES" } }).catch(() => {});
+    if (user.onlineSocketCount > 0) return;
+  }
 
   const jobs: Promise<unknown>[] = [];
   if (user.emailNotificationsEnabled && !input.pushOnly) {
@@ -139,6 +143,7 @@ async function notifyUser(input: NotifyInput): Promise<void> {
     jobs.push(
       sendMail({
         to: user.email,
+        meta: { kind: "NOTIFICATION", userId: input.userId, category: input.category },
         subject: content.subject,
         html: emailWrap(t, content.emailBody, absoluteUrl, content.ctaLabel, unsubscribe),
         text: `${content.emailText} ${absoluteUrl}${emailTextFooter(t, unsubscribe)}`,
@@ -422,16 +427,17 @@ export async function notifySeasonResult(
   });
 }
 
-export async function notifyDailyText(userId: string, text: { href: string; bookName: string; chapterNumber: number; verseNumber: number; content: string }): Promise<void> {
-  // Rechtstreeks naar het vers, net als een klik op de tekst van de dag op het dashboard.
-  const reference = `${text.bookName} ${text.chapterNumber}:${text.verseNumber}`;
+export async function notifyDailyText(userId: string, text: { href: string; reference?: string; sourceName?: string; bookName?: string | null; chapterNumber?: number | null; verseNumber?: number | null; content: string }): Promise<void> {
+  // Rechtstreeks naar het vers of lescitaat, net als de dagtekst op Vandaag.
+  const reference = text.reference ?? `${text.bookName} ${text.chapterNumber}:${text.verseNumber}`;
+  const escape = (value: string) => value.replace(/[&<>"']/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character]!);
   await notifyUser({
     userId,
     category: "dailyText",
     url: text.href,
     content: (t) => ({
       subject: t("notify.dailyTextSubject"),
-      emailBody: `📖 <strong>${reference}</strong><br />${text.content}`,
+      emailBody: `📖 <strong>${escape(reference)}</strong>${text.sourceName ? `<br />${escape(text.sourceName)}` : ""}<br />${escape(text.content)}`,
       emailText: `📖 ${reference} — ${text.content} —`,
       ctaLabel: t("notify.ctaReadMore"),
       pushTitle: t("notify.dailyTextTitle"),
@@ -747,4 +753,11 @@ export async function notifyGroupMembersInApp(
   if (rows.length === 0) return;
   await prisma.notification.createMany({ data: rows });
   for (const user of users) emitToUser(user.id, "notifications_changed");
+}
+
+/** Herverzenden blijft bij de notificatiedispatcher: huidige voorkeuren en uitschrijflinks blijven gelden. */
+export async function resendNotificationMail(input: SendMailInput, userId: string, category: NotifyCategory) {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user || user.email !== input.to || !user.emailNotificationsEnabled || !user[CATEGORY_FIELD[category]]) return { ok: false, error: "PREFERENCES" };
+  return sendMail(input);
 }

@@ -3,6 +3,7 @@ import { getCourseChapterProgress } from "@/lib/learning/courseProgress";
 import { chapterTerm, localizeTerm } from "@/lib/chapterTerm";
 import { localizedCourse } from "@/lib/courseText";
 import type { TFunction } from "@/lib/i18n/core";
+import { courseTypeMatchesContent } from "@/lib/courseContent";
 
 // Per cursus in de persoonlijke lijst van een gebruiker: voortgang,
 // huidige plek en beschikbare XP. Eén berekening voor /api/courses (de
@@ -36,7 +37,7 @@ export async function getSubscribedCourseSummaries(
   // Alleen de cursussen die deze gebruiker aan zijn persoonlijke lijst
   // toevoegde (zie subscribeUserToCourse) — de rest staat in de catalogus
   // (/api/courses/catalog, "Voeg nieuwe cursus toe").
-  const subscribedCourses = courses.filter((c) => progressByCourseId.has(c.id));
+  const subscribedCourses = courses.filter((c) => courseTypeMatchesContent(c.type, c.contentCollection.work) && progressByCourseId.has(c.id));
 
   const result = await Promise.all(
     subscribedCourses.map(async (course) => {
