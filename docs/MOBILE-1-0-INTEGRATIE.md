@@ -58,9 +58,9 @@ Er is geen standaardproductiedomein en `example.invalid` is uitsluitend compileb
    Een origin in `store-test` is pas nodig voor latere TestFlight-/Play-testdistributie.
 3. Controleer vanaf de ontwikkelcomputer (alleen lezen, nadat #206 is geïntegreerd):
    ```bash
-   npm run native:check-test-backend -- "$TEST_ORIGIN" --profile internal --expect-capability security-setup-v1 --expect-capability account-password-v1 --expect-capability account-deletion-v1
+   npm run native:check-test-backend -- "$TEST_ORIGIN" --profile internal
    ```
-   `TEST_ORIGIN` moet vooraf bewust op de goedgekeurde HTTPS-origin staan. Geen placeholder invullen.
+   `TEST_ORIGIN` moet vooraf bewust op de goedgekeurde HTTPS-origin staan. Geen placeholder invullen. De standaardcontrole verlangt alle vijf bestaande accountcapabilities, inclusief reset, e-mailbevestiging en verwijderen.
 4. Maak op de testbackend een synthetisch account met bruikbaar wachtwoord en een synthetisch testbeheeraccount.
    Registreer met een testmailvoorziening of laat uitsluitend de testbeheerder het testaccount bevestigen; niet de mailbeveiliging omzeilen in de app.
    Gebruik voor herstel-/registratieproeven een aparte testmailvoorziening, geen productie-SMTP-configuratie kopiëren.
@@ -137,3 +137,55 @@ WP6 brengt hun gedeelde gegevens-/navigatiegrenzen eerst onder controle; ontbrek
 - Voor publieke release: definitieve voorwaarden/bewaarbeleid aanleveren, Apple-inlogscope beslissen, tijdelijke pariteitsuitzonderingen expliciet beoordelen,
   volledige optie-B-functionaliteit en fysiek apparaatbewijs afronden. Geen generieke toestemmingsvraag nodig voor de reeds goedgekeurde ontwikkelrichting.
 - De handmatige distributieworkflows bouwen/exporteren slechts; ze uploaden niet naar Apple of Google. Starten of uploaden vraagt afzonderlijk eigenaarbesluit.
+
+
+## Technisch integratiebewijs en concrete conflictkeuzes
+
+Alle proeven hieronder gebruiken uitsluitend eigen wegwerp-PostgreSQL/Redis en synthetische accounts.
+De gezamenlijke broncode staat op `test/mobile-1-integratie`; deze branch is testbewijs en heeft geen extra product-PR.
+De exacte laatste head-SHA's en Actions-conclusies staan in de oplevering van #199; historische groene checks tellen niet voor nieuwe heads.
+
+| Controle | Werkelijk lokaal resultaat |
+|---|---|
+| Gecombineerde native unit-tests | 66 geslaagd, inclusief zes nieuwe datalaagregressies en native accountclienttests |
+| Bestaande web-live-datalaag | 54 geslaagd; hetzelfde hookcontract en dezelfde store blijven gebruikt |
+| Focus/shell | 28 geslaagd |
+| Contentkiezer, navigatie en vertrekpositie | 47 geslaagd; nieuwe race eerst rood (`196 != 180`), daarna groen; bestaande browserassertie behouden |
+| Native/account/registratie | 55 geslaagd, inclusief rollback, herstelcode, accountbinding, logout/replay/wachtwoord tijdens echte lockwacht en verloop tijdens DELETE |
+| Socket.io | 47 geslaagd, met twee echte Node-processen, eigen PostgreSQL/Redis en bestaande webauthenticatie |
+| Security/privacy | 60 geslaagd op de gezamenlijke build |
+| NAS-teststack | 8 tests geslaagd; Compose daadwerkelijk geparseerd met synthetische waarden: vier services, drie eigen volumes, twee eigen netwerken, alleen proxy-poort. Geen containers gestart |
+| Signing-/readiness-combinatie | 24 geslaagd; één lokale Java/jarsigner-unit niet uitgevoerd wegens ontbrekende Java-tools. De Android-CI voert wel de echte tijdelijke signingzelftest uit |
+| Native browser | Werkelijk gebundelde lokale UI op 320px/200%, 390px donker en twee extra taal-/viewportcombinaties; accountverwijdering daadwerkelijk via de UI op beide Nederlandse telefooncombinaties |
+| TypeScript, bundel en build | TypeScript en schone webproductiebuild geslaagd; lokale native bundel gebouwd. Een `.invalid`-build blijft uitsluitend compilebewijs |
+| Productieafhankelijkheden | `npm audit --omit=dev --audit-level=high`: 0 kwetsbaarheden |
+| Migraties | Historische basis `29252462f0628329b006072dcb59315d216212be`: 158 bestaande tabellen behouden; actuele main: 167. Verse installatie, herhaalde deploy, migratiebytes en gegevenssnapshots gecontroleerd; geen nieuwe schemadrift |
+
+De native browser gebruikt een **gesimuleerde** Keychain via het eigen testharnas. Dit bewijst geen werking van Keychain/Keystore op een fysiek toestel.
+De 320px-screenshots staan in #205 onder `docs/screenshots/native-wp4/`. De extra brede-lettertypeproef bewaart dezelfde reflowgrens;
+de echte CI-layoutfout is met meer knopruimte opgelost, niet door de assertie te versoepelen.
+
+Inhoudelijke conflictresoluties:
+
+- **#202 tegenover main:** actuele pariteitsdocumentatie behouden en WP4-grens toegevoegd; JSON uitsluitend geregenereerd; Spaanse accountteksten en bestaande mailteksten beide behouden.
+- **#196 + #197, vijf conflicten:** beide platform-testpaden, beide releaseguard-documentaties, beide package-testcommando's, beide signinginvarianten en alle Android-/iOS-asserties behouden. Daarom #196 vóór #197.
+- **WP4 + releasepakketten:** account-/voorwaardenasserties naast beide signingasserties behouden; geen lege voorwaardenpagina als opgelost tellen.
+- **Teststack + overige pakketten:** privacy- en NAS-testcommando's beide behouden; eigen database/Redis/volumes en uitgaande appverbinding blijven gescheiden van productie.
+- **WP6 + #205:** gedeelde data-epoch/reset én de callback na accountwissen behouden; lokale route gaat na wissen naar login. Zowel accountclient- als datalaagtests blijven in het native testcommando. Alle inventarissen opnieuw gegenereerd.
+
+De laatste twee combinaties zijn expliciet op de gezamenlijke testbranch opgelost en getest. Na echte merges naar main moeten deze gecontroleerde resoluties
+zo nodig in de resterende PR worden overgenomen; sla een nieuwe compile-/CI-controle daarbij niet over.
+
+## Afzonderlijke waarschuwingen en resterende releasegrenzen
+
+- De bestaande brede lintset meldt waarschuwingen; de gewijzigde native datalaag en callback hebben geen nieuwe lintwaarschuwingen.
+- De bestaande Tailwind-waarschuwing over gemengde breakpoint-eenheden, Turbopack-waarschuwing over dynamische bestandstracing en Actions-/Node-deprecaties blijven afzonderlijk zichtbaar.
+- Bestaande schemadrift blijft identiek: ActivityFeedItem, FsySettings, IntroExercise/Attempt/Option en PuzzleVariant. Er is geen corrigerende migratie of productiequery uitgevoerd.
+- De gecombineerde readiness heeft **0 falende guards en 10 open blokkades**: origins, iOS-entitlements/exportantwoord, App Links/associatiebestanden,
+  echte voorwaarden, Apple-tokenintrekking, minimumversiebeleid, push en fysiek apparaatrapport. Push is voor optie B uitgesteld als planningsrichting;
+  de formele uitzondering is niet stilzwijgend als goedgekeurd gemarkeerd.
+- Apple-only-accountverwijdering en tokenintrekking voor bestaande Apple-koppelingen zijn nog niet af. De veilige weigering en open storeblokkade blijven expliciet.
+- CI die wegens GitHub Billing niet start, geldt nooit als geslaagde test. Alleen zulke geblokkeerde jobs worden na geobserveerd herstel gericht herstart;
+  een inhoudelijke testfout wordt bij de oorzaak opgelost. De actuele eindstand staat in #199.
+
+Geen volledige Mobile 1.0- of storegereedheid geclaimd. Eerst het M0-toestelbewijs, daarna de resterende featurecontracten/schermen en releasegates.
