@@ -117,7 +117,8 @@ beslissing. Een blokkade met "alleen bij …" geldt alleen als die functie in de
 |---|---|---|---|
 | `distribution-profile` | Gescheiden distributieprofielen `local-internal` en `local-store-test` naast het geblokkeerde `release` (**opgelost in WP1**) | code | WP1 |
 | `distribution-origins-configured` | De eigenaar heeft de toegestane HTTPS-backend-origins voor intern en store-test nog niet vastgelegd in `scripts/native/distribution-origins.json` (lijsten zijn leeg: distributiebuilds weigeren te bouwen) | eigenaar | WP1 |
-| `ios-privacy-manifest` | Geen `PrivacyInfo.xcprivacy` in het app-target | code + besluit (privacylabels) | WP2 |
+| `ios-privacy-manifest` | `PrivacyInfo.xcprivacy` staat nu in het app-target (**code opgelost in WP2**); de dataverzameling/privacylabels in App Store Connect blijven een besluit van de eigenaar (D5/D8) | code + besluit | WP2 |
+| `ios-testflight-workflow` | Beschermde handmatige workflow voor een ondertekende TestFlight-IPA (**opgelost in WP2**; draaien vereist de secrets van de eigenaar) | code | WP2 |
 | `ios-entitlements` | Geen echt entitlements-bestand gekoppeld (alleen nodig voor Apple-login/associated domains) | code + besluit | WP2 |
 | `ios-export-compliance` | `ITSAppUsesNonExemptEncryption` niet beantwoord | eigenaar bevestigt antwoord | WP2 |
 | `ios-ci-archive` | Geen CI-bewijs voor een iOS-archive voor echte apparaten | code | **WP0 (deze PR)** |
@@ -145,6 +146,7 @@ er geen credentials in git komen.
 | `release-profile-blocked` | Het profiel komt uitsluitend uit `scripts/native/profiles.cjs`; `PROFILE_IDS` bevat geen `release` en geen enkele omgevingsvariabele opent het; `release` blijft geweigerd |
 | `bundle-never-release-approved` | De lokale bundel schrijft altijd `releaseApproved:false` |
 | `android-signing-refuses-probe` | Gradle en `android-release-guard.mjs` tekenen alleen een niet-compileproef `local-store-test`/`play-test`-bundel; de release-workflow is alleen handmatig en bevat geen Play-upload |
+| `ios-signing-refuses-probe` | `ios-release-guard.mjs` archiveert alleen een niet-compileproef `local-store-test`/`testflight`-bundel; de iOS-workflow is alleen handmatig en exporteert zonder App Store Connect-upload |
 | `bundle-identity-consistent` | Eén bundle-/applicatie-ID `app.versado.app` in Capacitor, Android en iOS |
 | `phones-portrait` | Telefoons portrait-only (iPhone via Info.plist, Android via `MainActivity`) |
 | `android-target-sdk` | `targetSdkVersion` ≥ 36 (Google Play, vanaf 31 augustus 2026) |
@@ -408,6 +410,36 @@ uit secrets, allowlist-origin.
 | 6. Interne testers (App Store Connect-gebruikers, ≤ 100); Apple koppelt review aan het uitnodigen van externe testers | Eigenaar | M1 |
 | 7. Exportvraag, testinformatie, testaccount; eerste externe groep → eerste build gaat naar App Review | Eigenaar | M2 (≤ 10.000 externe testers, 90 dagen per build) |
 
+### 6.1 WP2 — voorbereid (iOS-releasetechniek)
+
+Alles wat zonder eigenaarsbeslissing kan, is gebouwd; wat een beslissing of account vereist, staat hieronder als open punt.
+
+**Gerealiseerd**
+- `ios/App/App/PrivacyInfo.xcprivacy` (geen tracking, geen tracking-domeinen, geen toegang tot "required reason"-API's vanuit
+  de app-code; Capacitor levert zijn eigen manifesten) en opgenomen in het app-target (Resources). Een test bewaakt dat het in `project.pbxproj` staat.
+- `UIRequiredDeviceCapabilities` is `arm64` (was het sjabloonwaarde `armv7`, ongeldig voor een iOS 15+ arm64-binary).
+- `scripts/native/ios-release-guard.mjs before|after`: archiveert alleen een niet-compileproef `local-store-test`/`testflight`-bundel met echte
+  HTTPS-origin, versie en buildnummer gelijk aan `NATIVE_APP_VERSION`/`NATIVE_BUILD_NUMBER` en `sourceCommit` = `GITHUB_SHA`; achteraf
+  controle van het archief (`CFBundleIdentifier`, `CFBundleShortVersionString`, `CFBundleVersion`, `public/build.json`, privacy manifest, geen `CAPACITOR_DEBUG`).
+- `.github/workflows/native-ios-release.yml`: alleen `workflow_dispatch`, alleen vanaf `main`, omgeving `ios-testflight`; controleert SDK ≥ 26 en pint optioneel
+  Xcode via variabele `IOS_XCODE_APP`; archiveert met `MARKETING_VERSION`/`CURRENT_PROJECT_VERSION`/`DEVELOPMENT_TEAM` als argumenten (nooit in git) en
+  ondertekent via de App Store Connect API-sleutel (tijdelijk bestand met `umask 077`, altijd verwijderd); exporteert met `destination export`.
+  **Geen upload naar App Store Connect.**
+- CI (`native-platform-builds`): de poort weigert het compileproef-archief, en het echte archief bevat de juiste versie, het bundel-ID en het privacy manifest.
+
+**Secrets en variabelen (omgeving `ios-testflight`, door de eigenaar):** `APPLE_TEAM_ID`, `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_P8` (base64);
+variabelen `NATIVE_STORE_TEST_API_ORIGIN` en optioneel `IOS_XCODE_APP`. Het buildnummer is het workflow-runnummer (oplopend per upload).
+
+**Open voor de eigenaar (bewust niet ingevuld):**
+- `ITSAppUsesNonExemptEncryption`: de eigenaar bevestigt het exportantwoord (de app gebruikt uitsluitend HTTPS/standaardversleuteling van het systeem; de sleutel in Info.plist is een juridische verklaring en wordt niet door code gekozen).
+- Entitlements: Sign in with Apple en associated domains pas na D4 en het Team ID (`SignInWithApple.entitlements.example` blijft een voorbeeld).
+- Privacylabels in App Store Connect en de eventuele aanvulling van `NSPrivacyCollectedDataTypes` (D5/D8).
+- Apple Developer-account, Team ID, App ID, App Store Connect-record en API-sleutel; testbackend-origin (NAS-teststack, DNS, TLS) en allowlist-PR.
+
+**Route naar M0 (iOS):** build met `local-development` via Xcode op een eigen toestel (eigen Team in Xcode, automatic signing; dit is geen distributie), controle van Keychain,
+WebView-layout/safe areas, toetsenbord, lifecycle en offline herstel; vastleggen in `docs/NATIVE-DEVICE-TEST-REPORT.md`. De CI kan dit niet vervangen (geen toestel, geen Team).
+Het workflow kan pas worden gecontroleerd zodra de eigenaar de secrets heeft ingesteld; tot dan bewijst CI alleen de poorten en een ongetekend archief.
+
 ## 7. Google Play-testtraject (Android)
 
 | Stap | Wie | Resultaat |
@@ -504,7 +536,7 @@ WP1 en de eigenaargegevens. WP15/16 lopen mee en sluiten M2/M3 af.
 - Tests: uitbreiding van `tests/native-foundation.test.ts` (profielvalidatie), negatieve CI-controles, readiness-test.
 - Blokkades: backendorigin van de eigenaar.
 
-**WP2 — iOS-releasetechniek**
+**WP2 — iOS-releasetechniek (voorbereid; zie §6.1)**
 - Afhankelijk van: WP1; eigenaar: Team, API-sleutel.
 - Scope: versie uit `package.json`/CI, entitlements (alleen indien D4/D8), `PrivacyInfo.xcprivacy`,
   `ITSAppUsesNonExemptEncryption`, `UIRequiredDeviceCapabilities` herzien, vastgezette Xcode,

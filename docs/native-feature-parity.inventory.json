@@ -76407,6 +76407,7 @@
     "tests/native-foundation.browser.mjs",
     "tests/native-foundation.integration.test.ts",
     "tests/native-foundation.test.ts",
+    "tests/native-ios-release.test.mjs",
     "tests/native-navigation.test.ts",
     "tests/native-parity.test.mjs",
     "tests/native-socket.integration.test.ts",
