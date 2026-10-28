@@ -6,13 +6,15 @@ Dit document onderscheidt technische voorbereiding, integratiebewijs en door de 
 
 ## Bestaande PR's en integratievolgorde
 
-De actuele heads en werkelijk afgeronde Actions worden bij oplevering vastgelegd; een historisch groen resultaat geldt niet voor een nieuwe commit.
+De actuele heads en werkelijk afgeronde Actions worden bij oplevering vastgelegd; een historisch groen resultaat geldt niet voor een nieuwe commit. #228 bevat ook de gereproduceerde scrollrace bij vertrek naar de contentkiezer (180→196 pixels), met eerst rode en daarna groene regressietest. De bestaande browserassertie is behouden.
 
 | PR | Codebevinding tegen deze main | Afhankelijkheid / advies |
 |---|---|---|
+| #229 | Parallel door Claude gemaakte heapfix; alle commits zijn als voorouder in #228 behouden, dezelfde instellingen zijn éénmaal toegepast | Niet daarnaast los overnemen; voorstel sluiten na onafhankelijke beoordeling van #228 |
+| #230 | Dezelfde querykern voor web en lokale native lezer, scope-invalidatie en cache-isolatie; nog geen volledige Vandaag/Leren/CFM-schermen | Na #205; gezamenlijke conflictresolutie beschikbaar op de tijdelijke testbranch |
 | #228 | TypeScript op schone main overschrijdt 2 GiB Node-heap; gereproduceerde OOM. Met 4 GiB slaagt dezelfde controle. Verhoogt uitsluitend de begrensde bouw-/testheap, geen controles uitgeschakeld | Eerst beoordelen; #196/#197/#202 nemen dezelfde fixcommits over |
 | #196 | Android-signingguards en beschermde handmatige Play-testworkflow ontbreken op main; gesynchroniseerd zonder oude dependencies terug te zetten | Na #228, onafhankelijk van #197 |
-| #197 | iOS-privacymanifest en beschermde handmatige TestFlight-workflow ontbreken op main; gesynchroniseerd | Na #228, onafhankelijk van #196 |
+| #197 | iOS-privacymanifest en beschermde handmatige TestFlight-workflow ontbreken op main; vijf gedeelde conflicten met #196 zijn inhoudelijk opgelost met behoud van beide signingpoorten | Na #196 (dezelfde Android-commits als voorouder; geen dubbele implementatie) |
 | #199 | Optie B, WP4-ontwerp en teststackplan ontbreken op main; bijgewerkt met dit integratie- en M0-protocol | Na releasevoorbereidingen, vóór #206 |
 | #202 | Zelfwissen op main vroeg uitsluitend een cookie. Gedeeld herauthenticatiecontract toegevoegd; consolidatie brengt bewijs, groepsopvolging, herstelcode en cascade onder één commitgrens en hercontroleert native sessies | Vóór #205; Apple-only en tokenintrekking blijven releaseblokkades |
 | #205 | Native verwijderingsscherm, openbare uitlegpagina, juridische tekstpoort en persoonsgegevensinventaris ontbreken op main | Na #202; doelbranch main voor echte PR-controles. Geen eigen juridische tekst of bewaartermijn verzonnen |
@@ -22,9 +24,9 @@ De actuele heads en werkelijk afgeronde Actions worden bij oplevering vastgelegd
 | #207 | Eén destijds ontbrekende testnaam in gegenereerde inventaris; huidige main bevat hem. Inventarissen worden op iedere gewijzigde branch met bestaande generator gemaakt | Voorstel sluiten als achterhaald; geen handmatige inventariswijziging |
 | #188 | Oude integratiebranch met 94 gewijzigde bestanden en conflicten; is geen actuele productbasis | Voorstel sluiten nadat de afzonderlijke pakketten zijn beoordeeld. Geen oude integratiediff terugnemen |
 
-Aanbevolen volgorde: **#228 → (#196 en #197) → #199 → #202 → #205 → #206**.
+Aanbevolen volgorde: **#228 → #196 → #197 → #199 → #202 → #205 → #206 → #230**.
 Dit is een review-/mergeadvies, geen toestemming of uitgevoerde merge. Dezelfde vooroudercommits worden niet opnieuw geïmplementeerd.
-WP6 volgt als kleine afzonderlijke draft vanaf actuele main plus de CI-correctie; samenloop met #205 wordt ook op een tijdelijke integratiebranch gecontroleerd.
+WP6 deel 1 staat in #230 vanaf actuele main plus de CI-correctie; samenloop met #205 en de overige pakketten wordt op tijdelijke branch `test/mobile-1-integratie` gecontroleerd. Deze branch is uitsluitend testbewijs, geen extra product-PR.
 Na iedere echte merge moeten de resterende branches op de dan actuele main worden gecontroleerd en inventarissen zo nodig opnieuw gegenereerd.
 
 ## Werkelijke productstatus
