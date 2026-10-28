@@ -23,13 +23,14 @@ export function publishDevelopment({ env = process.env, run = spawnSync, log = c
     return result;
   };
   const digestOf = (ref) => {
-    const result = command("docker", ["buildx", "imagetools", "inspect", ref, "--format", "{{.Manifest.Digest}}"], true);
+    const result = command("docker", ["buildx", "imagetools", "inspect", "--format", "{{json .Manifest}}", ref], true);
     if (result.status !== 0) {
       const message = `${result.stderr ?? ""}\n${result.stdout ?? ""}`;
       if (/manifest unknown|no such manifest/i.test(message) || message.includes(`${ref}: not found`)) return null;
       throw new Error("Registrycontrole mislukt; niet als ontbrekende tag behandeld.");
     }
-    const digest = result.stdout.trim();
+    let digest;
+    try { digest = JSON.parse(result.stdout).digest; } catch { throw new Error("Registry gaf geen geldig manifestdescriptor."); }
     if (!/^sha256:[a-f0-9]{64}$/.test(digest)) throw new Error("Registry gaf geen geldige image-digest.");
     return digest;
   };

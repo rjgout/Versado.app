@@ -23,7 +23,7 @@ function registry({ existing = false, existingRefs = [], failPush = false, inspe
     }
     if (args[2] === "inspect") {
       if (inspectFailure) return { status: 1, stderr: "unauthorized or network unavailable" };
-      return existing || published.has(args[3]) ? { status: 0, stdout: digest } : { status: 1, stderr: "manifest unknown" };
+      return existing || published.has(args.at(-1)) ? { status: 0, stdout: JSON.stringify({ digest }) } : { status: 1, stderr: "manifest unknown" };
     }
     if (aliasFailure && args[2] === "create" && args.includes("ghcr.io/rjgout/jehova-proxy:dev")) return { status: 1 };
     return { status: 0, stdout: "" };
@@ -105,6 +105,14 @@ test("registryfouten zijn geen ontbrekende tags en leveren geen writes op", () =
   const fake = registry({ inspectFailure: true });
   assert.throws(() => execute(fake), /Registrycontrole/);
   assert.equal(fake.calls.some((a) => a.includes("push") || a.includes("create")), false);
+});
+
+test("ongeldige registry-uitvoer faalt vóór enige publicatie", () => {
+  for (const stdout of ["Name: image\nDigest: sha256:onjuist", "{}", '{"digest":"not-a-digest"}']) {
+    const calls = [];
+    assert.throws(() => publishDevelopment({ env, run(program, args) { calls.push([program, ...args]); return { status: 0, stdout }; }, log() {} }), /Registry/);
+    assert.equal(calls.length, 1);
+  }
 });
 
 test("achterhaalde run mag dev niet terugzetten; losse aliasfout blijft een echte fout", () => {
