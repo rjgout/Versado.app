@@ -1,11 +1,12 @@
 # Versado Mobile 1.0 — stuurdocument voor de store-release
 
-Status: **voorstel ter beoordeling door de eigenaar**. Datum van de audit: 23 oktober 2026,
-basis `origin/main` op `7da9c704` (inclusief de native-keten #170–#179 en #190).
-Dit document wijzigt het bestaande pariteitsbeleid **niet** (zie
-[NATIVE-FEATURE-PARITY.md](NATIVE-FEATURE-PARITY.md)): er zijn geen goedgekeurde web-only
-uitzonderingen. Alles wat hieronder als "uitzondering" of "scopekeuze" staat, is een
-beslispunt voor de eigenaar en geldt pas na uitdrukkelijke goedkeuring.
+Status: **optie B bevestigd als ontwikkelrichting** (opdracht Versado Mobile 1.0).
+De oorspronkelijke architectuurinventaris dateert van 23 oktober 2026; de actuele consolidatie tegen
+`origin/main` `096f66c9ebcb11577fbfbeaf1af1e7de34ac2a28` staat in
+[MOBILE-1-0-INTEGRATIE.md](MOBILE-1-0-INTEGRATIE.md) (28 oktober 2026).
+Dit document wijzigt het bestaande pariteitsbeleid **niet**: tijdelijke platformuitzonderingen blijven
+expliciet ter beoordeling in [NATIVE-MOBILE-1-0-OPTIE-B.md](NATIVE-MOBILE-1-0-OPTIE-B.md).
+Technische voorbereiding, een compileproef en een echte toestel-/storeacceptatie zijn afzonderlijke bewijzen.
 
 Het stuurdocument verwijst naar de architectuurdocumenten in plaats van ze te herhalen:
 [PLATFORMEN.md](PLATFORMEN.md) (architectuur en doelmodel),
@@ -16,24 +17,22 @@ Het stuurdocument verwijst naar de architectuurdocumenten in plaats van ze te he
 
 ## 0. Kern in tien regels
 
-1. De native app is vandaag een **technische proef**, geen productbasis voor een store-release:
-   één lokale client van ca. 560 regels UI (6 bestanden), 17 native API-endpoints tegenover
-   138 webpagina's en 233 routehandlers.
+1. De native app is nog een **technisch fundament**; de volledige optie-B-functionaliteit is nog niet lokaal beschikbaar.
+   De actuele broninventaris staat in NATIVE-FEATURE-PARITY.md; aantallen routes bewijzen geen functionele pariteit.
 2. Wat werkt is **bewezen**: accountflows (inloggen, registreren, wachtwoordherstel,
    e-mailbevestiging, verplichte beveiligingsstappen), één leeslus (eerste hoofdstuk →
    tekst → bewust afronden), sessieherstel, privacy/cookies offline en realtime-authenticatie.
    Android-debug en iOS-simulator **compileren** op CI (iOS 26.5 SDK). Niets is op een
    echt toestel uitgevoerd.
-3. Er is **geen** release-/distributieprofiel, geen signing, geen privacy manifest, geen
-   werkende entitlements, geen deeplinks, geen native accountverwijdering, geen
-   voorwaardenpagina en geen native push. Dat zijn objectieve blokkades (§2).
+3. WP1-distributieprofielen staan op main. Signing-/privacyvoorbereiding wordt geïntegreerd via #196/#197;
+   accountverwijdering en openbare toegang via #202/#205. Apple-only-verwijdering/tokenintrekking, echte credentials,
+   definitieve voorwaarden, versiebeleid en fysiek apparaatbewijs blijven afzonderlijke releaseblokkades.
 4. Volledige pariteit is een groot traject (§3). Het **kleinste zinvolle** pad bestaat uit
    vier mijlpalen: M0 toestelbewijs → M1 interne test (TestFlight intern, Play intern) →
    M2 externe test → M3 publieke Mobile 1.0 (§3.3).
-5. **Kortste veilige route naar een installeerbare testversie** (M1) vraagt géén nieuwe
-   functies: een expliciet distributieprofiel (WP1), release-engineering voor signing en
-   buildnummers (WP2/WP3), een bereikbare testbackend met `NATIVE_API_ENABLED=1` (WP5 +
-   eigenaar) en de Apple/Google-accounts van de eigenaar (§10).
+5. **M0 kan met het huidige lokale fundament:** een bereikbare afzonderlijke HTTPS-testbackend, een goedgekeurde
+   internal-origin, een Android-debugbuild en een op de Mac ontwikkelgetekende iPhone-build. Geen store-upload nodig.
+   M1 vraagt daarna de beschermde testdistributie en eigenaarscredentials (§10).
 6. Een publieke Mobile 1.0 vraagt daarnaast minimaal: native accountverwijdering + publieke
    verwijderpagina, voorwaarden, een echte native leer-/leeskern (Vandaag, Leren, lezer,
    oefeningen), store-assets en apparaattests (§4–§9).
@@ -43,13 +42,15 @@ Het stuurdocument verwijst naar de architectuurdocumenten in plaats van ze te he
    (`--strict` faalt zolang er een niet-gewaiveerde blokkade openstaat). Dit script bewijst
    nooit dat iets op een toestel werkt.
 9. Er is niets ingediend, gedeployed of gemerged; er zijn geen credentials gebruikt of verzonnen.
-10. **WP1 (distributieprofielen) is geïmplementeerd** (§5.1); eerstvolgend zijn WP2 (iOS) en WP3 (Android) (§9). Voor een echte testbuild ontbreekt nog de backend-origin van de eigenaar (§5.1).
+10. **WP6 wordt klein uitgevoerd:** de bestaande gedeelde navigatie blijft, de eerste datalaagstap staat in #230. Volledige Vandaag-, Leren- en CFM-schermen volgen per functie; voor M0 ontbreekt nog de echte testbackend-origin van de eigenaar.
 
 ## 1. Huidige technische status
 
-### 1.1 Bewijsmethode
+### 1.1 Historische bewijsmethode (23 oktober)
 
-Conclusies zijn gebaseerd op code die is gelezen, op tests die lokaal zijn uitgevoerd
+De oorspronkelijke inventaris hieronder is historisch. De actuele PR-/teststand staat in [MOBILE-1-0-INTEGRATIE.md](MOBILE-1-0-INTEGRATIE.md); historische groene checks gelden niet voor nieuwe commits.
+
+De oorspronkelijke conclusies waren gebaseerd op code die is gelezen, op tests die lokaal zijn uitgevoerd
 (`npm run test:native`: 43 van 43 geslaagd; `npm run native:build`: lokale bundel van 2,2 MB;
 store-readiness-script) en op de GitHub Actions-runs van 23 oktober 2026 (PR #187, head
 `857cd549`: `native-foundation`, `native-parity`, `android-development` en `ios-simulator`
@@ -398,6 +399,27 @@ i18n-check; CI: native-platform-builds bouwt voor Android en iOS de profielen de
 eigenaar. **WP3 (Android):** `local-store-test` + `play-test`, `NATIVE_BUILD_NUMBER` → `VERSADO_VERSION_CODE`, uploadsleutel
 uit secrets, allowlist-origin.
 
+### 5.2 CI-compilebewijs versus echte ondertekende distributiebuilds
+
+Een groene CI betekent **niet** dat er een distributiebuild bestaat. Het onderscheid is bewust hard:
+
+| | CI-compilebewijs (elke PR/push) | Echte ondertekende distributiebuild (handmatig) |
+|---|---|---|
+| Doel | Bewijzen dat de keten compileert en dat de poorten werken | Een installeerbaar artifact voor TestFlight of Play-test |
+| Backend-origin | Alleen `https://example.invalid` (`compileProbe:true`) | Een origin uit de allowlist (`distribution-origins.json`) |
+| Signing | Geen; of een wegwerpsleutel die in de runner ontstaat en verdwijnt | Uploadsleutel/API-sleutel uit de beschermde omgeving |
+| Artifact | Geen distributieartifact (debug-APK/simulatorzip als compileproef) | Getekende AAB of IPA, 7 dagen bewaard, sha256 in de samenvatting |
+| Start | Automatisch | Alleen `workflow_dispatch` vanaf `main`, omgeving met goedkeurders |
+| Upload naar store | Nooit | Nooit door de workflow; de eigenaar plaatst het artifact handmatig |
+| Wat het bewijst | Compilatie, poortgedrag (weigert probe/intern/foute versie), privacy manifest en versie in het archief | Pas na de eerste echte run en een toesteltest (M0/M1) |
+
+Een compileproef wordt in elke laag geweigerd voor tekenen of archiveren: Gradle (`GradleException`), `android-release-guard.mjs` /
+`ios-release-guard.mjs`, en de CI bewijst dat met een wegwerpsleutel respectievelijk een probe-archief. Workflowinvoer wordt nooit
+in shelltekst geïnterpoleerd (alleen via `env`, met voorafgaande validatie) en secrets staan alleen in de stap die ze gebruikt.
+Open veiligheidspunten voor de eigenaar: beperk de App Store Connect API-sleutel tot de minimaal nodige rol (`-allowProvisioningUpdates`
+mag certificaten en profielen aanmaken), zet vereiste goedkeurders op beide omgevingen, en overweeg een vastgezette uploadcertificaat-vingerafdruk
+zodra de sleutel bestaat.
+
 ## 6. TestFlight-traject (iOS)
 
 | Stap | Wie | Resultaat |
@@ -681,6 +703,12 @@ Alle voorwaarden zijn controleerbaar; geen enkele mag worden overgeslagen of ver
 8. Store-assets, iconen en teksten zijn definitief en eigendom/gelicentieerd; contentrechten bevestigd (D13).
 9. TestFlight/Play-testtrajecten zijn doorlopen (inclusief de 14 dagen indien van toepassing) zonder open blokkerende bevindingen.
 10. De eigenaar geeft schriftelijk akkoord op de indiening; productie-uitrol en indiening zijn eigenaarshandelingen.
+
+## 12.1 Gerelateerde voorstellen en plannen
+
+- Scope en tijdelijke pariteitsuitzonderingen voor optie B: `docs/NATIVE-MOBILE-1-0-OPTIE-B.md` (voorstel, nog niet doorgevoerd).
+- WP4 ontwerp accountverwijdering en juridische toegang: `docs/NATIVE-WP4-ACCOUNTVERWIJDERING.md` (ontwerp ter goedkeuring).
+- NAS-teststack: `docs/NAS-TESTSTACK-PLAN.md` (plan; geen origin ingevuld).
 
 ## 13. Eindadvies: eerste werkpakket
 
