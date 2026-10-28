@@ -8,6 +8,7 @@ import { primaryButton, secondaryButton } from "@/components/versado/styles";
 
 interface EmailSettingsView {
   enabled: boolean;
+  trackOpens?: boolean;
   smtpHost: string;
   smtpPort: number;
   smtpSecure: boolean;
@@ -33,6 +34,7 @@ export default function EmailSettingsClient({ initial }: { initial: EmailSetting
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         enabled: form.enabled,
+        trackOpens: form.trackOpens ?? false,
         smtpHost: form.smtpHost,
         smtpPort: form.smtpPort,
         smtpSecure: form.smtpSecure,
@@ -78,6 +80,11 @@ export default function EmailSettingsClient({ initial }: { initial: EmailSetting
           <ToggleSwitch checked={form.enabled} onChange={(enabled) => setForm({ ...form, enabled })} compact />
         </label>
 
+        <label className="flex min-h-11 items-center gap-2 text-sm font-bold">
+          <span className="min-w-0 flex-1">{t("mailLog.tracking")}</span>
+          <ToggleSwitch checked={Boolean(form.trackOpens)} onChange={trackOpens => setForm({ ...form, trackOpens })} compact />
+        </label>
+        <p className="text-sm text-vs-fg-2">{t("mailLog.trackingHelp")}</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <input
             className="input"

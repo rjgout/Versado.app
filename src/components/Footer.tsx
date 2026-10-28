@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useT } from "@/components/I18nProvider";
 
 /**
- * Disclaimer met links naar privacy- en cookiebeleid. `page` staat los onder
+ * Juridische informatie en contactlinks. `page` staat los onder
  * een volledige pagina (homepagina, uitnodiging); `inline` hoort bij een
  * pagina-shell die hem zelf onderaan zet (zie profile/ProfilePage.tsx): geen
  * eigen marge of zijpadding, die komen van de shell.
@@ -13,6 +13,12 @@ export default function Footer({ variant = "page" }: { variant?: "page" | "inlin
   const t = useT();
   const links = (
     <div className="flex gap-4 flex-wrap">
+      <Link href="/disclaimer" className="hover:text-brand-600 dark:hover:text-brand-300 underline">
+        {t("legalPages.disclaimerTitle")}
+      </Link>
+      <Link href="/contact" className="hover:text-brand-600 dark:hover:text-brand-300 underline">
+        {t("legalPages.contactTitle")}
+      </Link>
       <Link href="/privacy" className="hover:text-brand-600 dark:hover:text-brand-300 underline">
         {t("footer.privacy")}
       </Link>

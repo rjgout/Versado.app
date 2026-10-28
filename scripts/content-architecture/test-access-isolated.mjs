@@ -57,8 +57,8 @@ try {
   // Eerst dezelfde 133 historische migraties via Prisma op de eigen lege DB.
   // Daarna synthetische bestaande records vóór de nieuwe additieve migratie.
   const migrationPath = join(temporary, "migrations");
-  // Audio verwijst naar de samengestelde collectie-identiteit en StudyRevision: pas met de volledige keten toepassen.
-  for (const name of readdirSync("prisma/migrations")) if (!["20261020120000_content_work_publication", "20261021120000_user_study_context", "20261027120000_quick_missionary_source", "20261028120000_mystery_attempt", "20261029120000_study_identity", "20261030120000_study_import_publication", "20261031120000_reading_position", "20261101120000_content_selection_version", "20261102120000_hymns_content_visibility", "20261103120000_study_publication_audit_actions", "20261104120000_annotation_targets", "20261117120000_annotation_resolution", "20261118120000_fsy_study_handover", "20261119120000_word_search_source_context", "20261121120000_study_step_progress", "20261123120000_study_step_plan_version", "20261204120000_audio_library_v2"].includes(name)) cpSync(join("prisma/migrations",name),join(migrationPath,name),{recursive:true});
+  // Audio en de afhankelijke beheertaken verwijzen naar latere tabellen: pas met de volledige keten toepassen.
+  for (const name of readdirSync("prisma/migrations")) if (!["20261020120000_content_work_publication", "20261021120000_user_study_context", "20261027120000_quick_missionary_source", "20261028120000_mystery_attempt", "20261029120000_study_identity", "20261030120000_study_import_publication", "20261031120000_reading_position", "20261101120000_content_selection_version", "20261102120000_hymns_content_visibility", "20261103120000_study_publication_audit_actions", "20261104120000_annotation_targets", "20261117120000_annotation_resolution", "20261118120000_fsy_study_handover", "20261119120000_word_search_source_context", "20261121120000_study_step_progress", "20261123120000_study_step_plan_version", "20261204120000_audio_library_v2", "20261206120000_official_audio_tasks", "20261206120000_study_exercise_sessions", "20261207120000_legacy_audio_conversion"].includes(name)) cpSync(join("prisma/migrations",name),join(migrationPath,name),{recursive:true});
   const config = join(temporary,"prisma.config.mjs");
   const require = createRequire(import.meta.url);
   writeFileSync(config, `import {defineConfig} from ${JSON.stringify(require.resolve("prisma/config"))}; export default defineConfig({schema:${JSON.stringify(resolve("prisma/schema.prisma"))},migrations:{path:${JSON.stringify(migrationPath)}},datasource:{url:process.env.DATABASE_URL}});`);
@@ -108,8 +108,10 @@ try {
   await run("npx", ["prisma", "migrate", "deploy", "--config", config], env);
   await run("node", ["tests/fsy-conversion-migration.mjs", "verify"], env);
   await run("node", ["tests/game-resolver-migration.mjs", "prepare"], env);
+  await run("node", ["tests/cfm-exercises-migration.mjs", "prepare"], env);
   await run("npm", ["run", "db:migrate:deploy"], env);
   await run("node", ["tests/game-resolver-migration.mjs", "verify"], env);
+  await run("node", ["tests/cfm-exercises-migration.mjs", "verify"], env);
   await run("npm", ["run", "db:migrate:deploy"], env);
   if (process.argv.includes("--availability-performance")) {
     await run("npx", ["tsx", "scripts/content-architecture/benchmark-availability.mjs", ...(process.argv.includes("--assert-budget") ? ["--assert-budget"] : [])], env);
@@ -141,7 +143,8 @@ try {
     await run("npx", ["tsx", "--test", "tests/content-access.test.ts", "tests/content-inventory.test.ts", "tests/content-inventory-validation.test.mjs", "tests/content-access.integration.test.ts", "tests/content-switch.integration.test.ts"], env);
     await run("npx", ["tsx", "--test", "tests/course-sync.integration.test.ts"], env);
     await run("npx", ["tsx", "--test", "tests/course-identity.integration.test.ts"], env);
-    await run("npx", ["tsx", "--test", "tests/exercise-sync.test.ts", "tests/content-import.integration.test.ts"], env);
+    // Achter elkaar (--test-concurrency=1): beide integratietests gebruiken dezelfde importlock en testen die ook zelf.
+    await run("npx", ["tsx", "--test", "--test-concurrency=1", "tests/exercise-sync.test.ts", "tests/content-import.integration.test.ts", "tests/content-update.integration.test.ts"], env);
     // Apart: fingerprints over alle oude tabellen en een tijdelijke fouttrigger mogen
     // niet samenvallen met fixtures van andere testprocessen.
     await run("npx", ["tsx", "--test", "tests/study-context.test.ts", "tests/study-context.integration.test.ts"], env);
@@ -153,6 +156,23 @@ try {
       await run("npx", ["tsx", "tests/fixtures/mystery-learning.mjs"], env);
       for (const suite of ["test:learning", "test:streak-return", "test:streak-calendar", "test:time"]) await run("npm", ["run", suite], env);
     }
+  }
+  if(process.argv.includes("--cfm-pilot-browser")){
+    await run("npx",["tsx","tests/fixtures/mystery-learning.mjs"],env);
+    await run("npx",["tsx","tests/cfm-pilot.browser.mjs"],env);
+  }
+  if(process.argv.includes("--cfm-personal-browser")){
+    await run("npx",["tsx","tests/fixtures/mystery-learning.mjs"],env);
+    await run("npx",["tsx","tests/cfm-personal.browser.mjs"],env);
+  }
+  if(process.argv.includes("--cfm-exercises")) {
+    await run("npx",["tsx","--test","tests/cfm-exercises.test.ts","tests/cfm-pilot.test.ts","tests/cfm-card-improvements.test.ts","tests/cfm-exercises.integration.test.ts"],env);
+    await run("npx",["tsx","--test","tests/cfm-pilot.integration.test.ts"],env);
+    await run("npx",["tsx","--test","tests/study-steps.integration.test.ts"],env);
+    await run("npx",["tsx","tests/fixtures/mystery-learning.mjs"],env);
+    await run("npm",["run","test:learning"],env);
+    await run("npm",["run","test:kompas"],env);
+    if(process.argv.includes("--browser")){await run("npx",["tsx","tests/cfm-exercises.browser.mjs"],env);await run("npx",["tsx","tests/cfm-pilot.browser.mjs"],env);await run("npx",["tsx","tests/cfm-personal.browser.mjs"],env);}
   }
   if(process.argv.includes("--lesson-word-pools")) {
     await run("npx",["tsx","--test","tests/lesson-word-pool.test.ts","tests/lesson-word-pool.integration.test.mjs"],env);
@@ -197,6 +217,8 @@ try {
   if (cfmSuite) {
     if (!/^cfm-[a-z0-9-]+\.integration\.test\.ts$/.test(cfmSuite)) throw new Error("Onbekende CFM-suite");
     await run("npx",["tsx","--test",`tests/${cfmSuite}`],env);
+    // Het programma gebruikt dezelfde voortgangsbrug als de oorspronkelijke zes-/zevenstappenroutes.
+    if (cfmSuite === "cfm-programme.integration.test.ts") await run("npx",["tsx","--test","tests/study-steps.integration.test.ts"],env);
   }
   if(process.argv.includes("--reference-preview")) {
     const longChapterOnly = process.argv.includes("--long-chapter-only");
@@ -206,6 +228,20 @@ try {
   if(process.argv.includes("--study-reader")) {
     await run("npx",["tsx","--test","tests/reading-position.integration.test.ts"],env);
     if(process.argv.includes("--browser"))await run("npx",["tsx","tests/study-reader.browser.mjs"],env);
+  }
+  if(process.argv.includes("--mail-history")) {
+    await run("npx",["tsx","tests/mail-history.browser.mjs"],env);
+  }
+  if(process.argv.includes("--weekly-result")) {
+    await run("npx",["tsx","tests/weekly-result.browser.mjs"],env);
+  }
+  if(process.argv.includes("--cfm-content")) {
+    await run("npx",["tsx","--test","tests/course-content.test.ts","tests/cfm-courses.integration.test.ts"],env);
+    if(process.argv.includes("--browser")) await run("npx",["tsx","tests/cfm-course-content.browser.mjs"],env);
+  }
+  if(process.argv.includes("--daily-text")) {
+    await run("npx",["tsx","--test","tests/daily-text.test.ts","tests/daily-text.integration.test.ts"],env);
+    if(process.argv.includes("--browser")) await run("npx",["tsx","tests/daily-text.browser.mjs"],env);
   }
   if(process.argv.includes("--study-read")) {
     await run("npx",["tsx","--test","tests/study-read-action.test.ts","tests/study-read.integration.test.ts"],env);

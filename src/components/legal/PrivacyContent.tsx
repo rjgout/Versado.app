@@ -27,6 +27,9 @@ export default function PrivacyContent() {
       <h2 className="font-extrabold text-lg mt-2">{t("privacy.howLong")}</h2>
       <p>{t("privacy.howLongText")}</p>
 
+      <h2 className="font-extrabold text-lg mt-2">{t("mailLog.privacyTitle")}</h2>
+      <p>{t("mailLog.privacyText")}</p>
+
       <h2 className="font-extrabold text-lg mt-2">{t("privacy.rights")}</h2>
       <p>
         {rich(t("privacy.rightsText"), {

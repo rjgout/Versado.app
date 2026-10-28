@@ -58,14 +58,14 @@ export default function CfmCourseView({
         <h1 className="vs-wrap text-2xl font-extrabold text-vs-fg">{courseName}</h1>
         {studyAction}
       </div>
-      <CfmWeekPath weeks={weeks} mode={mode} activeWeekId={activeWeekId} resumeReason={resumeReason} sessionKey={sessionKey} onOpenWeek={(key, workKey) => void remember(key, workKey)} />
-      <MyStepNav currentKey={activeWeekId} kind={myWeekKind(resumeReason)} />
       {archiveHref && (
         <Link href={archiveHref} prefetch={false} data-cfm-archive-link className={`${secondaryButton} min-h-12 w-full ${focusRing}`}>
           <Archive aria-hidden size={18} className="shrink-0" />
           {t("cfmProgramme.archiveLink")}
         </Link>
       )}
+      <CfmWeekPath weeks={weeks} mode={mode} activeWeekId={activeWeekId} resumeReason={resumeReason} sessionKey={sessionKey} onOpenWeek={(key, workKey) => void remember(key, workKey)} />
+      <MyStepNav currentKey={activeWeekId} kind={myWeekKind(resumeReason)} />
     </div>
   );
 }

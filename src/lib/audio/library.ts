@@ -7,6 +7,9 @@ import { prisma } from "@/lib/db";
 import { readingAccessWhere, collectionAccessWhere, type ContentActor } from "@/lib/contentAccess";
 import { audioRoot, safeDirectory, readBounded, storeAudio, verifyObject } from "./storage";
 import { manifestSchema, segmentsSchema, packageId, sha256, chapterSourceHash, validateSegments, type AudioManifest } from "./contract";
+import { assertLegacyBaseline, legacyFallback } from "./legacyConversion";
+import { officialSource } from "./officialCatalogue";
+import { assertOfficialRegistration, assertOfficialPublication } from "./officialGuard";
 
 type DB = PrismaClient | Prisma.TransactionClient;
 async function target(db: DB, manifest: AudioManifest) {
@@ -67,9 +70,20 @@ export async function importAudioPackage(folder: string, db: PrismaClient = pris
     }
     await storeAudio(folder, manifest);
     await db.$transaction(async (tx) => {
+      await assertOfficialRegistration(tx, manifest);
+      // Canonieke bronidentiteit, ook voor de bestaande officiële CLI. Een nieuw checkedAt geeft geen tweede opname.
+      if (manifest.sourceKind === "OFFICIAL") await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${JSON.stringify([manifest.collectionId, manifest.target, manifest.sourceHash, manifest.audio.sha256, manifest.voice.name, manifest.source.url,manifest.quality,sha256(JSON.stringify(segments))])}, 0))::text`;
       const claimed = await tx.audioPackage.updateMany({ where: { id: name, leaseToken: token, status: "PROCESSING", leaseUntil: { gt: new Date() } }, data: { status: "READY", errorCode: null } });
       if (!claimed.count) throw new Error("LEASE_LOST");
-      await target(tx, manifest);
+      // De tekst mag niet tussen de controle en registratie veranderen, ook bij verloren importlockverbinding.
+      await tx.$queryRaw`SELECT "id" FROM "Chapter" WHERE "id" = ${chapter.id} FOR SHARE`;
+      await tx.$queryRaw`SELECT "id" FROM "Verse" WHERE "chapterId" = ${chapter.id} ORDER BY "id" FOR SHARE`;
+      const current=await target(tx, manifest);
+      const source=manifest.packageId.startsWith("admin-official-")?officialSource(manifest.packageId.slice("admin-official-".length)):undefined;
+      if(source?.legacyProtected)await assertLegacyBaseline(tx,source);
+      if (current.id !== chapter.id) throw Error("SOURCE_MISMATCH");
+      if(segments.length||manifest.quality==="VALIDATED")validateSegments(segments,current.verses,manifest.audio.duration);
+      if (manifest.sourceKind === "OFFICIAL" && await tx.audioRecording.findFirst({ where: { collectionId: manifest.collectionId, chapterId: chapter.id, sourceHash: manifest.sourceHash, sha256: manifest.audio.sha256, sourceKind: "OFFICIAL",quality:{path:["status"],equals:manifest.quality},segments:{equals:json(segments)}, voice: { path: ["name"], equals: manifest.voice.name }, sourceMetadata: { path: ["url"], equals: manifest.source.url ?? "" } } })) return;
       await tx.audioRecording.create({ data: { packageId: name, targetKey: `chapter:${chapter.id}`, chapterId: chapter.id, collectionId: manifest.collectionId, work: manifest.work, editionKey: manifest.editionKey, language: manifest.language, sourceHash: manifest.sourceHash, sourceKind: manifest.sourceKind, sourceMetadata: json(manifest.source), voice: json(manifest.voice), quality: json({ status: manifest.quality, report }), segments: json(segments), sha256: manifest.audio.sha256, byteSize: manifest.audio.bytes, duration: manifest.audio.duration } });
     });
   } catch (error) {
@@ -102,7 +116,7 @@ export async function scanAudioPackages(db: PrismaClient = prisma) {
 }
 
 /** Alleen bestaande beheeridentiteit; publiceert audio, nooit de bijbehorende contentcollectie. */
-export async function publishAudio(actor: { id: string; isAdmin: boolean; sessionVersion: number }, recordingId: string, expectedVersion: number, db: PrismaClient = prisma) {
+export async function publishAudio(actor: { id: string; isAdmin: boolean; sessionVersion: number }, recordingId: string, expectedVersion: number, db: PrismaClient = prisma, options: { onlyIfUnpublished?: boolean } = {}) {
   if (!actor.isAdmin) throw new Error("FORBIDDEN");
   const candidate = await db.audioRecording.findUniqueOrThrow({ where: { id: recordingId } });
   if (!candidate.chapterId || (candidate.quality as { status?: string }).status !== "VALIDATED") throw new Error("QUALITY_REVIEW_REQUIRED");
@@ -111,6 +125,7 @@ export async function publishAudio(actor: { id: string; isAdmin: boolean; sessio
     await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${actor.id} FOR UPDATE`;
     const user = await tx.user.findUnique({ where: { id: actor.id } });
     if (!user?.isAdmin || user.sessionVersion !== actor.sessionVersion) throw new Error("FORBIDDEN");
+    const conversion=await assertOfficialPublication(tx, candidate);
     await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${candidate.targetKey}, 0))::text`;
     await tx.$queryRaw`SELECT "id" FROM "Chapter" WHERE "id" = ${candidate.chapterId} FOR UPDATE`;
     await tx.$queryRaw`SELECT "id" FROM "Verse" WHERE "chapterId" = ${candidate.chapterId} ORDER BY "id" FOR SHARE`;
@@ -119,7 +134,13 @@ export async function publishAudio(actor: { id: string; isAdmin: boolean; sessio
     const c = chapter.book.contentCollection;
     if (c.work !== candidate.work || c.editionKey !== candidate.editionKey || c.language !== candidate.language) throw new Error("SOURCE_MISMATCH");
     validateSegments(segmentsSchema.shape.segments.parse(candidate.segments), chapter.verses, candidate.duration);
+    if(conversion){const task=await tx.officialAudioTask.findFirstOrThrow({where:{recordingId:candidate.id}});await assertLegacyBaseline(tx,officialSource(task.id)!);}
     const current = await tx.audioPublication.findUnique({ where: { targetKey: candidate.targetKey } });
+    // De officiële bulkbediening mag nooit een bestaande publicatie vervangen, ook niet bij een race.
+    if((options.onlyIfUnpublished||conversion)&&current) {
+      if(current.recordingId===recordingId)return current;
+      throw Error("PUBLICATION_CONFLICT");
+    }
     if ((current?.version ?? 0) !== expectedVersion) throw new Error("PUBLICATION_CONFLICT");
     if (current?.recordingId === recordingId) return current;
     return tx.audioPublication.upsert({ where: { targetKey: candidate.targetKey }, create: { targetKey: candidate.targetKey, recordingId, publishedBy: actor.id }, update: { recordingId, publishedBy: actor.id, publishedAt: new Date(), version: { increment: 1 } } });
@@ -131,13 +152,13 @@ export async function activeChapterAudio(chapter: { id: string; heading: string 
   const recording = pointer.recording;
   const anchor = await db.chapter.findUnique({ where: { id: chapter.id }, select: { book: { select: { contentCollectionId: true } } } });
   if (anchor?.book.contentCollectionId !== recording.collectionId) return null;
-  if (recording.sourceHash !== chapterSourceHash(chapter)) return null; // Expliciete TTS bij gewijzigde tekst, nooit oude opname vermengen.
+  if (recording.sourceHash !== chapterSourceHash(chapter)) return await legacyFallback(chapter.id,db) ? undefined : null; // Alleen een exact gelijk gebleven legacy-uitgave mag terugvallen; gewijzigde tekst krijgt TTS.
   try {
     const segments = segmentsSchema.shape.segments.parse(recording.segments);
     validateSegments(segments, chapter.verses, recording.duration);
     await verifyObject(recording.sha256, recording.byteSize);
-    return { url: `/api/audio/recordings/${recording.id}`, verses: chapter.verses.map((v, i) => ({ number: v.number, text: v.text, audioStart: segments[i].start })) };
-  } catch { return null; }
+    return { url: `/api/audio/recordings/${recording.id}`, legacyFallback:await legacyFallback(chapter.id,db), verses: chapter.verses.map((v, i) => ({ number: v.number, text: v.text, audioStart: segments[i].start })) };
+  } catch { return await legacyFallback(chapter.id,db) ? undefined : null; }
 }
 export async function accessibleRecording(actor: ContentActor, id: string, db: DB = prisma, preview = false) {
   if (preview && actor.isAdmin) {

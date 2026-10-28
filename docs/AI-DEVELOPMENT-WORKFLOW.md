@@ -133,6 +133,13 @@ uitgebreide zelfaudit door Codex. De eigenaar neemt het merge- en releasebesluit
 
 De eigenaar heeft deze volgorde gekozen:
 
+**Vervolgprioriteit vanaf 25 oktober 2026:** CFM-leesvragen en bestaande XP-regels
+(A), validatie en beloningskoppeling (B), daarna Het Verborgen Woord solo (C/5C)
+en klassikaal/presentatie (D/5D). Zie de aanvulling in de
+[enige implementatieroadmap](content-architecture-v2/04-IMPLEMENTATION-ROADMAP.md#vervolg-a-d--cfm-leesvragen-eerst).
+Dit is uitsluitend voorbereidende documentatie, geen implementatieautorisatie.
+De onderstaande oorspronkelijke volgorde blijft de herkomst van de fasepakketten:
+
 1. Fase 3B — afgerond.
 2. Fase 4A — annotatiefundament.
 3. Fase 4B — contextuele bediening.

@@ -14,6 +14,25 @@ on:
       - 'src/components/AdminContentSwitcherClient.tsx'
       - 'tests/hymns-availability*'
       - 'tests/hymns-visibility-migration.mjs'
+      - 'src/lib/mailHistory*.ts'
+      - 'src/lib/mailResend.ts'
+      - 'src/lib/email.ts'
+      - 'src/components/MailHistoryClient.tsx'
+      - 'src/app/api/admin/mail-history/**'
+      - 'src/app/api/mail/**'
+      - 'tests/mail-history.browser.mjs'
+      - 'src/lib/weeklyResult.ts'
+      - 'src/components/WeeklyResultCelebration.tsx'
+      - 'src/components/StreakContinuation.tsx'
+      - 'src/app/api/competition/result/**'
+      - 'tests/weekly-result.browser.mjs'
+      - 'src/lib/courseContent.ts'
+      - 'src/app/api/courses/**'
+      - 'tests/course-content.test.ts'
+      - 'tests/cfm-course-content.browser.mjs'
+      - 'src/lib/dailyText*.ts'
+      - 'tests/daily-text*'
+      - 'tests/fixtures/daily-text.ts'
       - 'prisma/schema.prisma'
       - 'prisma/migrations/**'
       - 'src/lib/mysteries/**'
@@ -202,6 +221,10 @@ jobs:
       - name: Echte HTTP-toegang, studiecontext en migratiebehoud op eigen PostgreSQL
         run: |
           npm run test:study-content:integration
+          npm run test:daily-text:integration
+          npm run test:cfm-content:integration
+          npm run test:weekly-result:integration
+          npm run test:mail-history:integration
           npm run test:annotations:integration -- --browser
       - name: Regressie, lint en vertalingen
         run: |
@@ -213,6 +236,38 @@ jobs:
           npm run test:live-data
           npm run lint
           npx tsx scripts/i18n/check.ts
+
+      - name: Mailhistoriebrowserbewijs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mail-history-browser
+          path: /tmp/versado-mail-history-browser
+          if-no-files-found: ignore
+
+      - name: Divisie-uitslagbrowserbewijs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: weekly-result-browser
+          path: /tmp/versado-weekly-result-browser
+          if-no-files-found: ignore
+
+      - name: CFM-bronisolatie in de browser
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cfm-content-browser
+          path: /tmp/versado-cfm-content-browser
+          if-no-files-found: ignore
+
+      - name: Dagtekstbrowserbewijs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-text-browser
+          path: /tmp/versado-daily-text-browser
+          if-no-files-found: ignore
 
       - name: Dorp-browserbewijs
         if: always()
@@ -552,3 +607,39 @@ jobs:
           name: fsy-conversion-browser
           path: /tmp/versado-fsy-conversion-browser
           if-no-files-found: ignore
+
+  cfm-exercises:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      DATABASE_URL: postgresql://validation:validation@127.0.0.1:1/validation
+      SESSION_SECRET: cfm-exercises-ci-build-only-secret
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Schema, types, bronbinding en productiebuild
+        run: |
+          npx prisma validate
+          npm run db:generate
+          npx tsc --noEmit
+          npx tsx --test tests/cfm-exercises.test.ts
+          npm run build
+      - name: Browser klaarzetten
+        run: |
+          npm install --prefix "$RUNNER_TEMP/versado-browser" playwright@1.64.0
+          bash scripts/ci/install-browser.sh node "$RUNNER_TEMP/versado-browser/node_modules/playwright/cli.js"
+          echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/versado-browser/node_modules/playwright" >> "$GITHUB_ENV"
+      - name: CFM-sessies, credits, XP en mobiele browser
+        run: node scripts/content-architecture/test-access-isolated.mjs --focused --cfm-exercises --browser
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cfm-exercises-browser
+          path: |
+            /tmp/versado-cfm-exercises-browser
+            /tmp/versado-cfm-pilot-browser
+            /tmp/versado-cfm-personal-browser

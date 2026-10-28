@@ -1,3 +1,4 @@
+import { dailyTextSourceOptions } from "@/lib/dailyText";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
@@ -106,6 +107,8 @@ export async function GET() {
     pushNotificationsEnabled: user.pushNotificationsEnabled,
     dailyReminderTime: user.dailyReminderTime,
     dailyTextTime: user.dailyTextTime,
+    dailyTextSource: user.dailyTextSource,
+    dailyTextSources: await dailyTextSourceOptions(user, user.contentLanguage),
     notifyDailyText: user.notifyDailyText,
     notifyDailyReminder: user.notifyDailyReminder,
     notifyStreakReturn: user.notifyStreakReturn,

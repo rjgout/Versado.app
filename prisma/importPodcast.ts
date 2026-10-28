@@ -57,6 +57,7 @@ export async function importPodcastEpisodes(
   log: (msg: string) => void = console.log
 ) {
   await ensurePodcasts(prisma);
+  const totals = { items: 0, kept: 0, created: 0, deleted: 0 };
   for (let i = 0; i < episodes.length; i++) {
     const seed = episodes[i];
     // order = -number, zodat de nieuwste (hoogst genummerde) aflevering
@@ -119,6 +120,8 @@ export async function importPodcastEpisodes(
       create: async (rows, options) => { await prisma.podcastExercise.createMany({ data: rows }); if (options.length > 0) await prisma.podcastExerciseOption.createMany({ data: options }); },
     });
 
+    totals.items++; totals.kept += stats.kept; totals.created += stats.created; totals.deleted += stats.deleted;
     log(`  - Aflevering ${seed.number}: ${seed.content.length} + ${seed.bomConnection.length} oefeningen (${stats.kept} behouden, ${stats.created} nieuw, ${stats.deleted} verwijderd)`);
   }
+  return totals;
 }

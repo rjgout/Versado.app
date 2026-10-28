@@ -37,6 +37,8 @@ export interface ProfileData {
   pushNotificationsEnabled: boolean;
   dailyReminderTime: string;
   dailyTextTime: string;
+  dailyTextSource: string;
+  dailyTextSources: Array<{ value: string; label: string }>;
   notifyDailyText: boolean;
   notifyDailyReminder: boolean;
   notifyStreakReturn: boolean;

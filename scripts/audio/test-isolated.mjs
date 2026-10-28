@@ -27,14 +27,28 @@ try {
  const audio=join(temp,'audio');mkdirSync(audio,{mode:0o700});
  const env={...process.env,NODE_ENV:'production',DATABASE_URL:url,AUDIO_TEST_DATABASE_URL:url,AUDIO_TEST_ROOT:audio,AUDIO_DIR:audio,APP_URL:base,AUDIO_TEST_BASE_URL:base,REDIS_URL:`redis://127.0.0.1:${redisPort}`,SESSION_SECRET:'isolated-audio-tests-only-secret',ALLOW_INSECURE_COOKIES:'true',NEXT_TELEMETRY_DISABLED:'1'};
  const require=createRequire(import.meta.url), migrations=join(temp,'migrations');mkdirSync(migrations);
- for(const entry of readdirSync('prisma/migrations')) if(entry!=='20261204120000_audio_library_v2') cpSync(join('prisma/migrations',entry),join(migrations,entry),{recursive:true});
+ for(const entry of readdirSync('prisma/migrations')) if(!['20261204120000_audio_library_v2','20261127120000_content_beheer_v2','20261206120000_official_audio_tasks','20261207120000_legacy_audio_conversion'].includes(entry)) cpSync(join('prisma/migrations',entry),join(migrations,entry),{recursive:true});
  const config=join(temp,'prisma.config.mjs');writeFileSync(config,`import {defineConfig} from ${JSON.stringify(require.resolve('prisma/config'))};export default defineConfig({schema:${JSON.stringify(resolve('prisma/schema.prisma'))},migrations:{path:${JSON.stringify(migrations)}},datasource:{url:process.env.DATABASE_URL}});`);
  await run('npx',['prisma','migrate','deploy','--config',config],env);
  await run('npx',['tsx','tests/audio-migration.ts','prepare'],env);
  cpSync('prisma/migrations/20261204120000_audio_library_v2',join(migrations,'20261204120000_audio_library_v2'),{recursive:true});
  await run('npx',['prisma','migrate','deploy','--config',config],env);
  await run('npx',['tsx','tests/audio-migration.ts','verify'],env);
+ // PR #187 moet ook veilig kunnen volgen op een al toegepaste Audio V2-migratie (#194).
+ if(readdirSync('prisma/migrations').includes('20261127120000_content_beheer_v2')) {
+  cpSync('prisma/migrations/20261127120000_content_beheer_v2',join(migrations,'20261127120000_content_beheer_v2'),{recursive:true});
+  await run('npx',['prisma','migrate','deploy','--config',config],env);
+  await run('npx',['tsx','tests/audio-migration.ts','verify-contentchecks'],env);
+ }
+ cpSync('prisma/migrations/20261207120000_legacy_audio_conversion',join(migrations,'20261207120000_legacy_audio_conversion'),{recursive:true});
+ cpSync('prisma/migrations/20261206120000_official_audio_tasks',join(migrations,'20261206120000_official_audio_tasks'),{recursive:true});
+ await run('npx',['prisma','migrate','deploy','--config',config],env);
+ if(process.argv.includes('--legacy-official')) {
+  await run('npx',['tsx','tests/audio-legacy-real.ts'],env);
+ } else {
  await run('npx',['tsx','--test','--test-concurrency=1','tests/audio-library.integration.test.ts'],env);
+ await run('npx',['tsx','--test','--test-concurrency=1','tests/audio-official.integration.test.ts'],env);
+ await run('npx',['tsx','--test','--test-concurrency=1','tests/audio-legacy.integration.test.ts'],env);
  if(process.argv.includes('--official')) {
    // Echte bestanden alleen in deze aantoonbaar eigen DB/volume; nooit automatisch publiceren.
    await run('npx',['tsx','tests/audio-official-registration.ts','prepare'],env);
@@ -47,6 +61,9 @@ try {
   let online=false;for(let i=0;i<240;i++){try{if((await fetch(base+'/api/health')).ok){online=true;break;}}catch{}await delay(500);}
   if(!online)throw new Error(readFileSync(log,'utf8').slice(-8000));
   await run('npx',['tsx','tests/audio-library.browser.mjs'],env);
+  await run('npx',['tsx','tests/audio-official.browser.mjs'],env);
+  await run('npx',['tsx','tests/audio-legacy.browser.mjs'],env);
+ }
  }
  console.log('Audio: geïsoleerde controles voltooid; geen productie/NAS gebruikt.');
 } finally {
