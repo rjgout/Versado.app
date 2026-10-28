@@ -13,6 +13,7 @@ datasource db {
 // --- Accounts ---------------------------------------------------------
 
 model User {
+  mailMessages MailMessage[]
   id                 String    @id @default(cuid())
   email              String    @unique
   // handle+discriminator vormen samen de unieke, doorzoekbare "tag"
@@ -260,11 +261,11 @@ model User {
   // (welke gebeurtenissen) staat hieronder bij notify*.
   emailNotificationsEnabled    Boolean @default(false)
   pushNotificationsEnabled     Boolean @default(false)
-  // "HH:MM", geïnterpreteerd in de lokale tijd van de server/container (er
-  // is nergens in deze app een per-gebruiker tijdzone bijgehouden — zie
-  // dayKey() in src/lib/dates.ts die ook al bewust op UTC-dagbuckets werkt).
+  // "HH:MM" in User.timeZone; zolang die onbekend is geldt Europe/Amsterdam.
   dailyReminderTime            String  @default("20:00")
   dailyTextTime                String  @default("09:00")
+  // Werk voor push/mail; het permanente CFM-programma is de standaard.
+  dailyTextSource              String  @default("kom-dan-en-volg-mij")
   notifyDailyText              Boolean @default(false)
   // Voorkomen dat de in-process scheduler (zie src/lib/scheduler.ts) dezelfde
   // dag/week twee keer een herinnering/uitslag stuurt.
@@ -446,6 +447,7 @@ model EmailSettings {
   enabled         Boolean  @default(false)
   smtpHost        String?
   smtpPort        Int      @default(587)
+  trackOpens      Boolean  @default(false)
   smtpSecure      Boolean  @default(false) // true = impliciete TLS (poort 465), false = STARTTLS (587)
   smtpUsername    String?
   // AES-256-GCM-versleuteld met een sleutel afgeleid van SESSION_SECRET (zie
@@ -530,6 +532,7 @@ model Chapter {
   liveGames            LiveGame[]
   readingSessions      ReadingSession[]
   exerciseSessions     ExerciseSession[]
+  audioCheck           ChapterAudioCheck?
   courseChapters       CourseChapter[]
   courseLessons        CourseLesson[]
   courseProgressCursor UserCourseProgress[]
@@ -669,6 +672,7 @@ model StudyLesson {
 }
 
 model StudyLessonEdition {
+  studyExercises Exercise[]
   legacyFsyLesson FsyLesson? @relation("FsyStudyEdition")
   annotationBookmark Bookmark[] @relation("BookmarkEdition")
   annotationHighlight Highlight[] @relation("HighlightEdition")
@@ -1688,12 +1692,18 @@ enum ContentStatus {
   IN_REVIEW
   APPROVED
   REJECTED
+  // Vervangen door een inhoudelijk andere vraag bij een contentimport. Wordt nooit meer uitgedeeld, maar blijft bestaan zodat een
+  // al uitgedeelde oefenset afgerond kan worden en de antwoordgeschiedenis intact blijft (docs/CONTENTBEHEER.md).
+  RETIRED
 }
 
 model Exercise {
   id            String           @id @default(cuid())
-  chapterId     String
-  chapter       Chapter          @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  chapterId     String?
+  chapter       Chapter?         @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  studyLessonEditionId String?
+  studyLessonEdition StudyLessonEdition? @relation(fields: [studyLessonEditionId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "Exercise_studyEdition_fkey")
+  studySource Json?
   order         Int
   type          ExerciseType
   status        ContentStatus    @default(APPROVED)
@@ -1712,6 +1722,7 @@ model Exercise {
 
   @@index([chapterId])
   @@index([sourceVerseId])
+  @@index([studyLessonEditionId])
 }
 
 // Nog niet gebruikt door de huidige generatoren (FILL_BLANK/WORD_BANK/
@@ -1839,8 +1850,10 @@ model ExerciseSession {
   id             String        @id @default(cuid())
   userId         String
   user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  chapterId      String
-  chapter        Chapter       @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  chapterId      String?
+  chapter        Chapter?      @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  studyContext   Json?
+  result         Json?
   contentKey     String
   // JSON-array met de uitgedeelde Exercise-id's.
   exerciseIds    String
@@ -2139,6 +2152,8 @@ model WeeklyScore {
   userId    String
   user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   weekStart String // yyyy-mm-dd (maandag)
+  // Alleen presentatie: geen invloed op XP, rangschikking of pushvoorkeuren.
+  resultSeenAt DateTime?
   xp        Int          @default(0)
   tier      LeagueTier   @default(BRONZE)
   // Beide nullable: bestaande rijen (van vóór groepen/seizoenen) blijven
@@ -4122,6 +4137,68 @@ model NativeAuthChallenge {
   @@index([expiresAt])
 }
 
+
+enum AudioCheckStatus {
+  CURRENT
+  NEEDS_REVIEW
+}
+
+// Of de voorgelezen audio van een hoofdstuk nog bij de huidige tekst hoort. `textHash` is de hash van de verzen waarbij de audio
+// (en haar tijdcodes) voor het laatst als passend is vastgesteld; verandert een import de tekst, dan wordt het hoofdstuk NEEDS_REVIEW.
+// De audio zelf blijft altijd afspeelbaar: er wordt nooit automatisch iets verwijderd of vervangen. Zie docs/CONTENTBEHEER.md.
+model ChapterAudioCheck {
+  id            String           @id @default(cuid())
+  chapterId     String           @unique
+  chapter       Chapter          @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  status        AudioCheckStatus @default(CURRENT)
+  // md5 over de verstekst in volgorde (zie src/lib/audioCheck.ts; dezelfde berekening staat in de migratie).
+  textHash      String
+  // Hash van de tekst waar het hoofdstuk nu mee is bijgewerkt, zolang het NEEDS_REVIEW is.
+  pendingHash   String?
+  // JSON: { reason, changedVerses: number[], verseCountBefore, verseCountAfter } van de laatste wijziging.
+  detail        Json?
+  flaggedAt     DateTime?
+  reviewedAt    DateTime?
+  reviewedById  String?
+  updatedAt     DateTime         @updatedAt
+
+  @@index([status])
+}
+
+enum ContentUpdateKind {
+  CONTENT_UPDATE
+  SCRIPTURE_CHECK
+  SCRIPTURE_PREPARE
+  SCRIPTURE_PUBLISH
+}
+
+enum ContentUpdateStatus {
+  RUNNING
+  OK
+  PARTIAL
+  FAILED
+}
+
+// Logboek van de beheeracties "Nieuwe content ophalen" en "Schriftbronnen bijwerken": per run de status, duur en per bron het resultaat.
+// Alleen gegevens over content; nooit gebruikersgegevens. Een controle of voorbereiding wijzigt geen gebruikerscontent.
+model ContentUpdateRun {
+  id          String              @id @default(cuid())
+  kind        ContentUpdateKind
+  status      ContentUpdateStatus @default(RUNNING)
+  startedAt   DateTime            @default(now())
+  finishedAt  DateTime?
+  durationMs  Int?
+  // JSON: per bron { key, status: "ok"|"skipped"|"error", durationMs, counts, message }.
+  sources     Json                @default("[]")
+  // Bij een voorbereiding het berekende plan (samenvatting) en de handtekening waarmee gepubliceerd moet worden.
+  plan        Json?
+  planHash    String?
+  error       String?
+  createdById String?
+
+  @@index([kind, startedAt])
+}
+
 // Kleine, bevroren vraaginhoud; geen kopie van hoofdstukken of complete contentcollecties.
 model LiveQuizQuestion {
   gameId String
@@ -4171,6 +4248,7 @@ model AudioPackage {
 }
 
 model AudioRecording {
+  officialTasks OfficialAudioTask[]
   id String @id @default(cuid())
   packageId String @unique
   package AudioPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
@@ -4209,4 +4287,65 @@ model AudioPublication {
   // Auditanker, geen gebruikersdata en geen nieuwe sessie- of contentpublicatielaag.
   publishedBy String
   @@unique([recordingId, targetKey])
+}
+
+// Alleen orkestratie van officiële Audio V2-bronnen; geen tweede opname-/publicatielaag.
+model OfficialAudioTask {
+  id String @id
+  status String @default("QUEUED")
+  phase String @default("DOWNLOAD")
+  actorId String
+  actorSessionVersion Int
+  attempts Int @default(0)
+  bytesDownloaded Int @default(0)
+  leaseToken String?
+  leaseUntil DateTime?
+  checkedAt DateTime?
+  registrationApprovedAt DateTime?
+  manifest Json?
+  recordingId String?
+  recording AudioRecording? @relation(fields: [recordingId], references: [id], onDelete: SetNull)
+  errorCode String?
+  legacyBaseline Json?
+  legacyApprovedAt DateTime?
+  legacyAcceptanceKey String?
+  legacyAcceptedById String?
+  legacyAcceptedAt DateTime?
+  pilotApprovalKey String?
+  pilotApprovedById String?
+  pilotApprovedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([status, leaseUntil])
+}
+
+// Verzendhistorie, maximaal 90 dagen; geen onversleutelde mailinhoud of authenticatietokens.
+model MailMessage {
+  id String @id @default(cuid())
+  recipient String
+  userId String?
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind String
+  category String?
+  subject String
+  previewText String
+  payloadEnc String?
+  status String
+  error String?
+  smtpMessageId String?
+  smtpResponse String?
+  trackingHash String? @unique
+  firstOpenedAt DateTime?
+  lastOpenedAt DateTime?
+  openCount Int @default(0)
+  resendOfId String?
+  resendOf MailMessage? @relation("MailRetries", fields: [resendOfId], references: [id], onDelete: SetNull)
+  retries MailMessage[] @relation("MailRetries")
+  actorId String?
+  lastResendAt DateTime?
+  createdAt DateTime @default(now())
+  completedAt DateTime?
+  @@index([createdAt])
+  @@index([recipient, createdAt])
+  @@index([status, createdAt])
 }

@@ -12,6 +12,7 @@ on:
       - 'src/app/adminbackend/content/**'
       - 'src/components/ReadAloud*'
       - 'src/components/admin/AdminAudioClient.tsx'
+      - 'src/components/admin/OfficialAudioClient.tsx'
       - 'prisma/**'
       - 'data/audio/**'
       - 'scripts/audio/**'

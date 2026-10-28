@@ -9,6 +9,13 @@ gedaan.
 > veranderen nooit. Alles hieronder is presentatie en studievoortgang bovenop de gepubliceerde revisie. Er is geen
 > contentreload, geen nieuwe publicatie en geen wijziging in bestaande studiegegevens nodig.
 
+**Fase-A-draft:** een aanvullende bronadapter biedt leesvragen waar voldoende
+gecontroleerde, daadwerkelijk gelezen schrifttekst aanwezig is. Leesstapstatus,
+READ en vragencredits blijven onderscheiden; alleen de vragen volgen de gedeelde
+learning-/XP-keten. Zie het [implementatieverslag](CFM-LEESVRAGEN-FASE-A.md) en het
+[dekkingsoverzicht](CFM-VRAAGDEKKING.md). De oudere audit hieronder beschrijft de
+leeslaag vóór deze uitbreiding, niet volledige beschikbaarheid van vragen.
+
 ## 1. Fase 0 — audit: wat is er, en wat is geverifieerd
 
 Geverifieerd tegen de actuele `main` (`4fc35027`), niet tegen aannames.
@@ -119,6 +126,12 @@ gewone taal; niets verdwijnt zonder reden (test).
   volledige les.
 
 ## 5. Voortgang, leespositie en reeks (Fase 5)
+
+Actuele bediening (P36): **Volgende stap** bewaart de leesstap automatisch en start
+beschikbare, nog niet gemaakte vragen. Geen losse oefen- of afvinkknop. Zonder
+vragen direct verder; bij tijdelijke fouten retry. De bestaande resultaatvervolgactie
+gaat direct naar de volgende stap of na stap 6 het bestaande weekpad.
+**Vorige stap** verandert geen afronding. Zie [pilotverslag](CFM-PILOT-2026-02.md).
 
 * **Tabel `StudyStepProgress`** (migratie `20261121120000_study_step_progress`, additief): sleutel
   `(userId, lessonEditionId, stepFingerprint)`; status `IN_PROGRESS`/`COMPLETED`; `CHECK` dat afgerond ⇔ tijdstip; stapnummer 1–7 in de tabel (oude zevenstappenrijen blijven geldig); nieuwe stappen zijn 1–6.
@@ -369,3 +382,12 @@ Mij" met de collectienaam, "Deze week" met de officiële periode, de echte lesti
 studeren" of "Verder met studeren" naar de studieles volgens de gekozen leeswijze (Stap voor stap hervat zelf bij de juiste stap); secundair
 "Bekijk de zes stappen" naar het weekpad. Zonder kalenderweek heet de hervatweek "Laatst gekozen week" of "Laatst bestudeerd" (zie hierboven); zonder hervatweek is er één neutrale
 ingang "Bekijk de studieweken". Geen percentage, geen aantal afgeronde weken, niets hardcoded.
+
+CFM-cursustypes (`STUDY_STEPS`, `STUDY_FREE`) zijn uitsluitend zichtbaar bij een
+CFM-werk. Zowel de persoonlijke cursuslijst, het toevoegaanbod als hervatkaarten
+controleren dit naast het collectie-id. Historische verkeerde koppelingen worden
+niet verwijderd en voortgang blijft bewaard, maar ze verschijnen niet bij andere
+content en kunnen daar niet opnieuw worden toegevoegd of via een oude link geopend.
+Ook de aanmaak van CFM-cursussen weigert andere werken. Het toevoegaanbod gebruikt
+net als de cursuslijst een contentgebonden querykey, zodat een open catalogus na
+een contentwissel nooit CFM-kaarten van de vorige bron blijft tonen.

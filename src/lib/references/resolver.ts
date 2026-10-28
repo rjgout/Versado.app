@@ -24,6 +24,7 @@ import {
 } from "./contract";
 import { parseOtbPassage, parseOtbPassageSet, type OtbPassage } from "./otb";
 import { formatRanges, labelMatchesPassage } from "./standardWorks";
+import { bibleUrlTarget, retryableScriptureReference } from "./bible";
 import { hymnFromOfficialUrl } from "./hymns";
 import { getHymnsAccess } from "@/lib/hymnAvailability";
 export type ReferenceActor = { id: string; isAdmin: boolean };
@@ -107,9 +108,9 @@ function studyIdentity(
 }
 const proofKey = (bookKey: string, chapter: number) => `${bookKey}:${chapter}`;
 function otbTarget(target: Record<string, unknown>): OtbPassage | null {
-  return target.workKey === "old-testament" &&
+  return ["old-testament", "new-testament"].includes(String(target.workKey)) &&
     target.editionKey === "otb" &&
-    target.language === "nl" &&
+    typeof target.language === "string" &&
     typeof target.sourceKey === "string"
     ? parseOtbPassage(target.sourceKey)
     : null;
@@ -137,6 +138,16 @@ export async function resolveReferenceTarget(
   passageIndex = 0,
   label?: string,
 ): Promise<ReferenceResolution> {
+  if (target.workKey === "new-testament") prepared = undefined;
+  // Herstel bestaande URL-doelen en afgewezen hoofdstukreeksen zonder revisies te wijzigen.
+  const bibleSource = typeof target.sourceKey === "string" && target.sourceKey.startsWith("unverified-range:") ? target.externalUrl : target.sourceKey;
+  if (label && typeof bibleSource === "string") {
+    const mapped = bibleUrlTarget(bibleSource, label);
+    if (mapped) {
+      const result = await resolveReferenceTarget(db, actor, origin, mapped, diagnosticKey, undefined, studies, passageIndex, label);
+      return result.kind === "unavailable" ? externalResolution(bibleSource, diagnosticKey) : result;
+    }
+  }
   const sourceKey =
     typeof target.sourceKey === "string" ? target.sourceKey : "";
   // Een bekend maar ongerelateerd extern doel bewijst geen fallback. Behoud
@@ -160,9 +171,9 @@ export async function resolveReferenceTarget(
       ? externalResolution(fallback, diagnosticKey)
       : { kind: "unavailable", reason, diagnosticKey };
   const bundle =
-    target.workKey === "old-testament" &&
+    ["old-testament", "new-testament"].includes(String(target.workKey)) &&
     target.editionKey === "otb" &&
-    target.language === "nl"
+    ["nl", "en", "de", "fr", "es"].includes(String(target.language))
       ? parseOtbPassageSet(sourceKey)
       : null;
   if (bundle) {
@@ -268,8 +279,8 @@ export async function resolveReferenceTarget(
     return bounded(result) ? result : fail("too-large");
   }
   const otb = otbTarget(target);
-  if (target.workKey === "old-testament") {
-    if (target.editionKey !== "otb" || target.language !== "nl")
+  if (["old-testament", "new-testament"].includes(String(target.workKey))) {
+    if (target.editionKey !== "otb" || (target.workKey === "old-testament" ? target.language !== "nl" : !["nl", "en", "de", "fr", "es"].includes(String(target.language))))
       return fail("edition");
     if (!otb) return fail("unverified");
     const cached = prepared?.get(proofKey(otb.bookKey, otb.chapter));
@@ -278,18 +289,18 @@ export async function resolveReferenceTarget(
       : await db.contentCollection.findFirst({
           where: {
             ...readingAccessWhere(actor),
-            work: "old-testament",
+            work: String(target.workKey),
             editionKey: "otb",
-            language: "nl",
+            language: String(target.language),
             contentWork: { kind: "SCRIPTURE" },
           },
           select: { id: true, work: true, editionKey: true, language: true },
         });
     if (
       !collection ||
-      collection.work !== "old-testament" ||
+      collection.work !== target.workKey ||
       collection.editionKey !== "otb" ||
-      collection.language !== "nl"
+      collection.language !== target.language
     )
       return fail("missing");
     const chapter = prepared
@@ -362,9 +373,9 @@ export async function resolveReferenceTarget(
       kind: "internal",
       diagnosticKey,
       collectionId: collection.id,
-      work: "old-testament",
+      work: String(target.workKey),
       editionKey: "otb",
-      language: "nl",
+      language: collection.language,
       title: explicitRange
         ? otbTitle(
             chapter.book.name,
@@ -698,7 +709,7 @@ export async function referenceInTransaction(
     studyObjectHash(row.originalTarget) !== studyObjectHash(source.target)
   )
     throw new Error("REFERENCE_UNAVAILABLE");
-  if (!["INTERNAL_VERIFIED", "EXTERNAL_VERIFIED"].includes(row.diagnosis)) return {origin: origin.lesson, result: {kind:"unavailable" as const, reason:"unverified" as const, diagnosticKey:row.id}};
+  if (!["INTERNAL_VERIFIED", "EXTERNAL_VERIFIED"].includes(row.diagnosis) && !retryableScriptureReference(source.target, source.label)) return {origin: origin.lesson, result: {kind:"unavailable" as const, reason:"unverified" as const, diagnosticKey:row.id}};
   const [resolved] = await resolveReferenceBatch(db, actor, origin.lesson, [
     {
       target: source.target,

@@ -18,6 +18,7 @@ export async function importIntroLessons(
   lessons: IntroLessonSeed[],
   log: (msg: string) => void = console.log
 ) {
+  const totals = { items: 0, kept: 0, created: 0, deleted: 0 };
   for (const seed of lessons) {
     const lesson = await prisma.introLesson.upsert({
       where: { slug: seed.slug },
@@ -70,8 +71,10 @@ export async function importIntroLessons(
       create: async (rows, options) => { await prisma.introExercise.createMany({ data: rows }); if (options.length > 0) await prisma.introExerciseOption.createMany({ data: options }); },
     });
 
+    totals.items++; totals.kept += stats.kept; totals.created += stats.created; totals.deleted += stats.deleted;
     log(`  - Les ${seed.number} (${seed.title}): ${seed.exercises.length} oefeningen (${stats.kept} behouden, ${stats.created} nieuw, ${stats.deleted} verwijderd)`);
   }
+  return totals;
 }
 
 /**

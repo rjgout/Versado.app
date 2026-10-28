@@ -65,7 +65,7 @@ export function domainFor(route) {
   if (/^\/(api\/)?(friends|groups|uitnodiging|activity|competition|challenges|notifications|presence|social)(\/|$)/.test(route)) return "sociaal";
   if (/^\/(api\/)?(lesson|reading-lesson|study-lesson|study-|courses|chapters|scripture|intro|kids|fsy|bookmarks|practice|content|study-folder|annotations)(\/|$|-)/.test(route)) return "leren";
   if (/^\/(api\/)?(audio|podcast|search|tools|hymns|dev\/lofzangen)(\/|$)/.test(route)) return "media-hulpmiddelen";
-  if (/^\/(api\/)?(privacy|cookies|uitschrijven|feedback|kompas)(\/|$)/.test(route)) return "hulp-juridisch";
+  if (/^\/(api\/)?(privacy|cookies|disclaimer|contact|uitschrijven|feedback|kompas)(\/|$)/.test(route)) return "hulp-juridisch";
   return "overig-vandaag";
 }
 export function collectParity(root = process.cwd()) {
@@ -113,7 +113,7 @@ export function renderInventory(inventory) {
     "### Iedere webpagina", "", "Route | Bron / rendergrens | Domeinbeleid | Native scherm / status | Data- en authbewijs in bron | Testbewijs", "--- | --- | --- | --- | --- | ---"];
   for (const row of pages) {
     const partial = /^\/(login|register|forgot-password|dashboard|profile|lesson\/\[chapterId\])$/.test(row.route);
-    const legal = row.route === "/privacy" || row.route === "/cookies";
+    const legal = ["/privacy", "/cookies", "/disclaimer", "/contact"].includes(row.route);
     const password = ["/change-password", "/reset-password"].includes(row.route);
     const confirmation = row.route === "/verify-email";
     lines.push([`\`${row.route}\``, `${link(row.file)}; ${row.boundary === "client" ? "expliciete clientgrens" : "Server Component-entry"}`, row.domain,

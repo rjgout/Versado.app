@@ -13,7 +13,7 @@ const FOCUS_ROUTES = [
   // Het archief van "Kom dan en volg Mij": eerdere lessen per jaargang, hetzelfde type overzicht als het leerpad.
   /^\/courses\/[^/]+\/archief$/,
   // Ook de persoonlijke-studieroutes (weekoverzicht en stap) horen bij dezelfde Focusroute; geen eigen shellmodus.
-  /^\/study-lesson\/[^/]+\/[^/]+(?:\/stappen(?:\/[^/]+)?)?$/,
+  /^\/study-lesson\/[^/]+\/[^/]+(?:\/stappen(?:\/[^/]+)?|\/vragen)?$/,
   /^\/scripture\/[^/]+$/,
   // De avatar-editor is een zelfstandige bewerkflow: alleen de centrale
   // terugbalk blijft zichtbaar, zodat de vaste opslagactie niet concurreert

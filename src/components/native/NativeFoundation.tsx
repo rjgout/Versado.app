@@ -11,6 +11,8 @@ import { nativeAccountSchema, nativeTodaySchema, nativeChapterSchema, nativeCapa
 import { NativeClientError, type NativeSessionClient, type NativeSignInOutcome } from "@/lib/native/client";
 import { AppLink, useAppNavigation } from "@/components/navigation/AppNavigation";
 import PrivacyContent from "@/components/legal/PrivacyContent";
+import DisclaimerContent from "@/components/legal/DisclaimerContent";
+import ContactContent from "@/components/legal/ContactContent";
 import CookiesContent from "@/components/legal/CookiesContent";
 import StickyHeader from "@/components/StickyHeader";
 import ShellMetrics from "@/components/shell/ShellMetrics";
@@ -33,7 +35,7 @@ export default function NativeFoundation({ client, termsUrl = null, onLanguage, 
   const confirmationPage = navigation.pathname === "/verify-email";
   const [mailRequest, setMailRequest] = useState<{ token: string | null; id: number; route: string }>({ token: null, id: 0, route: "" });
   const passwordPage = navigation.pathname === "/change-password";
-  const legal = navigation.pathname === "/privacy" || navigation.pathname === "/cookies";
+  const legal = ["/privacy", "/cookies", "/disclaimer", "/contact"].includes(navigation.pathname);
   const chapterId = navigation.pathname.startsWith("/lesson/") ? navigation.pathname.slice(8) : null;
   const mode = navigation.pathname === "/register" ? "register" : navigation.pathname === "/forgot-password" ? "forgot" : "login";
   const [setup, setSetup] = useState<NativeSecuritySetup | null>(null), [recoveryCodes, setRecoveryCodes] = useState<string[] | null>(null), [features, setFeatures] = useState<string[]>([]);
@@ -85,7 +87,7 @@ export default function NativeFoundation({ client, termsUrl = null, onLanguage, 
     let disposed = false, cleanup: (() => void) | undefined;
     void startNativeFoundationRuntime({ onResume: online, onBack: () => {
       const nav = current.current.navigation;
-      if (current.current.setup && !["/privacy", "/cookies"].includes(nav.pathname)) {
+      if (current.current.setup && !["/privacy", "/cookies", "/disclaimer", "/contact"].includes(nav.pathname)) {
         void client.logout(() => { setSetup(null); setCode(""); nav.replace("/login"); }).catch(report); return true;
       }
       if (nav.canGoBack() || (nav.pathname !== "/dashboard" && nav.pathname !== "/login")) { nav.back(); return true; }
@@ -194,7 +196,7 @@ export default function NativeFoundation({ client, termsUrl = null, onLanguage, 
     {offline && <p role="status" className="flex gap-2 rounded-xl bg-vs-surface p-3"><WifiOff className="h-5 w-5 shrink-0" />{t("nativeFoundation.offline")}</p>}
     {error && <p role="alert" className="rounded-xl border border-vs-line bg-vs-surface p-3">{error}</p>}
     {busy && <p role="status">{t("nativeFoundation.loading")}</p>}
-    {legal ? navigation.pathname === "/privacy" ? <PrivacyContent /> : <CookiesContent /> : resetPage ? <NativePasswordReset key={mailRequest.id} client={client} initialToken={mailRequest.route === navigation.pathname ? mailRequest.token : null} onTokenCleared={() => setMailRequest(value => ({ ...value, token: null }))} onContinue={() => void action(() => client.logout(() => { setUser(null); setChapter(null); setSetup(null); setRecoveryCodes(null); navigation.replace("/login"); }))} /> : confirmationPage ? <NativeEmailConfirmation key={mailRequest.id} client={client} initialToken={mailRequest.route === navigation.pathname ? mailRequest.token : null} onTokenCleared={() => setMailRequest(value => ({ ...value, token: null }))} onContinue={() => void action(() => client.logout(() => { setUser(null); setChapter(null); setSetup(null); setRecoveryCodes(null); navigation.replace("/login"); }))} /> : recoveryCodes ? <>
+    {legal ? navigation.pathname === "/privacy" ? <PrivacyContent /> : navigation.pathname === "/disclaimer" ? <DisclaimerContent /> : navigation.pathname === "/contact" ? <ContactContent /> : <CookiesContent /> : resetPage ? <NativePasswordReset key={mailRequest.id} client={client} initialToken={mailRequest.route === navigation.pathname ? mailRequest.token : null} onTokenCleared={() => setMailRequest(value => ({ ...value, token: null }))} onContinue={() => void action(() => client.logout(() => { setUser(null); setChapter(null); setSetup(null); setRecoveryCodes(null); navigation.replace("/login"); }))} /> : confirmationPage ? <NativeEmailConfirmation key={mailRequest.id} client={client} initialToken={mailRequest.route === navigation.pathname ? mailRequest.token : null} onTokenCleared={() => setMailRequest(value => ({ ...value, token: null }))} onContinue={() => void action(() => client.logout(() => { setUser(null); setChapter(null); setSetup(null); setRecoveryCodes(null); navigation.replace("/login"); }))} /> : recoveryCodes ? <>
       <h1 tabIndex={-1} className="text-2xl font-extrabold">{t("profile.twoFactor")}</h1>
       <RecoveryCodesCard recoveryCodes={recoveryCodes} onSaved={() => setRecoveryCodes(null)} />
     </> : setup ? <>

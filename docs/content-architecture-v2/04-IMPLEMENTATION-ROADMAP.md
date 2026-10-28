@@ -1,9 +1,154 @@
 # 04 — Gefaseerde implementatieroadmap
 
-Alle werkpakketten hieronder zijn **toekomstig werk na goedkeuring**.
-Fase 0 levert uitsluitend documentatie. Geen fase wordt automatisch gestart.
-Volgorde: toegang/context → lezen/publicatie → echte programma's → annotaties
-→ lesgebonden spellen. Migraties: [03](03-MIGRATION-STRATEGY.md).
+Deze roadmap begon als fase-0-plan; inmiddels uitgevoerde werkpakketten hebben
+hun eigen faseverslagen. Geen volgende fase wordt automatisch gestart.
+Oorspronkelijke afhankelijkheidsvolgorde: toegang/context → lezen/publicatie →
+echte programma's → annotaties → lesgebonden spellen. Migraties:
+[03](03-MIGRATION-STRATEGY.md).
+
+**Actuele vervolgprioriteit (25 oktober 2026): A → B → C → D**, hieronder.
+CFM-leesvragen en bestaande XP-regels gaan vóór Het Verborgen Woord. C en D
+zijn de uitwerking van de bestaande pakketten 5C/5D, geen tweede spelplanning.
+5A/5B leveren al resolver-/woordpoolinfrastructuur; ze bevatten geen gameplay.
+De oorspronkelijke aanvulling uit PR #216 was uitsluitend documentatie. De eigenaar
+heeft daarna fase A afzonderlijk opgedragen; deze draft implementeert alleen A.
+
+## Vervolg A-D — CFM-leesvragen eerst
+
+Brononderzoek, bestandsgerichte hergebruiksmatrix, dekkings-/beloningscontract en
+open productkeuzes staan in [31 — CFM-leesvragen, XP en Het Verborgen Woord](31-CFM-LEESVRAGEN-XP-EN-VERBORGEN-WOORD.md).
+Dit is de enige uitvoeringsplanning; oudere fasen hieronder blijven de technische
+herkomst en scopegrenzen beschrijven. Iedere fase vraagt afzonderlijke beoordeling.
+
+### Fase A — CFM-leesvragen en XP
+
+**Pilotstatus:** PR #218 is gemerged; de leesflowcorrectie P36 wacht afzonderlijk
+op beoordeling. De gedeelde sessie-/vragen-/XP-route is uitgewerkt; zie
+[implementatieverslag](../CFM-LEESVRAGEN-FASE-A.md) en
+[vraagdekking](../CFM-VRAAGDEKKING.md). Met beschikbare gecontroleerde Nederlandse PGP-tekst hebben 22 van 624 officiële
+stappen drie vragen; één officiële week (2026/02) heeft dezelfde achttien in beide
+routes. Vijf stappen hebben aanvullende schriftlezing; stap 1 gebruikt bestaande
+zichtbare citaten. Zie [pilotverslag](../CFM-PILOT-2026-02.md) voor broncontrole,
+tests en platformgrenzen. Er blijven 602 stappen zonder complete set. Fase A is
+hiermee nog geen volledige inhoudelijke release; B–D zijn niet gestart.
+Het [dekkingsonderzoek](../CFM-VRAAGDEKKING-ONDERZOEK.md) bewaart de historische
+17/624-triage. Definitief besluit **P35 vervangt P34**: aanvullende officiële verzen
+mogen, mits daadwerkelijk zichtbaar aangeboden vóór de vragen. Alleen de pilotweek
+is uitgewerkt. Huidige begrensde vervolgronde **P36**: natuurlijke persoonlijke leesflow en hercontrole
+van dezelfde pilot (zie pilotverslag). Geen uitbreiding naar andere weken; die vraagt
+afzonderlijk akkoord. Het bestaande uitbreidingsvoorstel blijft staan.
+
+**Afhankelijkheden:** bestaande CFM-jaargangen, gepubliceerde revisies, zesstappenplan,
+centrale learning-/XP-services. De zeven CFM-productbesluiten zijn definitief
+vastgelegd in §2 van 31: drie vragen per stap, dezelfde achttien bij de weekroute,
+bestaande vraagvormen en volledige hergebruik van leer-/beloningsregels; Dorp
+blijft ongewijzigd. Vóór codewerk: werk de concrete schriftbronbinding,
+vraagdekking en compatibele adapter uit (§4 van 31); heropen deze besluiten niet.
+
+**Werkvolgorde:** (1) vraagdekking op daadwerkelijk gelezen schriftteksten en
+versie-/creditcontract uitwerken;
+(2) minimaal benodigde additieve StudyLesson-adapter voor de bestaande sessie- en
+beloningsservice; (3) vragen tonen in stap- en volledige leesroute met bestaande
+vraagkaarten, antwoordcontrole, feedback, correctieronde en voortgangsregistratie.
+Hergebruik ontbrekende woorden aanvullen, woorden kiezen en waar/niet waar waar
+passend. Geen kunstmatige hoofdstukken, eigen XP-engine of aparte CFM-vragenengine.
+
+**Acceptatie:** drie gecontroleerde vragen per CFM-stap; de weekroute krijgt dezelfde
+achttien vragen (6 × 3), overeenkomstig de volledige-hoofdstukroute. Vragen zijn
+gebaseerd op de werkelijk gelezen schriftteksten; geen lange zelfbedachte uitleg,
+interpretatievragen of beoordeling van persoonlijke geloofsopvattingen. Eén logische
+weekgrens en bonus volgens de bestaande voorwaarden, route-onafhankelijke maximale
+basis-XP en normale herhalingskorting via `rewards.ts`/`xpRules.ts`, serverbeoordeling
+en atomaire sessieclaim.
+READ, leesstapstatus en oefencredits blijven onderscheiden. Oude afgevinkte stappen
+en READ blijven behouden zonder retroactieve quiz-XP. Geen nieuwe achterstand,
+jaarpercentage of verplicht inhaalschema. Geen wijziging aan officiële lesbody,
+video, afbeelding, verwijzing, annotatievenster of inschrijving.
+
+**Risico's/tests:** ontbrekende of subjectieve vragen; verkeerd N; zes stapbonussen;
+verplichte Chapter-FK's; vraag-/revisiewijziging die credits reset; een verwijzing
+die ten onrechte als gelezen schrifttekst geldt. Unit: drie per stap, exact dezelfde
+achttien vragen in de weekroute, passende vraagvormen, bron-/editie-/taalbinding,
+weekdekking, `applyAttempt` en plan-/creditmapping. Geïsoleerde integratie:
+stappen → week en week → stappen, deels fout en later verbeterd, gelijktijdige
+routes, dubbele submit/verloren response, onvolledige/andermans sessie, ingetrokken
+bron, nieuwe revisie, reset en taal-/jaar-/weekwissel. Exact dezelfde onderliggende
+inhoud houdt dezelfde maximale basisbeloning; reeds beloond werk krijgt alleen
+de bestaande herhalingskorting, nieuwe goede antwoorden kunnen nog basis-XP verdienen.
+Vereiste checks: TypeScript, lint, i18n, productiebuild en gerichte learning-/CFM-suites.
+
+### Fase B — Validatie, mobiel en bestaande beloningssystemen
+
+**Afhankelijkheden:** fase A technisch gereed volgens de definitieve besluiten;
+bestaande voortgang, prestaties en mijlpaalbevriezingen via de gedeelde service.
+Geen release-acceptatie van A vóór deze validatie.
+
+**Werk:** controleer end-to-end uitgifte → feedback/herkansing → submit → XP/competitie,
+reeks/terugkeer, prestaties en refresh/notificatie. Bevestig dat oude gebruikersdata
+behouden blijven. Leg bewijs vast per ondersteund platform; geen CFM-Dorp-groeiregel
+invoeren onder het mom van koppeling. Een echte Dorp-uitbreiding vraagt een apart besluit.
+
+**Acceptatie:** één gezamenlijke beloningshistorie in alle routes; centrale caps,
+korting en voorwaarden ongewijzigd; nooit beloning voor openen/scrollen/annoteren.
+Prestaties/mijlpaal volgen de bestaande regels met één logische weekinhoud,
+zonder extra stapbeloningsregeling. Bestaande Dorp-groei blijft exact canonieke BOM-READ tellen. Bron-/activiteits-
+en creditsleutels zijn bruikbaar voor een latere goedgekeurde Dorp-adapter.
+
+**Risico's/tests:** hoofdstukprestaties die onbedoeld zesmaal tellen, bestaande
+READ-rijen die een nieuwe milestone verstoren, stale mobiele responses, native
+sessieverschillen. Breid `tests/learning-rules.test.ts`,
+`tests/learning-progress.integration.test.ts`, `tests/study-steps.integration.test.ts`,
+CFM-programma-/reader-/verwijzingstests en Dorp-regressies gericht uit.
+Browser: stap/volledige week, afgerond/onafgerond, 320/390 px, 200% tekst,
+lange titels, licht/donker, touch/toetsenbord, traag/offline/reconnect,
+terugkeer na schriftlink/video en meerdere tabs/apparaten. Controleer web/PWA,
+iPhone/iPad en Android conform `PLATFORMEN.md`/native-pariteitsbeleid; Chromium
+is geen fysiek apparaatbewijs. Regressie: alle drie gewone leesmethoden,
+annotaties, video/audio, cursusinschrijvingen en oude planvoortgang. Geen
+productievalidatie door Codex; eigenaar beoordeelt de uitrol afzonderlijk.
+
+### Fase C — Het Verborgen Woord, solo (bestaand 5C)
+
+**Afhankelijkheden:** A/B hebben prioriteit; bestaande 5A/5B-brongates; een
+gecontroleerde woordenbank met echte schriftverwijzingen/toelichtingen en
+goedgekeurde solo-/ronde-/beloningsregels. De woordextractor alleen is onvoldoende.
+
+**Werk/acceptatie:** spel onder Spelen via bestaande catalogus en availability;
+juiste collectie/taal en goedgekeurde CFM-voorrang, bevroren bron-/bank-/regelsversie,
+servergecontroleerde letter/heel-woordpoging en foutenbudget, hervatten en onthulling
+met relevante schriftuur en uitleg. Geen hangmanbeeld, geen gastmodus, geen
+bronfallback bij ontbrekende bank. Bestaande spellen en CFM-quiz-XP ongewijzigd.
+
+**Risico's/tests:** inhoudelijk ongeschikte kandidaten, accent-/letterregels,
+antwoordlek, dubbele zet of beloning. Unit: normalisatie, masker, budget en
+winst/verlies volgens goedgekeurde regels. Integratie: bronrechten/scopes,
+onvoldoende pool, stale revisie, frozen resume, actionId/version/concurrency,
+geen geheim antwoord vóór reveal. Mobiele/browser-/native-controles zoals B;
+teruglink uit bronuitleg en bestaande spel-/XP-/reeksregressies. Spelbeloningen
+zijn nog open; geen XP-bedrag of Woord-van-de-Dag-regel kopiëren.
+
+### Fase D — Klassikaal, multiplayer en presentatiemodus (bestaand 5D)
+
+**Afhankelijkheden:** geteste solo-engine/bank uit C; apart goedgekeurd
+rollen-, beurt-, hostproxy-, disconnect- en presentatiecontract. Accountplicht
+en geen gastmodus zijn al definitief, geen open ontwerpkeuze.
+
+**Werk/acceptatie:** host start/begeleidt; om de beurt één letter of heel woord;
+iedere geraden letter verschijnt bij iedereen; één gezamenlijk foutenbudget.
+Host kan letters namens leerlingen invoeren binnen de toegestane beurt.
+Telefoondeelnemers gebruiken accounts. Een aparte leesrol op groot scherm volgt
+de host/ronde, zonder geheime antwoorden of mutatierecht. Geen `guest:*`-patroon
+van Gezinsavond, geen tweede transport-/sessiesysteem.
+
+**Risico's/tests:** host en speler zetten tegelijk, rolvervalsing, antwoordlek,
+reconnect na een gemiste gebeurtenis, hostuitval en serverherstart. Integreer
+bestaande web/native-auth en realtime-hercontrole. Geïsoleerde tests met host,
+meerdere accounts en presentatiescherm: om-de-beurtvalidatie, hostproxy,
+gedeeld budget, dubbele commando's, resync/herstel, ingetrokken sessie/bron,
+presentatiescherm zonder schrijf-/antwoordtoegang. Browser: gesynchroniseerde
+telefoons + groot scherm, toetsenbord/touch, licht/donker, trage verbinding;
+controleer geen privénotities of antwoorden in netwerkpayloads vóór onthulling.
+Eventuele beloningen uitsluitend via vooraf goedgekeurde centrale regels.
 
 ## Algemene werkwijze per PR
 

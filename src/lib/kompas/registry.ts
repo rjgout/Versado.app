@@ -67,7 +67,7 @@ export function keySegment(id: string): string {
 const STATIC_TOPICS: readonly KompasTopic[] = [
   { id: KOMPAS_ROOT, parent: null, icon: "compass", version: 1, href: "/dashboard", tour: "start" },
   // De twee hoofdactiviteiten.
-  { id: "learn", parent: KOMPAS_ROOT, group: "main", icon: "learn", version: 7, href: "/courses", tour: "learn", routes: ["/courses"] },
+  { id: "learn", parent: KOMPAS_ROOT, group: "main", icon: "learn", version: 8, href: "/courses", tour: "learn", routes: ["/courses"] },
   { id: "play", parent: KOMPAS_ROOT, group: "main", icon: "play", version: 1, href: "/live", tour: "play", routes: ["/live"] },
   // Ondersteunende onderdelen.
   { id: "together", parent: KOMPAS_ROOT, group: "support", icon: "together", version: 1, href: "/friends", routes: ["/friends"] },
@@ -75,9 +75,9 @@ const STATIC_TOPICS: readonly KompasTopic[] = [
   { id: "together.groups", parent: "together", icon: "groups", version: 1, href: "/groups", routes: ["/groups"] },
   { id: "progress", parent: KOMPAS_ROOT, group: "support", icon: "progress", version: 1, href: "/streak" },
   { id: "progress.xp", parent: "progress", icon: "xp", version: 1, href: "/xp", routes: ["/xp"] },
-  { id: "progress.streak", parent: "progress", icon: "streak", version: 3, href: "/streak", routes: ["/streak"] },
+  { id: "progress.streak", parent: "progress", icon: "streak", version: 5, href: "/streak", routes: ["/streak"] },
   { id: "progress.divisions", parent: "progress", icon: "division", version: 1, href: "/competition", routes: ["/competition"] },
-  { id: "profile", parent: KOMPAS_ROOT, group: "support", icon: "profile", version: 3, href: "/profile" },
+  { id: "profile", parent: KOMPAS_ROOT, group: "support", icon: "profile", version: 4, href: "/profile" },
   { id: "start", parent: KOMPAS_ROOT, group: "support", icon: "start", version: 1, tour: "start" },
   { id: "switcher", parent: "start", icon: "switcher", version: 5, href: "/content", tour: "switcher", requires: "switcher" },
 ];

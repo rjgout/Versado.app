@@ -214,7 +214,7 @@ test("de bedrading: centrale routebewaker, zachte terugknop en een stap-6-knop z
   assert.match(target, /useSetBackTarget\(pathname, href, parent, studyOrigin \? goBack : undefined, true, soft\)/);
   const reader = read("src/components/study/StudyReader.tsx");
   assert.match(reader, /useStudyReturnToPath\(pathname, personal\.coursePath \?\? "\/courses"\)/);
-  assert.match(reader, /data-step-to-path[\s\S]{0,200}event\.preventDefault\(\);\s*returnToPath\(\);/);
+  assert.match(reader, /data-step-to-path[\s\S]{0,400}event\.preventDefault\(\);[\s\S]{0,100}continueStep\(\);/);
   const originModule = read("src/lib/studyOrigin.ts");
   assert.match(originModule, /sessionStorage/);
   assert.doesNotMatch(originModule, /localStorage|document\.cookie|searchParams|location\.search\b.*redirect/);
