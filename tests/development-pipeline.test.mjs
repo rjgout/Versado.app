@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
-import { createHash } from "node:crypto";
 import { createRequire } from "node:module";
 import { parse } from "yaml";
 import { developmentImages, publishDevelopment } from "../scripts/ci/publish-development.mjs";
@@ -11,6 +10,30 @@ const { resolveBuildProfile, loadAllowedOrigins } = require("../scripts/native/p
 const env = { GITHUB_EVENT_NAME: "push", GITHUB_REF: "refs/heads/develop", GITHUB_REPOSITORY: "rjgout/Versado.app", GITHUB_SHA: "a".repeat(40) };
 const digest = `sha256:${"b".repeat(64)}`;
 const workflow = parse(readFileSync(".github/workflows/development.yml", "utf8"));
+const productionSource = readFileSync(".github/workflows/docker-publish.yml", "utf8");
+
+// Alleen de afgesproken grenzen vastleggen; namen, commentaar en opmaak mogen veranderen.
+function assertWorkflowBoundaries(production, development) {
+  assert.deepEqual(production.on.push.branches, ["main"]);
+  for (const filter of ["branches-ignore", "tags", "tags-ignore"]) assert.equal(production.on.push[filter], undefined);
+  const targets = production.jobs["build-and-push"].strategy.matrix.include;
+  for (const [name, dockerfile] of [["jehova-app", "./Dockerfile"], ["jehova-proxy", "./deploy/nginx/Dockerfile"]]) {
+    const target = targets.find((row) => row.name === name);
+    assert.equal(target?.context, ".");
+    assert.equal(target?.dockerfile, dockerfile);
+  }
+
+  assert.deepEqual(development.permissions, { contents: "read" });
+  for (const [id, job] of Object.entries(development.jobs)) {
+    assert.deepEqual(job.permissions ?? development.permissions, id === "publish" ? { contents: "read", packages: "write" } : { contents: "read" });
+    assert.doesNotMatch(JSON.stringify(job.strategy?.matrix ?? {}), /deploy-agent|deploy\/agent/);
+    for (const step of job.steps) {
+      assert.doesNotMatch(step.with?.tags ?? "", /\blatest\b/);
+      assert.doesNotMatch(step.with?.file ?? "", /deploy\/agent/);
+    }
+  }
+  assert.equal(development.jobs.publish.if, "github.event_name == 'push' && github.ref == 'refs/heads/develop' && github.repository == 'rjgout/Versado.app'");
+}
 
 function registry({ existing = false, existingRefs = [], failPush = false, inspectFailure = false, stale = false, aliasFailure = false } = {}) {
   const calls = [], published = new Set(existingRefs);
@@ -56,11 +79,33 @@ test("uitsluitend develop-push/PR, PR read-only, publicatie na alle controles en
   assert.ok(publish.steps.every((s) => !s["continue-on-error"] && !s.if));
 });
 
-test("de productie-workflow en bestaande Dockerfiles worden hergebruikt zonder wijziging", () => {
-  const original = readFileSync(".github/workflows/docker-publish.yml");
-  assert.equal(createHash("sha256").update(original).digest("hex"), "e86d520fa10330316d00a643b50aae90a9ffb6f9493fe382098a994c831f6a46");
+test("productie blijft main-only; dev-publicatierechten, tags en bestaande Dockerfile-paden zijn gescheiden", () => {
+  assertWorkflowBoundaries(parse(productionSource), workflow);
   for (const file of ["Dockerfile", "deploy/nginx/Dockerfile"]) assert.ok(readFileSync(file).length);
-  assert.equal(parse(original.toString()).on.push.branches[0], "main");
+});
+
+test("legitieme productie-commentaren, opmaak en stapnamen breken development-controles niet", () => {
+  const changed = `# Toelichting na synchronisatie van main\n${productionSource.replace("name: ESLint", "name: Statische codecontrole")}\n`;
+  assert.notDeepEqual(parse(changed), parse(productionSource)); // De displaynaam is daadwerkelijk gewijzigd.
+  assertWorkflowBoundaries(parse(changed), workflow);
+});
+
+test("gerichte invarianten blijven onveilige triggers, rechten, tags en Dockerfiles weigeren", () => {
+  const mutations = [
+    (prod) => { prod.on.push.branches.push("develop"); },
+    (prod) => { prod.on.push.tags = ["v*"]; },
+    (prod) => { prod.jobs["build-and-push"].strategy.matrix.include.find((row) => row.name === "jehova-proxy").dockerfile = "./Dockerfile"; },
+    (prod, dev) => { dev.permissions.packages = "write"; },
+    (prod, dev) => { dev.jobs["pr-images"].permissions = { contents: "read", packages: "write" }; },
+    (prod, dev) => { dev.jobs.publish.if = "github.event_name == 'pull_request'"; },
+    (prod, dev) => { dev.jobs.publish.steps.find((step) => step.with?.tags).with.tags = "ghcr.io/rjgout/jehova-app:latest"; },
+    (prod, dev) => { dev.jobs["pr-images"].strategy.matrix.include.push({ name: "jehova-deploy-agent", dockerfile: "./deploy/agent/Dockerfile" }); },
+  ];
+  for (const mutate of mutations) {
+    const prod = parse(productionSource), dev = structuredClone(workflow);
+    mutate(prod, dev);
+    assert.throws(() => assertWorkflowBoundaries(prod, dev));
+  }
 });
 
 test("PR, main, dispatch, fork en ongeldige SHA worden vóór externe acties geweigerd", () => {
