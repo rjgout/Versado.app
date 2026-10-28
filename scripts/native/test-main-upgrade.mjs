@@ -7,7 +7,11 @@ import { randomUUID } from 'node:crypto';
 import { setTimeout as delay } from 'node:timers/promises';
 import assert from 'node:assert/strict';
 import pg from 'pg';
-const baseline = '29252462f0628329b006072dcb59315d216212be';
+// Beide echte upgradebeginpunten behouden: vóór de oorspronkelijke native-DDL
+// én de nu beoordeelde main met Audio V2/Contentbeheer V2. Nieuwe migraties
+// buiten deze vastgelegde main zijn geen stilzwijgend geaccepteerde uitbreiding.
+const reviewedMain = '096f66c9ebcb11577fbfbeaf1af1e7de34ac2a28';
+for (const baseline of ['29252462f0628329b006072dcb59315d216212be', reviewedMain]) {
 const container = `versado-main-upgrade-${randomUUID()}`;
 const work = mkdtempSync(join(tmpdir(), 'versado-main-upgrade-'));
 const dockerEnv = { ...process.env };
@@ -25,7 +29,10 @@ const mainMigrations = readdirSync(join(work, 'prisma/migrations')).filter(n => 
 const currentMigrations = readdirSync('prisma/migrations').filter(n => n !== 'migration_lock.toml').sort();
 for (const name of mainMigrations) assert.equal(readFileSync(`prisma/migrations/${name}/migration.sql`, 'utf8'), readFileSync(join(work, `prisma/migrations/${name}/migration.sql`), 'utf8'), `Bestaande migratie gewijzigd: ${name}`);
 const added = currentMigrations.filter(n => !mainMigrations.includes(n));
-assert.deepEqual(added, ['20261127120000_native_security_setup', '20261203120000_live_quiz_actions']);
+const reviewedMigrations = run('git', ['ls-tree', '--name-only', `${reviewedMain}:prisma/migrations`]).trim().split('\n').filter(n => n !== 'migration_lock.toml').sort();
+assert.deepEqual(currentMigrations, reviewedMigrations, 'Onbeoordeelde of ontbrekende migratie buiten de vastgelegde actuele main');
+for (const name of reviewedMigrations) assert.equal(readFileSync(`prisma/migrations/${name}/migration.sql`, 'utf8'), run('git', ['show', `${reviewedMain}:prisma/migrations/${name}/migration.sql`]), `Toegepaste main-migratie gewijzigd: ${name}`);
+assert.deepEqual(added, reviewedMigrations.filter(n => !mainMigrations.includes(n)));
 assert.ok(added.every(n => n > mainMigrations.at(-1)));
 let client;
 try {
@@ -67,3 +74,5 @@ try {
   try { assert.deepEqual((await fresh.query(`SELECT migration_name,checksum FROM _prisma_migrations WHERE finished_at IS NOT NULL ORDER BY migration_name`)).rows,upgraded); } finally { await fresh.end(); }
   console.log(JSON.stringify({baseline,unchangedTables:tables.length,preserved:['XP','hintBalance','StreakDay','StreakActivity','LiveGame','LiveGamePlayer'],added,freshInstall:true,repeatedDeploy:true,newSchemaDrift:false}));
 } finally { if(client) await client.end(); try { docker(['rm','-f',container]); } catch {} }
+
+}
