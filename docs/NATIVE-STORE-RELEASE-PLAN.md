@@ -1,11 +1,12 @@
 # Versado Mobile 1.0 — stuurdocument voor de store-release
 
-Status: **voorstel ter beoordeling door de eigenaar**. Datum van de audit: 23 oktober 2026,
-basis `origin/main` op `7da9c704` (inclusief de native-keten #170–#179 en #190).
-Dit document wijzigt het bestaande pariteitsbeleid **niet** (zie
-[NATIVE-FEATURE-PARITY.md](NATIVE-FEATURE-PARITY.md)): er zijn geen goedgekeurde web-only
-uitzonderingen. Alles wat hieronder als "uitzondering" of "scopekeuze" staat, is een
-beslispunt voor de eigenaar en geldt pas na uitdrukkelijke goedkeuring.
+Status: **optie B bevestigd als ontwikkelrichting** (opdracht Versado Mobile 1.0).
+De oorspronkelijke architectuurinventaris dateert van 23 oktober 2026; de actuele consolidatie tegen
+`origin/main` `096f66c9ebcb11577fbfbeaf1af1e7de34ac2a28` staat in
+[MOBILE-1-0-INTEGRATIE.md](MOBILE-1-0-INTEGRATIE.md) (28 oktober 2026).
+Dit document wijzigt het bestaande pariteitsbeleid **niet**: tijdelijke platformuitzonderingen blijven
+expliciet ter beoordeling in [NATIVE-MOBILE-1-0-OPTIE-B.md](NATIVE-MOBILE-1-0-OPTIE-B.md).
+Technische voorbereiding, een compileproef en een echte toestel-/storeacceptatie zijn afzonderlijke bewijzen.
 
 Het stuurdocument verwijst naar de architectuurdocumenten in plaats van ze te herhalen:
 [PLATFORMEN.md](PLATFORMEN.md) (architectuur en doelmodel),
@@ -16,24 +17,22 @@ Het stuurdocument verwijst naar de architectuurdocumenten in plaats van ze te he
 
 ## 0. Kern in tien regels
 
-1. De native app is vandaag een **technische proef**, geen productbasis voor een store-release:
-   één lokale client van ca. 560 regels UI (6 bestanden), 17 native API-endpoints tegenover
-   138 webpagina's en 233 routehandlers.
+1. De native app is nog een **technisch fundament**; de volledige optie-B-functionaliteit is nog niet lokaal beschikbaar.
+   De actuele broninventaris staat in NATIVE-FEATURE-PARITY.md; aantallen routes bewijzen geen functionele pariteit.
 2. Wat werkt is **bewezen**: accountflows (inloggen, registreren, wachtwoordherstel,
    e-mailbevestiging, verplichte beveiligingsstappen), één leeslus (eerste hoofdstuk →
    tekst → bewust afronden), sessieherstel, privacy/cookies offline en realtime-authenticatie.
    Android-debug en iOS-simulator **compileren** op CI (iOS 26.5 SDK). Niets is op een
    echt toestel uitgevoerd.
-3. Er is **geen** release-/distributieprofiel, geen signing, geen privacy manifest, geen
-   werkende entitlements, geen deeplinks, geen native accountverwijdering, geen
-   voorwaardenpagina en geen native push. Dat zijn objectieve blokkades (§2).
+3. WP1-distributieprofielen staan op main. Signing-/privacyvoorbereiding wordt geïntegreerd via #196/#197;
+   accountverwijdering en openbare toegang via #202/#205. Apple-only-verwijdering/tokenintrekking, echte credentials,
+   definitieve voorwaarden, versiebeleid en fysiek apparaatbewijs blijven afzonderlijke releaseblokkades.
 4. Volledige pariteit is een groot traject (§3). Het **kleinste zinvolle** pad bestaat uit
    vier mijlpalen: M0 toestelbewijs → M1 interne test (TestFlight intern, Play intern) →
    M2 externe test → M3 publieke Mobile 1.0 (§3.3).
-5. **Kortste veilige route naar een installeerbare testversie** (M1) vraagt géén nieuwe
-   functies: een expliciet distributieprofiel (WP1), release-engineering voor signing en
-   buildnummers (WP2/WP3), een bereikbare testbackend met `NATIVE_API_ENABLED=1` (WP5 +
-   eigenaar) en de Apple/Google-accounts van de eigenaar (§10).
+5. **M0 kan met het huidige lokale fundament:** een bereikbare afzonderlijke HTTPS-testbackend, een goedgekeurde
+   internal-origin, een Android-debugbuild en een op de Mac ontwikkelgetekende iPhone-build. Geen store-upload nodig.
+   M1 vraagt daarna de beschermde testdistributie en eigenaarscredentials (§10).
 6. Een publieke Mobile 1.0 vraagt daarnaast minimaal: native accountverwijdering + publieke
    verwijderpagina, voorwaarden, een echte native leer-/leeskern (Vandaag, Leren, lezer,
    oefeningen), store-assets en apparaattests (§4–§9).
@@ -43,13 +42,15 @@ Het stuurdocument verwijst naar de architectuurdocumenten in plaats van ze te he
    (`--strict` faalt zolang er een niet-gewaiveerde blokkade openstaat). Dit script bewijst
    nooit dat iets op een toestel werkt.
 9. Er is niets ingediend, gedeployed of gemerged; er zijn geen credentials gebruikt of verzonnen.
-10. **WP1 (distributieprofielen) is geïmplementeerd** (§5.1); eerstvolgend zijn WP2 (iOS) en WP3 (Android) (§9). Voor een echte testbuild ontbreekt nog de backend-origin van de eigenaar (§5.1).
+10. **WP6 wordt klein uitgevoerd:** de bestaande gedeelde navigatie blijft, de eerste datalaagstap staat in #230. Volledige Vandaag-, Leren- en CFM-schermen volgen per functie; voor M0 ontbreekt nog de echte testbackend-origin van de eigenaar.
 
 ## 1. Huidige technische status
 
-### 1.1 Bewijsmethode
+### 1.1 Historische bewijsmethode (23 oktober)
 
-Conclusies zijn gebaseerd op code die is gelezen, op tests die lokaal zijn uitgevoerd
+De oorspronkelijke inventaris hieronder is historisch. De actuele PR-/teststand staat in [MOBILE-1-0-INTEGRATIE.md](MOBILE-1-0-INTEGRATIE.md); historische groene checks gelden niet voor nieuwe commits.
+
+De oorspronkelijke conclusies waren gebaseerd op code die is gelezen, op tests die lokaal zijn uitgevoerd
 (`npm run test:native`: 43 van 43 geslaagd; `npm run native:build`: lokale bundel van 2,2 MB;
 store-readiness-script) en op de GitHub Actions-runs van 23 oktober 2026 (PR #187, head
 `857cd549`: `native-foundation`, `native-parity`, `android-development` en `ios-simulator`
@@ -117,13 +118,15 @@ beslissing. Een blokkade met "alleen bij …" geldt alleen als die functie in de
 |---|---|---|---|
 | `distribution-profile` | Gescheiden distributieprofielen `local-internal` en `local-store-test` naast het geblokkeerde `release` (**opgelost in WP1**) | code | WP1 |
 | `distribution-origins-configured` | De eigenaar heeft de toegestane HTTPS-backend-origins voor intern en store-test nog niet vastgelegd in `scripts/native/distribution-origins.json` (lijsten zijn leeg: distributiebuilds weigeren te bouwen) | eigenaar | WP1 |
-| `ios-privacy-manifest` | Geen `PrivacyInfo.xcprivacy` in het app-target | code + besluit (privacylabels) | WP2 |
+| `ios-privacy-manifest` | `PrivacyInfo.xcprivacy` staat nu in het app-target (**code opgelost in WP2**); de dataverzameling/privacylabels in App Store Connect blijven een besluit van de eigenaar (D5/D8) | code + besluit | WP2 |
+| `ios-testflight-workflow` | Beschermde handmatige workflow voor een ondertekende TestFlight-IPA (**opgelost in WP2**; draaien vereist de secrets van de eigenaar) | code | WP2 |
 | `ios-entitlements` | Geen echt entitlements-bestand gekoppeld (alleen nodig voor Apple-login/associated domains) | code + besluit | WP2 |
 | `ios-export-compliance` | `ITSAppUsesNonExemptEncryption` niet beantwoord | eigenaar bevestigt antwoord | WP2 |
 | `ios-ci-archive` | Geen CI-bewijs voor een iOS-archive voor echte apparaten | code | **WP0 (deze PR)** |
 | `android-version-injectable` | Versiecode/-naam hard gecodeerd | code | **WP0 (deze PR)** |
 | `android-release-signing` | Geen release-signing vanuit CI-secrets | code | **WP0 (deze PR)** |
 | `android-ci-bundle` | Geen CI-bewijs voor een Android App Bundle-release-build | code | **WP0 (deze PR)** |
+| `android-play-test-workflow` | Beschermde handmatige workflow voor een getekende Play-testbundel (**opgelost in WP3**; draaien vereist de secrets van de eigenaar) | code | WP3 |
 | `android-app-links` | Geen `autoVerify`-intent-filter | code + eigenaar (fingerprint) | WP7 |
 | `well-known-association` | Geen `apple-app-site-association` / `assetlinks.json` | code + eigenaar (Team ID, fingerprint) | WP7 |
 | `native-account-deletion` | Accountverwijdering niet vanuit de native app te starten | code | WP4 |
@@ -143,6 +146,8 @@ er geen credentials in git komen.
 |---|---|
 | `release-profile-blocked` | Het profiel komt uitsluitend uit `scripts/native/profiles.cjs`; `PROFILE_IDS` bevat geen `release` en geen enkele omgevingsvariabele opent het; `release` blijft geweigerd |
 | `bundle-never-release-approved` | De lokale bundel schrijft altijd `releaseApproved:false` |
+| `android-signing-refuses-probe` | Gradle en `android-release-guard.mjs` tekenen alleen een niet-compileproef `local-store-test`/`play-test`-bundel; de release-workflow is alleen handmatig en bevat geen Play-upload |
+| `ios-signing-refuses-probe` | `ios-release-guard.mjs` archiveert alleen een niet-compileproef `local-store-test`/`testflight`-bundel; de iOS-workflow is alleen handmatig en exporteert zonder App Store Connect-upload |
 | `bundle-identity-consistent` | Eén bundle-/applicatie-ID `app.versado.app` in Capacitor, Android en iOS |
 | `phones-portrait` | Telefoons portrait-only (iPhone via Info.plist, Android via `MainActivity`) |
 | `android-target-sdk` | `targetSdkVersion` ≥ 36 (Google Play, vanaf 31 augustus 2026) |
@@ -427,6 +432,36 @@ zodra de sleutel bestaat.
 | 6. Interne testers (App Store Connect-gebruikers, ≤ 100); Apple koppelt review aan het uitnodigen van externe testers | Eigenaar | M1 |
 | 7. Exportvraag, testinformatie, testaccount; eerste externe groep → eerste build gaat naar App Review | Eigenaar | M2 (≤ 10.000 externe testers, 90 dagen per build) |
 
+### 6.1 WP2 — voorbereid (iOS-releasetechniek)
+
+Alles wat zonder eigenaarsbeslissing kan, is gebouwd; wat een beslissing of account vereist, staat hieronder als open punt.
+
+**Gerealiseerd**
+- `ios/App/App/PrivacyInfo.xcprivacy` (geen tracking, geen tracking-domeinen, geen toegang tot "required reason"-API's vanuit
+  de app-code; Capacitor levert zijn eigen manifesten) en opgenomen in het app-target (Resources). Een test bewaakt dat het in `project.pbxproj` staat.
+- `UIRequiredDeviceCapabilities` is `arm64` (was het sjabloonwaarde `armv7`, ongeldig voor een iOS 15+ arm64-binary).
+- `scripts/native/ios-release-guard.mjs before|after`: archiveert alleen een niet-compileproef `local-store-test`/`testflight`-bundel met echte
+  HTTPS-origin, versie en buildnummer gelijk aan `NATIVE_APP_VERSION`/`NATIVE_BUILD_NUMBER` en `sourceCommit` = `GITHUB_SHA`; achteraf
+  controle van het archief (`CFBundleIdentifier`, `CFBundleShortVersionString`, `CFBundleVersion`, `public/build.json`, privacy manifest, geen `CAPACITOR_DEBUG`).
+- `.github/workflows/native-ios-release.yml`: alleen `workflow_dispatch`, alleen vanaf `main`, omgeving `ios-testflight`; controleert SDK ≥ 26 en pint optioneel
+  Xcode via variabele `IOS_XCODE_APP`; archiveert met `MARKETING_VERSION`/`CURRENT_PROJECT_VERSION`/`DEVELOPMENT_TEAM` als argumenten (nooit in git) en
+  ondertekent via de App Store Connect API-sleutel (tijdelijk bestand met `umask 077`, altijd verwijderd); exporteert met `destination export`.
+  **Geen upload naar App Store Connect.**
+- CI (`native-platform-builds`): de poort weigert het compileproef-archief, en het echte archief bevat de juiste versie, het bundel-ID en het privacy manifest.
+
+**Secrets en variabelen (omgeving `ios-testflight`, door de eigenaar):** `APPLE_TEAM_ID`, `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_P8` (base64);
+variabelen `NATIVE_STORE_TEST_API_ORIGIN` en optioneel `IOS_XCODE_APP`. Het buildnummer is het workflow-runnummer (oplopend per upload).
+
+**Open voor de eigenaar (bewust niet ingevuld):**
+- `ITSAppUsesNonExemptEncryption`: de eigenaar bevestigt het exportantwoord (de app gebruikt uitsluitend HTTPS/standaardversleuteling van het systeem; de sleutel in Info.plist is een juridische verklaring en wordt niet door code gekozen).
+- Entitlements: Sign in with Apple en associated domains pas na D4 en het Team ID (`SignInWithApple.entitlements.example` blijft een voorbeeld).
+- Privacylabels in App Store Connect en de eventuele aanvulling van `NSPrivacyCollectedDataTypes` (D5/D8).
+- Apple Developer-account, Team ID, App ID, App Store Connect-record en API-sleutel; testbackend-origin (NAS-teststack, DNS, TLS) en allowlist-PR.
+
+**Route naar M0 (iOS):** build met `local-development` via Xcode op een eigen toestel (eigen Team in Xcode, automatic signing; dit is geen distributie), controle van Keychain,
+WebView-layout/safe areas, toetsenbord, lifecycle en offline herstel; vastleggen in `docs/NATIVE-DEVICE-TEST-REPORT.md`. De CI kan dit niet vervangen (geen toestel, geen Team).
+Het workflow kan pas worden gecontroleerd zodra de eigenaar de secrets heeft ingesteld; tot dan bewijst CI alleen de poorten en een ongetekend archief.
+
 ## 7. Google Play-testtraject (Android)
 
 | Stap | Wie | Resultaat |
@@ -438,6 +473,50 @@ zodra de sleutel bestaat.
 | 5. App content invullen: privacyverklaring, Data safety (incl. accountverwijdering en weblink), contentclassificatie, doelgroep, app-toegang (testaccount) | Eigenaar | Vereist voor M2 |
 | 6. **Gesloten test**: ≥ 12 testers, 14 aaneengesloten dagen bij een persoonlijk account na 13 nov 2023 | Eigenaar | Toegang tot productie |
 | 7. Pre-launch-rapportage controleren (16 KB, crashes, toegankelijkheid) | Claude/Codex + eigenaar | M2 |
+
+### 7.1 WP3 — gerealiseerd (Android-releasetechniek)
+
+**Besluit eigenaar (testbackend):** een afzonderlijke HTTPS-testbackend op de NAS. Er is bewust géén URL ingevuld en de
+productie-origin staat nergens in de allowlist; `distribution-origins.json` blijft leeg (veilige blokkering actief) totdat
+teststack, DNS en TLS zijn ingericht. Dat is een eigenaartaak (blokkade `distribution-origins-configured`).
+
+**Signing en poorten (drie lagen, dezelfde regels):**
+1. `android/app/build.gradle`: ondertekent alleen als `VERSADO_UPLOAD_KEYSTORE_PATH` gezet is, en dan alleen wanneer
+   `build.json` in de assets bij `local-store-test`/`play-test` hoort, `compileProbe:false`, `releaseApproved:false`,
+   een echte HTTPS-origin heeft en `buildNumber`/`version` gelijk zijn aan `VERSADO_VERSION_CODE`/`VERSADO_VERSION_NAME`;
+   anders `GradleException`. Zonder sleutel blijft de release ongetekend (geen terugval op de debugsleutel).
+2. `scripts/native/android-release-guard.mjs before|after`: dezelfde regels vóór het bouwen, plus controle dat de
+   metadata in dist en assets gelijk zijn en dat `sourceCommit` gelijk is aan `GITHUB_SHA`; achteraf `jarsigner`-verificatie,
+   afkeuring van ongetekend of debug-getekend, en de sha256.
+3. `.github/workflows/native-android-release.yml`: uitsluitend `workflow_dispatch`, uitsluitend vanaf `main`, in de beschermde
+   omgeving `android-play-test`. Controleert de aanwezigheid van secrets zonder waarden te tonen, schrijft de sleutel met
+   `umask 077` naar de runner-temp en verwijdert hem altijd, bouwt `bundleRelease`, controleert de bundel en bewaart het
+   artifact zeven dagen. **Er is geen Play-upload**: de eigenaar plaatst de bundel handmatig in de interne test.
+
+**Secrets en variabelen (de eigenaar maakt ze aan in omgeving `android-play-test`, met vereiste goedkeurders):**
+`ANDROID_UPLOAD_KEYSTORE_B64` (base64 van de uploadsleutel), `ANDROID_UPLOAD_KEYSTORE_PASSWORD`, `ANDROID_UPLOAD_KEY_ALIAS`,
+`ANDROID_UPLOAD_KEY_PASSWORD`; variabele (niet geheim) `NATIVE_STORE_TEST_API_ORIGIN`. De versiecode is het workflow-runnummer
+(monotoon stijgend), de versienaam de invoer `app_version`. Geen waarden in git of logs.
+
+**Minificatie-besluit:** R8 blijft voorlopig uit (`minifyEnabled false`) totdat M0 op een echt toestel de plugin
+(`VersadoNative`, Keystore) en Capacitor onder R8 heeft bewezen; een niet op toestel getest R8-profiel is een groter risico dan
+een iets grotere bundel. Heroverwegen vóór M2. Manifest: `allowBackup=false`, geen `usesCleartextTraffic`, geen `debuggable`.
+
+**CI-bewijs:** `native-platform-builds` bouwt per push de ongetekende AAB (play-test, compileproef), bewijst dat een
+geldige wegwerpsleutel een compileproef **niet** tekent (guard en Gradle), en doorloopt de volledige signingketen met een
+wegwerpsleutel en een tijdelijke, niet-gecommitte allowlist-aanvulling in de runner; het resultaat wordt gecontroleerd en weggegooid.
+Lokaal: `npm run test:native:android-release` (echte `jarsigner`-controle met een wegwerpsleutel).
+
+**Route naar M0 (eerste echte toesteltest, Android):**
+1. Debug-APK via `native-platform-builds` of lokaal (`local-development`) op een telefoon én een tablet installeren.
+2. Controleren: Keystore-opslag, WebView-layout/safe areas, toetsenbord, terugknop, lifecycle (achtergrond/voorgrond), offline herstel,
+   portrait op telefoon en landscape op tablet; resultaten vastleggen in `docs/NATIVE-DEVICE-TEST-REPORT.md`.
+3. Zodra de testbackend en de signingsecrets bestaan: workflow `native-android-release` starten, AAB plaatsen in de interne Play-test (M1).
+Voor M0 zelf zijn geen signingsleutels of backend nodig als de debugbuild naar een lokale of tijdelijke testbackend wijst
+(`local-development`, expliciet HTTPS of loopback-HTTP).
+
+**Eigenaartaken WP3:** Play Console-account en app-record, Play App Signing, uploadsleutel genereren en als secrets opslaan,
+omgeving `android-play-test` met goedkeurders, `NATIVE_STORE_TEST_API_ORIGIN` na inrichting van de NAS-teststack, en de allowlist-PR.
 
 ## 8. Vereiste fysieke apparaattests
 
@@ -479,7 +558,7 @@ WP1 en de eigenaargegevens. WP15/16 lopen mee en sluiten M2/M3 af.
 - Tests: uitbreiding van `tests/native-foundation.test.ts` (profielvalidatie), negatieve CI-controles, readiness-test.
 - Blokkades: backendorigin van de eigenaar.
 
-**WP2 — iOS-releasetechniek**
+**WP2 — iOS-releasetechniek (voorbereid; zie §6.1)**
 - Afhankelijk van: WP1; eigenaar: Team, API-sleutel.
 - Scope: versie uit `package.json`/CI, entitlements (alleen indien D4/D8), `PrivacyInfo.xcprivacy`,
   `ITSAppUsesNonExemptEncryption`, `UIRequiredDeviceCapabilities` herzien, vastgezette Xcode,
@@ -489,7 +568,7 @@ WP1 en de eigenaargegevens. WP15/16 lopen mee en sluiten M2/M3 af.
 - Tests: archive op CI, `native:store-readiness`, handmatige installatie op een toestel (M0).
 - Blokkades: Team ID, privacylabels (D5/D8).
 
-**WP3 — Android-releasetechniek**
+**WP3 — Android-releasetechniek (geïmplementeerd; zie §7.1)**
 - Afhankelijk van: WP1; eigenaar: uploadsleutel.
 - Scope: `bundleRelease` signed in een beschermde workflow, versiecode uit CI-runnummer, minificatie-besluit
   (R8 aan/uit met ProGuard-regels voor Capacitor), manifesthardening, optioneel upload naar interne test.
