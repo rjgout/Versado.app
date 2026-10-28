@@ -51,3 +51,10 @@ WP14 alleen voor CFM, WP15 (toesteltests), WP16 (storemetadata). Uitgesteld: WP1
 **Nog open voor de eigenaar:**
 1. Definitief akkoord op de tabel in §2. Pas daarna wordt `docs/NATIVE-FEATURE-PARITY.md` bijgewerkt, per onderdeel met testbewijs. Tot die tijd blijven alle niet-geïmplementeerde functies als native achterstand geregistreerd.
 2. Gevolgen van gestreamde audio voor WP15: achtergrondgedrag, onderbrekingen (bellen, andere audio), netwerkverlies tijdens afspelen en de bestaande geautoriseerde Range-stream; geen offline opslag.
+
+## 6. Consolidatie 28 oktober 2026
+
+De opdracht **Versado Mobile 1.0** bevestigt optie B als ontwikkelrichting, inclusief beide CFM-leeswijzen en gestreamde hoofdstukaudio.
+De tabel in §2 blijft een **voorstel** voor tijdelijke platformuitzonderingen; deze opdracht wijzigt het formele pariteitsbeleid niet.
+Het technische PR-overzicht, de mergevolgorde en het M0-protocol staan in
+[MOBILE-1-0-INTEGRATIE.md](MOBILE-1-0-INTEGRATIE.md). Een compileproef met `example.invalid` is geen toestel- of backendbewijs.
