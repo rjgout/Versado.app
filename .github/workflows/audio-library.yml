@@ -28,6 +28,10 @@ permissions:
 concurrency:
   group: audio-library-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
+# Actuele main heeft voor volledige TypeScript-controle meer dan 2 GiB heap nodig.
+# Geen typechecks overslaan; begrens alleen de build-/testprocessen op 4 GiB.
+env:
+  NODE_OPTIONS: --max-old-space-size=4096
 jobs:
   audio-library:
     runs-on: ubuntu-latest
