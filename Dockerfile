@@ -12,6 +12,8 @@ RUN npm ci
 FROM base AS builder
 ARG NEXT_PUBLIC_BUILD_SHA=unknown
 ENV NEXT_PUBLIC_BUILD_SHA=$NEXT_PUBLIC_BUILD_SHA
+# Zonder deze ruimere heap loopt de typecontrole van `next build` vast op OOM (gemeten op main, 28 oktober 2026).
+ENV NODE_OPTIONS=--max-old-space-size=4096
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npx prisma generate
