@@ -1,5 +1,13 @@
 # Implementatieplan: NAS-teststack voor native testbuilds
 
+**Actuele aanvulling:** de eigenaar heeft de afzonderlijke omgeving op
+`https://dev.versado.app` handmatig getest. De internal-allowlist en de afzonderlijke
+develop-imagepipeline worden beschreven in [Development-pipeline](DEVELOPMENT-PIPELINE.md).
+`store-test` blijft leeg; Access-compatibiliteit en `account-deletion-v1` zijn nog
+open acceptatiepunten. De onderstaande generieke inrichtingsstappen blijven een
+referentie; voer ze niet opnieuw uit op de al bestaande stack. Geen NAS-controle
+of deployment door Codex.
+
 Status: **plan met technisch voorbeeld**, geen uitrol. Besluit van de eigenaar: een afzonderlijke HTTPS-testbackend op de NAS, gescheiden van productie.
 Dit document verzint geen domein of URL en gebruikt geen productiegegevens of productievolumes. De eigenaar voert de inrichting
 uit en levert pas daarna de origin voor `scripts/native/distribution-origins.json`.
