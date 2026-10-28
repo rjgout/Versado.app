@@ -51,7 +51,7 @@ export default function AccountDeletionForm({ passwordLoginEnabled, totpEnabled,
           </SettingsField>}
           {error && <div className="px-2 pt-1"><SettingsStatus kind="error">{error}</SettingsStatus></div>}
           <SettingsActions>
-            <SettingsButton type="submit" variant="danger" disabled={loading || !password || (totpEnabled && !code)}>
+            <SettingsButton type="submit" variant="danger" className="w-full min-w-0 !px-1 py-1" disabled={loading || !password || (totpEnabled && !code)}>
               {loading ? t("courses.busy") : t("accountDeletion.submit")}
             </SettingsButton>
           </SettingsActions>

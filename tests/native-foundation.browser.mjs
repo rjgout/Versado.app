@@ -180,8 +180,11 @@ try{
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'Native verwijderformulier past bij grote tekst');
    const fieldWidth=await page.getByLabel('Huidig wachtwoord',{exact:true}).evaluate(el=>el.getBoundingClientRect().width);
    assert.ok(fieldWidth>=160,'Herauthenticatieveld blijft ook bij 320px/200% bruikbaar breed');
-   const buttonLines=await deleteButton.evaluate(el=>el.getBoundingClientRect().height/parseFloat(getComputedStyle(el).lineHeight));
-   assert.ok(buttonLines<=4.5,'De bevestigingsactie mag niet tot een letterkolom versmallen');
+   // Ook een breder systeemlettertype zoals op de CI-runner moet dezelfde reflowgrens halen.
+   await deleteButton.evaluate(el=>el.style.letterSpacing='0.05em');
+   const buttonLayout=await deleteButton.evaluate(el=>{const r=el.getBoundingClientRect(),s=getComputedStyle(el);return {width:r.width,height:r.height,lineHeight:parseFloat(s.lineHeight),paddingLeft:s.paddingLeft,paddingRight:s.paddingRight,font:s.fontFamily};});
+   const buttonLines=buttonLayout.height/buttonLayout.lineHeight;
+   assert.ok(buttonLines<=4.5,`De bevestigingsactie mag niet tot een letterkolom versmallen: ${JSON.stringify(buttonLayout)}`);
    await page.screenshot({path:`${out}/account-deletion-${width}-${scheme}-${scale}.png`,fullPage:true});
    expectDeletedLogout=true;
    await deleteButton.click();await page.getByRole('heading',{name:'Welkom bij Versado'}).waitFor();
