@@ -10,6 +10,8 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 FROM base AS builder
+# Alleen bouwfase: volledige TypeScript-controle overschrijdt de standaard 2 GiB.
+ENV NODE_OPTIONS=--max-old-space-size=4096
 ARG NEXT_PUBLIC_BUILD_SHA=unknown
 ENV NEXT_PUBLIC_BUILD_SHA=$NEXT_PUBLIC_BUILD_SHA
 COPY --from=deps /app/node_modules ./node_modules

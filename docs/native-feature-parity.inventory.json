@@ -15259,13 +15259,13 @@
     },
     {
       "file": "src/lib/account/deletion.ts",
-      "sha256": "b593d8aa172beb7ebba3abd1195b64c56e567b6e72caac67321447a65b31f063",
+      "sha256": "fadb18a99eef883bfa8d33c817e1596b8b09aa4d6a7fc326b39e5e7b8a0883c8",
       "boundary": "context-dependent",
       "imports": [
         "./contracts",
         "@/lib/accountDeletion",
         "@/lib/auth",
-        "@/lib/db",
+        "@/lib/native/sessions",
         "@/lib/rateLimit",
         "@/lib/totp"
       ],
@@ -15367,12 +15367,13 @@
     },
     {
       "file": "src/lib/accountDeletion.ts",
-      "sha256": "14b8f6dcb501e10ec937b7c2eaa824c0325b96e0e644c842b0ed4a57e27825f2",
+      "sha256": "0dc8350c45f280fcf4029da1cf1d060c9e1140eda986d3ee8267912db17ae4a8",
       "boundary": "context-dependent",
       "imports": [
         "./db",
         "./realtime",
-        "./social/groups"
+        "./social/groups",
+        "@/generated/prisma/client"
       ],
       "methods": [],
       "requests": [],
@@ -20383,7 +20384,7 @@
     },
     {
       "file": "src/lib/native/api.ts",
-      "sha256": "afc382b75fb4f34501f02a8eeed25d20694ee62f50c9308b2d38ea4302eeed02",
+      "sha256": "5d8c7e92c900465f91ed2e7fb534c0d30a1a9b589f4b0e81bd09804896d10010",
       "boundary": "context-dependent",
       "imports": [
         "./apple",
@@ -23384,7 +23385,7 @@
     },
     {
       "file": "src/lib/social/groups.ts",
-      "sha256": "a11253d3886f469c12b427cdf63fb2662da27c18a1204e115807afb18fd4bb2f",
+      "sha256": "0281c92a90e13b4c3d6077264411819fd4ab864da0903ec7c7ca792db5d5cc52",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/dates",
@@ -23406,6 +23407,7 @@
       "exports": [
         "activeMembership",
         "adminMaintenanceCandidates",
+        "announceAccountDeparture",
         "cancelGroupInvite",
         "createGroup",
         "endGroupStreakPausesForActivity",
@@ -23413,6 +23415,7 @@
         "inviteToGroup",
         "joinTx",
         "leaveAllGroups",
+        "leaveAllGroupsInTransaction",
         "leaveGroup",
         "nextEligibleDay",
         "normalizeGroupName",
@@ -28210,6 +28213,7 @@
         "src/lib/mailHistory.ts",
         "src/lib/mailHistoryTypes.ts",
         "src/lib/mascots.ts",
+        "src/lib/native/sessions.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",

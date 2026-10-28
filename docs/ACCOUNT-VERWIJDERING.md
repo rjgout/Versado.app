@@ -16,6 +16,9 @@ publieke pagina, het native scherm en Apple-tokenintrekking zijn bewust nog niet
 
 ## 2. Beveiligingsontwerp
 
+- **Eén commitgrens:** herauthenticatie, herstelcodeverbruik, groepsopvolging, pending-registratie en accountcascade worden samen gecommit. Elke databasefout rolt alles terug; notificaties en socketintrekking volgen pas na COMMIT.
+- **Native sessie:** de bestaande NativeSession wordt opnieuw gecontroleerd onder User → NativeSession-lock, ook op intrekking, accountbinding en verloop. Een vastgelegde vervaldatum wordt na de DELETE opnieuw tegen de klok gecontroleerd, zodat ook een trage cascade nog kan terugrollen.
+- **Beheerderconcurrentie:** zelfwisverzoeken gebruiken vóór de User-lock dezelfde transactionele advisory lock; twee laatste beheerders kunnen niet allebei verdwijnen. Groepslocks volgen in vaste ID-volgorde. Geen tweede sessie- of verwijderdatabase.
 - **Bewijs en lock:** controle onder `SELECT … FOR UPDATE` op de User-rij (zoals wachtwoordwijziging en native refresh). Het bewijs is
   gebonden aan `actor.id` én `actor.sessionVersion`; een andere sessieversie of een onbekend account geeft `session_changed` en wist niets.
 - **Geen accountverwisseling:** het wachtwoord van account A kan nooit account B verwijderen (de actor komt uit de sessie, niet uit de invoer).
@@ -66,7 +69,7 @@ webinlog (`passwordLoginEnabled=false`) en had geen native verwijderroute. Behee
 `tests/account-deletion.integration.test.ts` (opgenomen in `npm run test:native:integration`, ook lokaal draaibaar tegen een eigen testdatabase en een lokale server):
 verkeerd wachtwoord, verlopen/gewijzigde sessie, accountverwisseling, verouderde sessieversie in de gedeelde procedure, TOTP (zonder, fout, geldig), herstelcode (eenmalig, gelijktijdig),
 blokkade na vijf foute codes, gelijktijdige verzoeken, Apple-only, laatste beheerder, cascade van sessies en identiteiten, sluiten van sockets, beheer/opruimen ongewijzigd, web (cookie-only geweigerd,
-cross-origin/same-site/niet-JSON geweigerd, cookie gewist, herhaling 401, TOTP, 409's) en native (401/400/409/429, ongeldige sessie na verwijdering).
+cross-origin/same-site/niet-JSON geweigerd, cookie gewist, herhaling 401, TOTP, 409's) en native (401/400/409/429, ongeldige sessie na verwijdering). Toegevoegd bij consolidatie: ingetrokken/verlopen/verwisselde native sessies, foutrollback van groepsvertrek en herstelcodeverbruik, verloop tijdens vertraagde DELETE en twee gelijktijdig vertrekkende laatste beheerders.
 `tests/security-policy.test.ts` bewaakt de origin-/JSON-grenzen voor `DELETE /api/account`. `tests/native-store-readiness.test.mjs` bewaakt dat het blokkade pas sluit met een native scherm en een openbare webpagina.
 
 ## 6. Technisch veilig versus openstaand

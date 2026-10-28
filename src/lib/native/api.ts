@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db";
 import { readingAccessWhere } from "@/lib/contentAccess";
 import { completeChapterReading, getChapterState } from "@/lib/learning/contentProgress";
 import { clientIp, failureLockSeconds, registerFailure } from "@/lib/rateLimit";
-import { hashSecret, issueNativeSession, nativeUser, NativeAuthError, rotateNativeSession } from "./sessions";
+import { hashSecret, issueNativeSession, nativeUser, nativeSessionIdentity, NativeAuthError, rotateNativeSession } from "./sessions";
 import { nativePasswordLogin, nativePasswordProof } from "./password";
 import { cancelNativeSecuritySetup, finishNativeSecuritySetup, nativeSignInResult } from "./securitySetup";
 import { nativeSetupFinishSchema } from "./contract";
@@ -173,7 +173,8 @@ export async function nativeApi(req: NextRequest, parts: string[]): Promise<Next
       // Eigen, strenger budget dan wachtwoordwijziging: een verwijdering is onomkeerbaar.
       const limited = await authBudget(authBudgetKey("account-delete", user.id), 5, 15 * 60_000);
       if (limited) throw new NativeAuthError(limited.status === 503 ? "security_check_unavailable" : "too_many_attempts", limited.status);
-      try { await deleteAccountWithReauthentication(user, input); }
+      const { binding } = await nativeSessionIdentity(req.headers.get("authorization")!.slice(7));
+      try { await deleteAccountWithReauthentication(user, input, binding); }
       catch (error) {
         if (!(error instanceof AccountDeletionError)) throw error;
         const failure = {

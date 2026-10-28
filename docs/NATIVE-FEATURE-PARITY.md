@@ -1168,3 +1168,10 @@ Socket-events (web; native handshake nog niet aanwezig):
 - `use_hint`
 
 <!-- END NATIVE PARITY INVENTORY -->
+
+### WP4-consolidatie: accountverwijdering
+
+PR #202 levert het gedeelde herauthenticatiecontract en de transactionele verwijdering op web/native.
+Dit is nog geen volledige native accountpariteit: het lokale scherm en de openbare uitleg volgen in #205;
+Apple-only-herauthenticatie en Apple-tokenintrekking blijven expliciete releaseblokkades.
+Geen platformuitzonderingen of bestaand pariteitsbeleid zijn hiermee gewijzigd.
