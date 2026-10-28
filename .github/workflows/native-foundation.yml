@@ -51,10 +51,11 @@ permissions:
 concurrency:
   group: native-foundation-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
-# Actuele main heeft voor volledige TypeScript-controle meer dan 2 GiB heap nodig.
-# Geen typechecks overslaan; begrens alleen de build-/testprocessen op 4 GiB.
+# De typecontrole van `next build` en `tsc` raakt op main de standaard Node-heap (OOM, gemeten op 28 oktober 2026);
+# een ruimere heap voorkomt dat elke build willekeurig faalt. Alleen CI, geen productiegedrag.
 env:
   NODE_OPTIONS: --max-old-space-size=4096
+
 jobs:
   native-foundation:
     runs-on: ubuntu-latest
