@@ -114,6 +114,8 @@
     "native:store-readiness": "node scripts/native/store-readiness.mjs",
     "privacy:inventory": "node scripts/privacy/personal-data-inventory.mjs",
     "test:privacy": "node --test tests/personal-data-inventory.test.mjs",
+    "test:nas-stack": "node --test tests/nas-test-stack.test.mjs",
+    "native:check-test-backend": "node scripts/native/check-test-backend.mjs",
     "test:native:store-readiness": "node --test tests/native-store-readiness.test.mjs",
     "test:native:android-release": "node --test tests/native-android-release.test.mjs",
     "test:native:ios-release": "node --test tests/native-ios-release.test.mjs",

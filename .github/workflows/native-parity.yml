@@ -7,6 +7,9 @@ on:
       - 'scripts/native/parity.mjs'
       - 'scripts/native/store-readiness.mjs'
       - 'scripts/native/profiles.cjs'
+      - 'scripts/native/check-test-backend.mjs'
+      - 'tests/nas-test-stack.test.mjs'
+      - 'deploy/test-stack/**'
       - 'scripts/native/distribution-origins.json'
       - 'tests/native-store-readiness.test.mjs'
       - 'docs/NATIVE-STORE-RELEASE-PLAN.md'
@@ -36,4 +39,5 @@ jobs:
       - run: npm ci
       - run: npm run test:native:parity && npm run native:parity:check
       - run: npm run test:native:store-readiness && npm run native:store-readiness
-      - run: npx eslint scripts/native/parity.mjs tests/native-parity.test.mjs scripts/native/store-readiness.mjs tests/native-store-readiness.test.mjs scripts/native/verify-distribution.mjs
+      - run: npm run test:nas-stack
+      - run: npx eslint scripts/native/parity.mjs tests/native-parity.test.mjs scripts/native/store-readiness.mjs tests/native-store-readiness.test.mjs scripts/native/verify-distribution.mjs scripts/native/check-test-backend.mjs tests/nas-test-stack.test.mjs
