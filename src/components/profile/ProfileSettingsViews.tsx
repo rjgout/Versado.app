@@ -165,6 +165,8 @@ export function NotificationsView({
   onCategory,
   onReminder,
   onDailyText,
+  onDailyTextSource,
+  dailyTextSourceError,
   onPodcast,
 }: {
   data: ProfileData;
@@ -179,6 +181,8 @@ export function NotificationsView({
   onCategory: (field: ProfileToggleField) => void;
   onReminder: (value: string) => void;
   onDailyText: (value: string) => void;
+  onDailyTextSource: (value: string) => void;
+  dailyTextSourceError: string | null;
   onPodcast: (podcastId: string) => void;
 }) {
   const t = useT();
@@ -237,6 +241,11 @@ export function NotificationsView({
           busy={saving}
           onChange={() => onCategory("notifyDailyText")}
         />
+        <SettingsField label={t("profile.dailyTextSource")} description={t("profile.dailyTextSourceHint")}>
+          <AppSelect ariaLabel={t("profile.dailyTextSource")} value={data.dailyTextSource}
+            options={(data.dailyTextSources.some(source => source.value === data.dailyTextSource) ? data.dailyTextSources : [...data.dailyTextSources, { value: data.dailyTextSource, label: t("profile.dailyTextSourceUnavailable"), disabled: true }]).map(source => ({ ...source, label: <span data-daily-text-source-label className="block whitespace-normal break-words">{source.label}</span> }))} onChange={onDailyTextSource} disabled={saving} className={settingsFieldClass} />
+          {dailyTextSourceError && <SettingsStatus kind="error">{dailyTextSourceError}</SettingsStatus>}
+        </SettingsField>
         <SettingsField label={t("profile.timeLabel")} htmlFor={dailyTextTimeId} inline>
           <input id={dailyTextTimeId} type="time" className={settingsInlineFieldClass} value={data.dailyTextTime} onChange={(event) => onDailyText(event.target.value)} />
         </SettingsField>

@@ -1,3 +1,4 @@
+import { loadStudyExerciseSource } from '@/lib/studyContent/exerciseSource';
 import { NextRequest, NextResponse } from "next/server";
 import { exerciseAccessWhere } from "@/lib/learning/exerciseAccess";
 import { prisma } from "@/lib/db";
@@ -20,8 +21,11 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ ex
   if (!user) return await apiError("apiErrors.notLoggedIn", 401);
 
   const { exerciseId } = await params;
+  const requested=await prisma.exercise.findUnique({where:{id:exerciseId},select:{studyLessonEditionId:true}});
+  const study=requested?.studyLessonEditionId?await loadStudyExerciseSource(user,requested.studyLessonEditionId,prisma):null;
+  const studyQuestion=study?.plan.parts.flatMap(p=>p.questions).find(q=>q.id===exerciseId);
   const exercise = await prisma.exercise.findFirst({
-    where: await exerciseAccessWhere(user.id, exerciseId, { chapter: { book: { contentCollection: readingAccessWhere(user) } } }),
+    where: studyQuestion?{id:exerciseId,status:"APPROVED"}:await exerciseAccessWhere(user.id, exerciseId, { chapter: { book: { contentCollection: readingAccessWhere(user) } } }),
     include: {
       sourceVerse: { where: { chapter: { book: { contentCollection: readingAccessWhere(user) } } }, select: { text: true } },
       chapter: { select: { book: { select: { contentCollection: { select: { language: true } } } } } },
@@ -33,8 +37,8 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ ex
   if (!hint) {
     const answers = JSON.parse(exercise.answers) as string[];
     // In de taal van de uitgave, net als de oefening zelf.
-    const language = toLanguageCode(exercise.chapter?.book.contentCollection.language);
-    hint = generateExerciseHint(exercise.type, exercise.prompt, answers, exercise.verseRef, exercise.sourceVerse?.text, language);
+    const language = toLanguageCode(study?.lesson.language??exercise.chapter?.book.contentCollection.language);
+    hint = generateExerciseHint(exercise.type, exercise.prompt, answers, exercise.verseRef, studyQuestion?.studySource.quote??exercise.sourceVerse?.text, language);
     await prisma.exercise.update({ where: { id: exercise.id }, data: { hint } });
   }
 

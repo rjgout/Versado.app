@@ -81,7 +81,7 @@ export interface StudyDownloadOptions {
     signal: AbortSignal,
   ) => Promise<DownloadResponse>;
 }
-function abortable<T>(promise: Promise<T>, signal: AbortSignal): Promise<T> {
+export function abortable<T>(promise: Promise<T>, signal: AbortSignal): Promise<T> {
   signal.throwIfAborted();
   return new Promise((resolve, reject) => {
     const abort = () => reject(new Error());
@@ -91,7 +91,7 @@ function abortable<T>(promise: Promise<T>, signal: AbortSignal): Promise<T> {
       .finally(() => signal.removeEventListener("abort", abort));
   });
 }
-function transport(
+export function studyHttpsTransport(
   url: URL,
   address: Address,
   signal: AbortSignal,
@@ -162,7 +162,7 @@ export async function downloadStudyImage(
       )
         throw new Error();
       response = await abortable(
-        (options.transport ?? transport)(url, addresses[0], signal),
+        (options.transport ?? studyHttpsTransport)(url, addresses[0], signal),
         signal,
       );
       if ([301, 302, 303, 307, 308].includes(response.status)) {

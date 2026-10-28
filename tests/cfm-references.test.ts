@@ -178,3 +178,22 @@ test("de officiële bewezen URL's blijven bewezen (geen verruiming buiten de bek
   assert.equal(verifiedOfficialUrl(ok.replace("bofm/1-ne", "bofm/boek")), null);
   assert.equal(verifiedOfficialUrl(ok.replace("%2C", "%2F")), null);
 });
+
+test("oude geblokkeerde Bijbeldoelen zijn alleen herbeoordeelbaar bij overeenkomend URL-, label- en editie-bewijs", async () => {
+  const { retryableBibleReference } = await import("../src/lib/references/bible");
+  const url = "https://www.churchofjesuschrist.org/study/scriptures/ot/jer/1?lang=nld";
+  const target = { sourceKey: "otb:jer:1", workKey: "old-testament", editionKey: "otb", language: "nl", externalUrl: url };
+  assert.equal(retryableBibleReference(target, "Jeremia 1"), true);
+  assert.equal(retryableBibleReference({ sourceKey: url }, "Jeremia 1"), true);
+  assert.equal(retryableBibleReference(target, "Johannes 1"), false);
+  assert.equal(retryableBibleReference({ ...target, sourceKey: "unverified-numbering:" + url }, "Jeremia 1"), false);
+  assert.equal(retryableBibleReference({ ...target, editionKey: "andere-editie" }, "Jeremia 1"), false);
+  assert.equal(retryableBibleReference({ sourceKey: "https://www.churchofjesuschrist.org/study/manual/hymns/nearer-my-god-to-thee?lang=nld" }, "Nader, mijn God, tot U"), false);
+});
+
+test("ook een bewezen Boek van Mormon-doel kan opnieuw worden beoordeeld; afwijkende passages blijven geblokkeerd", async () => {
+ const { retryableScriptureReference } = await import("../src/lib/references/bible");
+ const target = { sourceKey: "https://www.churchofjesuschrist.org/study/scriptures/bofm/1-ne/1?lang=nld&id=p1-p3" };
+ assert.equal(retryableScriptureReference(target, "1 Nephi 1:1–3"), true);
+ assert.equal(retryableScriptureReference(target, "1 Nephi 1:4"), false);
+});

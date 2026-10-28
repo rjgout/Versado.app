@@ -12,7 +12,7 @@ import { readingBlockText, type ReaderDocument } from "./readingPositionContract
 
 type Block = ReaderDocument["sections"][number]["blocks"][number];
 
-/** Verhoog bij elke wijziging van de regels hieronder: opgeslagen voortgang hangt aan de vingerafdruk. */
+/** Basisversie voor bestaande jaargangen. 2027 gebruikt een eigen versie; oude vingerafdrukken blijven herleidbaar. */
 export const PERSONAL_STUDY_VERSION = 2;
 /** Maandag t/m zaterdag; de zondag blijft vrij als rustdag en is dus geen studiestap. Een aanbeveling, geen dagschema. */
 export const PERSONAL_STUDY_STEPS = 6;
@@ -56,6 +56,10 @@ export interface PlannedStep {
 }
 export type PlanIssue = { code: string; message: string };
 export interface PersonalStudyOverrides {
+  /** Alleen expliciet gecontroleerde feestweken zonder onderwijssectie. */
+  withoutTeaching?: boolean;
+  /** Expliciet bronblok met de weekkop, gebonden via dezelfde hide-hash. */
+  weekTitleId?: string;
   /** Verbergt een blok uit de persoonlijke route. `text8` bindt de keuze aan de brontekst van de revisie. */
   hide?: Array<{ id: string; text8: string; reason: string }>;
   /** Eerste blok-id van stap 2 t/m 6 (5 stuks) om de automatische verdeling te vervangen. */
@@ -110,8 +114,9 @@ export function planPersonalStudy(
   if (document.sections.length !== 1) return { supported: false, reason: "De les heeft niet één doorlopende sectie." };
   const blocks = document.sections[0].blocks;
   const h2 = blocks.flatMap((b, i) => (b.type === "heading" && b.level === 2 ? [i] : []));
-  if (h2.length !== 3) return { supported: false, reason: "De les heeft niet de vaste opbouw lestitel, persoonlijke studie, kinderen." };
-  const [titleAt, personalAt, teachingAt] = h2;
+  if (h2.length !== 3 && !(h2.length === 2 && overrides.withoutTeaching)) return { supported: false, reason: "De les heeft niet de vaste opbouw lestitel, persoonlijke studie, kinderen." };
+  const [titleAt, personalAt] = h2;
+  const teachingAt = h2[2] ?? blocks.length;
 
   const issues: PlanIssue[] = [];
   const hidden = new Map((overrides.hide ?? []).map((h) => [h.id, h]));
@@ -127,6 +132,14 @@ export function planPersonalStudy(
       planned.push({ id: block.id, role, personal, reason, doubtful });
       if (personal) shown.push({ block, role });
     };
+    const override = hidden.get(block.id);
+    if (override && i !== titleAt && i !== personalAt) {
+      if (override.text8 === text8(block)) {
+        if (block.id === overrides.weekTitleId) weekTitle = readingBlockText(block);
+        return record("OVERRIDE_HIDDEN", false, override.reason, true);
+      }
+      issues.push({ code: "OVERRIDE_STALE", message: `Override voor ${block.id} past niet meer bij de brontekst en is genegeerd.` });
+    }
     if (i >= teachingAt) return record("TEACHING", false, "Hoort bij de ideeën voor onderwijs aan kinderen en de bijlagen.");
     if (i < personalAt && META_ID.test(block.id)) {
       if (/^b-title_number/.test(block.id)) weekTitle = readingBlockText(block);
@@ -136,11 +149,6 @@ export function planPersonalStudy(
       scriptureTitle = readingBlockText(block);
       scriptureTitleId = block.id;
       return record("META", false, "Kop met de schriftgedeelten; staat in de leskop.");
-    }
-    const override = hidden.get(block.id);
-    if (override && i > personalAt) {
-      if (override.text8 === text8(block)) return record("OVERRIDE_HIDDEN", false, override.reason, true);
-      issues.push({ code: "OVERRIDE_STALE", message: `Override voor ${block.id} past niet meer bij de brontekst en is genegeerd.` });
     }
     if (i === personalAt) return record("SECTION_HEADING", true, "Kop van de persoonlijke studie.");
     if (i < personalAt) {

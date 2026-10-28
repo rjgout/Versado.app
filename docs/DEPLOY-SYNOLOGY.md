@@ -101,32 +101,30 @@ is en hoe de scope daarvan beperkt is.
 Je kan de voortgang volgen bij **Stacks → jehova-app → Containers**, of per
 container op **Logs** klikken.
 
-## Stap 3 — Content laden (eenmalig, en na elke content-update)
+## Stap 3 — Contentbeheer staat los van deployment
 
-Gebruik **Content opnieuw laden** in `/adminbackend`. Voor CFM bevestig je de
-getoonde gepinde bronsnapshot; de bestaande importer maakt uitsluitend concepten
-en behoudt bestaande publicaties. Er is voor normale contentupdates geen
-Docker-console nodig. Niet-goedgekeurde snapshots worden niet geïmporteerd.
-Voer vóór de eerste reload na een uitrol een database-back-up uit en de alleen-lezen diagnose
-`scripts/content-architecture/diagnose-content-integrity-readonly.mjs`; zie `docs/CONTENTBEHEER.md`
-("Uitrol en herstel").
+Contentbeheer V2 uit #187 is gemerged op main (`419ba1e5`), naast Audio V2 uit #194. Dat bevestigt niet welke image of migratie
+op jouw NAS staat. Voor een **bestaande installatie en Audio V2-acceptatie** volg je de acht fasen in
+[PRODUCTIE-ACCEPTATIE.md](audio-v2/PRODUCTIE-ACCEPTATIE.md): alleen lezen → opslag/mounts → afgestemde back-up/herstelproef →
+expliciete deployment → nacontroles → Ether 1-pilot → beoordeling/publicatie → bulk. Alle NAS-/Portainerhandelingen doe je zelf.
+Daar staat per stap Waar/Wat/Waarom/Verwachte uitkomst/Bij fouten en of iets leest, rapporteert of wijzigt.
 
-Al geïmporteerde CFM-concepten hoeven niet opnieuw te worden geladen: beoordeel
-en publiceer de revisies onder **Content → Studielespublicaties**, geef daarna de
-complete collectie afzonderlijk inhoudelijk vrij en houd de publieke
-zichtbaarheid uit totdat je die bewust inschakelt. De zichtbaarheidsknop
-publiceert geen concepten. Zie het [CFM-vrijgavedraaiboek](content-architecture-v2/24-CFM-MANAGED-IMPORT-AND-RELEASE.md).
+- **Nieuwe content ophalen** in Adminbackend → Systeem verwerkt aanvullende content, met de bestaande CFM-snapshot-/vrijgaveregels.
+  Het vervangt geen Schriftteksten/-oefeningen/-cursussen, spiegelt geen audio en is geen deploymentstap.
+- **Schriftbronnen bijwerken** is apart: Controleren → Voorbereiden → Publiceren met planHash. Controleren schrijft wel een logrij;
+  Voorbereiden kan OTB downloaden. Publiceren wijzigt tekst/oefeningen per hoofdstuk en markeert legacy-audio waar nodig via
+  ChapterAudioCheck. RETIRED bewaart gebruikte oefeningen/historie. Na een deelfout opnieuw voorbereiden, geen oude planHash forceren.
+- **Audiobibliotheek** onder Content → Audio registreert/previewt opnamen; publicatie volgt uitsluitend na afzonderlijk akkoord.
+  Registratie, tekstvrijgave en audiopublicatie zijn verschillende handelingen. Een tekst-/legacy-controle bevestigen publiceert geen V2-opname.
 
-Als laatste stap haalt dit ook de voorgelezen hoofdstukken op van de kerk
-naar `/volume1/docker/jehova-app/audio` (zie `volumes:` bij `jehova-app` in
-`deploy/docker-compose.yml`), zodat de app ze vanaf de NAS afspeelt. De
-eerste keer is dat ruim een gigabyte per taal en duurt het even; daarna
-worden alleen nieuwe bestanden opgehaald. Zolang een bestand nog niet lokaal
-staat, speelt de app het gewoon van de kerk af. Los opnieuw proberen kan met
-`npm run audio:mirror` in dezelfde console.
-Wil je een andere (toegestane) bron gebruiken, kopieer die dan eerst naar de
-container (**Containers → jehova-app → Volumes**, of `docker cp` via SSH) en
-draai vervolgens `npm run db:import -- /pad/naar/bestand.json`.
+De legacy-MP3's worden dus niet meer als laatste stap van een gewone aanvullende contentupdate opgehaald. De aparte knop
+**Audiobestanden spiegelen** blijft een bewuste download, en hoort niet bij de Audio V2-acceptatie. Gebruik daarvoor geen
+`db:seed`, `db:import` of `audio:mirror`. Een nieuwe, lege installatie vraagt een afzonderlijk beoordeeld initialisatie-/bronplan;
+start geen volledige seed omdat een bestaande installatie na deployment een fout toont.
+
+ContentUpdateRun bewaart het beheerlogboek, ook bij fouten/herstarts. Openen van de Schriftkaart kan achtergelaten RUNNING-rijen
+als onderbroken markeren; het is daarom geen puur alleen-lezen databaseonderzoek. Gebruik de READ ONLY-queries uit het runbook
+voor de inventarisatie. Tijdens de audiopilot geen Schriftupdate of andere tekstschrijver starten.
 
 ## Stap 4 — Cloudflare: domein naar de NAS wijzen
 
@@ -151,9 +149,15 @@ status tonen.
 
 ## Daarna: updaten — Deployen & onderhoudsmodus
 
-Elke push naar `main` zet nieuwe images klaar op ghcr.io. Voortaan update je
+Een geslaagde image-workflow voor `main` publiceert images op ghcr.io; controleer de werkelijke build/digest. Normaal update je
 via het paneel **"Deployen & onderhoudsmodus"** onderaan `/adminbackend` in
-de app zelf (dus niet meer via Portainer) — dat volgt precies dit stappenplan:
+de app zelf — dat volgt het algemene stappenplan hieronder. **Voor de eerste gecombineerde Audio V2-/Contentbeheer-acceptatie**
+geldt de gecontroleerde route uit het runbook: afgestemde back-up, oude schrijvers stil, uitsluitend de goedgekeurde app-digest
+via Portainer, geen algemene re-pull of configuratievervanging. De repo-voorbeeldstack is geen weergave van jouw NAS.
+Een klik op deploy/start is een wijziging, nooit inspectie: hij kan automatisch migreren en de scanner/scheduler starten.
+Een complete onbekende incoming/READY-backlog moet daarom vóór deployment zijn verklaard.
+
+Het algemene deployagentpad:
 
 1. **Onderhoudsmodus aan** — bezoekers zien meteen de nette "Even
    geduld..."-pagina in plaats van straks een Cloudflare-foutmelding.
@@ -186,9 +190,9 @@ onbepaald `latest` als rollbackdoel. De automatische rollback tijdens een
 mislukte deploy gebruikt wel het daadwerkelijk vooraf vastgelegde image-ID.
 
 **Als er iets misgaat** (bv. de adminbackend zelf is door iets anders niet
-bereikbaar): Portainer's eigen **Stacks → jehova-app → Pull and redeploy**
-op de `jehova-app`-service blijft ook gewoon werken als noodgreep — dan mis
-je alleen de onderhoudspagina en de automatische rollback voor die ene keer.
+bereikbaar): Portainer's eigen **bestaande stack → Update** of de betreffende service-redeploy is alleen na bewuste controle van image, mounts en migraties
+bruikbaar. Dit is geen alleen-lezen noodcontrole. Houd onderhoud aan, leg de vorige immutable digest vast en behoud de afgestemde
+back-up; gebruik geen blinde re-pull van alle services. Voor Audio V2 is de beperkte Portainerprocedure in het runbook leidend.
 
 **Let op bij schemawijzigingen**: nieuwe Prisma-migraties in
 `prisma/migrations/` worden automatisch toegepast bij het opstarten
@@ -204,20 +208,27 @@ functioneren; voer ook de functionele controles uit het vrijgavedraaiboek uit.
 
 ## Back-ups
 
-De database staat op je NAS onder `/volume1/docker/jehova-app/postgres` (zie
-het `volumes:`-pad in `deploy/docker-compose.yml`) — neem die map mee in je
-bestaande Synology-back-upplan (Hyper Backup e.d.). Zorg voor een recente,
+Het repo-voorbeeld gebruikt `/volume1/docker/jehova-app/postgres` en de blijvende audiobindmount
+`/volume1/docker/jehova-app/audio:/data/audio`. Controleer jouw werkelijke Portainer-mounts, volume/quota, vrije ruimte en rechten;
+deze handleiding bevestigt geen NAS-configuratie. Neem de vastgestelde blijvende gegevens mee in je eigen back-upplan (Hyper Backup e.d.). Zorg voor een recente,
 PostgreSQL-consistente backup (een gevalideerde logische dump of passende
 consistente snapshot; alleen een willekeurige kopie van een draaiende datamap
 bewijst dat niet). Bescherm ook de permanente `study-media`-map inclusief
 `.versado-study-volume.json`, het brandingvolume en de stackconfiguratie met
-geheimen in besloten opslag. De map `audio` ernaast
-hoeft niet in de back-up: die wordt bij de volgende contentlading vanzelf
-opnieuw gevuld.
+geheimen in besloten opslag. Neem ook de volledige permanente map `audio` mee:
+Audio V2 bewaart onveranderlijke objecten en publicatieverwijzingen in combinatie
+met PostgreSQL. Een gewone contentlading reconstrueert die combinatie niet.
+Maak een consistente database-/audioback-up met gepauzeerde schrijvers, bewaar
+die buiten het betrokken volume en test herstel in een geïsoleerde omgeving.
+Zie [Audio V2: productieacceptatie](audio-v2/PRODUCTIE-ACCEPTATIE.md) voor de
+controlevolgorde, opslagberekening en afzonderlijke goedkeuringsmomenten.
 
 Wil je liever een los, herstelbaar databasedump-bestand, gebruik dan de
 meegeleverde scripts (`scripts/backup.sh` / `scripts/restore.sh`) — die
-werken op elke Docker-host, ook je NAS via SSH.
+moet de eigenaar eerst tegen zijn eigen container-/rolinstellingen controleren. `backup.sh` maakt alleen de DB-dump, geen audiokopie;
+`restore.sh` gebruikt `pg_restore --clean --if-exists` en overschrijft de gekozen DB. Voer dat nooit uit als controle.
+Het Audio V2-runbook geeft de afgestemde DB/audio-back-up, hashes en een echte restore naar uitsluitend nieuwe afgeschermde testdoelen.
+Een latere productie-restore vraagt een apart concreet herstelbesluit en kan nieuwere gebruikersvoortgang terugdraaien.
 
 ## Fase 2B: studielesmedia — eenmalige voorbereiding na afzonderlijk uitrolakkoord
 

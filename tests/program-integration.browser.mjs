@@ -37,7 +37,8 @@ try{for(const [width,scheme,language,scale] of [[320,'light','nl',2],[390,'dark'
  if(width===320){assert.equal(sent.length,2);assert.equal(sent[0].actionId,sent[1].actionId);}
 
  const context=await prisma.userStudyContext.findUniqueOrThrow({where:{userId_workKey:{userId:f.user.id,workKey:key}}});assert.equal(context.activeLessonKey,'study:'+lesson.id);assert.equal(context.version,1);
- for(const route of ['/dashboard','/live','/courses']){await page.goto(base+route);await page.locator('[data-program-context]').getByText('Een gepubliceerde les met een langere titel',{exact:true}).first().waitFor();}
+ await page.goto(base+'/live');await page.getByRole('main').waitFor();assert.equal(await page.locator('[data-program-context]').count(),0,'Spelen toont geen studieprogrammahero');
+ for(const route of ['/dashboard','/courses']){await page.goto(base+route);await page.locator('[data-program-context]').getByText('Een gepubliceerde les met een langere titel',{exact:true}).first().waitFor();}
  await page.getByRole('button',{name:'Een gepubliceerde les met een langere titel',exact:false}).click();await page.locator('[data-study-reader]').waitFor();
  await page.goBack();await page.locator('[data-program-context]').waitFor();await page.goForward();await page.locator('[data-study-reader]').waitFor();
  assert.equal((await prisma.userStudyContext.findUniqueOrThrow({where:{userId_workKey:{userId:f.user.id,workKey:key}}})).version,1,'zelfde keuze schrijft niets');
@@ -65,5 +66,5 @@ try{for(const [width,scheme,language,scale] of [[320,'light','nl',2],[390,'dark'
  assert.ok(!/SECOND_SUNDAY|FAST_SUNDAY|ACTIVITY|historical_unknown/.test(await page.locator('[data-program-context]').innerText()));
  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'FSY-labels 320px/200% zonder overflow');
  await page.screenshot({path:`${out}/fsy-labels-320-${language}.png`,fullPage:true});
- results.push({width,scheme,language,scale,choose:true,todayLearnPlay:true,noRewards:true,fsyLabels:{width:320,scale:2,sharedAndLegacy:true,localizedCategoryAndMonth:true}});await c.close();
+ results.push({width,scheme,language,scale,choose:true,todayLearn:true,noStudyHeroOnPlay:true,noRewards:true,fsyLabels:{width:320,scale:2,sharedAndLegacy:true,localizedCategoryAndMonth:true}});await c.close();
 }writeFileSync(out+'/results.json',JSON.stringify(results,null,2));console.log(JSON.stringify({programBrowser:results}));}finally{await browser.close();await prisma.$disconnect();}

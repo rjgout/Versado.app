@@ -72,7 +72,7 @@ const SEGMENT = "([^/]+)";
 /** Herkent de contentgebonden routes. Alles wat hier niet in staat, is neutraal. */
 export function classifyContentRoute(pathname: string): ContentRoute {
   const path = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
-  const study = new RegExp(`^/study-lesson/${SEGMENT}/${SEGMENT}(?:/stappen(?:/[^/]+)?)?$`).exec(path);
+  const study = new RegExp(`^/study-lesson/${SEGMENT}/${SEGMENT}(?:/stappen(?:/[^/]+)?|/vragen)?$`).exec(path);
   if (study) return { kind: "studyLesson", lessonId: study[1], collectionId: study[2] };
   if (path === "/courses") return { kind: "courses" };
   const scripture = new RegExp(`^/scripture/${SEGMENT}$`).exec(path);

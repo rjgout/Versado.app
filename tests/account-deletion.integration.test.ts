@@ -4,10 +4,11 @@ import { randomUUID } from "node:crypto";
 import { prisma } from "../src/lib/db";
 import { createSessionToken, hashPassword } from "../src/lib/auth";
 import { encryptTotpSecret, generateRecoveryCodes, generateTotpCode, generateTotpSecret, hashRecoveryCodes } from "../src/lib/totp";
-import { issueNativeSession, nativeUser } from "../src/lib/native/sessions";
+import { issueNativeSession, nativeSessionIdentity, nativeUser } from "../src/lib/native/sessions";
 import { AccountDeletionConflict, deleteUserAccount } from "../src/lib/accountDeletion";
 import { AccountDeletionError, deleteAccountWithReauthentication } from "../src/lib/account/deletion";
 import { clearFailures } from "../src/lib/rateLimit";
+import { createGroup } from "../src/lib/social/groups";
 import { twoFactorFailureKey } from "../src/lib/totp";
 
 // Uitsluitend de eigen, geïsoleerde testdatabase met synthetische accounts.
@@ -226,4 +227,66 @@ http("web: TOTP-account vraagt een code; Apple-only account krijgt 409; laatste 
   const last = await webDelete(await createSessionToken(admin.id), JSON.stringify({ password, confirm }), { "x-real-ip": "127.0.0.44" });
   assert.equal(last.response.status, 409); assert.equal(last.data.code, "last_admin"); assert.equal(await exists(admin.id), true);
   await prisma.user.update({ where: { id: admin.id }, data: { isAdmin: false } });
+});
+
+
+test("native verwijdering hercontroleert ingetrokken, verlopen en verwisselde sessies onder de rijlocks", async () => {
+  const user = await account(), other = await account();
+  const original = await nativeSessionIdentity((await issueNativeSession(user.id, user.sessionVersion)).accessToken);
+  const wrong = await nativeSessionIdentity((await issueNativeSession(other.id, other.sessionVersion)).accessToken);
+  await rejectsWith(deleteAccountWithReauthentication(user, { password, confirm }, wrong.binding), "session_changed");
+  await prisma.nativeSession.update({ where: { id: original.binding.sessionId }, data: { revokedAt: new Date() } });
+  await rejectsWith(deleteAccountWithReauthentication(user, { password, confirm }, original.binding), "session_changed");
+  const expired = await nativeSessionIdentity((await issueNativeSession(user.id, user.sessionVersion)).accessToken);
+  await prisma.nativeSession.update({ where: { id: expired.binding.sessionId }, data: { createdAt: new Date(Date.now() - 2000), expiresAt: new Date(Date.now() - 1000) } });
+  await rejectsWith(deleteAccountWithReauthentication(user, { password, confirm }, expired.binding), "session_changed");
+  assert.equal(await exists(user.id), true); assert.equal(await exists(other.id), true);
+});
+
+test("databasefout na groepsvertrek en herstelcodeverbruik rolt de hele verwijdering terug", async () => {
+  const recovery = generateRecoveryCodes(1), secret = generateTotpSecret();
+  const user = await account({ totpEnabled: true, totpSecretEncrypted: encryptTotpSecret(secret), totpRecoveryCodes: await hashRecoveryCodes(recovery) });
+  const group = await createGroup(user.id, "Synthetische verwijdergroep");
+  const baseline = await prisma.user.findUniqueOrThrow({ where: { id: user.id } });
+  await prisma.$executeRawUnsafe(`CREATE FUNCTION delete_test_failure() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF OLD.id = '${user.id}' THEN RAISE EXCEPTION 'synthetic rollback'; END IF; RETURN OLD; END $$`);
+  await prisma.$executeRawUnsafe(`CREATE TRIGGER delete_test_failure BEFORE DELETE ON "User" FOR EACH ROW EXECUTE FUNCTION delete_test_failure()`);
+  try {
+    await assert.rejects(deleteAccountWithReauthentication(user, { password, code: recovery[0], confirm }), /synthetic rollback/);
+    assert.deepEqual((await prisma.user.findUniqueOrThrow({ where: { id: user.id } })).totpRecoveryCodes, baseline.totpRecoveryCodes);
+    assert.equal((await prisma.socialGroup.findUniqueOrThrow({ where: { id: group.id } })).memberCount, 1);
+    assert.equal((await prisma.groupMembership.findUniqueOrThrow({ where: { groupId_userId: { groupId: group.id, userId: user.id } } })).leftAt, null);
+  } finally {
+    await prisma.$executeRawUnsafe('DROP TRIGGER delete_test_failure ON "User"');
+    await prisma.$executeRawUnsafe('DROP FUNCTION delete_test_failure()');
+  }
+  await deleteAccountWithReauthentication(user, { password, code: recovery[0], confirm });
+  assert.equal(await exists(user.id), false); assert.equal(await prisma.socialGroup.count({ where: { id: group.id } }), 0);
+});
+
+test("sessieverloop tijdens vertraagde DELETE rolt ook de accountcascade terug", async () => {
+  const user = await account();
+  const { binding } = await nativeSessionIdentity((await issueNativeSession(user.id, user.sessionVersion)).accessToken);
+  await prisma.nativeSession.update({ where: { id: binding.sessionId }, data: { expiresAt: new Date(Date.now() + 1000) } });
+  await prisma.$executeRawUnsafe(`CREATE FUNCTION delete_test_delay() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF OLD.id = '${user.id}' THEN PERFORM pg_sleep(1.5); END IF; RETURN OLD; END $$`);
+  await prisma.$executeRawUnsafe(`CREATE TRIGGER delete_test_delay BEFORE DELETE ON "User" FOR EACH ROW EXECUTE FUNCTION delete_test_delay()`);
+  try {
+    await rejectsWith(deleteAccountWithReauthentication(user, { password, confirm }, binding), "session_changed");
+    assert.equal(await exists(user.id), true);
+    assert.equal(await prisma.nativeSession.count({ where: { id: binding.sessionId } }), 1);
+  } finally {
+    await prisma.$executeRawUnsafe('DROP TRIGGER delete_test_delay ON "User"');
+    await prisma.$executeRawUnsafe('DROP FUNCTION delete_test_delay()');
+  }
+});
+
+test("de twee laatste beheerders kunnen zichzelf niet gelijktijdig allebei verwijderen", async () => {
+  await prisma.user.updateMany({ where: { isAdmin: true }, data: { isAdmin: false } });
+  const secret = generateTotpSecret();
+  const extra = { isAdmin: true, totpEnabled: true, totpSecretEncrypted: encryptTotpSecret(secret) };
+  const a = await account(extra), b = await account(extra);
+  const result = await Promise.allSettled([a, b].map(actor => deleteAccountWithReauthentication(actor, { password, code: generateTotpCode(secret), confirm })));
+  assert.equal(result.filter(x => x.status === "fulfilled").length, 1);
+  assert.equal(await prisma.user.count({ where: { id: { in: [a.id, b.id] }, isAdmin: true } }), 1);
+  const rejected = result.find(x => x.status === "rejected") as PromiseRejectedResult;
+  assert.equal(rejected.reason.code, "last_admin");
 });

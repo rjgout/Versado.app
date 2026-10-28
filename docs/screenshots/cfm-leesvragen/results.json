@@ -1,0 +1,55 @@
+[
+  {
+    "width": 390,
+    "scheme": "dark",
+    "scale": 1,
+    "questions": 18,
+    "source": "explicit synthetic fixture",
+    "grouped": true,
+    "review": true,
+    "lostResponseRecovered": true,
+    "xpTransactions": 1,
+    "returnToLesson": true,
+    "noOverflow": true
+  },
+  {
+    "width": 320,
+    "scheme": "light",
+    "scale": 2,
+    "questions": 3,
+    "source": "explicit synthetic fixture",
+    "grouped": true,
+    "review": false,
+    "lostResponseRecovered": false,
+    "xpTransactions": 1,
+    "returnToLesson": true,
+    "noOverflow": true
+  },
+  {
+    "width": 320,
+    "scheme": "dark",
+    "scale": 2,
+    "questions": 18,
+    "source": "explicit synthetic fixture",
+    "grouped": true,
+    "review": true,
+    "lostResponseRecovered": true,
+    "xpTransactions": 1,
+    "returnToLesson": true,
+    "noOverflow": true
+  },
+  {
+    "pinnedOfficial2027Copy": true,
+    "threeQuestionsFromReadScriptureQuotes": true
+  },
+  {
+    "existingChapterFlow": true,
+    "sharedReview": true,
+    "xp": 50
+  },
+  {
+    "missingQuestions": true,
+    "readingAndStepCompletionPreserved": true,
+    "xp": 0
+  }
+]

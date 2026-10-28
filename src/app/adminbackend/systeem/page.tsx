@@ -2,6 +2,7 @@ import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import AdminBrandingClient from "@/components/AdminBrandingClient";
 import AdminDeployClient from "@/components/AdminDeployClient";
 import ReseedClient from "@/components/ReseedClient";
+import ScriptureUpdateClient from "@/components/admin/ScriptureUpdateClient";
 import { requireAdminPage } from "@/lib/adminGuard";
 import { prisma } from "@/lib/db";
 import { isDeployAgentConfigured } from "@/lib/deployAgent";
@@ -16,6 +17,7 @@ export default async function AdminSystemPage() {
       <AdminPageHeader title={t("adminHub.systemTitle")} text={t("adminHub.systemText")} />
       <AdminDeployClient configured={isDeployAgentConfigured()} onlineUserCount={onlineUserCount} />
       <ReseedClient />
+      <ScriptureUpdateClient />
       <AdminBrandingClient />
     </div>
   );

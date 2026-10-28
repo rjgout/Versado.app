@@ -33,6 +33,7 @@ export interface ReadAloudControl {
 interface AudioEdition {
   language: string;
   url: string | null;
+  legacyFallback?: {url:string;starts:{number:number;audioStart:number|null}[]} | null;
   verses: ReadAloudVerse[];
 }
 
@@ -77,7 +78,11 @@ export default function ReadAloudPlayer({ sourceId, title, verses, audio, startV
   // Zonder eindtijd zou een korte leesles doorlopen naar de volgende les.
   const selectedAudio = selected
     ? selected.url && (!verseAfter || verseAfter.audioStart != null)
-      ? { url: selected.url, end: verseAfter?.audioStart ?? null } : null
+      ? { url: selected.url, end: verseAfter?.audioStart ?? null, fallback:selected.legacyFallback&&(!verseAfter||selected.legacyFallback.starts.find(v=>v.number===verseAfter.number)?.audioStart!=null) ? {
+        url:selected.legacyFallback.url,
+        end:verseAfter ? selected.legacyFallback.starts.find(v=>v.number===verseAfter.number)?.audioStart??null : null,
+        verses:spokenVerses.map(v=>({...v,audioStart:selected.legacyFallback!.starts.find(s=>s.number===v.number)?.audioStart??null})),
+      } : null } : null
     : audio;
   const active = source?.id === sourceId
     && source.language === selectedLanguage
