@@ -2,6 +2,25 @@
   "schemaVersion": 1,
   "modules": [
     {
+      "file": "src/app/account-verwijderen/page.tsx",
+      "sha256": "2d34ef2ba8feaaf973f0d96bcef5b572954801a92194f3d55d6c8f8d0526f423",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/components/AccountDeletionClient",
+        "@/lib/session",
+        "next/navigation"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [
+        "getCurrentUser"
+      ],
+      "exports": [
+        "AccountDeletionPage",
+        "dynamic"
+      ]
+    },
+    {
       "file": "src/app/acties/page.tsx",
       "sha256": "fa3a93965d48a1c2e22843b95e3ac359ae1f512b2f0dbaab97ed287099d3d0be",
       "boundary": "context-dependent",
@@ -365,12 +384,13 @@
     },
     {
       "file": "src/app/api/account/route.ts",
-      "sha256": "eb98d371b14bd26425dea31caa90a37870c75280947670fa4a62aa8733d49035",
+      "sha256": "8c2c4af5c07b10248977ea868109e5690701c15af73a8972ab519ae50ec2605f",
       "boundary": "context-dependent",
       "imports": [
         "@/generated/prisma/client",
+        "@/lib/account/contracts",
+        "@/lib/account/deletion",
         "@/lib/account/password",
-        "@/lib/accountDeletion",
         "@/lib/achievements",
         "@/lib/apiError",
         "@/lib/auth",
@@ -388,6 +408,7 @@
         "@/lib/mascots",
         "@/lib/presence",
         "@/lib/requestBody",
+        "@/lib/requestSecurity",
         "@/lib/session",
         "@/lib/timeZone",
         "next/server",
@@ -8644,6 +8665,25 @@
       ]
     },
     {
+      "file": "src/components/AccountDeletionClient.tsx",
+      "sha256": "1d4d3a5c67fee8357b70f7bc87ef185cede24688a5d6c1d24847f376c274fa45",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/account/AccountActionsProvider",
+        "@/components/account/AccountDeletionForm",
+        "@/components/navigation/AppNavigation",
+        "@/components/profile/ProfilePage",
+        "@/lib/account/web"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "AccountDeletionClient"
+      ]
+    },
+    {
       "file": "src/components/ActionsClient.tsx",
       "sha256": "6827061b2c0d400a8d8b4a3fce17c95b3df2c40da26eb718c43dbdcacebb110a",
       "boundary": "client",
@@ -10506,7 +10546,7 @@
     },
     {
       "file": "src/components/ProfileClient.tsx",
-      "sha256": "788cd6a748c139895a2c5fb31086685d3acb7bd02129b700e25bee00290360e9",
+      "sha256": "fe4e34f1167f9c19c9c185c29d32d3043dbb5301993c3fac26f2f386e379aba5",
       "boundary": "client",
       "imports": [
         "@/components/ConfirmProvider",
@@ -11079,7 +11119,7 @@
     },
     {
       "file": "src/components/SubpageBackBar.tsx",
-      "sha256": "d8ee3bb15b413b1c9e418ee8a72f2bee86a7cfe957d2547c0d7adb927844c143",
+      "sha256": "7a3636fb946973b45f268c4945c14ccb4c07cabde3e3356954e7fb729b74982b",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -11382,6 +11422,25 @@
       ]
     },
     {
+      "file": "src/components/account/AccountDeletionForm.tsx",
+      "sha256": "c570d611100609dd1d12822feac3b0d639b18a6a0015095659dab65110ece3b1",
+      "boundary": "client",
+      "imports": [
+        "./AccountActionsProvider",
+        "./accountErrorKeys",
+        "@/components/I18nProvider",
+        "@/components/profile/settings",
+        "@/lib/account/contracts",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "AccountDeletionForm"
+      ]
+    },
+    {
       "file": "src/components/account/EmailConfirmationCard.tsx",
       "sha256": "2cc22330a5f96f00e3a055e22e5e19767c82cc74794236e8c20afbcb58da2757",
       "boundary": "context-dependent",
@@ -11413,10 +11472,11 @@
     },
     {
       "file": "src/components/account/PasswordChangeForm.tsx",
-      "sha256": "962e5d1fac065fb01463d761833ae826dc52ff215a8261b98f9b8747d728b782",
+      "sha256": "016f8c59f69e2318ea2cdb0932b7545f917dbce05bacbd2df74263bc60424847",
       "boundary": "client",
       "imports": [
         "./AccountActionsProvider",
+        "./accountErrorKeys",
         "@/components/I18nProvider",
         "@/components/profile/settings",
         "@/lib/account/contracts",
@@ -11464,6 +11524,21 @@
       "exports": [
         "RecoveryCodesCard",
         "TwoFactorSetupCard"
+      ]
+    },
+    {
+      "file": "src/components/account/accountErrorKeys.ts",
+      "sha256": "8bb66961fd53f9f83991e2eb16097c92963d05e11835750caa9ad27693445047",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/lib/account/contracts",
+        "@/lib/i18n/core"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "ACCOUNT_ERROR_KEYS"
       ]
     },
     {
@@ -12742,7 +12817,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "91a29b6394a75e6335ecebef8078353038c6fb09ddbf1b86a0f47f8f034fb75d",
+      "sha256": "aa6d05bc4be08183e8b8f2cce3227baa2a9f085d1c045794f540f2396288a971",
       "boundary": "client",
       "imports": [
         "./NativeEmailConfirmation",
@@ -12761,6 +12836,7 @@
         "@/components/shell/ShellMetrics",
         "@/components/versado/MascotSlot",
         "@/components/versado/styles",
+        "@/lib/account/contracts",
         "@/lib/handle",
         "@/lib/native/account",
         "@/lib/native/client",
@@ -15137,7 +15213,7 @@
     },
     {
       "file": "src/lib/account/contracts.ts",
-      "sha256": "03dee7f35a98e49d5f9a85bea5c4c4c2e351e0b55fa178d053d629e0e8e80bf3",
+      "sha256": "d3e31a36646c0bad3de5d5e7e175d241e2913e761452765a9d03e43ae7f2edbd",
       "boundary": "context-dependent",
       "imports": [
         "zod"
@@ -15146,7 +15222,30 @@
       "requests": [],
       "checks": [],
       "exports": [
+        "accountDeletionSchema",
         "passwordChangeSchema"
+      ]
+    },
+    {
+      "file": "src/lib/account/deletion.ts",
+      "sha256": "fadb18a99eef883bfa8d33c817e1596b8b09aa4d6a7fc326b39e5e7b8a0883c8",
+      "boundary": "context-dependent",
+      "imports": [
+        "./contracts",
+        "@/lib/accountDeletion",
+        "@/lib/auth",
+        "@/lib/native/sessions",
+        "@/lib/rateLimit",
+        "@/lib/totp"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [
+        "verifyPassword",
+        "verifyTotpCode"
+      ],
+      "exports": [
+        "deleteAccountWithReauthentication"
       ]
     },
     {
@@ -15220,7 +15319,7 @@
     },
     {
       "file": "src/lib/account/web.ts",
-      "sha256": "b12c455071d538f8c2888d605e58368907e91e87674b8e74ed0ef2825337dc6b",
+      "sha256": "1ed02ea4b7f9b71fc52b703ae18d00347cd2ef918fb904a7582f7d5b16037511",
       "boundary": "context-dependent",
       "imports": [
         "./contracts",
@@ -15237,12 +15336,13 @@
     },
     {
       "file": "src/lib/accountDeletion.ts",
-      "sha256": "a040fd07d1dc722e70bfbbfb6269b7ab6fe3e9b1c4e7da04a72c5b379ae1604f",
+      "sha256": "0dc8350c45f280fcf4029da1cf1d060c9e1140eda986d3ee8267912db17ae4a8",
       "boundary": "context-dependent",
       "imports": [
         "./db",
         "./realtime",
-        "./social/groups"
+        "./social/groups",
+        "@/generated/prisma/client"
       ],
       "methods": [],
       "requests": [],
@@ -18787,7 +18887,7 @@
     },
     {
       "file": "src/lib/i18n/messages/de.ts",
-      "sha256": "3477dfaa1860a5c0e68fd8edf529e52d327c84b47cd64ca9b493efb1daf65665",
+      "sha256": "da8316014b50444fde5fda01bb7fbf0afb2f07f3deae8adef90b20f76a1d171b",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18802,7 +18902,7 @@
     },
     {
       "file": "src/lib/i18n/messages/en.ts",
-      "sha256": "080145894e888d6e839bb0723a81fcad0b93d86a614a85beb92b4a7493ab6ad7",
+      "sha256": "98d4f25f2ace8138519a0403e394c65eb56bb76af3347fd6910f50546c92cbd4",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18817,7 +18917,7 @@
     },
     {
       "file": "src/lib/i18n/messages/es.ts",
-      "sha256": "59beb84e00a6adc1045182c86078aef1825f19f3919663fe9751680ba1d6413c",
+      "sha256": "38d3ee4fbcc2a80c098d433ec2ca2ba6f304cc9d4d9446e4f304e9ecf890e2d2",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18832,7 +18932,7 @@
     },
     {
       "file": "src/lib/i18n/messages/fr.ts",
-      "sha256": "500a98eeae8770bf16cc6a5c75bc0e60c0f1ed8fe1268434d3a57153370ec87a",
+      "sha256": "4f10e1a8ad6d88bb6d48721c54afe3ed4326927b85bc9f3ca9f81949069eef0b",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18915,7 +19015,7 @@
     },
     {
       "file": "src/lib/i18n/messages/nl.ts",
-      "sha256": "bb165983916151246d99e830209c9b56c06b8fd28acc103b0a7abd05ac87e832",
+      "sha256": "30ceba47feff0c1df80dd71f3317f40360c3b89c7a5d1c60d250e0f6820769e2",
       "boundary": "context-dependent",
       "imports": [
         "./kompas/nl"
@@ -20222,7 +20322,7 @@
     },
     {
       "file": "src/lib/native/account.ts",
-      "sha256": "10d538b7fc96e70ca43827c4e6e0d0d8db1762a64980dfe250fa64183f28ee9e",
+      "sha256": "6a53131967fd22a7b94157636265a538bb18f27d9740aee56e2de447d82849d8",
       "boundary": "context-dependent",
       "imports": [
         "./client",
@@ -20231,6 +20331,7 @@
       ],
       "methods": [],
       "requests": [
+        "account",
         "account/password"
       ],
       "checks": [],
@@ -20240,7 +20341,7 @@
     },
     {
       "file": "src/lib/native/api.ts",
-      "sha256": "d5ffe72bac6b52bfaa2bc439534868f07904db1354e9c8b7a13fd9b11dcbec6c",
+      "sha256": "5d8c7e92c900465f91ed2e7fb534c0d30a1a9b589f4b0e81bd09804896d10010",
       "boundary": "context-dependent",
       "imports": [
         "./apple",
@@ -20254,6 +20355,7 @@
         "@/app/api/auth/forgot-password/route",
         "@/app/api/auth/register/route",
         "@/lib/account/contracts",
+        "@/lib/account/deletion",
         "@/lib/account/emailConfirmation",
         "@/lib/account/password",
         "@/lib/account/passwordReset",
@@ -20622,7 +20724,7 @@
     },
     {
       "file": "src/lib/navigationHistory.ts",
-      "sha256": "31cff0a02e7b00c3a33687de0abc822f1e0fce995b8cc7bb3e8b91b7eceea977",
+      "sha256": "ebfa8b1c15496c2b2a3702ca727415ce0f6652c158d2b30011503f22aa76033f",
       "boundary": "client",
       "imports": [
         "@/lib/contentPickerContract",
@@ -23240,7 +23342,7 @@
     },
     {
       "file": "src/lib/social/groups.ts",
-      "sha256": "a11253d3886f469c12b427cdf63fb2662da27c18a1204e115807afb18fd4bb2f",
+      "sha256": "0281c92a90e13b4c3d6077264411819fd4ab864da0903ec7c7ca792db5d5cc52",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/dates",
@@ -23262,6 +23364,7 @@
       "exports": [
         "activeMembership",
         "adminMaintenanceCandidates",
+        "announceAccountDeparture",
         "cancelGroupInvite",
         "createGroup",
         "endGroupStreakPausesForActivity",
@@ -23269,6 +23372,7 @@
         "inviteToGroup",
         "joinTx",
         "leaveAllGroups",
+        "leaveAllGroupsInTransaction",
         "leaveGroup",
         "nextEligibleDay",
         "normalizeGroupName",
@@ -25565,6 +25669,73 @@
         "src/components/I18nProvider.tsx"
       ],
       "requestEvidence": [],
+      "authEvidence": [
+        "getCurrentUser"
+      ]
+    },
+    {
+      "file": "src/app/account-verwijderen/page.tsx",
+      "sha256": "2d34ef2ba8feaaf973f0d96bcef5b572954801a92194f3d55d6c8f8d0526f423",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/components/AccountDeletionClient",
+        "@/lib/session",
+        "next/navigation"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [
+        "getCurrentUser"
+      ],
+      "exports": [
+        "AccountDeletionPage",
+        "dynamic"
+      ],
+      "route": "/account-verwijderen",
+      "kind": "page",
+      "domain": "overig-vandaag",
+      "dependencies": [
+        "src/app/account-verwijderen/page.tsx",
+        "src/components/AccountDeletionClient.tsx",
+        "src/components/Footer.tsx",
+        "src/components/I18nProvider.tsx",
+        "src/components/account/AccountActionsProvider.tsx",
+        "src/components/account/AccountDeletionForm.tsx",
+        "src/components/account/accountErrorKeys.ts",
+        "src/components/navigation/AppNavigation.tsx",
+        "src/components/profile/ProfilePage.tsx",
+        "src/components/profile/settings.tsx",
+        "src/components/versado/ToggleSwitch.tsx",
+        "src/lib/account/contracts.ts",
+        "src/lib/account/web.ts",
+        "src/lib/auth.ts",
+        "src/lib/data/fetchJson.ts",
+        "src/lib/db.ts",
+        "src/lib/i18n/core.ts",
+        "src/lib/i18n/messages/kompas/nl.ts",
+        "src/lib/i18n/messages/nl.ts",
+        "src/lib/languages.ts",
+        "src/lib/profileViews.ts",
+        "src/lib/session.ts"
+      ],
+      "directModules": [
+        "src/components/AccountDeletionClient.tsx",
+        "src/lib/session.ts"
+      ],
+      "clientBoundaries": [
+        "src/components/AccountDeletionClient.tsx",
+        "src/components/Footer.tsx",
+        "src/components/I18nProvider.tsx",
+        "src/components/account/AccountActionsProvider.tsx",
+        "src/components/account/AccountDeletionForm.tsx",
+        "src/components/navigation/AppNavigation.tsx",
+        "src/components/profile/ProfilePage.tsx",
+        "src/components/profile/settings.tsx",
+        "src/components/versado/ToggleSwitch.tsx"
+      ],
+      "requestEvidence": [
+        "/api/account"
+      ],
       "authEvidence": [
         "getCurrentUser"
       ]
@@ -27886,12 +28057,13 @@
     },
     {
       "file": "src/app/api/account/route.ts",
-      "sha256": "eb98d371b14bd26425dea31caa90a37870c75280947670fa4a62aa8733d49035",
+      "sha256": "8c2c4af5c07b10248977ea868109e5690701c15af73a8972ab519ae50ec2605f",
       "boundary": "context-dependent",
       "imports": [
         "@/generated/prisma/client",
+        "@/lib/account/contracts",
+        "@/lib/account/deletion",
         "@/lib/account/password",
-        "@/lib/accountDeletion",
         "@/lib/achievements",
         "@/lib/apiError",
         "@/lib/auth",
@@ -27909,6 +28081,7 @@
         "@/lib/mascots",
         "@/lib/presence",
         "@/lib/requestBody",
+        "@/lib/requestSecurity",
         "@/lib/session",
         "@/lib/timeZone",
         "next/server",
@@ -27935,6 +28108,8 @@
       "domain": "account",
       "dependencies": [
         "src/app/api/account/route.ts",
+        "src/lib/account/contracts.ts",
+        "src/lib/account/deletion.ts",
         "src/lib/account/password.ts",
         "src/lib/accountDeletion.ts",
         "src/lib/achievements.ts",
@@ -27995,6 +28170,7 @@
         "src/lib/mailHistory.ts",
         "src/lib/mailHistoryTypes.ts",
         "src/lib/mascots.ts",
+        "src/lib/native/sessions.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
@@ -28013,6 +28189,7 @@
         "src/lib/references/standardWorks.ts",
         "src/lib/requestBody.ts",
         "src/lib/requestLanguage.ts",
+        "src/lib/requestSecurity.ts",
         "src/lib/session.ts",
         "src/lib/social/common.ts",
         "src/lib/social/friendStreaks.ts",
@@ -28037,12 +28214,14 @@
         "src/lib/studyContent/schema.ts",
         "src/lib/studyContextContract.ts",
         "src/lib/timeZone.ts",
+        "src/lib/totp.ts",
         "src/lib/unsubscribe.ts",
         "src/lib/xp.ts"
       ],
       "directModules": [
+        "src/lib/account/contracts.ts",
+        "src/lib/account/deletion.ts",
         "src/lib/account/password.ts",
-        "src/lib/accountDeletion.ts",
         "src/lib/achievements.ts",
         "src/lib/apiError.ts",
         "src/lib/auth.ts",
@@ -28060,6 +28239,7 @@
         "src/lib/mascots.ts",
         "src/lib/presence.ts",
         "src/lib/requestBody.ts",
+        "src/lib/requestSecurity.ts",
         "src/lib/session.ts",
         "src/lib/timeZone.ts"
       ],
@@ -49215,6 +49395,7 @@
         "src/app/api/auth/register/route.ts",
         "src/app/api/v1/native/[...path]/route.ts",
         "src/lib/account/contracts.ts",
+        "src/lib/account/deletion.ts",
         "src/lib/account/emailConfirmation.ts",
         "src/lib/account/password.ts",
         "src/lib/account/passwordReset.ts",
@@ -50848,6 +51029,7 @@
         "src/components/I18nProvider.tsx",
         "src/components/account/AccountActionsProvider.tsx",
         "src/components/account/PasswordChangeForm.tsx",
+        "src/components/account/accountErrorKeys.ts",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/profile/ProfilePage.tsx",
         "src/components/profile/settings.tsx",
@@ -67003,6 +67185,25 @@
   ],
   "components": [
     {
+      "file": "src/app/account-verwijderen/page.tsx",
+      "sha256": "2d34ef2ba8feaaf973f0d96bcef5b572954801a92194f3d55d6c8f8d0526f423",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/components/AccountDeletionClient",
+        "@/lib/session",
+        "next/navigation"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [
+        "getCurrentUser"
+      ],
+      "exports": [
+        "AccountDeletionPage",
+        "dynamic"
+      ]
+    },
+    {
       "file": "src/app/acties/page.tsx",
       "sha256": "fa3a93965d48a1c2e22843b95e3ac359ae1f512b2f0dbaab97ed287099d3d0be",
       "boundary": "context-dependent",
@@ -69892,6 +70093,25 @@
       ]
     },
     {
+      "file": "src/components/AccountDeletionClient.tsx",
+      "sha256": "1d4d3a5c67fee8357b70f7bc87ef185cede24688a5d6c1d24847f376c274fa45",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/account/AccountActionsProvider",
+        "@/components/account/AccountDeletionForm",
+        "@/components/navigation/AppNavigation",
+        "@/components/profile/ProfilePage",
+        "@/lib/account/web"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "AccountDeletionClient"
+      ]
+    },
+    {
       "file": "src/components/ActionsClient.tsx",
       "sha256": "6827061b2c0d400a8d8b4a3fce17c95b3df2c40da26eb718c43dbdcacebb110a",
       "boundary": "client",
@@ -71754,7 +71974,7 @@
     },
     {
       "file": "src/components/ProfileClient.tsx",
-      "sha256": "788cd6a748c139895a2c5fb31086685d3acb7bd02129b700e25bee00290360e9",
+      "sha256": "fe4e34f1167f9c19c9c185c29d32d3043dbb5301993c3fac26f2f386e379aba5",
       "boundary": "client",
       "imports": [
         "@/components/ConfirmProvider",
@@ -72327,7 +72547,7 @@
     },
     {
       "file": "src/components/SubpageBackBar.tsx",
-      "sha256": "d8ee3bb15b413b1c9e418ee8a72f2bee86a7cfe957d2547c0d7adb927844c143",
+      "sha256": "7a3636fb946973b45f268c4945c14ccb4c07cabde3e3356954e7fb729b74982b",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -72630,6 +72850,25 @@
       ]
     },
     {
+      "file": "src/components/account/AccountDeletionForm.tsx",
+      "sha256": "c570d611100609dd1d12822feac3b0d639b18a6a0015095659dab65110ece3b1",
+      "boundary": "client",
+      "imports": [
+        "./AccountActionsProvider",
+        "./accountErrorKeys",
+        "@/components/I18nProvider",
+        "@/components/profile/settings",
+        "@/lib/account/contracts",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "AccountDeletionForm"
+      ]
+    },
+    {
       "file": "src/components/account/EmailConfirmationCard.tsx",
       "sha256": "2cc22330a5f96f00e3a055e22e5e19767c82cc74794236e8c20afbcb58da2757",
       "boundary": "context-dependent",
@@ -72661,10 +72900,11 @@
     },
     {
       "file": "src/components/account/PasswordChangeForm.tsx",
-      "sha256": "962e5d1fac065fb01463d761833ae826dc52ff215a8261b98f9b8747d728b782",
+      "sha256": "016f8c59f69e2318ea2cdb0932b7545f917dbce05bacbd2df74263bc60424847",
       "boundary": "client",
       "imports": [
         "./AccountActionsProvider",
+        "./accountErrorKeys",
         "@/components/I18nProvider",
         "@/components/profile/settings",
         "@/lib/account/contracts",
@@ -73901,7 +74141,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "91a29b6394a75e6335ecebef8078353038c6fb09ddbf1b86a0f47f8f034fb75d",
+      "sha256": "aa6d05bc4be08183e8b8f2cce3227baa2a9f085d1c045794f540f2396288a971",
       "boundary": "client",
       "imports": [
         "./NativeEmailConfirmation",
@@ -73920,6 +74160,7 @@
         "@/components/shell/ShellMetrics",
         "@/components/versado/MascotSlot",
         "@/components/versado/styles",
+        "@/lib/account/contracts",
         "@/lib/handle",
         "@/lib/native/account",
         "@/lib/native/client",
@@ -76249,6 +76490,7 @@
     "use_hint"
   ],
   "tests": [
+    "tests/account-deletion.integration.test.ts",
     "tests/activity-reactions.integration.test.ts",
     "tests/activity-reactions.test.ts",
     "tests/admin-layout.test.ts",
@@ -76411,6 +76653,7 @@
     "tests/native-socket.integration.test.ts",
     "tests/native-socket.test.ts",
     "tests/native-store-readiness.test.mjs",
+    "tests/navigation-departure.test.ts",
     "tests/navigation.test.ts",
     "tests/nl-terminology.test.ts",
     "tests/onboarding-avatar-privacy.test.ts",

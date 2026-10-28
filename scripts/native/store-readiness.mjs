@@ -132,10 +132,11 @@ export const BLOCKERS = [
       const files = [...fs.tree("public/.well-known"), ...fs.tree("src/app/.well-known")].join("\n");
       return { ok: /apple-app-site-association/.test(files) && /assetlinks\.json/.test(files), evidence: "public/.well-known, src/app/.well-known" };
     } },
-  { id: "native-account-deletion", area: "beide", wp: "WP4", title: "Accountverwijdering is vanuit de native app te starten (Apple 5.1.1(v), Google Play)",
-    check: (fs) => ({ ok: /method === "DELETE" && path === "account"/.test(fs.read("src/lib/native/api.ts")), evidence: "src/lib/native/api.ts" }) },
+  { id: "native-account-deletion", area: "beide", wp: "WP4", title: "Accountverwijdering is vanuit de native app te starten: beveiligd API-contract én een scherm in de app (Apple 5.1.1(v), Google Play)",
+    check: (fs) => ({ ok: /method === "DELETE" && path === "account"/.test(fs.read("src/lib/native/api.ts")) && /AccountDeletionForm/.test(fs.read("src/components/native/NativeFoundation.tsx")), evidence: "src/lib/native/api.ts, src/components/native/NativeFoundation.tsx" }) },
   { id: "web-account-deletion", area: "beide", wp: "WP4", title: "Publieke webpagina voor het aanvragen van accountverwijdering zonder de app (Google Play Data safety)",
-    check: (fs) => ({ ok: ["account-verwijderen", "delete-account", "verwijder-account"].some((name) => fs.exists(`src/app/${name}/page.tsx`)), evidence: "src/app/account-verwijderen/page.tsx" }) },
+    // De pagina moet zonder login bereikbaar zijn: een pagina die naar /login doorverwijst is nog de ingelogde variant.
+    check: (fs) => ({ ok: ["account-verwijderen", "delete-account", "verwijder-account"].some((name) => fs.exists(`src/app/${name}/page.tsx`) && !/redirect\(\s*["']\/login/.test(fs.read(`src/app/${name}/page.tsx`))), evidence: "src/app/account-verwijderen/page.tsx (zonder login-redirect)" }) },
   { id: "terms-of-use", area: "beide", wp: "WP4", title: "Voorwaarden als publieke pagina (de privacyverklaring bestaat al op /privacy)",
     check: (fs) => ({ ok: fs.exists("src/app/voorwaarden/page.tsx"), evidence: "src/app/voorwaarden/page.tsx" }) },
   { id: "apple-token-revocation", area: "iOS", wp: "WP4", conditional: "apple-signin", title: "Sign in with Apple: tokenintrekking via de Apple REST API en server-to-server-notificaties (alleen vereist als Sign in with Apple in 1.0 zit)",

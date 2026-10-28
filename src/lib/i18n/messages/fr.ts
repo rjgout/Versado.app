@@ -3001,6 +3001,15 @@ export const fr: PartialMessages = {
     haveAccount: "Tu as déjà un compte ?",
     logIn: "Se connecter",
   },
+  accountDeletion: {
+    title: "Supprimer le compte",
+    intro: "Confirme avec ton mot de passe pour supprimer définitivement ton compte. Cette action est irréversible.",
+    withCode: "Saisis aussi le code de ton application d’authentification ou un code de récupération.",
+    tooManyAttempts: "Trop de tentatives. Réessaie plus tard.",
+    lastAdmin: "Tu es le seul administrateur. Crée d’abord un autre administrateur avant de supprimer ce compte.",
+    reauthenticationUnavailable: "Un compte sans mot de passe (connexion avec Apple) ne peut pas encore être supprimé depuis l’application. Cette option est en préparation.",
+    submit: "Supprimer définitivement le compte",
+  },
   password: {
     resetLinkLabel: "Lien de réinitialisation reçu par e-mail",
     openResetLink: "Ouvrir le lien de réinitialisation",

@@ -21,6 +21,7 @@ import PasswordChangeForm from "@/components/account/PasswordChangeForm";
 import { AccountActionsProvider } from "@/components/account/AccountActionsProvider";
 import { RecoveryCodesCard, TwoFactorSetupCard } from "@/components/account/TwoFactorCards";
 import { nativeAccountActions } from "@/lib/native/account";
+import { AccountActionError } from "@/lib/account/contracts";
 import { NativeSocketConnection } from "@/lib/native/socketClient";
 import NativeEmailConfirmation from "./NativeEmailConfirmation";
 import NativePasswordReset from "./NativePasswordReset";
@@ -201,7 +202,7 @@ export default function NativeFoundation({ client, termsUrl = null, onLanguage, 
       <RecoveryCodesCard recoveryCodes={recoveryCodes} onSaved={() => setRecoveryCodes(null)} />
     </> : setup ? <>
       <h1 tabIndex={-1} className="text-2xl font-extrabold">{t(setup.step === "password" ? "profile.changePassword" : "profile.twoFactor")}</h1>
-      {setup.step === "password" ? <AccountActionsProvider actions={{ async changePassword({ newPassword }) {
+      {setup.step === "password" ? <AccountActionsProvider actions={{ async deleteAccount() { throw new AccountActionError("request_failed"); }, async changePassword({ newPassword }) {
         const id = ++sequence.current; setBusy(true); setError("");
         try { await applySignIn(await client.completeSecuritySetup({ newPassword }), () => id === sequence.current); }
         catch (error) { if (id === sequence.current) report(error); throw error; }

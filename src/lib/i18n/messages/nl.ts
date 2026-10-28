@@ -3502,6 +3502,15 @@ export const nl = {
     haveAccount: "Heb je al een account?",
     logIn: "Log in",
   },
+  accountDeletion: {
+    title: "Account verwijderen",
+    intro: "Bevestig met je wachtwoord om je account definitief te verwijderen. Dit kan niet ongedaan worden gemaakt.",
+    withCode: "Vul ook de code van je authenticator-app of een herstelcode in.",
+    tooManyAttempts: "Te veel pogingen. Probeer het later opnieuw.",
+    lastAdmin: "Je bent de enige beheerder. Maak eerst een andere beheerder aan voordat je dit account verwijdert.",
+    reauthenticationUnavailable: "Een account zonder wachtwoord (inloggen met Apple) kan nog niet via de app worden verwijderd. Deze mogelijkheid wordt voorbereid.",
+    submit: "Account definitief verwijderen",
+  },
   password: {
     resetLinkLabel: "Resetlink uit je e-mail",
     openResetLink: "Resetlink openen",
