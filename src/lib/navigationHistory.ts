@@ -47,6 +47,7 @@ interface ContentDeparture {
   originEntryKey: string;
   pickerEntryKey: string | null;
   createdAt: number;
+  scrollPosition?: number;
   location: { pathname: string; search: string };
 }
 let contentDeparture: ContentDeparture | null = null;
@@ -59,6 +60,10 @@ export function bindContentDepartureEntry(previousPathname: string, pathname: st
     if (pathname !== "/content" || raw.location?.pathname !== previousPathname || Date.now() - raw.createdAt > 30_000) {
       contentDeparture = null; window.sessionStorage.removeItem(CONTENT_DEPARTURE_KEY); return;
     }
+    // Een late scroll/layoutmeting van de vertrekkende pagina mag het
+    // bij linkactivatie vastgelegde vertrekpunt niet overschrijven.
+    // Oudere opgeslagen entries zonder positie blijven compatibel.
+    if (typeof raw.scrollPosition === "number" && Number.isFinite(raw.scrollPosition) && raw.scrollPosition >= 0) saveScrollPosition(raw.originEntryKey, raw.scrollPosition);
     raw.pickerEntryKey = currentEntryKey(); contentDeparture = raw;
     window.sessionStorage.setItem(CONTENT_DEPARTURE_KEY, JSON.stringify(raw));
   } catch { /* Opslag kan geblokkeerd zijn; de gebonden geheugenwaarde blijft. */ }
@@ -68,7 +73,7 @@ export function bindContentDepartureEntry(previousPathname: string, pathname: st
 export function rememberContentDeparture(sessionKey: string, input: { pathname: string; search: string }): void {
   const location = safeContentLocation(input);
   if (!location) return;
-  contentDeparture = { sessionKey, originEntryKey: currentEntryKey(), pickerEntryKey: null, createdAt: Date.now(), location };
+  contentDeparture = { sessionKey, originEntryKey: currentEntryKey(), pickerEntryKey: null, createdAt: Date.now(), scrollPosition: window.scrollY, location };
   saveScrollPosition(contentDeparture.originEntryKey, window.scrollY);
   try { window.sessionStorage.setItem(CONTENT_DEPARTURE_KEY, JSON.stringify(contentDeparture)); } catch { /* Geheugenfallback. */ }
 }
