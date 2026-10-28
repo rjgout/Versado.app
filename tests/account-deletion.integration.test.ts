@@ -4,10 +4,12 @@ import { randomUUID } from "node:crypto";
 import { prisma } from "../src/lib/db";
 import { createSessionToken, hashPassword } from "../src/lib/auth";
 import { encryptTotpSecret, generateRecoveryCodes, generateTotpCode, generateTotpSecret, hashRecoveryCodes } from "../src/lib/totp";
-import { issueNativeSession, nativeSessionIdentity, nativeUser } from "../src/lib/native/sessions";
+import { issueNativeSession, nativeSessionIdentity, nativeUser, rotateNativeSession } from "../src/lib/native/sessions";
 import { AccountDeletionConflict, deleteUserAccount } from "../src/lib/accountDeletion";
 import { AccountDeletionError, deleteAccountWithReauthentication } from "../src/lib/account/deletion";
 import { clearFailures } from "../src/lib/rateLimit";
+import { changeAccountPassword } from "../src/lib/account/password";
+import { setTimeout as delay } from "node:timers/promises";
 import { createGroup } from "../src/lib/social/groups";
 import { twoFactorFailureKey } from "../src/lib/totp";
 
@@ -289,4 +291,43 @@ test("de twee laatste beheerders kunnen zichzelf niet gelijktijdig allebei verwi
   assert.equal(await prisma.user.count({ where: { id: { in: [a.id, b.id] }, isAdmin: true } }), 1);
   const rejected = result.find(x => x.status === "rejected") as PromiseRejectedResult;
   assert.equal(rejected.reason.code, "last_admin");
+});
+
+
+for (const change of ["logout", "refresh-replay", "password"] as const) test(`native wissen na lockwachten respecteert ${change} vóór de commit`, async () => {
+  const user = await account();
+  const tokens = await issueNativeSession(user.id, user.sessionVersion);
+  const { binding } = await nativeSessionIdentity(tokens.accessToken);
+  if (change === "refresh-replay") await rotateNativeSession(tokens.refreshToken, randomUUID());
+  let entered!: () => void, release!: () => void;
+  const ready = new Promise<void>(resolve => { entered = resolve; });
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  const lock = prisma.$transaction(async tx => {
+    await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${user.id} FOR UPDATE`;
+    entered(); await gate;
+  }, { timeout: 10000 });
+  await ready;
+  const securityChange = change === "password"
+    ? changeAccountPassword(user, password, "New-synthetic-delete-42")
+    : rotateNativeSession(tokens.refreshToken, randomUUID(), change === "logout");
+  // Bewijs dat de beveiligingswijziging werkelijk vóór DELETE op de rijlock wacht.
+  try {
+    let waiting = false;
+    for (let attempt = 0; attempt < 100; attempt++) {
+      const rows = await prisma.$queryRaw<{ count: bigint }[]>`SELECT COUNT(*) AS count FROM pg_stat_activity WHERE datname = current_database() AND wait_event_type = 'Lock' AND query LIKE '%User%'`;
+      if (Number(rows[0].count) > 0) { waiting = true; break; }
+      await delay(10);
+    }
+    assert.equal(waiting, true, "beveiligingswijziging wacht aantoonbaar op User-lock");
+    const deletion = deleteAccountWithReauthentication(user, { password, confirm }, binding);
+    const rejection = rejectsWith(deletion, "session_changed");
+    release(); await lock;
+    if (change === "refresh-replay") await assert.rejects(securityChange, /refresh_replayed/);
+    else await securityChange;
+    await rejection;
+    assert.equal(await exists(user.id), true);
+  } finally {
+    release(); await lock;
+    await securityChange.catch(() => {});
+  }
 });

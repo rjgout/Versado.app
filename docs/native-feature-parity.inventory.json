@@ -20724,7 +20724,7 @@
     },
     {
       "file": "src/lib/navigationHistory.ts",
-      "sha256": "31cff0a02e7b00c3a33687de0abc822f1e0fce995b8cc7bb3e8b91b7eceea977",
+      "sha256": "ebfa8b1c15496c2b2a3702ca727415ce0f6652c158d2b30011503f22aa76033f",
       "boundary": "client",
       "imports": [
         "@/lib/contentPickerContract",
@@ -76653,6 +76653,7 @@
     "tests/native-socket.integration.test.ts",
     "tests/native-socket.test.ts",
     "tests/native-store-readiness.test.mjs",
+    "tests/navigation-departure.test.ts",
     "tests/navigation.test.ts",
     "tests/nl-terminology.test.ts",
     "tests/onboarding-avatar-privacy.test.ts",
