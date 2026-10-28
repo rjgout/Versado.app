@@ -20,6 +20,19 @@ async function readSourceLock(): Promise<SourceLock> {
   return JSON.parse(await readFile(join(process.cwd(), SOURCE_LOCK_PATH), "utf8")) as SourceLock;
 }
 
+/** De al aanwezige gepinde snapshot, of null; downloadt nooit. Voor controles die de normale flow niet mogen vertragen. */
+export async function cachedPinnedOtbSource(): Promise<string | null> {
+  const lock = await readSourceLock();
+  const target = join(process.env.OTB_CACHE_DIR || join(tmpdir(), "versado-otb"), lock.upstreamCommit);
+  try {
+    if ((await readFile(join(target, ".otb-upstream-commit"), "utf8")).trim() !== lock.upstreamCommit) return null;
+    await access(join(target, "lang", "nl-NL"));
+    return target;
+  } catch {
+    return null;
+  }
+}
+
 /** Haalt één vaste OTB-snapshot op en bewaart die per SHA in een tijdelijke cache. */
 export async function preparePinnedOtbSource(log: (message: string) => void = console.log): Promise<string> {
   const lock = await readSourceLock();

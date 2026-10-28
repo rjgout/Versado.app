@@ -1,3 +1,4 @@
+import type { MailMeta } from "@/lib/mailHistory";
 import { createHash, randomBytes } from "crypto";
 import { Prisma, type PendingRegistration, type User } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
@@ -120,10 +121,10 @@ export async function createAccount(input: NewAccount): Promise<User> {
   return user;
 }
 
-async function mailLink(email: string, uiLanguage: string, baseUrl: string, rawToken: string): Promise<void> {
+async function mailLink(email: string, uiLanguage: string, baseUrl: string, rawToken: string, meta?: MailMeta): Promise<void> {
   registerFailure(mailKey(email), MAIL_WINDOW_MS);
   const { subject, html, text } = verifyEmailTemplate(getT(uiLanguage), verifyLink(baseUrl, rawToken));
-  const result = await sendMail({ to: email, subject, html, text });
+  const result = await sendMail({ to: email, subject, html, text, meta: { ...meta, kind: "PENDING_VERIFY" } });
   if (!result.ok) console.error("Bevestigingsmail niet verstuurd:", result.error);
 }
 
@@ -174,14 +175,14 @@ export async function findOpenPendingRegistration(email: string): Promise<Pendin
 }
 
 /** Nieuwe link (de oude vervalt), binnen de mailgrens; null = grens bereikt. */
-export async function resendPendingVerification(pending: PendingRegistration, baseUrl: string): Promise<string | null> {
+export async function resendPendingVerification(pending: PendingRegistration, baseUrl: string, meta?: MailMeta): Promise<string | null> {
   if (!mayMail(pending.email)) return null;
   const raw = randomBytes(32).toString("base64url");
   await prisma.pendingRegistration.update({
     where: { id: pending.id },
     data: { tokenHash: hashToken(raw), expiresAt: new Date(Date.now() + PENDING_TTL_MS) },
   });
-  await mailLink(pending.email, pending.uiLanguage, baseUrl, raw);
+  await mailLink(pending.email, pending.uiLanguage, baseUrl, raw, meta);
   return raw;
 }
 

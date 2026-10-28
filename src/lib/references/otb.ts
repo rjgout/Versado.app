@@ -44,10 +44,37 @@ const books: readonly Book[] = [
   { key: "hag", names: ["haggai", "hag"] },
   { key: "zac", names: ["zacharia", "zach", "zac", "zechariah", "zech"] },
   { key: "mal", names: ["maleachi", "mal", "malachi"] },
+  { key: "mat", names: ["mattheus", "matthew", "mat", "matt"] },
+  { key: "mrk", names: ["markus", "marcus", "mark", "mrk"] },
+  { key: "luk", names: ["lukas", "lucas", "luke", "luk"] },
+  { key: "jhn", names: ["johannes", "john", "jhn"] },
+  { key: "act", names: ["handelingen", "acts", "act"] },
+  { key: "rom", names: ["romeinen", "romans", "rom"] },
+  { key: "gal", names: ["galaten", "galatians", "gal"] },
+  { key: "eph", names: ["efeze", "ephesians", "eph"] },
+  { key: "php", names: ["filippenzen", "philippians", "php"] },
+  { key: "col", names: ["kolossenzen", "colossians", "col"] },
+  { key: "tit", names: ["titus", "tit"] },
+  { key: "phm", names: ["filemon", "philemon", "phm"] },
+  { key: "heb", names: ["hebreeen", "hebrews", "heb"] },
+  { key: "jas", names: ["jakobus", "james", "jas"] },
+  { key: "jud", names: ["judas", "jude", "jud"] },
+  { key: "rev", names: ["openbaring", "revelation", "rev"] },
+  { key: "1co", names: ["1 korinthe", "1 corinthians", "1co"] },
+  { key: "2co", names: ["2 korinthe", "2 corinthians", "2co"] },
+  { key: "1th", names: ["1 thessalonicenzen", "1 thessalonians", "1th"] },
+  { key: "2th", names: ["2 thessalonicenzen", "2 thessalonians", "2th"] },
+  { key: "1ti", names: ["1 timotheus", "1 timothy", "1ti"] },
+  { key: "2ti", names: ["2 timotheus", "2 timothy", "2ti"] },
+  { key: "1pe", names: ["1 petrus", "1 peter", "1pe"] },
+  { key: "2pe", names: ["2 petrus", "2 peter", "2pe"] },
+  { key: "1jo", names: ["1 johannes", "1 john", "1jo"] },
+  { key: "2jo", names: ["2 johannes", "2 john", "2jo"] },
+  { key: "3jo", names: ["3 johannes", "3 john", "3jo"] },
 ];
 
 const canonical = new Set<string>(
-  OTB_BOOKS.filter(([number]) => number <= 39).map(([, key]) => key),
+  OTB_BOOKS.map(([, key]) => key),
 );
 if (
   canonical.size !== books.length ||

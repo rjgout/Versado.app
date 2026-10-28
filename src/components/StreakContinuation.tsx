@@ -11,7 +11,9 @@ import { onXpChanged } from "@/lib/xpBroadcast";
 import { getSocket } from "@/lib/socketClient";
 import type { StreakContinuationView } from "@/lib/learning/streakReturnRules";
 import StreakCelebrationFlow, { type StreakCelebrationValue } from "@/components/StreakCelebrationFlow";
-import { shouldClaimStreakCelebration, visibleCelebration } from "@/lib/celebrationGate";
+import StreakEarnedBanner from "@/components/StreakEarnedBanner";
+import { earnedStreakBanner, type EarnedStreakBanner } from "@/lib/streakBanner";
+import { celebrationDeferredOn, shouldClaimStreakCelebration, visibleCelebration } from "@/lib/celebrationGate";
 
 const Context = createContext<StreakContinuationView | null>(null);
 export const useStreakContinuation = () => useContext(Context);
@@ -47,7 +49,11 @@ export function StreakContinuationProvider({ userId, children }: { userId?: stri
   const pathname = usePathname();
   const [value, setValue] = useState<StreakContinuationView | null>(null);
   const [welcome, setWelcome] = useState(false);
-  const [success, setSuccess] = useState<number | null>(null);
+  const [banner, setBanner] = useState<(EarnedStreakBanner & { userId: string }) | null>(null);
+  const pendingEarnedEvent = useRef(false);
+  const bannerOwner = useRef(userId);
+  const shownBanners = useRef(new Set<string>());
+  const dismissBanner = useCallback(() => setBanner(null), []);
   const [celebration, setCelebration] = useState<StreakCelebrationValue | null>(null);
   const latest = useRef<StreakContinuationView | null>(null);
   const shown = useRef(new Set<string>());
@@ -69,7 +75,10 @@ export function StreakContinuationProvider({ userId, children }: { userId?: stri
       const response = await fetch("/api/streak/celebration", { method: "POST", cache: "no-store" });
       if (!response.ok) return;
       const result = (await response.json()) as { show: boolean; streak: number | null; dayKey: string | null };
-      if (result.show && result.streak !== null && result.dayKey) setCelebration({ streak: result.streak, dayKey: result.dayKey });
+      if (result.show && result.streak !== null && result.dayKey) {
+        setBanner(null);
+        setCelebration({ streak: result.streak, dayKey: result.dayKey });
+      }
     } catch {
       // Een tijdelijke netwerkfout mag de leeractiviteit niet blokkeren.
     } finally {
@@ -86,6 +95,12 @@ export function StreakContinuationProvider({ userId, children }: { userId?: stri
 
   useEffect(() => {
     if (!userId) return;
+    const accountId = userId;
+    if (bannerOwner.current !== userId) {
+      bannerOwner.current = userId;
+      latest.current = null;
+      pendingEarnedEvent.current = false;
+    }
     let cancelled = false;
     let busy = false;
     let pending = false;
@@ -99,8 +114,19 @@ export function StreakContinuationProvider({ userId, children }: { userId?: stri
         const next: StreakContinuationView = await response.json();
         if (cancelled) return;
         if (latest.current?.status === "INTERRUPTED" && next.status === "ACTIVE" && next.studiedToday) {
-          setSuccess(next.currentStreak);
           setWelcome(false);
+        }
+        const earned = earnedStreakBanner(latest.current, next, pendingEarnedEvent.current);
+        pendingEarnedEvent.current = false;
+        if (earned && celebrationDeferredOn(pathnameRef.current)) {
+          const key = `streak-earned-banner:${userId}:${earned.dayKey}`;
+          let alreadyShown = shownBanners.current.has(key);
+          try { alreadyShown ||= sessionStorage.getItem(key) === "1"; } catch { /* Geheugenfallback bij geblokkeerde opslag. */ }
+          if (!alreadyShown) {
+            shownBanners.current.add(key);
+            try { sessionStorage.setItem(key, "1"); } catch { /* Geen opslag vereist voor spelen. */ }
+            setBanner({ ...earned, userId: accountId });
+          }
         }
         latest.current = next;
         setValue(next);
@@ -125,7 +151,11 @@ export function StreakContinuationProvider({ userId, children }: { userId?: stri
     const unsubscribe = onXpChanged(refresh);
     const socket = getSocket();
     socket.on("st:awarded", refresh);
-    socket.on("streak_changed", refresh);
+    const onStreakChanged = (event?: { dayEarned?: boolean }) => {
+      if (event?.dayEarned === true) pendingEarnedEvent.current = true;
+      void refresh();
+    };
+    socket.on("streak_changed", onStreakChanged);
     document.addEventListener("visibilitychange", refresh);
     // Ook de lokale dag kan veranderen zonder navigatie of nieuwe XP.
     const timer = window.setInterval(refresh, 30_000);
@@ -133,7 +163,7 @@ export function StreakContinuationProvider({ userId, children }: { userId?: stri
       cancelled = true;
       unsubscribe();
       socket.off("st:awarded", refresh);
-      socket.off("streak_changed", refresh);
+      socket.off("streak_changed", onStreakChanged);
       document.removeEventListener("visibilitychange", refresh);
       window.clearInterval(timer);
     };
@@ -149,10 +179,8 @@ export function StreakContinuationProvider({ userId, children }: { userId?: stri
 
   return <Context.Provider value={value}>
     {children}
-    {success !== null && <div role="status" className="fixed inset-x-4 top-[calc(var(--header-offset,var(--header-default))+1rem)] z-50 mx-auto flex max-w-lg items-center gap-3 rounded-2xl border border-vs-line bg-vs-surface p-4 text-vs-fg shadow-lg">
-      <p className="flex-1 text-sm font-semibold">{t("streakReturn.success", { n: success })}</p>
-      <button type="button" onClick={() => setSuccess(null)} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full hover:bg-vs-subtle" aria-label={t("common.close")}><X className="h-5 w-5" /></button>
-    </div>}
+    {banner && banner.userId === userId && <StreakEarnedBanner key={`${banner.userId}:${banner.dayKey}`} streak={banner.streak}
+      visible={celebrationDeferredOn(pathname) && !shownCelebration} onDismiss={dismissBanner} />}
     <dialog ref={dialog} aria-labelledby="streak-return-title" onCancel={() => setWelcome(false)} onClose={() => setWelcome(false)}
       onKeyDown={(event) => {
         if (event.key !== "Tab") return;

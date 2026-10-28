@@ -740,3 +740,32 @@ test("een Boek van Mormon-verwijzing zonder metadata wordt alleen intern als lab
   assert.equal((await ask("vers 1–3", url + "&id=p1-p3#p1")).kind, "internal");
   assert.equal((await ask("1–3", url + "&id=p1-p3#p1")).kind, "internal");
 });
+
+test("een opgeslagen UNRESOLVED Bijbelverwijzing wordt in de echte lezer opnieuw beoordeeld zonder herimport of auditwrite", async () => {
+  const f = await referenceFixture();
+  const { collection, chapter } = await ensureReferenceOtbScripture();
+  await prisma.contentCollection.update({ where: { id: collection.id }, data: { publicationState: "PUBLISHED", enabled: true, visibleToUsers: true } });
+  const { appendStudyRevision } = await import("../src/lib/studyContent/revisions.ts");
+  const { getStudyReader } = await import("../src/lib/studyContent/reader.ts");
+  const original = await prisma.studyRevision.findUniqueOrThrow({ where: { id: f.item.revisionId } });
+  const body = structuredClone(original.body);
+  const ref = body.sections[0].blocks.find(b => b.type === "reference");
+  ref.label = "Genesis 1:2–3";
+  ref.target = { sourceKey: "https://www.churchofjesuschrist.org/study/scriptures/ot/gen/1?lang=nld&id=p2-p3" };
+  const revision = await appendStudyRevision(f.admin.actor, f.item.lessonEditionId, { schemaVersion: 1, title: original.title, body, sourceMetadata: original.sourceMetadata, rightsMetadata: original.rightsMetadata });
+  const row = await prisma.contentReference.create({ data: { revisionId: revision.id, occurrenceKey: "reference-intro", label: ref.label, originalTarget: ref.target, normalizedTarget: {}, diagnosis: "UNRESOLVED" } });
+  await prisma.studyLessonEdition.update({ where: { id: f.item.lessonEditionId }, data: { publishedRevisionId: revision.id, publicationVersion: { increment: 1 } } });
+  const dto = await getStudyReader(f.owner.actor, f.item.edition.lessonId, f.collection.id, f.owner.sessionKey);
+  assert.ok(!dto.blockedReferences.includes("reference-intro"));
+  const response = await referenceHttp(f, { action: "preview", ...f.request, revisionId: revision.id, visitProof: dto.visitProof });
+  assert.equal(response.status, 200);
+  const result = await response.json();
+  assert.equal(result.kind, "internal");
+  assert.equal(result.href, `/scripture/${chapter.id}#vers-2`);
+  assert.equal((await prisma.contentReference.findUniqueOrThrow({ where: { id: row.id } })).diagnosis, "UNRESOLVED", "geen verborgen herimport of database-auditwrite");
+  await prisma.contentCollection.update({ where: { id: collection.id }, data: { visibleToUsers: false } });
+  try {
+    const denied = await referenceHttp(f, { action: "preview", ...f.request, revisionId: revision.id, visitProof: dto.visitProof });
+    assert.equal((await denied.json()).kind, "external", "ingetrokken toegang mag geen interne tekst vrijgeven");
+  } finally { await prisma.contentCollection.update({ where: { id: collection.id }, data: { visibleToUsers: true } }); }
+});

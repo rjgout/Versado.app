@@ -39,7 +39,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ cha
   });
   const resolved = await Promise.all(chapters.map(async (item) => {
     const recording = await activeChapterAudio(item);
-    return recording === undefined ? item : recording ? { ...item, audioUrl: recording.url, verses: item.verses.map((v, i) => ({ ...v, audioStart: recording.verses[i].audioStart })) } : { ...item, audioUrl: null, verses: item.verses.map((v) => ({ ...v, audioStart: null })) };
+    return recording === undefined ? item : recording ? { ...item, audioUrl: recording.url, legacyFallback:recording.legacyFallback, verses: item.verses.map((v, i) => ({ ...v, audioStart: recording.verses[i].audioStart })) } : { ...item, audioUrl: null, verses: item.verses.map((v) => ({ ...v, audioStart: null })) };
   }));
   return NextResponse.json({
     editions: LANGUAGES.flatMap(({ code }) => {
@@ -48,7 +48,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ cha
         contentCollection,
         code,
       );
-      return edition?.verses.length ? [{ language: code, url: playableAudioUrl(edition.audioUrl), verses: edition.verses }] : [];
+      return edition?.verses.length ? [{ language: code, url: playableAudioUrl(edition.audioUrl), legacyFallback:"legacyFallback" in edition ? edition.legacyFallback : null, verses: edition.verses }] : [];
     }),
   });
 }

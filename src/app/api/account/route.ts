@@ -1,3 +1,4 @@
+import { dailyTextSourceOptions } from "@/lib/dailyText";
 import { notifyVillagePrivacyChanged } from "@/lib/dorp/notifications";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
@@ -59,6 +60,7 @@ const patchSchema = z.object({
     .string()
     .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Ongeldig tijdstip")
     .optional(),
+  dailyTextSource: z.string().min(1).max(128).optional(),
   notifyDailyText: z.boolean().optional(),
   notifyDailyReminder: z.boolean().optional(),
   notifyStreakReturn: z.boolean().optional(),
@@ -141,6 +143,10 @@ export async function PATCH(req: NextRequest) {
   if (parsed.data.shareVillageWithFriends !== undefined && !inventoryOriginAllowed(req.headers, req.url, process.env.APP_URL)) return await apiError("apiErrors.forbidden", 403);
   if (Object.keys(parsed.data).length === 0) {
     return await apiError("apiErrors.nothingToSave", 400);
+  }
+  if (parsed.data.dailyTextSource !== undefined) {
+    const sources = await dailyTextSourceOptions(user, user.contentLanguage);
+    if (!sources.some(source => source.value === parsed.data.dailyTextSource)) return await apiError("apiErrors.invalidInput", 400);
   }
   const { handle, incognitoHours, companion: companionChoice, avatarCharacterId, avatarBackgroundId, avatarFrameId, avatarDecorationId, avatarLightAccentId, ...fields } = parsed.data;
   const avatarFields = { avatarCharacterId, avatarBackgroundId, avatarFrameId, avatarDecorationId, avatarLightAccentId };

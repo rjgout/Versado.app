@@ -43,7 +43,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ use
     const rawToken = await createAuthToken(userId, "PASSWORD_RESET");
     const link = `${getBaseUrl(req)}/reset-password?token=${rawToken}`;
     const { subject, html, text } = adminPasswordResetTemplate(getT(target.uiLanguage), link);
-    const result = await sendMail({ to: target.email, subject, html, text });
+    const result = await sendMail({ to: target.email, subject, html, text, meta: { kind: "PASSWORD_RESET", userId: target.id, actorId: admin.id } });
     if (!result.ok) {
       return NextResponse.json({ error: result.error ?? "Kon de reset-e-mail niet versturen." }, { status: 502 });
     }

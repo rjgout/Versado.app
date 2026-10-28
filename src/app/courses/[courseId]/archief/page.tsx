@@ -9,6 +9,7 @@ import { localizedCourse } from "@/lib/courseText";
 import { isStudyCourseType, modeOfStudyCourse } from "@/lib/readingCourses";
 import { getStudyCatalogue } from "@/lib/studyContent/catalogue";
 import { groupArchiveByYear } from "@/lib/studyContent/cfmProgramme";
+import { courseTypeMatchesContent } from "@/lib/courseContent";
 
 // Het archief van "Kom dan en volg Mij" (Focusroute, zie focusMode.ts): een overzicht van eerdere lessen per jaargang, geen
 // activiteit. Het leest dezelfde lessen als het leerpad; niets is gekopieerd, verwijderd of van identiteit veranderd.
@@ -21,6 +22,7 @@ export default async function CfmArchivePage({ params }: { params: Promise<{ cou
   const { courseId } = await params;
   const course = await prisma.course.findUnique({ where: { id: courseId }, include: { contentCollection: { select: { work: true } } } });
   if (!course || !isStudyCourseType(course.type)) redirect("/courses");
+  if (!courseTypeMatchesContent(course.type, course.contentCollection.work)) redirect("/courses");
   if (!(await isContentCollectionSelectable(course.contentCollectionId, user.isAdmin))) redirect("/courses");
 
   const data = await getStudyCatalogue(user, new Date(), { collectionId: course.contentCollectionId, scope: "archive" });
