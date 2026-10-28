@@ -21,6 +21,7 @@ concurrency:
   group: native-platform-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 env:
+  NODE_OPTIONS: --max-old-space-size=4096
   # Compileproef zonder productiebackend, accounts, signing of publicatie. Het .invalid-domein (RFC 2606) is de
   # enige origin die distributieprofielen zonder allowlist accepteren; zulke builds zijn gemarkeerd als
   # compileproef en nooit uploadbaar.
