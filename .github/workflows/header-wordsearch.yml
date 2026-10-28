@@ -1,47 +1,6 @@
 name: Header en Woordzoeker browserregressies
 
 on:
-  push:
-    branches: ['fix/**']
-    paths:
-      - 'src/components/StickyHeader.tsx'
-      - 'src/components/BottomNav.tsx'
-      - 'src/components/SortableList.tsx'
-      - 'src/components/CoursesClient.tsx'
-      - 'src/components/LiveLobbyForm.tsx'
-      - 'src/components/versado/useCardListSave.ts'
-      - 'src/lib/listOrder.ts'
-      - 'tests/cards.test.ts'
-      - 'tests/card-management.browser.mjs'
-      - 'src/components/versado/ContentCard.tsx'
-      - 'src/components/ContentSwitcher.tsx'
-      - 'src/components/LiveDataProvider.tsx'
-      - 'src/lib/data/hooks.ts'
-      - 'src/lib/focusMode.ts'
-      - 'src/components/SubpageBackBar.tsx'
-      - 'src/lib/i18n/messages/**'
-      - 'src/components/content/**'
-      - 'src/app/content/**'
-      - 'src/lib/contentPickerContract.ts'
-      - 'src/lib/contentSwitch.ts'
-      - 'src/lib/contentCollections.ts'
-      - 'src/lib/navigationHistory.ts'
-      - 'tests/content-picker.browser.mjs'
-      - 'tests/game-availability.socket.mjs'
-      - 'src/lib/gameAvailability*.ts'
-      - 'src/server/**'
-      - 'src/components/WordSearchClient.tsx'
-      - 'src/app/globals.css'
-      - 'src/app/layout.tsx'
-      - 'tests/header-wordsearch.browser.mjs'
-      - 'tests/profile-guide.browser.mjs'
-      - 'src/components/ProfileClient.tsx'
-      - 'src/components/versado/CompanionPicker.tsx'
-      - 'src/lib/profileViews.ts'
-      - 'tests/shell-layout.test.ts'
-      - 'scripts/layout-audit/test-isolated.mjs'
-      - 'package*.json'
-      - '.github/workflows/header-wordsearch.yml'
   pull_request:
     branches: [main]
     paths:
@@ -87,6 +46,12 @@ on:
 
 permissions:
   contents: read
+
+# Dezelfde testketen liep voor fix-branches dubbel (push én PR).
+# PR + handmatige start blijven; alleen achterhaalde runs van dezelfde branch stoppen.
+concurrency:
+  group: header-wordsearch-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
 
 # De typecontrole van `next build` en `tsc` raakt op main de standaard Node-heap (OOM, gemeten op 28 oktober 2026);
 # een ruimere heap voorkomt dat elke build willekeurig faalt. Alleen CI, geen productiegedrag.
