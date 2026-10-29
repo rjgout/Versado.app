@@ -4,16 +4,18 @@
 `24627a4bfed2d93a3bb4aace1439a9d53dafdbcf`. De eigenaar meldt dat de afzonderlijke
 NAS-ontwikkelomgeving, database, Redis, opslag en Cloudflare-verbinding werken.
 Dit is geen door Codex uitgevoerde NAS- of deploymentcontrole.
+Volgens de eigenaar is de pipeline actief en is `develop` beschermd met verplichte
+Actions. Dezelfde werkafspraken gelden voor alle ontwikkelagents via het centrale
+[branch- en mergebeleid](AI-DEVELOPMENT-WORKFLOW.md#branch--en-mergebeleid).
 
 ## Van feature naar develop en main
 
 1. Haal `origin/develop` op en maak daarvan een featurebranch. Open een PR naar
-   `develop`; bestaande PR's houden hun huidige doelbranch. Review en alle
-   development-checks moeten slagen vóór de eigenaar merge toestaat.
-2. Stel bij GitHub Rulesets voor `develop` de drie nieuwe checks verplicht:
+   `develop`; volg voor review, toestemming en bestaande PR's het centrale beleid.
+2. Behoud de bescherming van `develop` met de verplichte checks:
    **Development-controles**, **PR-image (jehova-app)** en
    **PR-image (jehova-proxy)**. Vereis review en blokkeer directe/force-pushes.
-   Dit is een afzonderlijke eigenaarshandeling; deze PR verandert geen rulesets.
+   Beheer van branchregels is een eigenaarshandeling; agents omzeilen die niet.
 3. Een push naar `develop` voert de controles opnieuw uit. Alleen daarna worden
    beide bestaande Dockerfiles gebouwd en uitsluitend development-images gepubliceerd.
    Geen automatische merge, NAS-verbinding of Portainer-update.
@@ -24,14 +26,13 @@ Dit is geen door Codex uitgevoerde NAS- of deploymentcontrole.
    veranderen. Wacht op de bestaande main-controles en expliciete mergegoedkeuring.
    De ongewijzigde productie-workflow kan na die bewuste merge productie-images
    publiceren; productie-uitrol blijft een afzonderlijke eigenaarshandeling.
-5. Synchroniseer main terug via een featurebranch vanaf de nieuwste `develop`,
-   merge daarin `origin/main`, los conflicten inhoudelijk op en open een PR naar
-   `develop`. Geen rebase/force-push van de gedeelde branches. Bewaar de bestaande
-   Audio V2-, content-, sessie- en beloningscontroles. Geen automatische main-merge.
+5. Laat na wijzigingen op `main` de gecontroleerde synchronisatie naar `develop`
+   uitvoeren volgens het centrale branchbeleid. Bewaar daarbij de bestaande
+   Audio V2-, content-, sessie- en beloningscontroles.
 
 ## Welke images verschijnen?
 
-De nieuwe workflow is `.github/workflows/development.yml`:
+De workflow is `.github/workflows/development.yml`:
 
 | Gebeurtenis | Controles | Registry-writes |
 |---|---|---|
@@ -47,7 +48,8 @@ PR-jobs hebben geen package-write-rechten. Alleen de afgeschermde develop-pushjo
 heeft `packages: write`, met de eigen tijdelijke `GITHUB_TOKEN`; geen NAS-,
 Portainer-, Cloudflare- of productiecredentials. Een bestaande GHCR-package moet
 de repository wel schrijftoegang geven; de eigenaar controleert dit zo nodig bij
-de eerste bewuste develop-merge. Er wordt nu geen image gepubliceerd.
+de eerste publicatie of een wijziging van package-rechten. Imagepublicatie
+werkt geen NAS-stack bij.
 
 Beide builds zijn klaar vóór de eerste registry-write. Een mislukte controle of
 build kan dus geen nieuwe dev-tag publiceren. Registratiefouten stoppen de run.
