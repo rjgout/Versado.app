@@ -92,54 +92,20 @@ Niet omzeilen met een beperkte `--expect-capability`-lijst. Een geslaagde
 development-build is geen M0-, TestFlight-, Play- of publieke releasegoedkeuring.
 Zie ook [M0-protocol](MOBILE-1-0-INTEGRATIE.md).
 
-## Cloudflare Access: browserlogin is geen native login
+## Cloudflare Access en native development
 
-De bestaande `NativeApiClient` gebruikt `credentials: "omit"`,
-`redirect: "error"`, `X-Versado-Client: native-v1` en de bestaande Versado
-Bearer-sessie. Hij stuurt geen `CF_Authorization`-browsercookie of Access-serviceheaders.
-De browsercookies van Safari/Chrome worden bovendien niet vanzelf de sessie van
-de lokale Capacitor-app. Een Access-loginredirect, HTML-loginpagina of 401/403
-blokkeert de API; alleen een browserlogin toevoegen lost dit niet op.
+De opt-in voor `local-internal` + `NATIVE_INTERNAL_ACCESS=1` gebruikt native
+Service Auth voor exact `https://dev.versado.app`. OS-enrollment en aparte
+Keychain/Keystore-opslag houden het servicecredentialpaar buiten Versado-JavaScript.
+De native HTTP-route heeft geen browsercookies of CORS-preflight nodig; de
+website-Access-app, bestaande CORS en gebruikersauthenticatie blijven intact.
 
-JSON/Bearer-verzoeken vanuit de WebView vereisen ook een CORS-preflight. Die
-OPTIONS-aanvraag bevat geen Access-authenticatie. Een GET 200 zonder Access is
-dus geen bewijs dat native POST/refresh of iOS/Android achter Access werken.
-
-**Voorstel voor een afzonderlijk goed te keuren interne testoplossing:** een
-Access **Service Auth**-beleid uitsluitend voor de testbackend, met afzonderlijke,
-intrekbare, kort ingestelde servicecredentials per testtoestel/tester. Houd de
-gewone browser-Access-authenticatie voor het beheer intact. Gebruik beide
-`CF-Access-Client-Id`/`CF-Access-Client-Secret`-headers; hergebruik hiervoor nooit
-de `Authorization`-header van de Versado-sessie. Bewaar credentials uitsluitend
-in Keychain/Keystore via een bewuste tester-enrollment, nooit in git, buildvars,
-de appbundel, browseropslag of publieke appdistributie. Geen gedeeld ingebakken
-servicetoken, publieke Worker of pad-bypass.
-
-Dit vraagt **nog** een beoordeelde native transport-/enrollmentwijziging en een
-eigenaarsbesluit over Access-beleid, looptijd en intrekking. De huidige client
-ondersteunt dit niet. Servicecredentials zijn een extra toegangspoort en
-vervangen nooit de bestaande Versado-gebruikersauthenticatie of serverautorisatie.
-Een beheerde Cloudflare One Client/private-netwerkoplossing kan als alternatief
-worden onderzocht; ook daarvan moet de echte native HTTPS-route worden bewezen.
-
-Voor WebView-verkeer moet Access OPTIONS afhandelen met uitsluitend de twee
-bestaande native origins en de noodzakelijke exacte methoden/headers, of moet een
-afzonderlijk beoordeelde native HTTP-transportoplossing de WebView-preflight
-vermijden. Implementeer geen wildcard of brede OPTIONS/API-bypass. De huidige
-Versado-CORS-configuratie staat de extra serviceheaders niet vanzelf toe; voeg
-die niet zonder afzonderlijke beoordeling toe.
-
-Acceptatie vóór deze toegang als werkend geldt: op **beide echte platforms**
-capabilities, preflight, login, refresh, logout en eventuele socketverbinding
-testen; verlopen/ingetrokken Access-credentials moeten veilig weigeren, een
-vreemde origin moet geweigerd blijven. Geen cookie-export, TLS-uitschakeling of
-loginredirect volgen om een groene backendcheck te forceren. Store-test blijft
-dicht tot deze toegangsstrategie en de overige releaseblokkades zijn beoordeeld.
-
-Geraadpleegde officiële documentatie:
-
-- [Access-servicecredentials en Service Auth](https://developers.cloudflare.com/cloudflare-one/access-controls/service-credentials/service-tokens/)
-- [Access en CORS/preflight](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/authorization-cookie/cors/)
+Zie [Native Cloudflare Access](NATIVE-CLOUDFLARE-ACCESS.md) voor de eigenaarstappen,
+bouwinstellingen, rotatie/intrekking en werkelijke acceptatiegrenzen. Codex
+configureert Cloudflare of NAS niet. De huidige Socket.IO-client is in deze opt-in
+expliciet geblokkeerd; geen volledige native compatibiliteit geclaimd. Andere
+profielen blijven ongewijzigd; `store-test` blijft leeg. WP4/account-deletion-v1
+blijft afzonderlijk werk. Echte Cloudflare- en toestelacceptatie ligt bij de eigenaar.
 
 ## Eigenaar: dev-image in Portainer bijwerken en herstellen
 

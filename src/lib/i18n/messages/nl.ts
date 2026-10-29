@@ -221,6 +221,19 @@ export const nl = {
   "active": "Actieve opname",
   "legacy": "Registraties; bestaande hoofdstukaudio blijft behouden."
 },
+  nativeAccess: {
+  "title": "Interne toesteltoegang",
+  "help": "Voeg de Cloudflare-toegang voor dit testtoestel toe in het beveiligde systeemvenster. Wijzigen of wissen logt je uit bij Versado.",
+  "missing": "Toesteltoegang ontbreekt. Voeg de gegevens van de eigenaar toe.",
+  "configured": "Toesteltoegang is opgeslagen. Geldigheid wordt bij elk verzoek gecontroleerd.",
+  "enroll": "Toegang toevoegen of vervangen",
+  "clear": "Toegang wissen",
+  "busy": "Toesteltoegang bijwerken…",
+  "error": "De toesteltoegang kon niet worden gebruikt. Controleer je verbinding en laat de eigenaar de toegang controleren.",
+  "denied": "De toesteltoegang is geweigerd of ingetrokken. Vraag de eigenaar om nieuwe gegevens.",
+  "disabled": "Deze build staat interne toesteltoegang niet toe. Bouw de juiste interne versie.",
+  "realtime": "Realtimeverbindingen zijn nog niet beschikbaar in deze interne Access-build."
+},
   nativeFoundation: {
   "welcome": "Welkom bij Versado",
   "login": "Inloggen",

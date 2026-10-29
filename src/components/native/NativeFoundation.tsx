@@ -28,7 +28,7 @@ import { nativeDeepLink, nativePasswordResetLink, nativeEmailConfirmationLink } 
 
 type Account = NativeAccount;
 type Chapter = NativeChapter;
-export default function NativeFoundation({ client, termsUrl = null, onLanguage, buildBanner = null }: { client: NativeSessionClient; termsUrl?: string | null; onLanguage?: (language: string) => void; buildBanner?: ReactNode }) {
+export default function NativeFoundation({ client, termsUrl = null, onLanguage, buildBanner = null, internalAccess = null }: { client: NativeSessionClient; termsUrl?: string | null; onLanguage?: (language: string) => void; buildBanner?: ReactNode; internalAccess?: ReactNode }) {
   const t = useT(), uiLanguage = useUiLanguage(), navigation = useAppNavigation();
   const profile = navigation.pathname === "/profile";
   const resetPage = navigation.pathname === "/reset-password";
@@ -51,6 +51,11 @@ export default function NativeFoundation({ client, termsUrl = null, onLanguage, 
   useEffect(() => { document.querySelector<HTMLElement>("h1")?.focus(); }, [chapter?.id, navigation.pathname, user?.id, setup?.step, recoveryCodes]);
   const report = useCallback((err: unknown) => {
     const key = err instanceof NativeClientError ? err.code : "request_failed";
+    if (key.startsWith("access_")) {
+      setError(t(key === "access_missing" ? "nativeAccess.missing" : key === "access_disabled" ? "nativeAccess.disabled" : key === "access_denied" ? "nativeAccess.denied" : "nativeAccess.error"));
+      if (key === "access_network_unavailable") setOffline(true);
+      return;
+    }
     const mapping = { wrong_credentials: "wrongCredentials", two_factor_required: "twoFactorRequired", sign_in_then_link_apple: "appleConflict", alternative_login_required: "alternativeRequired", network_unavailable: "offline", session_expired: "sessionExpired", secure_storage_unavailable: "storageUnavailable" } as const;
     setError(key === "email_confirmation_required" ? t("apiErrors.emailNotConfirmed") : key === "email_confirmation_sent" ? t("apiErrors.emailNotConfirmedSent") : key === "wrong_code" ? t("apiErrors.verificationCodeWrong") : t(`nativeFoundation.${mapping[key as keyof typeof mapping] ?? "error"}`));
     if (key === "network_unavailable") setOffline(true);
@@ -111,7 +116,7 @@ export default function NativeFoundation({ client, termsUrl = null, onLanguage, 
     return () => { disposed = true; invalidate(); cleanup?.(); window.removeEventListener("online", online); window.removeEventListener("offline", offline); };
   }, [bootstrap, client, report]);
   const accountId = user?.id;
-  const realtime = features.includes("realtime-ticket-v1");
+  const realtime = features.includes("realtime-ticket-v1") && client.realtimeSupported;
   useEffect(() => {
     if (!accountId || !realtime || !isNativeApp()) return;
     const connection = new NativeSocketConnection(client, error => {
@@ -193,6 +198,7 @@ export default function NativeFoundation({ client, termsUrl = null, onLanguage, 
     </StickyHeader>
     <main className="native-foundation mx-auto flex min-h-dvh w-full max-w-2xl flex-col gap-5 bg-vs-bg text-vs-fg">
     {buildBanner}
+    {internalAccess}
     {offline && <p role="status" className="flex gap-2 rounded-xl bg-vs-surface p-3"><WifiOff className="h-5 w-5 shrink-0" />{t("nativeFoundation.offline")}</p>}
     {error && <p role="alert" className="rounded-xl border border-vs-line bg-vs-surface p-3">{error}</p>}
     {busy && <p role="status">{t("nativeFoundation.loading")}</p>}

@@ -219,6 +219,19 @@ export const en: PartialMessages = {
   "active": "Active recording",
   "legacy": "Registrations; existing chapter audio is preserved."
 },
+  nativeAccess: {
+  "title": "Internal device access",
+  "help": "Add Cloudflare access for this test device in the secure system dialog. Replacing or clearing access signs you out of Versado.",
+  "missing": "Device access is missing. Add the credentials supplied by the owner.",
+  "configured": "Device access is stored. Validity is checked with every request.",
+  "enroll": "Add or replace access",
+  "clear": "Clear access",
+  "busy": "Updating device access…",
+  "error": "Device access could not be used. Check your connection and ask the owner to check access.",
+  "denied": "Device access was denied or revoked. Ask the owner for new credentials.",
+  "disabled": "This build does not allow internal device access. Build the correct internal version.",
+  "realtime": "Realtime connections are not yet available in this internal Access build."
+},
   nativeFoundation: {
   "welcome": "Welcome to Versado",
   "login": "Sign in",

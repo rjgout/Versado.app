@@ -278,7 +278,7 @@ De onafhankelijke review volgt door ChatGPT. #176 en #178 blijven ongemerged.
 <!-- BEGIN NATIVE PARITY INVENTORY -->
 ## Volledige broninventaris (gegenereerd)
 
-Gevonden: **143 pagina's**, **244 fysieke routehandlers**, **431 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
+Gevonden: **143 pagina's**, **244 fysieke routehandlers**, **432 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
 
 De JSON-bijlage bevat per route alle transitief bereikbare lokale modules, clientgrenzen en statische requestpaden. Dat is een afhankelijkheidsinventaris, geen autorisatiebewijs; voorwaarden per HTTP-methode blijven apart te controleren. Een Client Component kan via een gedeelde helper nog een serverafhankelijkheid hebben. Een module zonder eigen `use client` is contextafhankelijk, niet automatisch browsergeschikt.
 
@@ -1007,6 +1007,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/mysteries/Mystery001aClient.tsx](../src/components/mysteries/Mystery001aClient.tsx) | use client | MysteryClient
 [src/components/mysteries/MysteryDetailPage.tsx](../src/components/mysteries/MysteryDetailPage.tsx) | contextafhankelijk / server-entry waar page/layout | MysteryDetailPage
 [src/components/mysteries/MysteryPlayPage.tsx](../src/components/mysteries/MysteryPlayPage.tsx) | contextafhankelijk / server-entry waar page/layout | MysteryPlayPage
+[src/components/native/NativeAccessPanel.tsx](../src/components/native/NativeAccessPanel.tsx) | use client | NativeAccessPanel
 [src/components/native/NativeBuildBanner.tsx](../src/components/native/NativeBuildBanner.tsx) | use client | NativeBuildBanner
 [src/components/native/NativeEmailConfirmation.tsx](../src/components/native/NativeEmailConfirmation.tsx) | use client | NativeEmailConfirmation
 [src/components/native/NativeFoundation.tsx](../src/components/native/NativeFoundation.tsx) | use client | NativeFoundation

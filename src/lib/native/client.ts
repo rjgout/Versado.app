@@ -39,7 +39,7 @@ export class NativeSessionClient {
   }
   private authenticating: number | null = null;
   private securitySetup: { value: NativeSecuritySetup; generation: number } | null = null;
-  constructor(readonly baseUrl: string, private store: SecureSessionStore, private transport: typeof fetch = (input, init) => fetch(input, init)) {}
+  constructor(readonly baseUrl: string, private store: SecureSessionStore, private transport: typeof fetch = (input, init) => fetch(input, init), readonly realtimeSupported = true) {}
 
   // Lees + voorwaardelijke wijziging vormen samen één transactie in deze client.
   // Een losse queue per read/write beschermt niet tegen laat bevestigde logout.
@@ -76,7 +76,10 @@ export class NativeSessionClient {
     let response;
     try {
       response = await this.transport(`${this.baseUrl}/api/v1/native/${path}`, { method, credentials: "omit", cache: "no-store", redirect: "error", signal: AbortSignal.timeout(15_000), headers: { "X-Versado-Client": "native-v1", ...(body === undefined ? {} : { "Content-Type": "application/json" }), ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: body === undefined ? undefined : JSON.stringify(body) });
-    } catch { throw new NativeClientError("network_unavailable"); }
+    } catch (error) {
+      if (error instanceof NativeClientError && error.code.startsWith("access_")) throw error;
+      throw new NativeClientError("network_unavailable");
+    }
     let data; try { data = await response.json(); } catch { throw new NativeClientError("invalid_response", response.status); }
     if (!response.ok) throw new NativeClientError(typeof data.error === "string" ? data.error : "request_failed", response.status);
     return data as T;

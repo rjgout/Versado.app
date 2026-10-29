@@ -1,7 +1,7 @@
 name: Native platformcompilatie
 on:
   pull_request:
-    branches: [main, 'feat/native-*', 'fix/native-*']
+    branches: [main, develop, 'feat/native-*', 'fix/native-*']
     paths:
       - 'src/**'
       - 'public/**'
@@ -9,6 +9,7 @@ on:
       - 'ios/**'
       - 'capacitor.config.ts'
       - 'scripts/native/**'
+      - 'tests/native-access-policy.swift'
       - 'tests/native-android-release*'
       - 'tests/native-ios-release*'
       - 'package*.json'
@@ -46,7 +47,7 @@ jobs:
           java-version: 21
       - uses: gradle/actions/setup-gradle@v4
       - name: Android SDK van de CI-runner
-        run: '"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;36.0.0"'
+        run: '"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "platforms;android-37.0" "build-tools;36.0.0"'
       - name: Lokaal bundelen en synchroniseren
         run: |
           npm ci
@@ -57,6 +58,9 @@ jobs:
       - name: Echte Android-debugcompilatie
         working-directory: android
         run: bash ./gradlew :app:assembleDebug --no-daemon
+      - name: Native Access HTTP-/policyregressies op de JVM
+        working-directory: android
+        run: bash ./gradlew :app:testDebugUnitTest --no-daemon
       - name: Controleer de assets in de APK
         run: |
           unzip -q android/app/build/outputs/apk/debug/app-debug.apk 'assets/*' -d "$RUNNER_TEMP/versado-android-artifact"
@@ -69,6 +73,17 @@ jobs:
           CAPACITOR_BUILD_PROFILE: local-internal
           NATIVE_COMPILE_PROBE: '1'
           NATIVE_DISTRIBUTION_CHANNEL: internal
+        run: |
+          npm run native:build
+          npx cap sync android
+          node scripts/native/verify-distribution.mjs android
+      - name: Expliciete interne Access-bundel en native configuratie (geen netwerkverzoeken)
+        env:
+          CAPACITOR_BUILD_PROFILE: local-internal
+          NATIVE_DISTRIBUTION_CHANNEL: internal
+          NATIVE_API_BASE_URL: https://dev.versado.app
+          NATIVE_INTERNAL_ACCESS: '1'
+          NATIVE_COMPILE_PROBE: '0'
         run: |
           npm run native:build
           npx cap sync android
@@ -150,6 +165,10 @@ jobs:
           npm run native:build
           npx cap sync ios
           node scripts/native/verify-distribution.mjs ios
+      - name: Native Access HTTP-/policyregressies op macOS
+        run: |
+          swiftc -swift-version 5 ios/App/App/NativeAccessTransport.swift tests/native-access-policy.swift -o "$RUNNER_TEMP/versado-access-policy"
+          "$RUNNER_TEMP/versado-access-policy"
       - name: Echte iOS-simulatorcompilatie zonder signing
         run: |
           xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath "$RUNNER_TEMP/versado-ios" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
@@ -165,6 +184,17 @@ jobs:
           CAPACITOR_BUILD_PROFILE: local-internal
           NATIVE_COMPILE_PROBE: '1'
           NATIVE_DISTRIBUTION_CHANNEL: internal
+        run: |
+          npm run native:build
+          npx cap sync ios
+          node scripts/native/verify-distribution.mjs ios
+      - name: Expliciete interne Access-bundel en native configuratie (geen netwerkverzoeken)
+        env:
+          CAPACITOR_BUILD_PROFILE: local-internal
+          NATIVE_DISTRIBUTION_CHANNEL: internal
+          NATIVE_API_BASE_URL: https://dev.versado.app
+          NATIVE_INTERNAL_ACCESS: '1'
+          NATIVE_COMPILE_PROBE: '0'
         run: |
           npm run native:build
           npx cap sync ios
