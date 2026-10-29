@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { prisma } from "../src/lib/db";
 import { hashPassword } from "../src/lib/auth";
 import { createAuthToken } from "../src/lib/authTokens";
+import { getT } from "../src/lib/i18n";
 import { NativeClientError, NativeSessionClient, type SecureSessionStore } from "../src/lib/native/client";
 import { nativeAccessTransport, INTERNAL_ACCESS_ORIGIN } from "../src/lib/native/access";
 import { nativeAccessGateway } from "./fixtures/native-access-gateway";
@@ -70,14 +71,15 @@ test("registratie, bevestiging en reset via de poort behouden bestaande mail-/ee
     const registered = await prisma.user.findUniqueOrThrow({ where: { email } });
     assert.equal(registered.emailVerifiedAt, null);
     assert.equal(await prisma.nativeSession.count({ where: { userId: registered.id } }), 0);
-    await client.publicRequest("forgot-password", { identifier: user.email });
+    await assert.rejects(client.publicRequest("forgot-password", { identifier: user.email }),
+      (error: unknown) => error instanceof NativeClientError && error.status === 503 && error.code === getT("nl")("apiErrors.resetNotConfigured"));
     const reset = await createAuthToken(user.id, "PASSWORD_RESET");
     await client.publicRequest("reset-password", { token: reset, newPassword: "Synthetic-new-access-password-42" });
     await assert.rejects(client.publicRequest("reset-password", { token: reset, newPassword: "Synthetic-replayed-password-42" }), /invalid_reset_link/);
     const verification = await createAuthToken(registered.id, "EMAIL_VERIFY");
     const result = await client.publicRequest<{ status: string }>("verify-email", { token: verification });
     assert.equal(result.status, "confirmed");
-    assert.equal((await client.publicRequest<{ status: string }>("verify-email", { token: verification })).status, "already");
+    assert.equal((await client.publicRequest<{ status: string }>("verify-email", { token: verification })).status, "invalid", "Verbruikt legacy-mailbewijs blijft eenmalig");
     assert.ok((await prisma.user.findUniqueOrThrow({ where: { id: registered.id } })).emailVerifiedAt);
     assert.equal(await prisma.nativeSession.count({ where: { userId: registered.id } }), 0);
     assert.equal(await prisma.nativeSession.count({ where: { userId: user.id } }), 0, "Reset- en mailbewijs zijn geen loginbewijs");
