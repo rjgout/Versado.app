@@ -1,7 +1,7 @@
 name: Native Foundation
 on:
   pull_request:
-    branches: [main, 'feat/native-*', 'fix/native-*']
+    branches: [main, develop, 'feat/native-*', 'fix/native-*']
     paths:
       - 'src/lib/native/**'
       - 'src/lib/liveQuiz.ts'
@@ -37,6 +37,8 @@ on:
       - 'prisma/**'
       - 'package*.json'
       - 'scripts/native/**'
+      - 'tests/native-access*'
+      - 'tests/fixtures/native-access*'
       - 'tests/native-foundation*'
       - 'tests/native-navigation*'
       - 'tests/native-account*'

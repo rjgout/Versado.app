@@ -219,6 +219,19 @@ export const es: PartialMessages = {
   "active": "Grabación activa",
   "legacy": "Registros; se conserva el audio de capítulo existente."
 },
+  nativeAccess: {
+  "title": "Acceso interno del dispositivo",
+  "help": "Añade el acceso de Cloudflare de este dispositivo de prueba en el diálogo seguro del sistema. Reemplazarlo o borrarlo cierra tu sesión de Versado.",
+  "missing": "Falta el acceso del dispositivo. Añade las credenciales proporcionadas por el propietario.",
+  "configured": "El acceso está guardado. Su validez se comprueba con cada solicitud.",
+  "enroll": "Añadir o reemplazar acceso",
+  "clear": "Borrar acceso",
+  "busy": "Actualizando el acceso…",
+  "error": "No se pudo usar el acceso del dispositivo. Comprueba la conexión y pide al propietario que revise el acceso.",
+  "denied": "El acceso del dispositivo fue denegado o revocado. Pide nuevas credenciales al propietario.",
+  "disabled": "Esta compilación no permite acceso interno. Compila la versión interna correcta.",
+  "realtime": "Las conexiones en tiempo real aún no están disponibles en esta compilación interna con Access."
+},
   nativeFoundation: {
   "welcome": "Bienvenido a Versado",
   "login": "Iniciar sesión",

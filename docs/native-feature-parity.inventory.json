@@ -12706,6 +12706,24 @@
       ]
     },
     {
+      "file": "src/components/native/NativeAccessPanel.tsx",
+      "sha256": "b54f41c3ce3f6603ab10e193674677a5dd29073514e836e3e940fce29eb0b5ff",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/versado/styles",
+        "@/lib/native/bridge",
+        "react",
+        "zod"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NativeAccessPanel"
+      ]
+    },
+    {
       "file": "src/components/native/NativeBuildBanner.tsx",
       "sha256": "e2f68114825bbbc1d5fb10f9ef094d793ada018e6e31397ce97989df0a151f80",
       "boundary": "client",
@@ -12742,7 +12760,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "91a29b6394a75e6335ecebef8078353038c6fb09ddbf1b86a0f47f8f034fb75d",
+      "sha256": "5ab619cf0d735f45d1485ade4a6257a096bed77e15100725ce4ecbbebcfdd128",
       "boundary": "client",
       "imports": [
         "./NativeEmailConfirmation",
@@ -12830,9 +12848,10 @@
     },
     {
       "file": "src/components/native/entry.tsx",
-      "sha256": "94b892aaed42efc3965810a59fe11517ddb3bbf763ca1efd967c92c18453829d",
+      "sha256": "dd7eefcfe092fcc78cd094b0ea48b578698d227be1fb760cd5f97d1956e50d0e",
       "boundary": "context-dependent",
       "imports": [
+        "./NativeAccessPanel",
         "./NativeBuildBanner",
         "./NativeFoundation",
         "./NativeNavigationProvider",
@@ -12841,6 +12860,7 @@
         "@/components/I18nProvider",
         "@/lib/i18n",
         "@/lib/languages",
+        "@/lib/native/access",
         "@/lib/native/bridge",
         "@/lib/native/client",
         "react",
@@ -18787,7 +18807,7 @@
     },
     {
       "file": "src/lib/i18n/messages/de.ts",
-      "sha256": "3477dfaa1860a5c0e68fd8edf529e52d327c84b47cd64ca9b493efb1daf65665",
+      "sha256": "0d4c2426d0c7c82f8643908831fd7e441aeef978975c2242bc137b38a9500e2c",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18802,7 +18822,7 @@
     },
     {
       "file": "src/lib/i18n/messages/en.ts",
-      "sha256": "080145894e888d6e839bb0723a81fcad0b93d86a614a85beb92b4a7493ab6ad7",
+      "sha256": "592414726a4d6b3ced8e7a4d093d627dc3e136289709f4869357741a82345a17",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18817,7 +18837,7 @@
     },
     {
       "file": "src/lib/i18n/messages/es.ts",
-      "sha256": "59beb84e00a6adc1045182c86078aef1825f19f3919663fe9751680ba1d6413c",
+      "sha256": "33abe7216f594c01f1125ae217fb6c110cb393c0c2d50f762ec46e1e6dc837e8",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18832,7 +18852,7 @@
     },
     {
       "file": "src/lib/i18n/messages/fr.ts",
-      "sha256": "500a98eeae8770bf16cc6a5c75bc0e60c0f1ed8fe1268434d3a57153370ec87a",
+      "sha256": "04de65ac5e355d1e101bdd858e6d547f9d4f10929e0fe820b3ab9233240acdff",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18915,7 +18935,7 @@
     },
     {
       "file": "src/lib/i18n/messages/nl.ts",
-      "sha256": "bb165983916151246d99e830209c9b56c06b8fd28acc103b0a7abd05ac87e832",
+      "sha256": "49d94636bcffbec8588c444db9057245392cf1379d2d61d4bde927eb286bacab",
       "boundary": "context-dependent",
       "imports": [
         "./kompas/nl"
@@ -20221,6 +20241,24 @@
       "exports": []
     },
     {
+      "file": "src/lib/native/access.ts",
+      "sha256": "67e78323148a80f5a180a3d06643b520f7e0cbb9912924bfa9591976145e02bd",
+      "boundary": "context-dependent",
+      "imports": [
+        "./client",
+        "zod"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "INTERNAL_ACCESS_ORIGIN",
+        "accessRouteAllowed",
+        "nativeAccessError",
+        "nativeAccessTransport"
+      ]
+    },
+    {
       "file": "src/lib/native/account.ts",
       "sha256": "10d538b7fc96e70ca43827c4e6e0d0d8db1762a64980dfe250fa64183f28ee9e",
       "boundary": "context-dependent",
@@ -20319,9 +20357,10 @@
     },
     {
       "file": "src/lib/native/bridge.ts",
-      "sha256": "526c0b2c71443e7c9845921c80eaa52e74e3813cac00727d3218a5d2bf8c113f",
+      "sha256": "90cba7e26aa56e88b52cbb3d5e37bac13dc394d1ebbbb13f7835f8ad3c84a9ff",
       "boundary": "context-dependent",
       "imports": [
+        "./access",
         "./client",
         "@capacitor/core"
       ],
@@ -20335,7 +20374,7 @@
     },
     {
       "file": "src/lib/native/client.ts",
-      "sha256": "b1903d008c73fce414459a57955d303fa42badba0c8d2b2f22db1cdfe14ba3c8",
+      "sha256": "86ddfb7dd36d9e6494e96f06510e2ed6d625effa9e48d81524fe221300bcbeea",
       "boundary": "context-dependent",
       "imports": [
         "./contract",
@@ -20546,7 +20585,7 @@
     },
     {
       "file": "src/lib/native/socketClient.ts",
-      "sha256": "5f13b1deed4a31ab43bb205b0dcf02152b427f9478255f222f39354ee91c3b10",
+      "sha256": "5969c809fde28670bd3709103a2bc2414a7a18f1c2b7e9a6b0ad300566ad7a4a",
       "boundary": "context-dependent",
       "imports": [
         "./client",
@@ -26255,6 +26294,7 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/native/access.ts",
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
@@ -26456,6 +26496,7 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/native/access.ts",
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
@@ -51108,6 +51149,7 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/native/access.ts",
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
@@ -51792,6 +51834,7 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/native/access.ts",
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
@@ -52565,6 +52608,7 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/native/access.ts",
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
@@ -53730,6 +53774,7 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/native/access.ts",
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
@@ -54119,6 +54164,7 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/native/access.ts",
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
@@ -54621,6 +54667,7 @@
         "src/lib/i18n/messages/kompas/nl.ts",
         "src/lib/i18n/messages/nl.ts",
         "src/lib/languages.ts",
+        "src/lib/native/access.ts",
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
@@ -54913,6 +54960,7 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/native/access.ts",
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
@@ -55151,6 +55199,7 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/native/access.ts",
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
@@ -55798,6 +55847,7 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/native/access.ts",
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
@@ -56020,6 +56070,7 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/native/access.ts",
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
@@ -56271,6 +56322,7 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/native/access.ts",
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
@@ -56875,6 +56927,7 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/native/access.ts",
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
@@ -57303,6 +57356,7 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/native/access.ts",
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
@@ -61902,6 +61956,7 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/native/access.ts",
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
@@ -62107,6 +62162,7 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/native/access.ts",
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
@@ -62353,6 +62409,7 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/native/access.ts",
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
@@ -62600,6 +62657,7 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/native/access.ts",
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
@@ -62966,6 +63024,7 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/native/access.ts",
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
@@ -63571,6 +63630,7 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/native/access.ts",
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
@@ -64317,6 +64377,7 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/native/access.ts",
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
@@ -65273,6 +65334,7 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/native/access.ts",
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
@@ -66525,6 +66587,7 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/native/access.ts",
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
@@ -73865,6 +73928,24 @@
       ]
     },
     {
+      "file": "src/components/native/NativeAccessPanel.tsx",
+      "sha256": "b54f41c3ce3f6603ab10e193674677a5dd29073514e836e3e940fce29eb0b5ff",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/versado/styles",
+        "@/lib/native/bridge",
+        "react",
+        "zod"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NativeAccessPanel"
+      ]
+    },
+    {
       "file": "src/components/native/NativeBuildBanner.tsx",
       "sha256": "e2f68114825bbbc1d5fb10f9ef094d793ada018e6e31397ce97989df0a151f80",
       "boundary": "client",
@@ -73901,7 +73982,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "91a29b6394a75e6335ecebef8078353038c6fb09ddbf1b86a0f47f8f034fb75d",
+      "sha256": "5ab619cf0d735f45d1485ade4a6257a096bed77e15100725ce4ecbbebcfdd128",
       "boundary": "client",
       "imports": [
         "./NativeEmailConfirmation",
@@ -73989,9 +74070,10 @@
     },
     {
       "file": "src/components/native/entry.tsx",
-      "sha256": "94b892aaed42efc3965810a59fe11517ddb3bbf763ca1efd967c92c18453829d",
+      "sha256": "dd7eefcfe092fcc78cd094b0ea48b578698d227be1fb760cd5f97d1956e50d0e",
       "boundary": "context-dependent",
       "imports": [
+        "./NativeAccessPanel",
         "./NativeBuildBanner",
         "./NativeFoundation",
         "./NativeNavigationProvider",
@@ -74000,6 +74082,7 @@
         "@/components/I18nProvider",
         "@/lib/i18n",
         "@/lib/languages",
+        "@/lib/native/access",
         "@/lib/native/bridge",
         "@/lib/native/client",
         "react",
@@ -76330,6 +76413,7 @@
     "tests/daily-text.browser.mjs",
     "tests/daily-text.integration.test.ts",
     "tests/daily-text.test.ts",
+    "tests/development-pipeline.test.mjs",
     "tests/dictionary-view.test.ts",
     "tests/divisions.test.ts",
     "tests/dorp-audit.integration.test.ts",
@@ -76402,6 +76486,9 @@
     "tests/mystery002.test.ts",
     "tests/mystery003-006.test.ts",
     "tests/nas-test-stack.test.mjs",
+    "tests/native-access.browser.mjs",
+    "tests/native-access.integration.test.ts",
+    "tests/native-access.test.ts",
     "tests/native-account.integration.test.ts",
     "tests/native-android-release.test.mjs",
     "tests/native-distribution.test.ts",

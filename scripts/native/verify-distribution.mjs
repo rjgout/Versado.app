@@ -5,7 +5,7 @@
 // Geen signing, upload, netwerk of apparaatacceptatie: dit controleert uitsluitend verpakte bestanden.
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative, resolve, sep } from "node:path";
-import { APP_ID, bundleDirectory, contentSecurityPolicy, findSecrets, hashBundleFiles, metadataProblems, resolveBuildProfile } from "./profiles.cjs";
+import { APP_ID, bundleDirectory, contentSecurityPolicy, findSecrets, hashBundleFiles, metadataProblems, resolveBuildProfile, internalAccessEnabled, INTERNAL_ACCESS_FILE } from "./profiles.cjs";
 
 const KNOWN_PLATFORM_FILES = new Set(["cordova.js", "cordova_plugins.js", "build.json"]);
 const TEXT_FILE = /\.(html|js|css|json|txt|map)$/;
@@ -14,10 +14,13 @@ export function verifyBundle({ platform, root: rootArgument, env = process.env, 
   const problems = [];
   if (!["android", "ios"].includes(platform)) return ["Kies android of ios"];
   const resolved = resolveBuildProfile(env, { stage: "build", defaultProfile: "local-development" });
+  const access = internalAccessEnabled(resolved, env);
   const root = resolve(rootArgument ?? (platform === "android" ? "android/app/src/main/assets" : "ios/App/App"));
   const sourceDirectory = resolve(repoRoot, bundleDirectory(env, repoRoot));
   const read = (path) => readFileSync(path, "utf8");
   const publicDirectory = join(root, "public");
+  const accessPath = join(publicDirectory, INTERNAL_ACCESS_FILE);
+  if (existsSync(accessPath) !== access || (access && read(accessPath) !== '{"enabled":true}\n')) problems.push("interne Access-configuratie wijkt af van het gekozen profiel");
 
   // 1. Metadata: bron en verpakte kopie zijn identiek en horen exact bij dit profiel.
   let metadata;
@@ -66,6 +69,7 @@ export function verifyBundle({ platform, root: rootArgument, env = process.env, 
   if (!existsSync(configPath)) problems.push(`${platform}: capacitor.config.json ontbreekt`);
   else {
     const config = JSON.parse(read(configPath));
+    if ((config.plugins?.VersadoNative?.internalAccessEnabled === true) !== access) problems.push("native Access-configuratie wijkt af van het gekozen profiel");
     if (config.appId !== APP_ID) problems.push(`appId is ${config.appId}, verwacht ${APP_ID}`);
     if (config.server?.url !== undefined) problems.push("server.url is gezet: alle clientcode moet lokaal gebundeld zijn");
     const expectedWebDir = bundleDirectory(env, repoRoot);
