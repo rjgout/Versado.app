@@ -28,7 +28,9 @@ def versadoBundleMetadataProblems = { File metadataFile ->
 
 android {
     namespace = "app.versado.app"
-    compileSdk = rootProject.ext.compileSdkVersion
+    // Alleen de app gebruikt OkHttp 5.5.1 (compile-API 37.0); min/target en Capacitor-modules blijven gelijk.
+    compileSdk = 37
+    compileSdkMinor = 0
     defaultConfig {
         applicationId "app.versado.app"
         minSdkVersion rootProject.ext.minSdkVersion
