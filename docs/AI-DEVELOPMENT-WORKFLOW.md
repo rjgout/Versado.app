@@ -5,6 +5,36 @@ die aan Versado werken. De bestaande beveiligings-, privacy-, migratie-, test-,
 Next.js- en architectuurregels in [CLAUDE.md](../CLAUDE.md) blijven gelden.
 `AGENTS.md` blijft een symlink naar datzelfde instructiebestand.
 
+## Branch- en mergebeleid
+
+Dit is het centrale beleid voor Codex, Claude Code en andere ontwikkelagents.
+De technische publicatie- en Portainer-procedure staat in
+[Development-pipeline](DEVELOPMENT-PIPELINE.md).
+
+- Maak nieuwe featurebranches standaard vanaf de actuele `origin/develop` en
+  richt nieuwe feature-PR's op `develop`. Werk op een eigen branch; push niet
+  rechtstreeks naar de gedeelde branches en force-push die niet.
+- Een draft-PR mag worden geopend om werk reviewbaar te maken. Bied een PR pas
+  ter merge aan nadat de relevante tests en verplichte Actions op de laatste
+  commit slagen én de onafhankelijke review een GO heeft gegeven. Eigen
+  testresultaten vervangen die review niet. Merge blijft afhankelijk van
+  expliciete toestemming van de eigenaar en geldende branchbescherming.
+- `main` is uitsluitend voor gecontroleerde productiereleases en expliciet
+  goedgekeurde hotfixes. Voor zo'n afzonderlijk goedgekeurde hotfix mag een
+  hotfixbranch vanaf `main` met een PR naar `main` worden gemaakt; alle test-,
+  review- en toestemmingsregels blijven gelden.
+- Een release van `develop` naar `main` vereist een afzonderlijke release-PR
+  en afzonderlijke toestemming. Toestemming voor een feature-merge naar
+  `develop` of een dev-test is geen toestemming voor die release of deployment.
+- Na wijzigingen op `main` volgt een gecontroleerde synchronisatie naar
+  `develop`: maak een synchronisatiebranch vanaf actuele `origin/develop`,
+  integreer daarin `origin/main`, los conflicten inhoudelijk op en open een PR
+  naar `develop`. Laat tests, onafhankelijke review en mergegoedkeuring opnieuw
+  plaatsvinden. Geen automatische merge, rebase of force-push van gedeelde branches.
+- Bestaande open PR's behouden hun doelbranch totdat hun inhoud, afhankelijkheden
+  en reeds opgenomen wijzigingen afzonderlijk zijn beoordeeld en de eigenaar
+  over eventuele overzetting heeft beslist. Niet automatisch retargeten of sluiten.
+
 ## Taakverdeling
 
 ### ChatGPT — architect, onderzoeker en reviewer
@@ -58,8 +88,10 @@ functionele tests in de live omgeving uit. De eigenaar beoordeelt de werkelijke
 gebruikerservaring op mobiel en desktop en geeft akkoord voor een volgende
 roadmapfase.
 
-Codex voert **geen NAS-verbinding, productiequery, productiebackup, deployment of
-live test** uit. Vraag de eigenaar niet om NAS-toegang voor Codex. Ontbrekende
+Ontwikkelagents voeren **geen NAS-verbinding, Portainer-actie, productiequery,
+productiebackup, deployment of live test** uit. Dit geldt ook voor de afzonderlijke
+ontwikkelstack: de eigenaar beheert zowel dev als productie. Vraag de eigenaar
+niet om NAS-toegang voor een agent. Ontbrekende
 productiecontroles blokkeren het afronden van een ontwikkel-PR niet: vermeld
 beknopt welke acceptatie of uitrolcontrole bij de eigenaar ligt. Dit heft een
 onopgelost technisch dataverlies- of beveiligingsrisico niet op.
@@ -96,12 +128,15 @@ Deze live tests vervangen de noodzakelijke automatische technische verificatie n
    vastgestelde beginsituatie, relevante bestanden, gewenste implementatie,
    migratievoorwaarden, testscenario's, acceptatiecriteria en expliciete verboden
    en grenzen.
-3. **Implementatie door Codex.** Code schrijven, minimale noodzakelijke aanvullende
-   inspectie, verplichte automatische technische tests en een concept-PR.
+3. **Implementatie door Codex.** Featurebranch vanaf `develop`, code schrijven,
+   minimale noodzakelijke aanvullende inspectie, verplichte automatische
+   technische tests en een concept-PR naar `develop`, volgens het branchbeleid.
 4. **Onafhankelijke review door ChatGPT.** PR-diff, migraties, tests en CI
    beoordelen; zo nodig een kleine, gerichte herstelopdracht.
-5. **Merge na toestemming.** Alleen na expliciete toestemming van de eigenaar
-   mag Codex mergen; branch protection blijft gelden.
+5. **Merge na toestemming.** Na groene controles en onafhankelijke GO, alleen
+   met expliciete toestemming van de eigenaar; branch protection blijft gelden.
+   Een release naar `main` of hotfix volgt de afzonderlijke toestemmingsgrenzen
+   uit het branchbeleid hierboven.
 6. **Productie-uitrol en live tests door de eigenaar.** Codex neemt niet deel aan
    productiehandelingen.
 7. **Volgende roadmapfase.** Alleen starten na expliciet akkoord van de eigenaar.
@@ -118,6 +153,8 @@ Deze live tests vervangen de noodzakelijke automatische technische verificatie n
   risico's op dataverlies of beveiligingsproblemen.
 - Bij uitsluitend documentatie/instructieconfiguratie: controleer documentlinks,
   de relevante symlink en de diff. Geen onnodige appbuild, database- of browsertests.
+  Verplichte GitHub Actions blijven gelden: wacht op de werkelijke status op de
+  laatste commit, zonder onnodige extra workflows of herstarts aan te vragen.
 
 Het eindrapport van Codex is standaard compact:
 
