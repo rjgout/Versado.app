@@ -15,7 +15,12 @@ const require=createRequire(import.meta.url),{chromium}=require(process.env.PLAY
 const out='/tmp/versado-native-browser/access';mkdirSync(out,{recursive:true});
 const gate=await nativeAccessGateway(process.env.NATIVE_TEST_BASE_URL),sessions=new Map();
 const mock=`const invoke=async(method,options)=>{const response=await fetch('/native-bridge/'+method,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({options})});const result=await response.json();if(result.error)throw Error(result.error);return result;};export const nativeBridge={accessStatus:()=>invoke('accessStatus'),enrollAccess:options=>invoke('enrollAccess',options),clearAccess:()=>invoke('clearAccess'),accessRequest:options=>invoke('accessRequest',options)};`;
-const bundle=await build({entryPoints:['tests/fixtures/native-access-client.tsx'],bundle:true,write:false,platform:'browser',minify:true,define:{'process.env.NODE_ENV':'"production"'},plugins:[{name:'test-only-native-bridge',setup(api){api.onLoad({filter:/src\/lib\/native\/bridge\.ts$/},()=>({contents:mock,loader:'ts'}));}}]});
+const bundle=await build({entryPoints:['tests/fixtures/native-access-client.tsx'],bundle:true,write:false,platform:'browser',minify:true,define:{'process.env.NODE_ENV':'"production"'},plugins:[{name:'test-only-native-bridge',setup(api){api.onLoad({filter:/src\/lib\/native\/bridge\.ts$/},()=>({contents:mock,loader:'ts'}));api.onLoad({filter:/src\/lib\/platform\.ts$/},()=>{
+ const source=readFileSync('src/lib/platform.ts','utf8').replace('return Capacitor.isNativePlatform();','return true;');
+ const start=source.indexOf('export async function startNativeFoundationRuntime(');
+ assert.ok(start>0);
+ return {contents:source.slice(0,start)+`export async function startNativeFoundationRuntime(options){const resume=()=>options.onResume();window.addEventListener('wp6:test-resume',resume);return()=>window.removeEventListener('wp6:test-resume',resume);}`,loader:'ts'};
+});}}]});
 const stylesheet=readFileSync('dist/native/index.css');
 const front=createServer(async(req,res)=>{
  try{
@@ -48,7 +53,13 @@ const front=createServer(async(req,res)=>{
 await new Promise(resolve=>front.listen(0,'127.0.0.1',resolve));const origin='http://127.0.0.1:'+front.address().port;
 const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH,args:['--no-sandbox']});const results=[];
 try{
- const password='Synthetic-Access-browser-42',user=await prisma.user.create({data:{email:`access-browser-${randomUUID()}@example.invalid`,handle:'Accessbrowser',discriminator:'01',passwordHash:await hashPassword(password),emailVerifiedAt:new Date(),onboardingSeenAt:new Date()}});
+ await prisma.contentWork.upsert({where:{key:'bofm'},create:{key:'bofm',kind:'SCRIPTURE'},update:{}});
+ const collection=await prisma.contentCollection.create({data:{id:`access-data-${randomUUID()}`,slug:`access-data-${randomUUID()}`,name:'Synthetische WP6-proef',icon:'book',work:'bofm',language:'nl',editionKey:'access-wp6',enabled:true,visibleToUsers:true,publicationState:'LEGACY'}});
+ const book=await prisma.book.create({data:{slug:`access-data-${randomUUID()}`,name:'WP6-testboek',order:1,key:'bofm/1-ne',contentCollectionId:collection.id}});
+ const chapters=await Promise.all([1,2].map(number=>prisma.chapter.create({data:{bookId:book.id,number,order:number,verses:{create:[{number:1,text:`Synthetische WP6-passage ${number}.`}]}}})));
+ const password='Synthetic-Access-browser-42',passwordHash=await hashPassword(password);
+ const makeUser=handle=>prisma.user.create({data:{email:`access-browser-${randomUUID()}@example.invalid`,handle,discriminator:'01',passwordHash,emailVerifiedAt:new Date(),onboardingSeenAt:new Date(),activeContentCollectionId:collection.id}});
+ const user=await makeUser('Accessbrowser'),other=await makeUser('Accesswissel');
  for(const [language,width,scale,scheme] of [['nl',320,2,'light'],['de',320,2,'light'],['en',390,1,'dark'],['fr',390,1,'dark'],['es',390,1,'dark']]){
   await gate.bridge.clearAccess();gate.rotate();const t=getT(language),device=randomUUID();
   const context=await browser.newContext({viewport:{width,height:844},locale:language,colorScheme:scheme,isMobile:true,hasTouch:true});
@@ -60,7 +71,18 @@ try{
    await page.getByRole('alert').filter({hasText:t('nativeAccess.missing')}).waitFor();
    assert.equal(await page.getByPlaceholder('Client Secret',{exact:true}).count(),0,'Servicecredentialvelden bestaan niet in JavaScript/HTML');
    await page.getByRole('button',{name:t('nativeAccess.enroll'),exact:true}).click();await page.getByText(t('nativeAccess.configured'),{exact:true}).waitFor();
+   assert.ok(JSON.parse((await gate.bridge.accessRequest({path:'capabilities',method:'GET'})).body).features.includes('realtime-ticket-v1'),'Backend biedt realtime aan: client moet de Access-uitsluiting werkelijk afdwingen');
    if(language==='nl'){
+    await page.getByLabel(t('nativeFoundation.email')).fill(user.email);await page.getByLabel(t('nativeFoundation.password'),{exact:true}).fill(password);await page.getByRole('button',{name:t('nativeFoundation.login'),exact:true}).click();await page.getByRole('heading',{name:t('nativeFoundation.today')+', '+user.handle,exact:true}).waitFor();
+    await page.evaluate(id=>{location.hash='#/lesson/'+id;},chapters[0].id);await page.getByText('Synthetische WP6-passage 1.',{exact:false}).waitFor();
+    await page.evaluate(()=>window.dispatchEvent(new Event('wp6:test-resume')));await page.getByRole('button',{name:t('nativeFoundation.retry'),exact:true}).click({trial:true});
+    await page.reload();await page.getByText('Synthetische WP6-passage 1.',{exact:false}).waitFor();
+    await page.getByRole('button',{name:t('nativeFoundation.logout'),exact:true}).click();await page.getByRole('heading',{name:t('nativeFoundation.welcome'),exact:true}).waitFor();
+    await page.getByLabel(t('nativeFoundation.email')).fill(other.email);await page.getByLabel(t('nativeFoundation.password'),{exact:true}).fill(password);await page.getByRole('button',{name:t('nativeFoundation.login'),exact:true}).click();await page.getByRole('heading',{name:t('nativeFoundation.today')+', '+other.handle,exact:true}).waitFor();
+    assert.equal(await page.getByText('Synthetische WP6-passage 1.',{exact:false}).count(),0,'Account B toont geen hoofdstukcache van A');
+    await page.evaluate(id=>{location.hash='#/lesson/'+id;},chapters[1].id);await page.getByText('Synthetische WP6-passage 2.',{exact:false}).waitFor();
+    assert.equal(await page.getByText('Synthetische WP6-passage 1.',{exact:false}).count(),0,'Andere concrete hoofdstukidentiteit toont nooit vorige tekst');
+    await page.getByRole('button',{name:t('nativeFoundation.logout'),exact:true}).click();await page.getByRole('heading',{name:t('nativeFoundation.welcome'),exact:true}).waitFor();
     await page.getByLabel(t('nativeFoundation.email')).fill(user.email);await page.getByLabel(t('nativeFoundation.password'),{exact:true}).fill(password);await page.getByRole('button',{name:t('nativeFoundation.login'),exact:true}).click();await page.getByRole('heading',{name:t('nativeFoundation.today')+', '+user.handle,exact:true}).waitFor();
     gate.revoke();await page.reload();await page.getByRole('alert').filter({hasText:t('nativeAccess.denied')}).waitFor();
     assert.ok(sessions.get(device),'Access-intrekking wist de Versado-refreshstaat niet');
