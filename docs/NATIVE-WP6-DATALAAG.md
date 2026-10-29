@@ -54,6 +54,9 @@ bij de integratie-PR; de oude groene checks van #230 gelden niet als bewijs.
   native platformdetectie terwijl de backend realtime aanbiedt: login, lezen,
   herstart, hervatten, accountwissel en credentialintrekking mogen geen
   WebSocket-handshake of crash veroorzaken. Credentials blijven buiten de browser.
+- De native browserproef gebruikt echte browser-offlinemodus: één transportaanroep,
+  geen backendmutatie, leesafronding, XP of reeksactie; onlineherstel verstuurt geen
+  uitgestelde schrijfactie. Alleen een nieuwe bewuste klik rondt online af.
 - TypeScript, ESLint, schone productiebuild, content-/focus-/layouttests,
   native bundel/distributiepoorten, pariteitsinventaris en beide platformbuilds
   worden voor deze nieuwe integratie gecontroleerd.

@@ -16,11 +16,12 @@ const out='/tmp/versado-native-browser';rmSync(out,{recursive:true,force:true});
 // Maak een onveranderlijke asset-snapshot vóór de browser start.
 const stylesheet=readFileSync('dist/native/index.css');
 const bundle=await build({entryPoints:['tests/fixtures/native-foundation-client.tsx'],bundle:true,write:false,platform:'browser',define:{'process.env.NODE_ENV':'"production"'},minify:true});
-const secrets=new Map();let network=true,blockMe=false;const backend=process.env.NATIVE_TEST_BASE_URL;
+const secrets=new Map();let network=true,blockMe=false,completionAttempts=0;const backend=process.env.NATIVE_TEST_BASE_URL;
 const front=createServer(async(req,res)=>{
  try{
   const url=new URL(req.url,'http://127.0.0.1');
   if(url.pathname.startsWith('/api/v1/native/')){
+   if(url.pathname.endsWith('/complete')&&req.method==='POST')completionAttempts++;
    if(!network||(blockMe&&url.pathname==='/api/v1/native/me')){res.destroy();return;}
    const chunks=[];for await(const c of req)chunks.push(c);
    const response=await fetch(`${backend}${req.url}`,{method:req.method,headers:{Origin:'capacitor://localhost','X-Versado-Client':'native-v1','x-real-ip':'127.0.0.21',...(req.headers.authorization?{Authorization:req.headers.authorization}:{}),...(req.headers['content-type']?{'Content-Type':req.headers['content-type']}:{})},body:['GET','HEAD'].includes(req.method)?undefined:Buffer.concat(chunks)});
@@ -46,7 +47,7 @@ try{
  const password='Synthetic-browser-42',user=await prisma.user.create({data:{email:`native-browser-${randomUUID()}@example.invalid`,handle:'Nativebrowser',discriminator:'01',passwordHash:await hashPassword(password),emailVerifiedAt:new Date(),onboardingSeenAt:new Date(),activeContentCollectionId:collection.id}});
  for(const [width,height,scheme,scale,locale]of [[320,844,'light',2,'nl-NL'],[390,844,'dark',1,'nl-NL'],[1280,900,'light',1,'de-DE'],[844,390,'dark',1,'fr-FR']]){
   const context=await browser.newContext({viewport:{width,height},locale,hasTouch:width<900,isMobile:width<900,colorScheme:scheme});
-  await context.addInitScript(({scale})=>{const apply=()=>{document.documentElement.style.fontSize=`${100*scale}%`;for(const [edge,size]of Object.entries({top:24,bottom:18,left:12,right:12}))document.documentElement.style.setProperty(`--safe-area-inset-${edge}`,`${size}px`);};if(document.documentElement)apply();else document.addEventListener('DOMContentLoaded',apply,{once:true});},{scale});
+  await context.addInitScript(({scale})=>{window.wp6CompletionAttempts=0;const originalFetch=window.fetch;window.fetch=(input,init)=>{if(typeof input==='string'&&input.includes('/api/v1/native/chapters/')&&input.endsWith('/complete')&&init?.method==='POST')window.wp6CompletionAttempts++;return originalFetch(input,init);};const apply=()=>{document.documentElement.style.fontSize=`${100*scale}%`;for(const [edge,size]of Object.entries({top:24,bottom:18,left:12,right:12}))document.documentElement.style.setProperty(`--safe-area-inset-${edge}`,`${size}px`);};if(document.documentElement)apply();else document.addEventListener('DOMContentLoaded',apply,{once:true});},{scale});
   let page=await context.newPage();const errors=[],failedResponses=[],expectedAuthFailures=[];let expectExpired=false;const recordResponse=r=>{if(r.status()>=400){const path=new URL(r.url()).pathname;if(expectExpired&&r.status()===401&&['/api/v1/native/account/password','/api/v1/native/refresh'].includes(path)){expectedAuthFailures.push(path);return;}failedResponses.push({path,status:r.status()});console.error('Native testresponse:',path,r.status());}};page.on('pageerror',e=>{errors.push(e.message);console.error('Native browserfout:',e.message);});page.on('response',recordResponse);network=false;
   try{
   const device=`${width}-${randomUUID()}`;
@@ -76,7 +77,24 @@ try{
    await page.getByLabel('E-mail of gebruikerstag').fill(user.email);await page.getByLabel('Wachtwoord',{exact:true}).fill(password);await page.getByRole('button',{name:'Inloggen',exact:true}).click();
    await page.getByRole('heading',{name:/Vandaag/}).waitFor();await page.getByRole('button',{name:/Nativeboek 1/}).click();
    await page.getByText('Een synthetische passage voor de gedeelde leesproef.',{exact:false}).waitFor();
-   if(width===320)await page.getByRole('button',{name:'Markeer als gelezen',exact:true}).click();
+   if(width===320){
+    const before=await page.evaluate(()=>window.wp6CompletionAttempts),backendBefore=completionAttempts;await context.setOffline(true);
+    await page.getByRole('button',{name:'Markeer als gelezen',exact:true}).click();await page.getByRole('alert').waitFor();
+    assert.equal(await page.evaluate(()=>window.wp6CompletionAttempts),before+1,'Offline afronding roept de transportfunctie één keer aan');
+    assert.equal(completionAttempts,backendBefore,'Offline mutatie bereikt de backend niet');
+    assert.equal(await prisma.contentProgress.count({where:{userId:user.id,readStatus:'READ'}}),0,'Geen offline leesafronding');
+    assert.equal((await prisma.user.findUniqueOrThrow({where:{id:user.id}})).xpTotal,0,'Geen offline XP');
+    assert.equal(await prisma.streakActivity.count({where:{userId:user.id}}),0,'Geen offline reeksactie');
+    const refreshed=page.waitForResponse(response=>response.request().method()==='GET'&&/\/api\/v1\/native\/chapters\/[^/]+$/.test(new URL(response.url()).pathname)&&response.status()===200);
+    await context.setOffline(false);await refreshed;
+    await page.getByRole('button',{name:'Opnieuw proberen',exact:true}).click({trial:true});
+    assert.equal(await page.evaluate(()=>window.wp6CompletionAttempts),before+1,'Onlineherstel herhaalt de mislukte schrijfactie niet');
+    assert.equal(completionAttempts,backendBefore,'Hervatten start geen uitgestelde schrijfactie');
+    await page.getByRole('button',{name:'Markeer als gelezen',exact:true}).click();
+    await page.getByRole('button',{name:'Opgeslagen op de server',exact:true}).waitFor();
+    assert.equal(await page.evaluate(()=>window.wp6CompletionAttempts),before+2,'Alleen een nieuwe bewuste klik verstuurt de volgende mutatie');
+    assert.equal(completionAttempts,backendBefore+1,'Eén bevestigde online mutatie bereikt de backend');
+   }
    await page.getByRole('button',{name:'Opgeslagen op de server',exact:true}).waitFor();
    assert.equal((await prisma.user.findUniqueOrThrow({where:{id:user.id}})).xpTotal,0);
    await page.reload();await page.getByRole('heading',{name:'Nativeboek 1',exact:true}).waitFor();
@@ -172,7 +190,7 @@ try{
 
   }
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'Geen horizontale overflow');assert.deepEqual(errors,[]);assert.deepEqual(failedResponses,[],'Geen ontbrekende stylesheets/assets of geweigerde geldige API-acties');
-  await page.screenshot({path:`${out}/welcome-${width}-${scheme}-${scale}-${locale}.png`,fullPage:true});results.push({width,height,scheme,scale,locale,offlineStartup:true,localLegalRoutes:true,routeReload:true,historyBack:true,systemTheme:true,safeAreaInsets:true,accountSetup:locale==='nl-NL',passwordReset:locale==='nl-NL',emailConfirmation:locale==='nl-NL',overflow:false});
+  await page.screenshot({path:`${out}/welcome-${width}-${scheme}-${scale}-${locale}.png`,fullPage:true});results.push({width,height,scheme,scale,locale,offlineStartup:true,offlineMutationNoReplay:width===320&&locale==='nl-NL',localLegalRoutes:true,routeReload:true,historyBack:true,systemTheme:true,safeAreaInsets:true,accountSetup:locale==='nl-NL',passwordReset:locale==='nl-NL',emailConfirmation:locale==='nl-NL',overflow:false});
   }catch(error){console.error('Native testscherm:',await page.locator('body').innerText());await page.screenshot({path:`${out}/failure-${width}.png`,fullPage:true});throw error;}finally{await context.close();}
  }
  // Dezelfde geëxtraheerde formulieren/kaarten blijven op de echte Next-site werken.

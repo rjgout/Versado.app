@@ -77,11 +77,13 @@ try{
     await page.getByRole('button',{name:/WP6-testboek 1/}).click();await page.getByText('Synthetische WP6-passage 1.',{exact:false}).waitFor();
     await page.evaluate(()=>window.dispatchEvent(new Event('wp6:test-resume')));await page.getByRole('button',{name:t('nativeFoundation.retry'),exact:true}).click({trial:true});
     await page.reload();await page.getByText('Synthetische WP6-passage 1.',{exact:false}).waitFor();
+    await page.getByRole('button',{name:t('nativeFoundation.back'),exact:true}).click();
     await page.getByRole('button',{name:t('nativeFoundation.logout'),exact:true}).click();await page.getByRole('heading',{name:t('nativeFoundation.welcome'),exact:true}).waitFor();
     await page.getByLabel(t('nativeFoundation.email')).fill(other.email);await page.getByLabel(t('nativeFoundation.password'),{exact:true}).fill(password);await page.getByRole('button',{name:t('nativeFoundation.login'),exact:true}).click();await page.getByRole('heading',{name:t('nativeFoundation.today')+', '+other.handle,exact:true}).waitFor();
     assert.equal(await page.getByText('Synthetische WP6-passage 1.',{exact:false}).count(),0,'Account B toont geen hoofdstukcache van A');
     await page.evaluate(id=>window.dispatchEvent(new CustomEvent('wp6:test-open',{detail:'https://dev.versado.app/lesson/'+id})),chapters[1].id);await page.getByText('Synthetische WP6-passage 2.',{exact:false}).waitFor();
     assert.equal(await page.getByText('Synthetische WP6-passage 1.',{exact:false}).count(),0,'Andere concrete hoofdstukidentiteit toont nooit vorige tekst');
+    await page.getByRole('button',{name:t('nativeFoundation.back'),exact:true}).click();
     await page.getByRole('button',{name:t('nativeFoundation.logout'),exact:true}).click();await page.getByRole('heading',{name:t('nativeFoundation.welcome'),exact:true}).waitFor();
     await page.getByLabel(t('nativeFoundation.email')).fill(user.email);await page.getByLabel(t('nativeFoundation.password'),{exact:true}).fill(password);await page.getByRole('button',{name:t('nativeFoundation.login'),exact:true}).click();await page.getByRole('heading',{name:t('nativeFoundation.today')+', '+user.handle,exact:true}).waitFor();
     gate.revoke();await page.reload();await page.getByRole('alert').filter({hasText:t('nativeAccess.denied')}).waitFor();
