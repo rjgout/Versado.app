@@ -187,9 +187,9 @@ function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBan
     <StickyHeader>
     <header data-app-global-header className="border-b border-vs-line bg-vs-elevated pt-[var(--vs-safe-area-top)]">
     <div className="mx-auto flex min-h-14 max-w-2xl flex-wrap items-center gap-3 pl-[max(1.25rem,var(--vs-safe-area-left))] pr-[max(1.25rem,var(--vs-safe-area-right))] py-2">
-      {/* Bestaand appicoon, geen nieuwe merkasset. */}
+      {/* Native merkbeeld uit het door de eigenaar aangeleverde vlamlogo. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/icons/icon-512.png" width="44" height="44" alt="" />
+      <img src="/icons/native/versado-flame.png" width="44" height="44" alt="" />
       <span className="text-xl font-extrabold">Versado</span>
       {user && <button type="button" disabled={busy} className={`${button} ml-auto`} onClick={() => { setPassword(""); setCode(""); void action(() => client.logout(() => { setUser(null); dataRuntime.reset(); setSetup(null); setRecoveryCodes(null); setIdentifier(""); navigation.replace("/login"); })); }}><LogOut className="h-4 w-4" />{t("nativeFoundation.logout")}</button>}
     </div></header>
