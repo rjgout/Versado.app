@@ -147,12 +147,20 @@ test("oude actieve cursus zonder expliciete bron kan geen andere tekst dan de ca
   const course = await prisma.course.create({ data: { slug: `${prefix}-old-course-${randomUUID()}`, name: "Oude andere cursus", type: "FREE_CHOICE", contentCollectionId: ids.en } });
   await prisma.user.update({ where: { id: user.id }, data: { activeContentCollectionId: null, activeCourseId: course.id } });
   const s = await state(pair.accessToken), canonical = s.picker.activeCollectionId; assert.ok(canonical); assert.notEqual(canonical, ids.en);
+  const previousChapters = await prisma.chapter.findMany({ where: { book: { contentCollectionId: canonical } }, select: { id: true }, orderBy: { id: "asc" } });
   const book = await prisma.book.create({ data: { slug: `${prefix}-canonical-${randomUUID()}`, key: `${prefix}/canonical`, name: "Canonieke bron", order: 0, contentCollectionId: canonical } });
-  await prisma.chapter.create({ data: { bookId: book.id, number: 1, order: 1, verses: { create: { number: 1, text: "Synthetische canonieke bron." } } } });
-  const before = await prisma.user.findUniqueOrThrow({ where: { id: user.id } });
-  const response = await fetch(`${base}/api/v1/native/today`, { headers: { Origin: "capacitor://localhost", "X-Versado-Client": "native-v1", Authorization: `Bearer ${pair.accessToken}` } });
-  assert.equal(response.status, 200); const today = await response.json(); assert.ok(today.activity);
-  const chapter = await prisma.chapter.findUniqueOrThrow({ where: { id: today.activity.id }, include: { book: true } });
-  assert.equal(chapter.book.contentCollectionId, canonical);
-  assert.deepEqual(await prisma.user.findUniqueOrThrow({ where: { id: user.id } }), before, "Alleen lezen, geen impliciete cursus-/bronwissel");
+  try {
+    await prisma.chapter.create({ data: { bookId: book.id, number: 1, order: 1, verses: { create: { number: 1, text: "Synthetische canonieke bron." } } } });
+    const before = await prisma.user.findUniqueOrThrow({ where: { id: user.id } });
+    const response = await fetch(`${base}/api/v1/native/today`, { headers: { Origin: "capacitor://localhost", "X-Versado-Client": "native-v1", Authorization: `Bearer ${pair.accessToken}` } });
+    assert.equal(response.status, 200); const today = await response.json(); assert.ok(today.activity);
+    const chapter = await prisma.chapter.findUniqueOrThrow({ where: { id: today.activity.id }, include: { book: true } });
+    assert.equal(chapter.book.contentCollectionId, canonical);
+    assert.deepEqual(await prisma.user.findUniqueOrThrow({ where: { id: user.id } }), before, "Alleen lezen, geen impliciete cursus-/bronwissel");
+  } finally {
+    // Alleen het eigen tijdelijke leeshoofdstuk: de gedeelde canonieke bron is
+    // ook de vragenpool van de ongewijzigde multi-instance-beloningsregressie.
+    await prisma.book.delete({ where: { id: book.id } });
+  }
+  assert.deepEqual(await prisma.chapter.findMany({ where: { book: { contentCollectionId: canonical } }, select: { id: true }, orderBy: { id: "asc" } }), previousChapters, "De bestaande vragenpool blijft exact gelijk na de leesproef");
 });

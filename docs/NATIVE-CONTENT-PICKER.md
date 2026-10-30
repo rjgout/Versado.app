@@ -81,6 +81,9 @@ De definitieve PR bevat de exacte uitgevoerde resultaten en CI-links.
 - Geïsoleerde PostgreSQL/Redis: catalogusgelijkheid, vijf talen/exacte edities,
   hidden/draft/disabled, Bearer/webscheiding, twee echte processen, web/native
   concurrentie, ABA/retry, hoofdstukequivalent, sessie-lockrace en foutrollback.
+  De canonieke leestest verwijdert zijn eigen boek in `finally` en vergelijkt de
+  hoofdstuk-ID’s vóór/na: de bestaande quizvragenpool blijft exact ongewijzigd.
+  De oorspronkelijke regressie voor één hintbeloning is niet aangepast.
 - Echte Next-webpagina en lokale React-bundel naast elkaar, dezelfde synthetische
   gebruiker/context: 320/375/390/400px, 100/200%, vijf talen, licht/donker en tablets.
   Screenshots onder het bestaande Native Foundation-CI-artifact, submap
