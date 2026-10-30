@@ -32,7 +32,11 @@ geen volledige Vandaag-, Leren-, CFM- of native migratie.
   hookcontract voorschrijft. Niet-contentgebonden pagination behoudt zijn contract.
 - Afronden gebruikt uitsluitend de bestaande servermutatie. Pas na bevestiging
   volgt `activityCompleted`-invalidatie. Netwerkfouten geven geen offline XP,
-  reeks, leesafronding of automatische schrijfretry.
+  reeks, leesafronding of automatische schrijfretry. Na een gevalideerde POST-bevestiging
+  wordt de serverstatus direct in dezelfde account-/hoofdstuk-/epochcache gezet.
+  De actie- en epochcontroles blijven gelden; een mislukte verificatie-GET maakt
+  de opslagbevestiging niet ongedaan. De bestaande invalidatie start de hercontrole
+  zonder de knopactie daarop te laten wachten; er is geen aparte voortgangsstatus.
 
 Niet overgenomen: de elf workflowwijzigingen uit #230, Dockerfile-/heapcorrecties,
 oude scroll-/navigatiefix, main-upgrade/databaseherstel, endpoints of migraties.
@@ -57,6 +61,9 @@ bij de integratie-PR; de oude groene checks van #230 gelden niet als bewijs.
 - De native browserproef gebruikt echte browser-offlinemodus: één transportaanroep,
   geen backendmutatie, leesafronding, XP of reeksactie; onlineherstel verstuurt geen
   uitgestelde schrijfactie. Alleen een nieuwe bewuste klik rondt online af.
+  Aanvullende regressies bevestigen een echte POST-commit gevolgd door een GET-fout,
+  en A→logout→B terwijl het vervolgantwoord nog loopt. Het late READ-antwoord van A
+  verandert de ongelezen status van B niet en veroorzaakt geen tweede POST.
 - TypeScript, ESLint, schone productiebuild, content-/focus-/layouttests,
   native bundel/distributiepoorten, pariteitsinventaris en beide platformbuilds
   worden voor deze nieuwe integratie gecontroleerd.

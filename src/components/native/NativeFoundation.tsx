@@ -7,7 +7,7 @@ import MascotSlot from "@/components/versado/MascotSlot";
 import { useT, useUiLanguage } from "@/components/I18nProvider";
 import { primaryButton, secondaryButton } from "@/components/versado/styles";
 import { isNativeApp, dismissNativeKeyboard, isIOSApp, lightHaptic, nativeAppleAuthorization, openExternalUrl, startNativeFoundationRuntime } from "@/lib/platform";
-import { nativeCapabilitiesSchema, type NativeAccount, type NativeChapter, type NativeSecuritySetup } from "@/lib/native/contract";
+import { nativeCapabilitiesSchema, nativeChapterSchema, type NativeAccount, type NativeChapter, type NativeSecuritySetup } from "@/lib/native/contract";
 import { NativeClientError, type NativeSessionClient, type NativeSignInOutcome } from "@/lib/native/client";
 import { AppLink, useAppNavigation } from "@/components/navigation/AppNavigation";
 import PrivacyContent from "@/components/legal/PrivacyContent";
@@ -252,7 +252,20 @@ function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBan
         {!user.passwordLoginEnabled && <p>{t("nativeFoundation.alternativeRequired")}</p>}
       </> : chapterId ? chapter ? <>
         {chapter.verses.map(verse => <p key={verse.number} className="leading-relaxed"><sup className="mr-2">{verse.number}</sup>{verse.text}</p>)}
-        <button className={`${primaryButton} min-h-12 whitespace-normal`} disabled={busy || saved} onClick={() => void action(async isCurrent => { await dataRuntime.mutation(() => client.api(`chapters/${encodeURIComponent(chapter.id)}/complete`, {}), "activityCompleted"); if (!isCurrent()) return; await chapterQuery.refetch(); await lightHaptic(); })}>{t(saved ? "nativeFoundation.completeSaved" : "nativeFoundation.complete")}</button>
+        <button className={`${primaryButton} min-h-12 whitespace-normal`} disabled={busy || saved} onClick={() => void action(async isCurrent => {
+          const epoch = dataRuntime.getSnapshot();
+          const confirmed = await dataRuntime.mutation(async () => {
+            const result = await client.api<{ content: unknown }>(`chapters/${encodeURIComponent(chapter.id)}/complete`, {});
+            const state = nativeChapterSchema.shape.state.safeParse(result?.content);
+            if (!state.success || state.data.read !== "READ") throw new NativeClientError("invalid_response");
+            return state.data;
+          }, "activityCompleted");
+          if (!isCurrent() || epoch !== dataRuntime.getSnapshot()) return;
+          // Bevestigde serverdata in dezelfde account-/hoofdstuk-/epochcache.
+          // De invalidatie controleert later opnieuw; een GET-fout maakt deze commit niet ongedaan.
+          chapterQuery.setData(previous => previous?.id === chapter.id ? { ...previous, state: confirmed } : previous);
+          await lightHaptic();
+        })}>{t(saved ? "nativeFoundation.completeSaved" : "nativeFoundation.complete")}</button>
       </> : null : <>
         {user.onboardingRequired && <p>{t("nativeFoundation.onboardingNote")}</p>}
         {activity ? <button className={`${primaryButton} min-h-12 whitespace-normal`} disabled={busy} onClick={() => navigation.push(`/lesson/${encodeURIComponent(activity.id)}`)}>{activity.title} — {t("nativeFoundation.continue")}</button> : <p>{t("nativeFoundation.empty")}</p>}

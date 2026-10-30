@@ -4,6 +4,7 @@ import {createServer} from 'node:http';
 import {readFileSync,mkdirSync} from 'node:fs';
 import {randomUUID} from 'node:crypto';
 import {build} from 'esbuild';
+import {setTimeout as delay} from 'node:timers/promises';
 import {prisma} from '../src/lib/db.ts';
 import {hashPassword} from '../src/lib/auth.ts';
 import {getT} from '../src/lib/i18n/index.ts';
@@ -14,6 +15,7 @@ if(db.hostname!=='127.0.0.1'||db.pathname!=='/versado_content_access_test'||db.h
 const require=createRequire(import.meta.url),{chromium}=require(process.env.PLAYWRIGHT_MODULE??'playwright');
 const out='/tmp/versado-native-browser/access';mkdirSync(out,{recursive:true});
 const gate=await nativeAccessGateway(process.env.NATIVE_TEST_BASE_URL),sessions=new Map();
+let holdNextChapterRead=false;const heldReads=[];
 const mock=`const invoke=async(method,options)=>{const response=await fetch('/native-bridge/'+method,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({options})});const result=await response.json();if(result.error)throw Error(result.error);return result;};export const nativeBridge={accessStatus:()=>invoke('accessStatus'),enrollAccess:options=>invoke('enrollAccess',options),clearAccess:()=>invoke('clearAccess'),accessRequest:options=>invoke('accessRequest',options)};`;
 const bundle=await build({entryPoints:['tests/fixtures/native-access-client.tsx'],bundle:true,write:false,platform:'browser',minify:true,define:{'process.env.NODE_ENV':'"production"'},plugins:[{name:'test-only-native-bridge',setup(api){api.onLoad({filter:/src\/lib\/native\/bridge\.ts$/},()=>({contents:mock,loader:'ts'}));api.onLoad({filter:/src\/lib\/platform\.ts$/},()=>{
  const source=readFileSync('src/lib/platform.ts','utf8').replace('return Capacitor.isNativePlatform();','return true;');
@@ -32,7 +34,13 @@ const front=createServer(async(req,res)=>{
      case 'accessStatus':value=await gate.bridge.accessStatus();break;
      case 'enrollAccess':value=await gate.bridge.enrollAccess(options);break;
      case 'clearAccess':value=await gate.bridge.clearAccess();break;
-     case 'accessRequest':value=await gate.bridge.accessRequest(options);break;
+     case 'accessRequest':
+      value=await gate.bridge.accessRequest(options);
+      if(holdNextChapterRead&&options.method==='GET'&&/^chapters\/[^/]+$/.test(options.path)){
+       holdNextChapterRead=false;
+       heldReads.push({path:options.path,authorization:options.authorization,finish(){if(!res.destroyed){res.setHeader('Content-Type','application/json');res.end(JSON.stringify(value));}}});return;
+      }
+      break;
      default:throw Error('access_request_invalid');
     }
    }catch(error){value={error:/^access_[a-z_]+$/.test(error.message)?error.message:'access_unavailable'};}
@@ -77,10 +85,35 @@ try{
     await page.getByRole('button',{name:/WP6-testboek 1/}).click();await page.getByText('Synthetische WP6-passage 1.',{exact:false}).waitFor();
     await page.evaluate(()=>window.dispatchEvent(new Event('wp6:test-resume')));await page.getByRole('button',{name:t('nativeFoundation.retry'),exact:true}).click({trial:true});
     await page.reload();await page.getByText('Synthetische WP6-passage 1.',{exact:false}).waitFor();
+    const completedBefore=gate.calls.filter(call=>call.method==='POST'&&call.path.endsWith('/complete')).length;
+    holdNextChapterRead=true;
+    await page.getByRole('button',{name:t('nativeFoundation.complete'),exact:true}).click();
+    await page.getByRole('button',{name:t('nativeFoundation.completeSaved'),exact:true}).waitFor();
+    for(let attempt=0;heldReads.length===0&&attempt<100;attempt++)await delay(10);
+    assert.equal(heldReads.length,1,'POST is bevestigd terwijl zijn vervolg-GET nog loopt');
+    assert.equal(await prisma.contentProgress.count({where:{userId:user.id,readStatus:'READ'}}),1);
+
     await page.getByRole('button',{name:t('nativeFoundation.back'),exact:true}).click();
     await page.getByRole('button',{name:t('nativeFoundation.logout'),exact:true}).click();await page.getByRole('heading',{name:t('nativeFoundation.welcome'),exact:true}).waitFor();
     await page.getByLabel(t('nativeFoundation.email')).fill(other.email);await page.getByLabel(t('nativeFoundation.password'),{exact:true}).fill(password);await page.getByRole('button',{name:t('nativeFoundation.login'),exact:true}).click();await page.getByRole('heading',{name:t('nativeFoundation.today')+', '+other.handle,exact:true}).waitFor();
     assert.equal(await page.getByText('Synthetische WP6-passage 1.',{exact:false}).count(),0,'Account B toont geen hoofdstukcache van A');
+    await page.evaluate(id=>window.dispatchEvent(new CustomEvent('wp6:test-open',{detail:'https://dev.versado.app/lesson/'+id})),chapters[0].id);
+    await page.getByText('Synthetische WP6-passage 1.',{exact:false}).waitFor();
+    assert.equal(await page.getByRole('button',{name:t('nativeFoundation.complete'),exact:true}).isEnabled(),true,'Dezelfde inhoud is voor B nog niet afgerond');
+    const pending=heldReads[0];
+    const lateResponse=page.waitForResponse(response=>{
+     if(new URL(response.url()).pathname!=='/native-bridge/accessRequest')return false;
+     try{const options=JSON.parse(response.request().postData()).options;return options.path===pending.path&&options.authorization===pending.authorization;}catch{return false;}
+    });
+    pending.finish();heldReads.shift();const delivered=await lateResponse;
+    const lateRead=await delivered.json();assert.equal(lateRead.status,200);assert.equal(JSON.parse(lateRead.body).state.read,'READ');await delivered.finished();
+    await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+    assert.equal(await page.getByRole('button',{name:t('nativeFoundation.completeSaved'),exact:true}).count(),0,'Een laat READ-antwoord van A wordt geen bevestiging voor B');
+    assert.equal(await page.getByRole('button',{name:t('nativeFoundation.complete'),exact:true}).isEnabled(),true);
+    assert.equal(await prisma.contentProgress.count({where:{userId:other.id,readStatus:'READ'}}),0);
+    assert.equal(gate.calls.filter(call=>call.method==='POST'&&call.path.endsWith('/complete')).length,completedBefore+1,'Accountwissel en het late vervolgantwoord sturen geen extra POST');
+    await page.getByRole('button',{name:t('nativeFoundation.back'),exact:true}).click();
+    await page.getByRole('heading',{name:t('nativeFoundation.today')+', '+other.handle,exact:true}).waitFor();
     await page.evaluate(id=>window.dispatchEvent(new CustomEvent('wp6:test-open',{detail:'https://dev.versado.app/lesson/'+id})),chapters[1].id);await page.getByText('Synthetische WP6-passage 2.',{exact:false}).waitFor();
     assert.equal(await page.getByText('Synthetische WP6-passage 1.',{exact:false}).count(),0,'Andere concrete hoofdstukidentiteit toont nooit vorige tekst');
     await page.getByRole('button',{name:t('nativeFoundation.back'),exact:true}).click();
@@ -103,8 +136,8 @@ try{
    }
    assert.ok(requests.every(request=>Object.keys(request.headers).every(key=>!key.toLowerCase().startsWith('cf-access-'))));assert.deepEqual(errors,[]);
    await page.evaluate(()=>scrollTo(0,0));if(['nl','de'].includes(language))await page.screenshot({path:`${out}/panel-${language}-${width}-${scale}.png`,fullPage:true});
-   results.push({language,width,scale,scheme,enrollment:'simulated-native',secretsInJavaScript:false,realtime:'blocked',overflow:false});
+   results.push({language,width,scale,scheme,enrollment:'simulated-native',lateCompletionReadAccountIsolation:language==='nl',secretsInJavaScript:false,realtime:'blocked',overflow:false});
   }finally{await context.close();}
  }
  console.log('Native Access-browserbewijs:',JSON.stringify(results));
-}finally{await browser.close();await new Promise(resolve=>front.close(resolve));await gate.close();await prisma.$disconnect();}
+}finally{for(const pending of heldReads.splice(0))pending.finish();await browser.close();await new Promise(resolve=>front.close(resolve));await gate.close();await prisma.$disconnect();}

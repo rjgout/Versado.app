@@ -16,12 +16,13 @@ const out='/tmp/versado-native-browser';rmSync(out,{recursive:true,force:true});
 // Maak een onveranderlijke asset-snapshot vóór de browser start.
 const stylesheet=readFileSync('dist/native/index.css');
 const bundle=await build({entryPoints:['tests/fixtures/native-foundation-client.tsx'],bundle:true,write:false,platform:'browser',define:{'process.env.NODE_ENV':'"production"'},minify:true});
-const secrets=new Map();let network=true,blockMe=false,completionAttempts=0;const backend=process.env.NATIVE_TEST_BASE_URL;
+const secrets=new Map();let network=true,blockMe=false,completionAttempts=0,failChapterReads=false;const backend=process.env.NATIVE_TEST_BASE_URL;
 const front=createServer(async(req,res)=>{
  try{
   const url=new URL(req.url,'http://127.0.0.1');
   if(url.pathname.startsWith('/api/v1/native/')){
    if(url.pathname.endsWith('/complete')&&req.method==='POST')completionAttempts++;
+   if(failChapterReads&&req.method==='GET'&&/^\/api\/v1\/native\/chapters\/[^/]+$/.test(url.pathname)){res.writeHead(503,{'Content-Type':'application/json'});res.end(JSON.stringify({error:'network_unavailable'}));return;}
    if(!network||(blockMe&&url.pathname==='/api/v1/native/me')){res.destroy();return;}
    const chunks=[];for await(const c of req)chunks.push(c);
    const response=await fetch(`${backend}${req.url}`,{method:req.method,headers:{Origin:'capacitor://localhost','X-Versado-Client':'native-v1','x-real-ip':'127.0.0.21',...(req.headers.authorization?{Authorization:req.headers.authorization}:{}),...(req.headers['content-type']?{'Content-Type':req.headers['content-type']}:{})},body:['GET','HEAD'].includes(req.method)?undefined:Buffer.concat(chunks)});
@@ -48,7 +49,7 @@ try{
  for(const [width,height,scheme,scale,locale]of [[320,844,'light',2,'nl-NL'],[390,844,'dark',1,'nl-NL'],[1280,900,'light',1,'de-DE'],[844,390,'dark',1,'fr-FR']]){
   const context=await browser.newContext({viewport:{width,height},locale,hasTouch:width<900,isMobile:width<900,colorScheme:scheme});
   await context.addInitScript(({scale})=>{window.wp6CompletionAttempts=0;const originalFetch=window.fetch;window.fetch=(input,init)=>{if(typeof input==='string'&&input.includes('/api/v1/native/chapters/')&&input.endsWith('/complete')&&init?.method==='POST')window.wp6CompletionAttempts++;return originalFetch(input,init);};const apply=()=>{document.documentElement.style.fontSize=`${100*scale}%`;for(const [edge,size]of Object.entries({top:24,bottom:18,left:12,right:12}))document.documentElement.style.setProperty(`--safe-area-inset-${edge}`,`${size}px`);};if(document.documentElement)apply();else document.addEventListener('DOMContentLoaded',apply,{once:true});},{scale});
-  let page=await context.newPage();const errors=[],failedResponses=[],expectedAuthFailures=[];let expectExpired=false;const recordResponse=r=>{if(r.status()>=400){const path=new URL(r.url()).pathname;if(expectExpired&&r.status()===401&&['/api/v1/native/account/password','/api/v1/native/refresh'].includes(path)){expectedAuthFailures.push(path);return;}failedResponses.push({path,status:r.status()});console.error('Native testresponse:',path,r.status());}};page.on('pageerror',e=>{errors.push(e.message);console.error('Native browserfout:',e.message);});page.on('response',recordResponse);network=false;
+  let page=await context.newPage();const errors=[],failedResponses=[],expectedAuthFailures=[],expectedReadFailures=[];let expectExpired=false;const recordResponse=r=>{if(r.status()>=400){const path=new URL(r.url()).pathname;if(failChapterReads&&r.status()===503&&r.request().method()==='GET'&&/^\/api\/v1\/native\/chapters\/[^/]+$/.test(path)){expectedReadFailures.push(path);return;}if(expectExpired&&r.status()===401&&['/api/v1/native/account/password','/api/v1/native/refresh'].includes(path)){expectedAuthFailures.push(path);return;}failedResponses.push({path,status:r.status()});console.error('Native testresponse:',path,r.status());}};page.on('pageerror',e=>{errors.push(e.message);console.error('Native browserfout:',e.message);});page.on('response',recordResponse);network=false;
   try{
   const device=`${width}-${randomUUID()}`;
   await page.goto(`${origin}/?device=${device}`);await page.getByRole('heading',{level:1}).waitFor();await page.getByRole('alert').waitFor();
@@ -90,8 +91,17 @@ try{
     await page.getByRole('button',{name:'Opnieuw proberen',exact:true}).click({trial:true});
     assert.equal(await page.evaluate(()=>window.wp6CompletionAttempts),before+1,'Onlineherstel herhaalt de mislukte schrijfactie niet');
     assert.equal(completionAttempts,backendBefore,'Hervatten start geen uitgestelde schrijfactie');
+    failChapterReads=true;
+    const postReceipt=page.waitForResponse(response=>response.request().method()==='POST'&&new URL(response.url()).pathname.endsWith('/complete'));
     await page.getByRole('button',{name:'Markeer als gelezen',exact:true}).click();
-    await page.getByRole('button',{name:'Opgeslagen op de server',exact:true}).waitFor();
+    const receipt=await postReceipt;assert.equal(receipt.status(),200);assert.equal((await receipt.json()).content.read,'READ');
+    assert.equal(await prisma.contentProgress.count({where:{userId:user.id,readStatus:'READ'}}),1,'De server heeft de afronding daadwerkelijk opgeslagen');
+    await page.getByRole('alert').waitFor();
+    const confirmed=page.getByRole('button',{name:'Opgeslagen op de server',exact:true});
+    assert.equal(await confirmed.count(),1,'Bevestigde POST blijft zichtbaar wanneer de verificatie-GET mislukt');
+    assert.equal(await confirmed.isDisabled(),true,'Een mislukte herlaadactie biedt geen nieuwe afronding aan');
+    assert.equal(expectedReadFailures.length,1,'Alleen de gerichte verificatie-GET is mislukt');
+    failChapterReads=false;
     assert.equal(await page.evaluate(()=>window.wp6CompletionAttempts),before+2,'Alleen een nieuwe bewuste klik verstuurt de volgende mutatie');
     assert.equal(completionAttempts,backendBefore+1,'Eén bevestigde online mutatie bereikt de backend');
    }
@@ -190,7 +200,7 @@ try{
 
   }
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'Geen horizontale overflow');assert.deepEqual(errors,[]);assert.deepEqual(failedResponses,[],'Geen ontbrekende stylesheets/assets of geweigerde geldige API-acties');
-  await page.screenshot({path:`${out}/welcome-${width}-${scheme}-${scale}-${locale}.png`,fullPage:true});results.push({width,height,scheme,scale,locale,offlineStartup:true,offlineMutationNoReplay:width===320&&locale==='nl-NL',localLegalRoutes:true,routeReload:true,historyBack:true,systemTheme:true,safeAreaInsets:true,accountSetup:locale==='nl-NL',passwordReset:locale==='nl-NL',emailConfirmation:locale==='nl-NL',overflow:false});
+  await page.screenshot({path:`${out}/welcome-${width}-${scheme}-${scale}-${locale}.png`,fullPage:true});results.push({width,height,scheme,scale,locale,offlineStartup:true,offlineMutationNoReplay:width===320&&locale==='nl-NL',confirmedPostDespiteGetFailure:width===320&&locale==='nl-NL',localLegalRoutes:true,routeReload:true,historyBack:true,systemTheme:true,safeAreaInsets:true,accountSetup:locale==='nl-NL',passwordReset:locale==='nl-NL',emailConfirmation:locale==='nl-NL',overflow:false});
   }catch(error){console.error('Native testscherm:',await page.locator('body').innerText());await page.screenshot({path:`${out}/failure-${width}.png`,fullPage:true});throw error;}finally{await context.close();}
  }
  // Dezelfde geëxtraheerde formulieren/kaarten blijven op de echte Next-site werken.
