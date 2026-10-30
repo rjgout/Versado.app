@@ -9,3 +9,8 @@
   overflow-wrap: anywhere;
 }
 .native-foundation input { min-height: 3rem; font-size: 1rem; }
+/* VoiceOver/TalkBack behouden echte kopfocus; alleen de routeaankondiging is onomlijnd.
+   De marker verdwijnt bij blur. Bedieningen en selecteerbare leestekst blijven ongemoeid. */
+.native-foundation h1[tabindex="-1"][data-native-route-focus]:focus {
+  outline: none;
+}

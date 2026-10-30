@@ -30,6 +30,7 @@ import NativePasswordReset from "./NativePasswordReset";
 import { nativeContentQueryKey } from "@/lib/data/native";
 import { NativeDataProvider, useNativeData, useNativeLiveQuery } from "@/lib/data/nativeHooks";
 import { nativeDeepLink, nativePasswordResetLink, nativeEmailConfirmationLink } from "@/lib/native/navigation";
+import { focusNativeRouteHeading } from "@/lib/native/routeFocus";
 
 type Account = NativeAccount;
 type Chapter = NativeChapter;
@@ -82,7 +83,7 @@ function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBan
   const sequence = useRef(0), current = useRef({ busy, navigation, setup, recoveryCodes });
   useEffect(() => { current.current = { busy, navigation, setup, recoveryCodes }; }, [busy, navigation, setup, recoveryCodes]);
   useEffect(() => { if (user?.uiLanguage) onLanguage?.(user.uiLanguage); }, [user?.uiLanguage, onLanguage]);
-  useEffect(() => { document.querySelector<HTMLElement>("h1")?.focus(); }, [chapter?.id, navigation.pathname, user?.id, setup?.step, recoveryCodes]);
+  useEffect(() => focusNativeRouteHeading(), [chapter?.id, navigation.pathname, user?.id, setup?.step, recoveryCodes]);
   const report = useCallback((err: unknown) => {
     const key = err instanceof NativeClientError ? err.code : "request_failed";
     if (key.startsWith("access_")) {
@@ -200,7 +201,7 @@ function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBan
     try {
       const data = await load(); if (!isCurrent()) return;
       setUser(data.me); setActivity(data.today.activity);
-      if (["/login", "/register", "/forgot-password"].includes(navigation.pathname)) navigation.replace("/dashboard");
+      if (["/dashboard", "/login", "/register", "/forgot-password"].includes(navigation.pathname)) navigation.replace("/dashboard");
     } finally { if (isCurrent()) setBusy(false); }
   }
   async function cancelSetup() {

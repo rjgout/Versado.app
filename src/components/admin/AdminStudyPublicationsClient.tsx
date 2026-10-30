@@ -642,7 +642,7 @@ function ProgramCard({
           {t(program.publicationState === "PUBLISHED" ? "studyPublishing.program.statePublished" : "studyPublishing.program.stateDraft")} ·{" "}
           {t(program.visibleToUsers ? "studyPublishing.program.visibleYes" : "studyPublishing.program.visibleNo")}
         </p>
-        <dl className="grid min-w-0 grid-cols-1 gap-2 text-sm min-[26rem]:grid-cols-2 sm:grid-cols-4">
+        <dl className="grid min-w-0 grid-cols-1 gap-2 text-sm min-[416px]:grid-cols-2 sm:grid-cols-4">
           <div className={fact}><dt className="text-vs-fg-2">{t("studyPublishing.program.expected")}</dt><dd className="text-lg font-extrabold" data-count="expected">{program.expected}</dd></div>
           <div className={fact}><dt className="text-vs-fg-2">{t("studyPublishing.program.imported")}</dt><dd className="text-lg font-extrabold" data-count="imported">{program.imported}</dd></div>
           <div className={fact}><dt className="text-vs-fg-2">{t("studyPublishing.program.publishedCount")}</dt><dd className="text-lg font-extrabold" data-count="published">{program.published}</dd></div>
