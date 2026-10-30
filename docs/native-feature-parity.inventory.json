@@ -6997,12 +6997,11 @@
     },
     {
       "file": "src/app/layout.tsx",
-      "sha256": "721acaa2936aabb4d88792ae813fac4fe992b925f61965474dbde3d89e51a18f",
+      "sha256": "353e9f49b614f7c4fd48aa8a0d9cb49b029c8f2624c25b33188f3cfda294151f",
       "boundary": "context-dependent",
       "imports": [
         "./globals.css",
         "@/components/ActivityTracker",
-        "@/components/BottomNav",
         "@/components/ChangelogPopup",
         "@/components/ConfirmProvider",
         "@/components/ContentSwitcher",
@@ -7019,7 +7018,6 @@
         "@/components/PublicLanguageSwitcher",
         "@/components/ReadAloudMiniPlayer",
         "@/components/ServiceWorkerRegister",
-        "@/components/StickyHeader",
         "@/components/StreakContinuation",
         "@/components/SubpageBackBar",
         "@/components/ThemeScript",
@@ -7028,11 +7026,10 @@
         "@/components/kompas/ContextOffer",
         "@/components/kompas/KompasProvider",
         "@/components/navigation/NextNavigationProvider",
-        "@/components/shell/FocusModeController",
+        "@/components/shell/AppShellFrame",
+        "@/components/shell/AppShellHeader",
         "@/components/shell/HeaderAvatar",
         "@/components/shell/NavigationScroll",
-        "@/components/shell/PrimaryNav",
-        "@/components/shell/ShellMetrics",
         "@/components/shell/SocialTabs",
         "@/components/versado/PersonalMascot",
         "@/lib/baseUrl",
@@ -7050,7 +7047,6 @@
         "@/lib/requestLanguage",
         "@/lib/session",
         "next",
-        "next/link",
         "react"
       ],
       "methods": [],
@@ -9064,7 +9060,7 @@
     },
     {
       "file": "src/components/BottomNav.tsx",
-      "sha256": "4bc5c9d4ea2cb6fc54cdc617e52f3f5093dcb7ab7db0e8dc4e11a1d70f085d7d",
+      "sha256": "632af0657a82340093ab424a18e18a03643b07f2eb17b0c4d8e7154fd7d31be4",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -10311,19 +10307,14 @@
     },
     {
       "file": "src/components/NavUserBadges.tsx",
-      "sha256": "639cd89f2212b372e2204ffbdbca9d711489fb9ac88d3fcab77a5993bec80f59",
+      "sha256": "ce297bae4ea69b0108c43be9781598e2addd4e3927f84fe6aec49db05b4a7b8c",
       "boundary": "client",
       "imports": [
-        "@/components/I18nProvider",
         "@/components/StreakContinuation",
-        "@/components/versado/DivisionEmblem",
-        "@/components/versado/SystemIcon",
+        "@/components/shell/UserBadgesView",
         "@/generated/prisma/client",
         "@/lib/data/fetchJson",
         "@/lib/data/hooks",
-        "@/lib/i18n/core",
-        "@/lib/languages",
-        "next/link",
         "react"
       ],
       "methods": [],
@@ -11079,10 +11070,11 @@
     },
     {
       "file": "src/components/SubpageBackBar.tsx",
-      "sha256": "d8ee3bb15b413b1c9e418ee8a72f2bee86a7cfe957d2547c0d7adb927844c143",
+      "sha256": "53c430ed6fe4fabf68a19ba2d05fd48b99974da60251bcbf621adf534175044f",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
+        "@/components/shell/SubpageBackBarView",
         "@/components/versado/PersonalMascot",
         "@/lib/backTarget",
         "@/lib/gameCatalog",
@@ -11091,7 +11083,6 @@
         "@/lib/navigationHistory",
         "@/lib/profileViews",
         "@/lib/puzzle/navigation",
-        "lucide-react",
         "next/navigation",
         "react"
       ],
@@ -11170,10 +11161,10 @@
     },
     {
       "file": "src/components/UserAvatar.tsx",
-      "sha256": "8e897f3589f16ba28efc499893ed6499f842bd0e005b39164833d30f4d6d0331",
+      "sha256": "9073dd6dcae4dceb67f699d2100a1e07b3a525a6fbcbd8b443ea2f6630d0f90e",
       "boundary": "client",
       "imports": [
-        "@/components/ScriptureAvatar",
+        "@/components/versado/UserAvatarView",
         "@/lib/avatarTypes",
         "react"
       ],
@@ -12760,13 +12751,13 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "28eb83bf19dc99c6ef3cbb3a92b4c58b90dfb14a3ef7cc6b145bda246402cd48",
+      "sha256": "40db9ffa7e748114f095126427b37aaf3b57418f71d48f791a481eb7e6304d1c",
       "boundary": "client",
       "imports": [
         "./NativeEmailConfirmation",
         "./NativePasswordReset",
+        "./NativeShellHeader",
         "@/components/I18nProvider",
-        "@/components/StickyHeader",
         "@/components/account/AccountActionsProvider",
         "@/components/account/PasswordChangeForm",
         "@/components/account/TwoFactorCards",
@@ -12775,8 +12766,8 @@
         "@/components/legal/DisclaimerContent",
         "@/components/legal/PrivacyContent",
         "@/components/navigation/AppNavigation",
-        "@/components/shell/FocusModeController",
-        "@/components/shell/ShellMetrics",
+        "@/components/shell/AppShellFrame",
+        "@/components/shell/SubpageBackBarView",
         "@/components/versado/MascotSlot",
         "@/components/versado/styles",
         "@/lib/data/nativeHooks",
@@ -12785,6 +12776,7 @@
         "@/lib/native/client",
         "@/lib/native/contract",
         "@/lib/native/navigation",
+        "@/lib/native/shell",
         "@/lib/native/socketClient",
         "@/lib/platform",
         "lucide-react",
@@ -12842,6 +12834,29 @@
       "checks": [],
       "exports": [
         "NativePasswordReset"
+      ]
+    },
+    {
+      "file": "src/components/native/NativeShellHeader.tsx",
+      "sha256": "f51b20d807e58926e517e32d2dc96e606cefec91a68d2056ff53950171df8bbc",
+      "boundary": "client",
+      "imports": [
+        "@/components/shell/AppShellHeader",
+        "@/components/shell/HeaderAvatarView",
+        "@/components/shell/UserBadgesView",
+        "@/components/versado/UserAvatarView",
+        "@/lib/avatarTypes",
+        "@/lib/data/nativeHooks",
+        "@/lib/native/client",
+        "@/lib/native/contract",
+        "@/lib/native/shell",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NativeShellHeader"
       ]
     },
     {
@@ -13425,6 +13440,42 @@
       ]
     },
     {
+      "file": "src/components/shell/AppShellFrame.tsx",
+      "sha256": "c9540d43f4de43da21c0fba3bd0bb49f76b5202b5a8894e4aa26de13e9b0f547",
+      "boundary": "client",
+      "imports": [
+        "./FocusModeController",
+        "./ShellMetrics",
+        "@/components/BottomNav",
+        "@/components/StickyHeader",
+        "@/lib/navigation",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "AppShellFrame"
+      ]
+    },
+    {
+      "file": "src/components/shell/AppShellHeader.tsx",
+      "sha256": "9c6b3e175afc534d7b0279b1ed3d3259e5dfe052ab36ac712a7015766b76a810",
+      "boundary": "client",
+      "imports": [
+        "./PrimaryNav",
+        "@/components/navigation/AppNavigation",
+        "@/lib/navigation",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "AppShellHeader"
+      ]
+    },
+    {
       "file": "src/components/shell/FocusModeController.tsx",
       "sha256": "2554faad3efb9ff76d1b58cdcde5579d3b3dd0fcbf09d25ceccc48e971a2cfc2",
       "boundary": "client",
@@ -13443,19 +13494,33 @@
     },
     {
       "file": "src/components/shell/HeaderAvatar.tsx",
-      "sha256": "18ab319f875a03ccdea53a4fa2b1d854a586032877a518971a99061c81089f1f",
+      "sha256": "3472aed88a274bd389455dc1ca327d69bcef5bf47bf6b922cadd488d6e4f7336",
       "boundary": "client",
       "imports": [
-        "@/components/I18nProvider",
-        "@/components/UserAvatar",
-        "next/link",
-        "next/navigation"
+        "./HeaderAvatarView",
+        "@/components/UserAvatar"
       ],
       "methods": [],
       "requests": [],
       "checks": [],
       "exports": [
         "HeaderAvatar"
+      ]
+    },
+    {
+      "file": "src/components/shell/HeaderAvatarView.tsx",
+      "sha256": "5301e040952309030f3cbf8489c8fc3cb0de2439fd40306686bf55cc24ef83d1",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "HeaderAvatarView"
       ]
     },
     {
@@ -13495,7 +13560,7 @@
     },
     {
       "file": "src/components/shell/PrimaryNav.tsx",
-      "sha256": "86437014a324941e92221ebc04068d56c868cab49d2878ed6e65f575b4487a50",
+      "sha256": "c2b46bb2bfb2b5cf600449b9d0780707e98b484d70e91ee43a79a048276e26c6",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -13542,6 +13607,42 @@
       "checks": [],
       "exports": [
         "SocialTabs"
+      ]
+    },
+    {
+      "file": "src/components/shell/SubpageBackBarView.tsx",
+      "sha256": "4f37809ac393496faa74fb5ea2b9d2b1ae8b26d3e16b60557c248445f98436d9",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "lucide-react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "SubpageBackBarView"
+      ]
+    },
+    {
+      "file": "src/components/shell/UserBadgesView.tsx",
+      "sha256": "3fded45fef4676c3968fa045f34dec9f756a97eac2c9ef14abf56d56f02524cf",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
+        "@/components/versado/DivisionEmblem",
+        "@/components/versado/SystemIcon",
+        "@/generated/prisma/enums",
+        "@/lib/i18n/core",
+        "@/lib/languages",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "UserBadgesView"
       ]
     },
     {
@@ -15080,9 +15181,10 @@
     },
     {
       "file": "src/components/versado/SystemIcon.tsx",
-      "sha256": "996a4a0901929a247cb44bc71deb58690bb2f74fe9a9a4e1f272f7b347eba71f",
+      "sha256": "ac5fcc58092cb1453ae0eb888a67a0525e0ebadac65d071455a4ece01cc6e47b",
       "boundary": "context-dependent",
       "imports": [
+        "@/lib/systemIcons",
         "react"
       ],
       "methods": [],
@@ -15102,6 +15204,21 @@
       "checks": [],
       "exports": [
         "ToggleSwitch"
+      ]
+    },
+    {
+      "file": "src/components/versado/UserAvatarView.tsx",
+      "sha256": "34648cd449523b99eb08ba77053df1e2719eed4ff51a9661c36727c408c1053e",
+      "boundary": "client",
+      "imports": [
+        "@/components/ScriptureAvatar",
+        "@/lib/avatarTypes"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "UserAvatarView"
       ]
     },
     {
@@ -20340,7 +20457,7 @@
     },
     {
       "file": "src/lib/native/api.ts",
-      "sha256": "d5ffe72bac6b52bfaa2bc439534868f07904db1354e9c8b7a13fd9b11dcbec6c",
+      "sha256": "08c061f19ccaa21ba9afe65cf62fcf37ed25c224d2d23d946fd2a4bb101cab49",
       "boundary": "context-dependent",
       "imports": [
         "./apple",
@@ -20349,6 +20466,7 @@
         "./password",
         "./securitySetup",
         "./sessions",
+        "./shellHeader.server",
         "./socketAuth",
         "./socketTickets",
         "@/app/api/auth/forgot-password/route",
@@ -20449,9 +20567,10 @@
     },
     {
       "file": "src/lib/native/contract.ts",
-      "sha256": "c0634d88ef4ee497098d7391062d76771f70029eb5dc0dcea30e25d2a66c68ee",
+      "sha256": "3a1d3d4645da25d9bcf1ce1998826e884b9c535118bef881576b3346318e8c10",
       "boundary": "context-dependent",
       "imports": [
+        "@/lib/leagueTiers",
         "zod"
       ],
       "methods": [],
@@ -20463,6 +20582,7 @@
         "nativeChapterSchema",
         "nativeSetupFinishSchema",
         "nativeSetupSchema",
+        "nativeShellHeaderSchema",
         "nativeTodaySchema",
         "nativeTokensSchema"
       ]
@@ -20615,6 +20735,40 @@
         "nativeSessionIdentity",
         "nativeUser",
         "rotateNativeSession"
+      ]
+    },
+    {
+      "file": "src/lib/native/shell.ts",
+      "sha256": "bc43a8b585ace643fe5aa2eeb42e4132592792fea0284a542f4ea21945b84370",
+      "boundary": "context-dependent",
+      "imports": [
+        "./navigation",
+        "@/lib/navigation"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NATIVE_PRIMARY_NAV",
+        "nativeAppleLoginUIAvailable"
+      ]
+    },
+    {
+      "file": "src/lib/native/shellHeader.server.ts",
+      "sha256": "dbf7e2b01d561d1e1e937006d1425a15ca5c803bc565c43697e3b09dd1772cf0",
+      "boundary": "context-dependent",
+      "imports": [
+        "./contract",
+        "@/generated/prisma/client",
+        "@/lib/db",
+        "@/lib/leagues",
+        "@/lib/learning/streakReturnRules"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "nativeShellHeader"
       ]
     },
     {
@@ -24994,6 +25148,19 @@
       ]
     },
     {
+      "file": "src/lib/systemIcons.ts",
+      "sha256": "bae11e8b5cebce54cdda7580036b94d6a9ecc5195511012177cd2f4226e72bf5",
+      "boundary": "context-dependent",
+      "imports": [],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "EMPTY_STREAK_SOURCE",
+        "SYSTEM_ICON_SOURCES"
+      ]
+    },
+    {
       "file": "src/lib/timeFormat.ts",
       "sha256": "b0b12f97f5bdd680975e6a3205c4943629e8915f7593f2597528bbb5eddb66e3",
       "boundary": "context-dependent",
@@ -25649,7 +25816,8 @@
         "src/lib/mascotRotation.ts",
         "src/lib/mascots.ts",
         "src/lib/requestLanguage.ts",
-        "src/lib/session.ts"
+        "src/lib/session.ts",
+        "src/lib/systemIcons.ts"
       ],
       "directModules": [
         "src/components/Footer.tsx",
@@ -25696,6 +25864,7 @@
         "src/components/I18nProvider.tsx",
         "src/components/ScriptureAvatar.tsx",
         "src/components/UserAvatar.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/styles.ts",
         "src/lib/achievements.ts",
         "src/lib/activeGames.ts",
@@ -25820,6 +25989,7 @@
         "src/components/ActionsClient.tsx",
         "src/components/I18nProvider.tsx",
         "src/components/UserAvatar.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/lib/data/client.ts",
         "src/lib/data/hooks.ts",
         "src/lib/data/mutation.ts",
@@ -25871,6 +26041,7 @@
         "src/components/versado/MascotSlot.tsx",
         "src/components/versado/PersonalMascot.tsx",
         "src/components/versado/SystemIcon.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/VisualIdentityIcon.tsx",
         "src/lib/alleskenner/content.ts",
         "src/lib/alleskenner/validate.ts",
@@ -25937,6 +26108,7 @@
         "src/lib/studyContent/schema.ts",
         "src/lib/studyContext.ts",
         "src/lib/studyContextContract.ts",
+        "src/lib/systemIcons.ts",
         "src/lib/visualIdentityAssets.ts",
         "src/lib/wordSearch/content.ts",
         "src/lib/wordSearch/generator.ts"
@@ -25952,6 +26124,7 @@
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
         "src/components/versado/PersonalMascot.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/VisualIdentityIcon.tsx",
         "src/lib/data/client.ts",
         "src/lib/data/hooks.ts",
@@ -26342,6 +26515,7 @@
         "src/lib/i18n/messages/nl.ts",
         "src/lib/jigsawQuestions.ts",
         "src/lib/languages.ts",
+        "src/lib/leagueTiers.ts",
         "src/lib/mascots.ts",
         "src/lib/mysteries/game.ts",
         "src/lib/mysteries/mystery001a.ts",
@@ -26470,6 +26644,7 @@
         "src/components/versado/PageIntro.tsx",
         "src/components/versado/PersonalMascot.tsx",
         "src/components/versado/SystemIcon.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/VisualIdentityIcon.tsx",
         "src/components/versado/styles.ts",
         "src/lib/achievementDisplay.ts",
@@ -26600,6 +26775,7 @@
         "src/lib/studyContent/schema.ts",
         "src/lib/studyContext.ts",
         "src/lib/studyContextContract.ts",
+        "src/lib/systemIcons.ts",
         "src/lib/timeZone.ts",
         "src/lib/unsubscribe.ts",
         "src/lib/useActivity.ts",
@@ -26634,6 +26810,7 @@
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
         "src/components/versado/PersonalMascot.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/VisualIdentityIcon.tsx",
         "src/lib/data/client.ts",
         "src/lib/data/hooks.ts",
@@ -27165,7 +27342,8 @@
         "src/lib/i18n/rich.tsx",
         "src/lib/i18n/serverTexts.ts",
         "src/lib/languages.ts",
-        "src/lib/session.ts"
+        "src/lib/session.ts",
+        "src/lib/systemIcons.ts"
       ],
       "directModules": [
         "src/components/AdminUsersClient.tsx",
@@ -27624,6 +27802,7 @@
         "src/components/UserTag.tsx",
         "src/components/alleskenner/SoloClient.tsx",
         "src/components/versado/RankMedal.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/VisualIdentityIcon.tsx",
         "src/lib/achievements.ts",
         "src/lib/activityFeed.ts",
@@ -27733,6 +27912,7 @@
         "src/components/UserAvatar.tsx",
         "src/components/alleskenner/SoloClient.tsx",
         "src/components/versado/RankMedal.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/VisualIdentityIcon.tsx"
       ],
       "requestEvidence": [
@@ -27780,6 +27960,7 @@
         "src/components/alleskenner/AlleskennerGame.tsx",
         "src/components/alleskenner/AlleskennerRoom.tsx",
         "src/components/versado/FocusLayout.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/lib/alleskenner/types.ts",
         "src/lib/auth.ts",
         "src/lib/avatarAccessories.ts",
@@ -27814,6 +27995,7 @@
         "src/components/UserAvatar.tsx",
         "src/components/alleskenner/AlleskennerGame.tsx",
         "src/components/alleskenner/AlleskennerRoom.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/lib/readAloudPlayerContext.tsx",
         "src/lib/socketClient.ts",
         "src/lib/useLobbyExit.ts"
@@ -27963,6 +28145,7 @@
         "src/components/alleskenner/SeasonListClient.tsx",
         "src/components/versado/FocusLayout.tsx",
         "src/components/versado/ToggleSwitch.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/lib/auth.ts",
         "src/lib/avatarAccessories.ts",
         "src/lib/avatarTypes.ts",
@@ -27992,6 +28175,7 @@
         "src/components/alleskenner/SeasonClient.tsx",
         "src/components/alleskenner/SeasonListClient.tsx",
         "src/components/versado/ToggleSwitch.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/lib/socketClient.ts"
       ],
       "requestEvidence": [
@@ -49436,6 +49620,7 @@
         "src/lib/native/password.ts",
         "src/lib/native/securitySetup.ts",
         "src/lib/native/sessions.ts",
+        "src/lib/native/shellHeader.server.ts",
         "src/lib/native/socketAuth.ts",
         "src/lib/native/socketTickets.ts",
         "src/lib/notificationGroups.ts",
@@ -50892,6 +51077,7 @@
         "src/components/ScriptureAvatar.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/UserTag.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/lib/auth.ts",
         "src/lib/avatarAccessories.ts",
         "src/lib/avatarTypes.ts",
@@ -50927,6 +51113,7 @@
         "src/components/FriendPicker.tsx",
         "src/components/I18nProvider.tsx",
         "src/components/UserAvatar.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/lib/socketClient.ts"
       ],
       "requestEvidence": [
@@ -51142,6 +51329,7 @@
         "src/components/versado/MascotSlot.tsx",
         "src/components/versado/PersonalMascot.tsx",
         "src/components/versado/SystemIcon.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/styles.ts",
         "src/lib/achievements.ts",
         "src/lib/activityFeed.ts",
@@ -51260,6 +51448,7 @@
         "src/lib/studyContent/schema.ts",
         "src/lib/studyContext.ts",
         "src/lib/studyContextContract.ts",
+        "src/lib/systemIcons.ts",
         "src/lib/timeZone.ts",
         "src/lib/unsubscribe.ts",
         "src/lib/wordSearch/content.ts",
@@ -51282,6 +51471,7 @@
         "src/components/UserAvatar.tsx",
         "src/components/social/shared.tsx",
         "src/components/versado/PersonalMascot.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/lib/data/client.ts",
         "src/lib/data/hints.ts",
         "src/lib/data/hooks.ts",
@@ -51336,6 +51526,7 @@
         "src/components/versado/DivisionEmblem.tsx",
         "src/components/versado/RankMedal.tsx",
         "src/components/versado/SystemIcon.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/VisualIdentityIcon.tsx",
         "src/lib/alleskenner/content.ts",
         "src/lib/alleskenner/validate.ts",
@@ -51401,6 +51592,7 @@
         "src/lib/studyContent/schema.ts",
         "src/lib/studyContext.ts",
         "src/lib/studyContextContract.ts",
+        "src/lib/systemIcons.ts",
         "src/lib/visualIdentityAssets.ts",
         "src/lib/wordSearch/content.ts",
         "src/lib/wordSearch/generator.ts"
@@ -51415,6 +51607,7 @@
         "src/components/LeaderboardClient.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/versado/RankMedal.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/VisualIdentityIcon.tsx",
         "src/lib/data/client.ts",
         "src/lib/data/hooks.ts",
@@ -51899,6 +52092,7 @@
         "src/lib/i18n/messages/nl.ts",
         "src/lib/jigsawQuestions.ts",
         "src/lib/languages.ts",
+        "src/lib/leagueTiers.ts",
         "src/lib/mailHistory.ts",
         "src/lib/mailHistoryTypes.ts",
         "src/lib/mascots.ts",
@@ -52577,6 +52771,7 @@
         "src/components/versado/MediaArtwork.tsx",
         "src/components/versado/PersonalMascot.tsx",
         "src/components/versado/SystemIcon.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/VisualIdentityIcon.tsx",
         "src/components/versado/styles.ts",
         "src/lib/achievements.ts",
@@ -52770,6 +52965,7 @@
         "src/lib/studyContent/weekSelection.ts",
         "src/lib/studyContext.ts",
         "src/lib/studyContextContract.ts",
+        "src/lib/systemIcons.ts",
         "src/lib/timeFormat.ts",
         "src/lib/timeZone.ts",
         "src/lib/today.ts",
@@ -52823,6 +53019,7 @@
         "src/components/versado/ContentCard.tsx",
         "src/components/versado/MediaArtwork.tsx",
         "src/components/versado/PersonalMascot.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/VisualIdentityIcon.tsx",
         "src/lib/data/client.ts",
         "src/lib/data/hooks.ts",
@@ -53811,6 +54008,7 @@
         "src/components/social/GroupsEntryCard.tsx",
         "src/components/social/shared.tsx",
         "src/components/versado/SystemIcon.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/VisualIdentityIcon.tsx",
         "src/components/versado/styles.ts",
         "src/lib/alleskenner/content.ts",
@@ -53852,6 +54050,7 @@
         "src/lib/i18n/serverTexts.ts",
         "src/lib/jigsawQuestions.ts",
         "src/lib/languages.ts",
+        "src/lib/leagueTiers.ts",
         "src/lib/mascots.ts",
         "src/lib/mysteries/game.ts",
         "src/lib/mysteries/mystery001a.ts",
@@ -53887,6 +54086,7 @@
         "src/lib/studyContent/schema.ts",
         "src/lib/studyContext.ts",
         "src/lib/studyContextContract.ts",
+        "src/lib/systemIcons.ts",
         "src/lib/visualIdentityAssets.ts",
         "src/lib/wordSearch/content.ts",
         "src/lib/wordSearch/generator.ts"
@@ -53906,6 +54106,7 @@
         "src/components/social/FriendStreaksSection.tsx",
         "src/components/social/GroupsEntryCard.tsx",
         "src/components/social/shared.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/VisualIdentityIcon.tsx",
         "src/lib/data/client.ts",
         "src/lib/data/hooks.ts",
@@ -54088,6 +54289,7 @@
         "src/lib/studyContent/schema.ts",
         "src/lib/studyContext.ts",
         "src/lib/studyContextContract.ts",
+        "src/lib/systemIcons.ts",
         "src/lib/timeZone.ts",
         "src/lib/unsubscribe.ts",
         "src/lib/visualIdentityAssets.ts",
@@ -54516,6 +54718,7 @@
         "src/components/social/GroupsClient.tsx",
         "src/components/social/shared.tsx",
         "src/components/versado/SystemIcon.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/styles.ts",
         "src/lib/alleskenner/content.ts",
         "src/lib/alleskenner/validate.ts",
@@ -54580,6 +54783,7 @@
         "src/lib/studyContent/schema.ts",
         "src/lib/studyContext.ts",
         "src/lib/studyContextContract.ts",
+        "src/lib/systemIcons.ts",
         "src/lib/wordSearch/content.ts",
         "src/lib/wordSearch/generator.ts"
       ],
@@ -54593,6 +54797,7 @@
         "src/components/social/GroupTodayLine.tsx",
         "src/components/social/GroupsClient.tsx",
         "src/components/social/shared.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/lib/data/client.ts",
         "src/lib/data/hooks.ts",
         "src/lib/data/queryHooks.ts",
@@ -54638,6 +54843,7 @@
         "src/components/social/GroupTodayLine.tsx",
         "src/components/social/shared.tsx",
         "src/components/versado/SystemIcon.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/styles.ts",
         "src/lib/alleskenner/content.ts",
         "src/lib/alleskenner/validate.ts",
@@ -54702,6 +54908,7 @@
         "src/lib/studyContent/schema.ts",
         "src/lib/studyContext.ts",
         "src/lib/studyContextContract.ts",
+        "src/lib/systemIcons.ts",
         "src/lib/wordSearch/content.ts",
         "src/lib/wordSearch/generator.ts"
       ],
@@ -54716,6 +54923,7 @@
         "src/components/social/GroupDetailClient.tsx",
         "src/components/social/GroupTodayLine.tsx",
         "src/components/social/shared.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/lib/data/client.ts",
         "src/lib/data/hooks.ts",
         "src/lib/data/queryHooks.ts",
@@ -54764,6 +54972,7 @@
         "src/components/social/shared.tsx",
         "src/components/versado/SystemIcon.tsx",
         "src/components/versado/ToggleSwitch.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/styles.ts",
         "src/lib/auth.ts",
         "src/lib/avatarAccessories.ts",
@@ -54775,6 +54984,7 @@
         "src/lib/i18n/messages/kompas/nl.ts",
         "src/lib/i18n/messages/nl.ts",
         "src/lib/languages.ts",
+        "src/lib/leagueTiers.ts",
         "src/lib/native/access.ts",
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
@@ -54782,6 +54992,7 @@
         "src/lib/platform.ts",
         "src/lib/session.ts",
         "src/lib/social/rules.ts",
+        "src/lib/systemIcons.ts",
         "src/lib/timeZone.ts"
       ],
       "directModules": [
@@ -54796,6 +55007,7 @@
         "src/components/social/GroupSettingsClient.tsx",
         "src/components/social/shared.tsx",
         "src/components/versado/ToggleSwitch.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/lib/platform.ts"
       ],
       "requestEvidence": [
@@ -54842,6 +55054,7 @@
         "src/lib/i18n/messages/nl.ts",
         "src/lib/languages.ts",
         "src/lib/session.ts",
+        "src/lib/systemIcons.ts",
         "src/lib/visualIdentityAssets.ts"
       ],
       "directModules": [
@@ -54898,6 +55111,7 @@
         "src/lib/languages.ts",
         "src/lib/session.ts",
         "src/lib/social/rules.ts",
+        "src/lib/systemIcons.ts",
         "src/lib/timeZone.ts"
       ],
       "directModules": [
@@ -54968,6 +55182,7 @@
         "src/components/versado/MascotSlot.tsx",
         "src/components/versado/PersonalMascot.tsx",
         "src/components/versado/SystemIcon.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/VisualIdentityIcon.tsx",
         "src/components/versado/styles.ts",
         "src/lib/achievementDisplay.ts",
@@ -55104,6 +55319,7 @@
         "src/lib/studyContent/schema.ts",
         "src/lib/studyContext.ts",
         "src/lib/studyContextContract.ts",
+        "src/lib/systemIcons.ts",
         "src/lib/timeZone.ts",
         "src/lib/unsubscribe.ts",
         "src/lib/useActivity.ts",
@@ -55144,6 +55360,7 @@
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
         "src/components/versado/PersonalMascot.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/VisualIdentityIcon.tsx",
         "src/lib/backTarget.ts",
         "src/lib/data/client.ts",
@@ -55226,6 +55443,7 @@
         "src/components/versado/ImmersiveLayout.tsx",
         "src/components/versado/MascotSlot.tsx",
         "src/components/versado/PersonalMascot.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/lib/achievements.ts",
         "src/lib/activityFeed.ts",
         "src/lib/alleskenner/content.ts",
@@ -55390,6 +55608,7 @@
         "src/components/puzzle/RecordNotice.tsx",
         "src/components/puzzle/serverClock.ts",
         "src/components/versado/PersonalMascot.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/lib/backTarget.ts",
         "src/lib/data/client.ts",
         "src/lib/data/hints.ts",
@@ -55711,6 +55930,7 @@
         "src/components/ScriptureAvatar.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/puzzle/LeaderboardClient.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/lib/achievements.ts",
         "src/lib/activityFeed.ts",
         "src/lib/alleskenner/content.ts",
@@ -55826,6 +56046,7 @@
         "src/components/I18nProvider.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/puzzle/LeaderboardClient.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/lib/data/client.ts",
         "src/lib/data/hooks.ts",
         "src/lib/data/queryHooks.ts",
@@ -55882,6 +56103,7 @@
         "src/components/versado/ImmersiveLayout.tsx",
         "src/components/versado/MascotSlot.tsx",
         "src/components/versado/PersonalMascot.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/lib/achievements.ts",
         "src/lib/activityFeed.ts",
         "src/lib/alleskenner/content.ts",
@@ -56038,6 +56260,7 @@
         "src/components/puzzle/CoopClient.tsx",
         "src/components/puzzle/PuzzleBoardLayout.tsx",
         "src/components/versado/PersonalMascot.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/lib/backTarget.ts",
         "src/lib/data/client.ts",
         "src/lib/data/hints.ts",
@@ -56107,6 +56330,7 @@
         "src/components/versado/ImmersiveLayout.tsx",
         "src/components/versado/MascotSlot.tsx",
         "src/components/versado/PersonalMascot.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/lib/achievements.ts",
         "src/lib/activityFeed.ts",
         "src/lib/alleskenner/content.ts",
@@ -56269,6 +56493,7 @@
         "src/components/puzzle/RecordNotice.tsx",
         "src/components/puzzle/serverClock.ts",
         "src/components/versado/PersonalMascot.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/lib/backTarget.ts",
         "src/lib/data/client.ts",
         "src/lib/data/hints.ts",
@@ -56344,6 +56569,7 @@
         "src/components/versado/MascotSlot.tsx",
         "src/components/versado/PersonalMascot.tsx",
         "src/components/versado/SystemIcon.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/VisualIdentityIcon.tsx",
         "src/components/versado/styles.ts",
         "src/lib/achievementDisplay.ts",
@@ -56480,6 +56706,7 @@
         "src/lib/studyContent/schema.ts",
         "src/lib/studyContext.ts",
         "src/lib/studyContextContract.ts",
+        "src/lib/systemIcons.ts",
         "src/lib/timeZone.ts",
         "src/lib/unsubscribe.ts",
         "src/lib/useActivity.ts",
@@ -56518,6 +56745,7 @@
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
         "src/components/versado/PersonalMascot.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/VisualIdentityIcon.tsx",
         "src/lib/backTarget.ts",
         "src/lib/data/client.ts",
@@ -56946,6 +57174,7 @@
         "src/components/versado/MascotSlot.tsx",
         "src/components/versado/PersonalMascot.tsx",
         "src/components/versado/SystemIcon.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/VisualIdentityIcon.tsx",
         "src/components/versado/styles.ts",
         "src/lib/achievementDisplay.ts",
@@ -57105,6 +57334,7 @@
         "src/lib/studyContext.ts",
         "src/lib/studyContextContract.ts",
         "src/lib/studyOrigin.ts",
+        "src/lib/systemIcons.ts",
         "src/lib/timeZone.ts",
         "src/lib/unsubscribe.ts",
         "src/lib/useActivity.ts",
@@ -57150,6 +57380,7 @@
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
         "src/components/versado/PersonalMascot.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/VisualIdentityIcon.tsx",
         "src/lib/backTarget.ts",
         "src/lib/data/client.ts",
@@ -57217,6 +57448,7 @@
         "src/components/versado/MascotSlot.tsx",
         "src/components/versado/MediaArtwork.tsx",
         "src/components/versado/PersonalMascot.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/styles.ts",
         "src/components/versado/useCardListSave.ts",
         "src/lib/alleskenner/content.ts",
@@ -57304,6 +57536,7 @@
         "src/components/versado/ContentCard.tsx",
         "src/components/versado/MediaArtwork.tsx",
         "src/components/versado/PersonalMascot.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/useCardListSave.ts",
         "src/lib/data/client.ts",
         "src/lib/data/hooks.ts",
@@ -57388,6 +57621,7 @@
         "src/components/versado/PersonalMascot.tsx",
         "src/components/versado/RankMedal.tsx",
         "src/components/versado/SystemIcon.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/VisualIdentityIcon.tsx",
         "src/components/versado/styles.ts",
         "src/lib/achievementDisplay.ts",
@@ -57525,6 +57759,7 @@
         "src/lib/studyContent/schema.ts",
         "src/lib/studyContext.ts",
         "src/lib/studyContextContract.ts",
+        "src/lib/systemIcons.ts",
         "src/lib/timeFormat.ts",
         "src/lib/timeZone.ts",
         "src/lib/unsubscribe.ts",
@@ -57576,6 +57811,7 @@
         "src/components/versado/ContentIcon.tsx",
         "src/components/versado/PersonalMascot.tsx",
         "src/components/versado/RankMedal.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/VisualIdentityIcon.tsx",
         "src/lib/data/client.ts",
         "src/lib/data/hooks.ts",
@@ -62103,6 +62339,7 @@
         "src/lib/kompas/mascot.ts",
         "src/lib/kompas/registry.ts",
         "src/lib/languages.ts",
+        "src/lib/leagueTiers.ts",
         "src/lib/mailHistory.ts",
         "src/lib/mailHistoryTypes.ts",
         "src/lib/mascots.ts",
@@ -62142,6 +62379,7 @@
         "src/lib/studyContent/schema.ts",
         "src/lib/studyContext.ts",
         "src/lib/studyContextContract.ts",
+        "src/lib/systemIcons.ts",
         "src/lib/wordSearch/content.ts",
         "src/lib/wordSearch/generator.ts"
       ],
@@ -62232,6 +62470,7 @@
         "src/components/versado/MascotSlot.tsx",
         "src/components/versado/PersonalMascot.tsx",
         "src/components/versado/SystemIcon.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/VisualIdentityIcon.tsx",
         "src/components/versado/styles.ts",
         "src/lib/achievementDisplay.ts",
@@ -62368,6 +62607,7 @@
         "src/lib/studyContent/schema.ts",
         "src/lib/studyContext.ts",
         "src/lib/studyContextContract.ts",
+        "src/lib/systemIcons.ts",
         "src/lib/timeZone.ts",
         "src/lib/unsubscribe.ts",
         "src/lib/useActivity.ts",
@@ -62406,6 +62646,7 @@
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
         "src/components/versado/PersonalMascot.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/VisualIdentityIcon.tsx",
         "src/lib/backTarget.ts",
         "src/lib/data/client.ts",
@@ -62485,6 +62726,7 @@
         "src/components/versado/MascotSlot.tsx",
         "src/components/versado/PersonalMascot.tsx",
         "src/components/versado/SystemIcon.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/VisualIdentityIcon.tsx",
         "src/components/versado/styles.ts",
         "src/lib/achievementDisplay.ts",
@@ -62615,6 +62857,7 @@
         "src/lib/studyContent/schema.ts",
         "src/lib/studyContext.ts",
         "src/lib/studyContextContract.ts",
+        "src/lib/systemIcons.ts",
         "src/lib/timeZone.ts",
         "src/lib/unsubscribe.ts",
         "src/lib/useActivity.ts",
@@ -62647,6 +62890,7 @@
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
         "src/components/versado/PersonalMascot.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/VisualIdentityIcon.tsx",
         "src/lib/data/client.ts",
         "src/lib/data/hooks.ts",
@@ -62852,6 +63096,7 @@
         "src/lib/studyContent/schema.ts",
         "src/lib/studyContext.ts",
         "src/lib/studyContextContract.ts",
+        "src/lib/systemIcons.ts",
         "src/lib/timeZone.ts",
         "src/lib/visualIdentityAssets.ts",
         "src/lib/wordSearch/content.ts",
@@ -62947,6 +63192,7 @@
         "src/components/UserAvatar.tsx",
         "src/components/profile/ProfilePage.tsx",
         "src/components/profile/profileData.ts",
+        "src/components/versado/UserAvatarView.tsx",
         "src/lib/alleskenner/content.ts",
         "src/lib/alleskenner/validate.ts",
         "src/lib/auth.ts",
@@ -63028,6 +63274,7 @@
         "src/components/I18nProvider.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/profile/ProfilePage.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/lib/data/client.ts",
         "src/lib/data/hooks.ts",
         "src/lib/data/mutation.ts",
@@ -63097,6 +63344,7 @@
         "src/components/versado/MascotSlot.tsx",
         "src/components/versado/PersonalMascot.tsx",
         "src/components/versado/SystemIcon.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/VisualIdentityIcon.tsx",
         "src/components/versado/styles.ts",
         "src/lib/achievementDisplay.ts",
@@ -63251,6 +63499,7 @@
         "src/lib/studyContent/stepProgress.ts",
         "src/lib/studyContext.ts",
         "src/lib/studyContextContract.ts",
+        "src/lib/systemIcons.ts",
         "src/lib/timeZone.ts",
         "src/lib/unsubscribe.ts",
         "src/lib/useActivity.ts",
@@ -63292,6 +63541,7 @@
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
         "src/components/versado/PersonalMascot.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/VisualIdentityIcon.tsx",
         "src/lib/backTarget.ts",
         "src/lib/data/client.ts",
@@ -63447,6 +63697,7 @@
         "src/components/ScriptureAvatar.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/UserTag.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/lib/alleskenner/content.ts",
         "src/lib/alleskenner/validate.ts",
         "src/lib/auth.ts",
@@ -63528,6 +63779,7 @@
         "src/components/I18nProvider.tsx",
         "src/components/ScrabbleListClient.tsx",
         "src/components/UserAvatar.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/lib/socketClient.ts"
       ],
       "requestEvidence": [
@@ -63570,6 +63822,7 @@
         "src/components/ScriptureAvatar.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/versado/FocusLayout.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/lib/alleskenner/content.ts",
         "src/lib/alleskenner/validate.ts",
         "src/lib/auth.ts",
@@ -63647,6 +63900,7 @@
         "src/components/I18nProvider.tsx",
         "src/components/ScrabbleBoardClient.tsx",
         "src/components/UserAvatar.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/lib/data/client.ts",
         "src/lib/data/hints.ts",
         "src/lib/data/hooks.ts",
@@ -63715,6 +63969,7 @@
         "src/components/versado/MascotSlot.tsx",
         "src/components/versado/PersonalMascot.tsx",
         "src/components/versado/SystemIcon.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/VisualIdentityIcon.tsx",
         "src/components/versado/styles.ts",
         "src/lib/achievementDisplay.ts",
@@ -63848,6 +64103,7 @@
         "src/lib/studyContent/schema.ts",
         "src/lib/studyContext.ts",
         "src/lib/studyContextContract.ts",
+        "src/lib/systemIcons.ts",
         "src/lib/timeZone.ts",
         "src/lib/unsubscribe.ts",
         "src/lib/useActivity.ts",
@@ -63882,6 +64138,7 @@
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
         "src/components/versado/PersonalMascot.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/VisualIdentityIcon.tsx",
         "src/lib/backTarget.ts",
         "src/lib/data/client.ts",
@@ -64003,6 +64260,7 @@
         "src/lib/studyContent/schema.ts",
         "src/lib/studyContext.ts",
         "src/lib/studyContextContract.ts",
+        "src/lib/systemIcons.ts",
         "src/lib/wordSearch/content.ts",
         "src/lib/wordSearch/generator.ts",
         "src/lib/xpBroadcast.ts"
@@ -64066,6 +64324,7 @@
         "src/components/versado/MascotSlot.tsx",
         "src/components/versado/PersonalMascot.tsx",
         "src/components/versado/RankMedal.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/VisualIdentityIcon.tsx",
         "src/components/versado/styles.ts",
         "src/lib/alleskenner/content.ts",
@@ -64152,6 +64411,7 @@
         "src/components/snelleZendeling/StartClient.tsx",
         "src/components/versado/PersonalMascot.tsx",
         "src/components/versado/RankMedal.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/VisualIdentityIcon.tsx",
         "src/lib/data/client.ts",
         "src/lib/data/hooks.ts",
@@ -64291,6 +64551,7 @@
         "src/components/snelleZendeling/TogetherRun.tsx",
         "src/components/snelleZendeling/scene.ts",
         "src/components/versado/ImmersiveLayout.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/styles.ts",
         "src/lib/achievements.ts",
         "src/lib/activityFeed.ts",
@@ -64424,6 +64685,7 @@
         "src/components/snelleZendeling/RevivePanels.tsx",
         "src/components/snelleZendeling/TogetherRoom.tsx",
         "src/components/snelleZendeling/TogetherRun.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/lib/data/client.ts",
         "src/lib/socketClient.ts",
         "src/lib/xpBroadcast.ts"
@@ -64479,6 +64741,7 @@
         "src/components/versado/PersonalMascot.tsx",
         "src/components/versado/StreakDayIndicator.tsx",
         "src/components/versado/SystemIcon.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/styles.ts",
         "src/lib/achievements.ts",
         "src/lib/activityFeed.ts",
@@ -64598,6 +64861,7 @@
         "src/lib/studyContent/schema.ts",
         "src/lib/studyContext.ts",
         "src/lib/studyContextContract.ts",
+        "src/lib/systemIcons.ts",
         "src/lib/timeZone.ts",
         "src/lib/unsubscribe.ts",
         "src/lib/wordSearch/content.ts",
@@ -64618,6 +64882,7 @@
         "src/components/UserAvatar.tsx",
         "src/components/social/shared.tsx",
         "src/components/versado/PersonalMascot.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/lib/data/client.ts",
         "src/lib/data/hooks.ts",
         "src/lib/data/queryHooks.ts",
@@ -65425,6 +65690,7 @@
         "src/components/versado/MascotSlot.tsx",
         "src/components/versado/PersonalMascot.tsx",
         "src/components/versado/SystemIcon.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/VisualIdentityIcon.tsx",
         "src/components/versado/styles.ts",
         "src/lib/achievementDisplay.ts",
@@ -65580,6 +65846,7 @@
         "src/lib/studyContext.ts",
         "src/lib/studyContextContract.ts",
         "src/lib/studyOrigin.ts",
+        "src/lib/systemIcons.ts",
         "src/lib/timeZone.ts",
         "src/lib/unsubscribe.ts",
         "src/lib/useActivity.ts",
@@ -65619,6 +65886,7 @@
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
         "src/components/versado/PersonalMascot.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/VisualIdentityIcon.tsx",
         "src/lib/backTarget.ts",
         "src/lib/data/client.ts",
@@ -65750,6 +66018,7 @@
         "src/lib/studyContent/schema.ts",
         "src/lib/studyContext.ts",
         "src/lib/studyContextContract.ts",
+        "src/lib/systemIcons.ts",
         "src/lib/wordSearch/content.ts",
         "src/lib/wordSearch/generator.ts"
       ],
@@ -66305,6 +66574,7 @@
         "src/components/home/HomeContent.tsx",
         "src/components/versado/MascotSlot.tsx",
         "src/components/versado/SystemIcon.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/VisualIdentityIcon.tsx",
         "src/components/versado/styles.ts",
         "src/lib/achievements.ts",
@@ -66351,6 +66621,7 @@
         "src/lib/requestLanguage.ts",
         "src/lib/session.ts",
         "src/lib/socketClient.ts",
+        "src/lib/systemIcons.ts",
         "src/lib/unsubscribe.ts",
         "src/lib/visualIdentityAssets.ts"
       ],
@@ -66375,6 +66646,7 @@
         "src/components/I18nProvider.tsx",
         "src/components/InviteAcceptButton.tsx",
         "src/components/UserAvatar.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/VisualIdentityIcon.tsx",
         "src/lib/socketClient.ts"
       ],
@@ -66422,6 +66694,7 @@
         "src/components/social/GroupJoinPreview.tsx",
         "src/components/social/shared.tsx",
         "src/components/versado/SystemIcon.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/styles.ts",
         "src/lib/achievements.ts",
         "src/lib/activityFeed.ts",
@@ -66478,6 +66751,7 @@
         "src/lib/social/groups.ts",
         "src/lib/social/joinLinks.ts",
         "src/lib/social/rules.ts",
+        "src/lib/systemIcons.ts",
         "src/lib/timeZone.ts",
         "src/lib/unsubscribe.ts",
         "src/lib/xp.ts"
@@ -66496,7 +66770,8 @@
         "src/components/I18nProvider.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/social/GroupJoinPreview.tsx",
-        "src/components/social/shared.tsx"
+        "src/components/social/shared.tsx",
+        "src/components/versado/UserAvatarView.tsx"
       ],
       "requestEvidence": [
         "/api/users/avatars?ids=${encodeURIComponent(ids.join(\",\"))}"
@@ -66697,6 +66972,7 @@
         "src/components/versado/PersonalMascot.tsx",
         "src/components/versado/RankMedal.tsx",
         "src/components/versado/SystemIcon.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/VisualIdentityIcon.tsx",
         "src/components/versado/styles.ts",
         "src/lib/achievements.ts",
@@ -66822,6 +67098,7 @@
         "src/lib/studyContent/schema.ts",
         "src/lib/studyContext.ts",
         "src/lib/studyContextContract.ts",
+        "src/lib/systemIcons.ts",
         "src/lib/timeFormat.ts",
         "src/lib/timeZone.ts",
         "src/lib/unsubscribe.ts",
@@ -66854,6 +67131,7 @@
         "src/components/social/shared.tsx",
         "src/components/versado/PersonalMascot.tsx",
         "src/components/versado/RankMedal.tsx",
+        "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/VisualIdentityIcon.tsx",
         "src/lib/data/client.ts",
         "src/lib/data/hints.ts",
@@ -67245,6 +67523,7 @@
         "src/lib/studyContent/schema.ts",
         "src/lib/studyContext.ts",
         "src/lib/studyContextContract.ts",
+        "src/lib/systemIcons.ts",
         "src/lib/wordSearch/content.ts",
         "src/lib/wordSearch/generator.ts"
       ],
@@ -68542,12 +68821,11 @@
     },
     {
       "file": "src/app/layout.tsx",
-      "sha256": "721acaa2936aabb4d88792ae813fac4fe992b925f61965474dbde3d89e51a18f",
+      "sha256": "353e9f49b614f7c4fd48aa8a0d9cb49b029c8f2624c25b33188f3cfda294151f",
       "boundary": "context-dependent",
       "imports": [
         "./globals.css",
         "@/components/ActivityTracker",
-        "@/components/BottomNav",
         "@/components/ChangelogPopup",
         "@/components/ConfirmProvider",
         "@/components/ContentSwitcher",
@@ -68564,7 +68842,6 @@
         "@/components/PublicLanguageSwitcher",
         "@/components/ReadAloudMiniPlayer",
         "@/components/ServiceWorkerRegister",
-        "@/components/StickyHeader",
         "@/components/StreakContinuation",
         "@/components/SubpageBackBar",
         "@/components/ThemeScript",
@@ -68573,11 +68850,10 @@
         "@/components/kompas/ContextOffer",
         "@/components/kompas/KompasProvider",
         "@/components/navigation/NextNavigationProvider",
-        "@/components/shell/FocusModeController",
+        "@/components/shell/AppShellFrame",
+        "@/components/shell/AppShellHeader",
         "@/components/shell/HeaderAvatar",
         "@/components/shell/NavigationScroll",
-        "@/components/shell/PrimaryNav",
-        "@/components/shell/ShellMetrics",
         "@/components/shell/SocialTabs",
         "@/components/versado/PersonalMascot",
         "@/lib/baseUrl",
@@ -68595,7 +68871,6 @@
         "@/lib/requestLanguage",
         "@/lib/session",
         "next",
-        "next/link",
         "react"
       ],
       "methods": [],
@@ -70581,7 +70856,7 @@
     },
     {
       "file": "src/components/BottomNav.tsx",
-      "sha256": "4bc5c9d4ea2cb6fc54cdc617e52f3f5093dcb7ab7db0e8dc4e11a1d70f085d7d",
+      "sha256": "632af0657a82340093ab424a18e18a03643b07f2eb17b0c4d8e7154fd7d31be4",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -71828,19 +72103,14 @@
     },
     {
       "file": "src/components/NavUserBadges.tsx",
-      "sha256": "639cd89f2212b372e2204ffbdbca9d711489fb9ac88d3fcab77a5993bec80f59",
+      "sha256": "ce297bae4ea69b0108c43be9781598e2addd4e3927f84fe6aec49db05b4a7b8c",
       "boundary": "client",
       "imports": [
-        "@/components/I18nProvider",
         "@/components/StreakContinuation",
-        "@/components/versado/DivisionEmblem",
-        "@/components/versado/SystemIcon",
+        "@/components/shell/UserBadgesView",
         "@/generated/prisma/client",
         "@/lib/data/fetchJson",
         "@/lib/data/hooks",
-        "@/lib/i18n/core",
-        "@/lib/languages",
-        "next/link",
         "react"
       ],
       "methods": [],
@@ -72596,10 +72866,11 @@
     },
     {
       "file": "src/components/SubpageBackBar.tsx",
-      "sha256": "d8ee3bb15b413b1c9e418ee8a72f2bee86a7cfe957d2547c0d7adb927844c143",
+      "sha256": "53c430ed6fe4fabf68a19ba2d05fd48b99974da60251bcbf621adf534175044f",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
+        "@/components/shell/SubpageBackBarView",
         "@/components/versado/PersonalMascot",
         "@/lib/backTarget",
         "@/lib/gameCatalog",
@@ -72608,7 +72879,6 @@
         "@/lib/navigationHistory",
         "@/lib/profileViews",
         "@/lib/puzzle/navigation",
-        "lucide-react",
         "next/navigation",
         "react"
       ],
@@ -72687,10 +72957,10 @@
     },
     {
       "file": "src/components/UserAvatar.tsx",
-      "sha256": "8e897f3589f16ba28efc499893ed6499f842bd0e005b39164833d30f4d6d0331",
+      "sha256": "9073dd6dcae4dceb67f699d2100a1e07b3a525a6fbcbd8b443ea2f6630d0f90e",
       "boundary": "client",
       "imports": [
-        "@/components/ScriptureAvatar",
+        "@/components/versado/UserAvatarView",
         "@/lib/avatarTypes",
         "react"
       ],
@@ -74188,13 +74458,13 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "28eb83bf19dc99c6ef3cbb3a92b4c58b90dfb14a3ef7cc6b145bda246402cd48",
+      "sha256": "40db9ffa7e748114f095126427b37aaf3b57418f71d48f791a481eb7e6304d1c",
       "boundary": "client",
       "imports": [
         "./NativeEmailConfirmation",
         "./NativePasswordReset",
+        "./NativeShellHeader",
         "@/components/I18nProvider",
-        "@/components/StickyHeader",
         "@/components/account/AccountActionsProvider",
         "@/components/account/PasswordChangeForm",
         "@/components/account/TwoFactorCards",
@@ -74203,8 +74473,8 @@
         "@/components/legal/DisclaimerContent",
         "@/components/legal/PrivacyContent",
         "@/components/navigation/AppNavigation",
-        "@/components/shell/FocusModeController",
-        "@/components/shell/ShellMetrics",
+        "@/components/shell/AppShellFrame",
+        "@/components/shell/SubpageBackBarView",
         "@/components/versado/MascotSlot",
         "@/components/versado/styles",
         "@/lib/data/nativeHooks",
@@ -74213,6 +74483,7 @@
         "@/lib/native/client",
         "@/lib/native/contract",
         "@/lib/native/navigation",
+        "@/lib/native/shell",
         "@/lib/native/socketClient",
         "@/lib/platform",
         "lucide-react",
@@ -74270,6 +74541,29 @@
       "checks": [],
       "exports": [
         "NativePasswordReset"
+      ]
+    },
+    {
+      "file": "src/components/native/NativeShellHeader.tsx",
+      "sha256": "f51b20d807e58926e517e32d2dc96e606cefec91a68d2056ff53950171df8bbc",
+      "boundary": "client",
+      "imports": [
+        "@/components/shell/AppShellHeader",
+        "@/components/shell/HeaderAvatarView",
+        "@/components/shell/UserBadgesView",
+        "@/components/versado/UserAvatarView",
+        "@/lib/avatarTypes",
+        "@/lib/data/nativeHooks",
+        "@/lib/native/client",
+        "@/lib/native/contract",
+        "@/lib/native/shell",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NativeShellHeader"
       ]
     },
     {
@@ -74825,6 +75119,42 @@
       ]
     },
     {
+      "file": "src/components/shell/AppShellFrame.tsx",
+      "sha256": "c9540d43f4de43da21c0fba3bd0bb49f76b5202b5a8894e4aa26de13e9b0f547",
+      "boundary": "client",
+      "imports": [
+        "./FocusModeController",
+        "./ShellMetrics",
+        "@/components/BottomNav",
+        "@/components/StickyHeader",
+        "@/lib/navigation",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "AppShellFrame"
+      ]
+    },
+    {
+      "file": "src/components/shell/AppShellHeader.tsx",
+      "sha256": "9c6b3e175afc534d7b0279b1ed3d3259e5dfe052ab36ac712a7015766b76a810",
+      "boundary": "client",
+      "imports": [
+        "./PrimaryNav",
+        "@/components/navigation/AppNavigation",
+        "@/lib/navigation",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "AppShellHeader"
+      ]
+    },
+    {
       "file": "src/components/shell/FocusModeController.tsx",
       "sha256": "2554faad3efb9ff76d1b58cdcde5579d3b3dd0fcbf09d25ceccc48e971a2cfc2",
       "boundary": "client",
@@ -74843,19 +75173,33 @@
     },
     {
       "file": "src/components/shell/HeaderAvatar.tsx",
-      "sha256": "18ab319f875a03ccdea53a4fa2b1d854a586032877a518971a99061c81089f1f",
+      "sha256": "3472aed88a274bd389455dc1ca327d69bcef5bf47bf6b922cadd488d6e4f7336",
       "boundary": "client",
       "imports": [
-        "@/components/I18nProvider",
-        "@/components/UserAvatar",
-        "next/link",
-        "next/navigation"
+        "./HeaderAvatarView",
+        "@/components/UserAvatar"
       ],
       "methods": [],
       "requests": [],
       "checks": [],
       "exports": [
         "HeaderAvatar"
+      ]
+    },
+    {
+      "file": "src/components/shell/HeaderAvatarView.tsx",
+      "sha256": "5301e040952309030f3cbf8489c8fc3cb0de2439fd40306686bf55cc24ef83d1",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "HeaderAvatarView"
       ]
     },
     {
@@ -74895,7 +75239,7 @@
     },
     {
       "file": "src/components/shell/PrimaryNav.tsx",
-      "sha256": "86437014a324941e92221ebc04068d56c868cab49d2878ed6e65f575b4487a50",
+      "sha256": "c2b46bb2bfb2b5cf600449b9d0780707e98b484d70e91ee43a79a048276e26c6",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -74942,6 +75286,42 @@
       "checks": [],
       "exports": [
         "SocialTabs"
+      ]
+    },
+    {
+      "file": "src/components/shell/SubpageBackBarView.tsx",
+      "sha256": "4f37809ac393496faa74fb5ea2b9d2b1ae8b26d3e16b60557c248445f98436d9",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "lucide-react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "SubpageBackBarView"
+      ]
+    },
+    {
+      "file": "src/components/shell/UserBadgesView.tsx",
+      "sha256": "3fded45fef4676c3968fa045f34dec9f756a97eac2c9ef14abf56d56f02524cf",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
+        "@/components/versado/DivisionEmblem",
+        "@/components/versado/SystemIcon",
+        "@/generated/prisma/enums",
+        "@/lib/i18n/core",
+        "@/lib/languages",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "UserBadgesView"
       ]
     },
     {
@@ -76371,9 +76751,10 @@
     },
     {
       "file": "src/components/versado/SystemIcon.tsx",
-      "sha256": "996a4a0901929a247cb44bc71deb58690bb2f74fe9a9a4e1f272f7b347eba71f",
+      "sha256": "ac5fcc58092cb1453ae0eb888a67a0525e0ebadac65d071455a4ece01cc6e47b",
       "boundary": "context-dependent",
       "imports": [
+        "@/lib/systemIcons",
         "react"
       ],
       "methods": [],
@@ -76393,6 +76774,21 @@
       "checks": [],
       "exports": [
         "ToggleSwitch"
+      ]
+    },
+    {
+      "file": "src/components/versado/UserAvatarView.tsx",
+      "sha256": "34648cd449523b99eb08ba77053df1e2719eed4ff51a9661c36727c408c1053e",
+      "boundary": "client",
+      "imports": [
+        "@/components/ScriptureAvatar",
+        "@/lib/avatarTypes"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "UserAvatarView"
       ]
     },
     {
@@ -76720,12 +77116,16 @@
     "tests/native-data.browser.mjs",
     "tests/native-data.test.ts",
     "tests/native-distribution.test.ts",
+    "tests/native-foundation-apple.browser.mjs",
     "tests/native-foundation.browser.mjs",
     "tests/native-foundation.integration.test.ts",
     "tests/native-foundation.test.ts",
     "tests/native-ios-release.test.mjs",
     "tests/native-navigation.test.ts",
     "tests/native-parity.test.mjs",
+    "tests/native-shell.browser.mjs",
+    "tests/native-shell.integration.test.ts",
+    "tests/native-shell.test.tsx",
     "tests/native-socket.integration.test.ts",
     "tests/native-socket.test.ts",
     "tests/native-store-readiness.test.mjs",

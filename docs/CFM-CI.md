@@ -44,6 +44,31 @@ verkeerde koppeling van gewone tests aan veranderlijke live bronbytes.
 of pixelgelijkheid met de oude JPEG's. Die oude bestanden zijn niet beschikbaar;
 geen re-encode-, metadata-only- of inhoudsgelijkheidsclaim.
 
+## Synchronisatie met develop na #239
+
+Opnieuw gecontroleerd tegen `develop` `0c56b029ab246da5645f20a3fd3dcdcc0e7831c1`.
+Run [41058704756](https://github.com/rjgout/Versado.app/actions/runs/41058704756)
+faalt in dezelfde voorbereidingsstap bij alle vijf CFM-consumers, vóór de echte
+integratietests. Zijn 2026-media-lock heeft nog steeds de oorspronkelijke Git-blob
+`e1845f6261ee90335347829daf632ab1cb3d9574`; #237 was daar nog niet opgenomen.
+Deze fout bewijst geen regressie van de gedeelde shell.
+
+De bestaande #237-branch is met deze develop-commit samengevoegd. Er waren geen
+mergeconflicten; de automatische samenvoeging van de pariteitsinventaris voldoet
+opnieuw aan de generatorcontrole. Native/web-shell, authenticatie, de Apple-UI-
+correctie en native regressietests zijn exact gelijk aan develop. Geen handmatige
+terugplaatsing van oude native code of tests. De zeven goedgekeurde repins, het
+archief, alle bronlocks en beide CFM-workflows zijn ongewijzigd ten opzichte van
+`04479318f4767ec0e421c6e3c7143d9f9300270c`.
+
+De lokale verificatie hergebruikt één nieuwe productiebuild voor de importproef
+en vier programmasuites, elk op een eigen wegwerpdatabase. Offline voorbereiding
+valideert alle 1.641 bestanden zonder bronverzoeken; de zeven goedgekeurde nieuwe
+JPEG-hashes/groottes zijn bovendien opnieuw via zeven verse officiële downloads
+bevestigd. De afzonderlijke CI-broncontrole blijft alle 1.641 live bronnen zonder
+cache controleren. Resultaten op de nieuwe definitieve PR-head staan bij #237;
+geen eerdere groene head wordt als nieuw testbewijs gebruikt.
+
 ## Expliciet goedgekeurde, begrensde pinwijziging
 
 De eigenaar heeft in deze opdracht expliciet goedgekeurd uitsluitend de zeven

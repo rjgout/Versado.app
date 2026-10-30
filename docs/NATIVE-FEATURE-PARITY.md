@@ -1,5 +1,16 @@
 # Native functiepariteit — Versado
 
+## Actuele multiplatformopdracht — fase A op develop
+
+De opdracht in [#238](https://github.com/rjgout/Versado.app/issues/238) is leidend:
+volledige bestaande web/PWA-, iOS/iPadOS- en Android-functionaliteit, inclusief native push.
+De eerste implementatie deelt de echte shellpresentatie; volledige contentkiezer,
+cursusnavigatie, Vandaag, spellen en sociale schermen zijn hiermee nog niet geleverd.
+Zie [implementatie, afhankelijkheden en toestelacceptatie](NATIVE-SHARED-SHELL.md).
+De eigenaar bevestigde de eerdere Foundation-iPhonetest bij #233; de nieuwe fase A
+vereist opnieuw fysieke acceptatie. Geen releasevrijgave of platformuitzondering.
+
+
 Gecontroleerde ontwikkelbasis: `origin/main` op `e76bc9f7c04b7b9e6faffb97c255184e0c5fb018`. Inventarisatie op 21 oktober 2026. Roadmap: [issue #163](https://github.com/rjgout/Versado.app/issues/163). Dit is implementatievoorbereiding en technische verificatie, geen onafhankelijke acceptatie-audit.
 
 ## Audio V2 — ontwikkelstatus
@@ -289,7 +300,7 @@ De onafhankelijke review volgt door ChatGPT. #176 en #178 blijven ongemerged.
 <!-- BEGIN NATIVE PARITY INVENTORY -->
 ## Volledige broninventaris (gegenereerd)
 
-Gevonden: **143 pagina's**, **244 fysieke routehandlers**, **433 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
+Gevonden: **143 pagina's**, **244 fysieke routehandlers**, **440 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
 
 De JSON-bijlage bevat per route alle transitief bereikbare lokale modules, clientgrenzen en statische requestpaden. Dat is een afhankelijkheidsinventaris, geen autorisatiebewijs; voorwaarden per HTTP-methode blijven apart te controleren. Een Client Component kan via een gedeelde helper nog een serverafhankelijkheid hebben. Een module zonder eigen `use client` is contextafhankelijk, niet automatisch browsergeschikt.
 
@@ -1024,6 +1035,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/native/NativeFoundation.tsx](../src/components/native/NativeFoundation.tsx) | use client | NativeFoundation
 [src/components/native/NativeNavigationProvider.tsx](../src/components/native/NativeNavigationProvider.tsx) | use client | NativeNavigationProvider
 [src/components/native/NativePasswordReset.tsx](../src/components/native/NativePasswordReset.tsx) | use client | NativePasswordReset
+[src/components/native/NativeShellHeader.tsx](../src/components/native/NativeShellHeader.tsx) | use client | NativeShellHeader
 [src/components/native/entry.tsx](../src/components/native/entry.tsx) | contextafhankelijk / server-entry waar page/layout | default/locale declaratie; zie bron
 [src/components/navigation/AppNavigation.tsx](../src/components/navigation/AppNavigation.tsx) | use client | AppLink, AppNavigationProvider, useAppNavigation
 [src/components/navigation/NextNavigationProvider.tsx](../src/components/navigation/NextNavigationProvider.tsx) | use client | NextNavigationProvider
@@ -1049,13 +1061,18 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/reading/MyStepNav.tsx](../src/components/reading/MyStepNav.tsx) | use client | MyStepNav, currentScrollTarget
 [src/components/reading/ReadingPath.tsx](../src/components/reading/ReadingPath.tsx) | use client | ReadingPath
 [src/components/reading/pathParts.tsx](../src/components/reading/pathParts.tsx) | use client | ActiveChapterCard, CARD, ChapterLinkCard, ChapterThumb, Connector, DoneMark, Heading, LockedChapterCard, THUMB_PAD, hasArtwork
+[src/components/shell/AppShellFrame.tsx](../src/components/shell/AppShellFrame.tsx) | use client | AppShellFrame
+[src/components/shell/AppShellHeader.tsx](../src/components/shell/AppShellHeader.tsx) | use client | AppShellHeader
 [src/components/shell/FocusModeController.tsx](../src/components/shell/FocusModeController.tsx) | use client | FocusModeController
 [src/components/shell/HeaderAvatar.tsx](../src/components/shell/HeaderAvatar.tsx) | use client | HeaderAvatar
+[src/components/shell/HeaderAvatarView.tsx](../src/components/shell/HeaderAvatarView.tsx) | use client | HeaderAvatarView
 [src/components/shell/NavIcon.tsx](../src/components/shell/NavIcon.tsx) | contextafhankelijk / server-entry waar page/layout | NavIcon
 [src/components/shell/NavigationScroll.tsx](../src/components/shell/NavigationScroll.tsx) | use client | NavigationScroll
 [src/components/shell/PrimaryNav.tsx](../src/components/shell/PrimaryNav.tsx) | use client | PrimaryNav
 [src/components/shell/ShellMetrics.tsx](../src/components/shell/ShellMetrics.tsx) | use client | ShellMetrics
 [src/components/shell/SocialTabs.tsx](../src/components/shell/SocialTabs.tsx) | use client | SocialTabs
+[src/components/shell/SubpageBackBarView.tsx](../src/components/shell/SubpageBackBarView.tsx) | use client | SubpageBackBarView
+[src/components/shell/UserBadgesView.tsx](../src/components/shell/UserBadgesView.tsx) | use client | UserBadgesView
 [src/components/snelleZendeling/Leaderboard.tsx](../src/components/snelleZendeling/Leaderboard.tsx) | use client | QuickMissionaryLeaderboard
 [src/components/snelleZendeling/RevivePanels.tsx](../src/components/snelleZendeling/RevivePanels.tsx) | use client | DeathPanel, ReviveFailurePanel, ReviveQuestionPanel
 [src/components/snelleZendeling/RunClient.tsx](../src/components/snelleZendeling/RunClient.tsx) | use client | QuickMissionaryRunClient
@@ -1122,6 +1139,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/versado/StreakDayIndicator.tsx](../src/components/versado/StreakDayIndicator.tsx) | contextafhankelijk / server-entry waar page/layout | StreakDayIndicator
 [src/components/versado/SystemIcon.tsx](../src/components/versado/SystemIcon.tsx) | contextafhankelijk / server-entry waar page/layout | SystemIcon
 [src/components/versado/ToggleSwitch.tsx](../src/components/versado/ToggleSwitch.tsx) | use client | ToggleSwitch
+[src/components/versado/UserAvatarView.tsx](../src/components/versado/UserAvatarView.tsx) | use client | UserAvatarView
 [src/components/versado/VisualIdentityIcon.tsx](../src/components/versado/VisualIdentityIcon.tsx) | use client | VisualIdentityIcon
 [src/lib/data/nativeHooks.tsx](../src/lib/data/nativeHooks.tsx) | use client | NativeDataProvider, useNativeData, useNativeLiveQuery
 [src/lib/i18n/rich.tsx](../src/lib/i18n/rich.tsx) | contextafhankelijk / server-entry waar page/layout | rich

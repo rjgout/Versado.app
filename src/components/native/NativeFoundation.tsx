@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { HANDLE_MAX_LENGTH } from "@/lib/handle";
-import { ArrowLeft, LogOut, WifiOff } from "lucide-react";
+import { LogOut, WifiOff } from "lucide-react";
 import MascotSlot from "@/components/versado/MascotSlot";
 import { useT, useUiLanguage } from "@/components/I18nProvider";
 import { primaryButton, secondaryButton } from "@/components/versado/styles";
@@ -14,9 +14,10 @@ import PrivacyContent from "@/components/legal/PrivacyContent";
 import DisclaimerContent from "@/components/legal/DisclaimerContent";
 import ContactContent from "@/components/legal/ContactContent";
 import CookiesContent from "@/components/legal/CookiesContent";
-import StickyHeader from "@/components/StickyHeader";
-import ShellMetrics from "@/components/shell/ShellMetrics";
-import FocusModeController from "@/components/shell/FocusModeController";
+import AppShellFrame from "@/components/shell/AppShellFrame";
+import SubpageBackBarView from "@/components/shell/SubpageBackBarView";
+import NativeShellHeader from "./NativeShellHeader";
+import { NATIVE_PRIMARY_NAV, nativeAppleLoginUIAvailable } from "@/lib/native/shell";
 import PasswordChangeForm from "@/components/account/PasswordChangeForm";
 import { AccountActionsProvider } from "@/components/account/AccountActionsProvider";
 import { RecoveryCodesCard, TwoFactorSetupCard } from "@/components/account/TwoFactorCards";
@@ -181,23 +182,15 @@ function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBan
     const data = await load(); if (!isCurrent()) return; setUser(data.me); setActivity(data.today.activity); setPassword("");
   }
   const button = `${secondaryButton} min-h-12 whitespace-normal`;
+  const appleLoginAvailable = isIOSApp() && nativeAppleLoginUIAvailable(apple, features);
   const detail = legal || profile || passwordPage || resetPage || confirmationPage || !!chapterId;
-  return <AccountActionsProvider actions={accountActions}><FocusModeController>
-    <ShellMetrics />
-    <StickyHeader>
-    <header data-app-global-header className="border-b border-vs-line bg-vs-elevated pt-[var(--vs-safe-area-top)]">
-    <div className="mx-auto flex min-h-14 max-w-2xl flex-wrap items-center gap-3 pl-[max(1.25rem,var(--vs-safe-area-left))] pr-[max(1.25rem,var(--vs-safe-area-right))] py-2">
-      {/* Native merkbeeld uit het door de eigenaar aangeleverde vlamlogo. */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/icons/native/versado-flame.png" width="44" height="44" alt="" />
-      <span className="text-xl font-extrabold">Versado</span>
-      {user && <button type="button" disabled={busy} className={`${button} ml-auto`} onClick={() => { setPassword(""); setCode(""); void action(() => client.logout(() => { setUser(null); dataRuntime.reset(); setSetup(null); setRecoveryCodes(null); setIdentifier(""); navigation.replace("/login"); })); }}><LogOut className="h-4 w-4" />{t("nativeFoundation.logout")}</button>}
-    </div></header>
-    {detail && <div data-subpage-back-bar className="border-b border-vs-line bg-vs-elevated pl-[max(1.25rem,var(--vs-safe-area-left))] pr-[max(1.25rem,var(--vs-safe-area-right))] py-2">
-      <button className={button} onClick={() => navigation.back()}><ArrowLeft className="h-4 w-4" />{t("nativeFoundation.back")}</button>
-    </div>}
-    </StickyHeader>
-    <main className="native-foundation mx-auto flex min-h-dvh w-full max-w-2xl flex-col gap-5 bg-vs-bg text-vs-fg">
+  const shellAccount = user && !setup && !recoveryCodes ? user : null;
+  return <AccountActionsProvider actions={accountActions}><AppShellFrame
+    header={<NativeShellHeader account={shellAccount} onError={report} />}
+    headerExtras={detail && <SubpageBackBarView title={profile ? t("nav.profile") : chapterId ? chapter?.title ?? t("pages.lesson") : t("common.back")} onBack={() => navigation.back()} />}
+    showNavigation={!!shellAccount} destinations={NATIVE_PRIMARY_NAV}
+    mainClassName="native-foundation flex min-h-dvh w-full flex-col gap-5 bg-vs-bg text-vs-fg"
+  >
     {buildBanner}
     {internalAccess}
     {offline && <p role="status" className="flex gap-2 rounded-xl bg-vs-surface p-3"><WifiOff className="h-5 w-5 shrink-0" />{t("nativeFoundation.offline")}</p>}
@@ -234,20 +227,21 @@ function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBan
       {mode === "forgot" && features.includes("password-reset-v1") && <AppLink className={button} href="/reset-password">{t("password.openResetLink")}</AppLink>}
       {features.includes("email-confirmation-v1") && <AppLink className={button} href="/verify-email">{t("verify.openLink")}</AppLink>}
       {notice && <p role="status">{t("nativeFoundation.registrationSent")}</p>}
-      {isIOSApp() && <button type="button" disabled={busy || !apple} className={`${button} !bg-black !text-white`} onClick={() => void action(isCurrent => signInApple(false, isCurrent))}>{t("nativeFoundation.apple")}</button>}
-      {isIOSApp() && !apple && <p>{t("nativeFoundation.appleUnavailable")}</p>}
+      {appleLoginAvailable && <button type="button" disabled={busy} className={`${button} !bg-black !text-white`} onClick={() => void action(isCurrent => signInApple(false, isCurrent))}>{t("nativeFoundation.apple")}</button>}
       <div className="flex flex-wrap gap-3">{(["login", "register", "forgot"] as const).filter(v => v !== mode).map(value => <button className={button} disabled={busy} key={value} onClick={() => { navigation.push(value === "forgot" ? "/forgot-password" : `/${value}`); setError(""); setNotice(false); }}>{t(`nativeFoundation.${value}`)}</button>)}</div>
-      <p className="text-sm">{t("nativeFoundation.appleResetHelp")}</p>
+      {appleLoginAvailable && <p className="text-sm">{t("nativeFoundation.appleResetHelp")}</p>}
       {!termsUrl && <p className="text-sm">{t("nativeFoundation.termsUnavailable")}</p>}
     </> : <>
       <h1 tabIndex={-1} className="text-2xl font-extrabold">{passwordPage ? t("profile.changePassword") : profile ? t("nativeFoundation.account") : (chapterId ? chapter?.title ?? t("pages.lesson") : `${t("nativeFoundation.today")}, ${user.handle}`)}</h1>
       {passwordPage ? <PasswordChangeForm forced={false} requiresSecondFactor={user.totpEnabled} onChanged={async () => {
         await client.logout(() => { setUser(null); dataRuntime.reset(); setRecoveryCodes(null); navigation.replace("/login"); }).catch(report);
       }} /> : profile ? <>
-        <p>{user.appleLinked ? t("nativeFoundation.appleLinked") : t("nativeFoundation.appleUnavailable")}</p>
+        {(appleLoginAvailable || user.appleLinked) && <>
+        {user.appleLinked && <p>{t("nativeFoundation.appleLinked")}</p>}
         <label>{t("nativeFoundation.password")}<input type="password" autoComplete="current-password" className="input w-full" value={password} onChange={e => setPassword(e.target.value)} maxLength={256} /></label>
         <label>{t("nativeFoundation.code")}<input className="input w-full" value={code} onChange={e => setCode(e.target.value)} maxLength={100} /></label>
-        {(apple || user.appleLinked) && <button className={button} disabled={busy || !password || !user.passwordLoginEnabled} onClick={() => void action(async isCurrent => { if (user.appleLinked) { await client.api("apple", { password, ...(code ? { code } : {}) }, "DELETE"); setUser(null); setPassword(""); setCode(""); await client.logout(); } else await signInApple(true, isCurrent); })}>{t(user.appleLinked ? "nativeFoundation.appleUnlink" : "nativeFoundation.appleLink")}</button>}
+        <button className={button} disabled={busy || !password || !user.passwordLoginEnabled} onClick={() => void action(async isCurrent => { if (user.appleLinked) { await client.api("apple", { password, ...(code ? { code } : {}) }, "DELETE"); setUser(null); setPassword(""); setCode(""); await client.logout(); } else await signInApple(true, isCurrent); })}>{t(user.appleLinked ? "nativeFoundation.appleUnlink" : "nativeFoundation.appleLink")}</button>
+        </>}
         {user.passwordLoginEnabled && features.includes("account-password-v1") && <AppLink className={button} href="/change-password">{t("profile.changePassword")}</AppLink>}
         {!user.passwordLoginEnabled && <p>{t("nativeFoundation.alternativeRequired")}</p>}
       </> : chapterId ? chapter ? <>
@@ -269,14 +263,14 @@ function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBan
       </> : null : <>
         {user.onboardingRequired && <p>{t("nativeFoundation.onboardingNote")}</p>}
         {activity ? <button className={`${primaryButton} min-h-12 whitespace-normal`} disabled={busy} onClick={() => navigation.push(`/lesson/${encodeURIComponent(activity.id)}`)}>{activity.title} — {t("nativeFoundation.continue")}</button> : <p>{t("nativeFoundation.empty")}</p>}
-        <button className={button} onClick={() => navigation.push("/profile")}>{t("nativeFoundation.account")}</button>
       </>}
     </>}
     <footer className="mt-auto flex flex-wrap gap-3 pt-6">
+      {user && <button type="button" disabled={busy} className={button} onClick={() => { setPassword(""); setCode(""); void action(() => client.logout(() => { setUser(null); dataRuntime.reset(); setSetup(null); setRecoveryCodes(null); setIdentifier(""); navigation.replace("/login"); })); }}><LogOut className="h-4 w-4" />{t("nativeFoundation.logout")}</button>}
       <button className={button} onClick={() => void bootstrap()} disabled={busy || !!setup || !!recoveryCodes}>{t("nativeFoundation.retry")}</button>
       <button className={button} onClick={() => void dismissNativeKeyboard()}>{t("nativeFoundation.keyboardDone")}</button>
       <AppLink className={button} href="/privacy">{t("nativeFoundation.privacy")}</AppLink>
-      <button className={button} disabled={!termsUrl} title={!termsUrl ? t("nativeFoundation.termsUnavailable") : undefined} onClick={() => { if (termsUrl) void openExternalUrl(termsUrl); }}>{t("nativeFoundation.terms")}</button>
+      {termsUrl && <button className={button} onClick={() => void openExternalUrl(termsUrl)}>{t("nativeFoundation.terms")}</button>}
     </footer>
-  </main></FocusModeController></AccountActionsProvider>;
+  </AppShellFrame></AccountActionsProvider>;
 }
