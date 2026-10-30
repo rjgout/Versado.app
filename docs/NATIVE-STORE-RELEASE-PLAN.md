@@ -1,12 +1,12 @@
 # Versado Mobile 1.0 — stuurdocument voor de store-release
 
-Status: **optie B bevestigd als ontwikkelrichting** (opdracht Versado Mobile 1.0).
-De oorspronkelijke architectuurinventaris dateert van 23 oktober 2026; de actuele consolidatie tegen
-`origin/main` `096f66c9ebcb11577fbfbeaf1af1e7de34ac2a28` staat in
-[MOBILE-1-0-INTEGRATIE.md](MOBILE-1-0-INTEGRATIE.md) (28 oktober 2026).
-Dit document wijzigt het bestaande pariteitsbeleid **niet**: tijdelijke platformuitzonderingen blijven
-expliciet ter beoordeling in [NATIVE-MOBILE-1-0-OPTIE-B.md](NATIVE-MOBILE-1-0-OPTIE-B.md).
-Technische voorbereiding, een compileproef en een echte toestel-/storeacceptatie zijn afzonderlijke bewijzen.
+Status: **historisch Mobile 1.0-plan, scope bijgesteld door #238**.
+De actuele opdracht vraagt volledige bestaande gebruikersfunctionaliteit op web/PWA,
+iOS/iPadOS en Android, plus APNs/FCM-push. Spellen, sociale functies en push zijn geen
+stilzwijgende uitzonderingen of uitgestelde releaseonderdelen. Apple-login mag later;
+accountverwijdering en privacy blijven verplicht. Onderstaande optie-B-mijlpalen zijn
+historische planning, geen actuele scopevrijgave. Zie [fase A en vervolg](NATIVE-SHARED-SHELL.md).
+Releaseguards, onafhankelijke review en echte toestelacceptatie blijven verplicht.
 
 Het stuurdocument verwijst naar de architectuurdocumenten in plaats van ze te herhalen:
 [PLATFORMEN.md](PLATFORMEN.md) (architectuur en doelmodel),
@@ -22,8 +22,9 @@ Het stuurdocument verwijst naar de architectuurdocumenten in plaats van ze te he
 2. Wat werkt is **bewezen**: accountflows (inloggen, registreren, wachtwoordherstel,
    e-mailbevestiging, verplichte beveiligingsstappen), één leeslus (eerste hoofdstuk →
    tekst → bewust afronden), sessieherstel, privacy/cookies offline en realtime-authenticatie.
-   Android-debug en iOS-simulator **compileren** op CI (iOS 26.5 SDK). Niets is op een
-   echt toestel uitgevoerd.
+   Android-debug en iOS-simulator **compileren** op CI (iOS 26.5 SDK). De eigenaar bevestigde de eerdere Foundation op een echte iPhone
+   bij #233 (Service Auth, login, 2FA, sessieherstel); de nieuwe shell en overige functies
+   vereisen eigen fysieke acceptatie.
 3. WP1-distributieprofielen staan op main. Signing-/privacyvoorbereiding wordt geïntegreerd via #196/#197;
    accountverwijdering en openbare toegang via #202/#205. Apple-only-verwijdering/tokenintrekking, echte credentials,
    definitieve voorwaarden, versiebeleid en fysiek apparaatbewijs blijven afzonderlijke releaseblokkades.

@@ -3,15 +3,16 @@
 import { AppLink as Link, useAppNavigation } from "@/components/navigation/AppNavigation";
 import { useT } from "@/components/I18nProvider";
 import NavIcon from "@/components/shell/NavIcon";
-import { PRIMARY_NAV, activeDestination } from "@/lib/navigation";
+import { PRIMARY_NAV, activeDestination, type PrimaryNavItem } from "@/lib/navigation";
 
 // Primaire navigatie op telefoon en tablet: Vandaag, Leren, Spelen,
 // Vrienden. Vanaf desktopbreedte (lg) staat dezelfde navigatie in de header
 // (PrimaryNav) en verdwijnt deze balk. Profiel zit achter de avatar
 // rechtsboven; Competitie en Activiteit zijn tabs onder Vrienden.
-export default function BottomNav() {
+export default function BottomNav({ items = PRIMARY_NAV }: { items?: readonly PrimaryNavItem[] }) {
   const t = useT();
   const active = activeDestination(useAppNavigation().pathname);
+  if (items.length === 0) return null;
   return (
     <nav
       // pb-[...]: telt de homeindicator-ruimte van een geïnstalleerde
@@ -22,8 +23,8 @@ export default function BottomNav() {
       data-main-nav
       aria-label={t("nav.main")}
     >
-      <div className="mx-auto grid w-full max-w-xl grid-cols-4 gap-x-1 px-2 pt-1.5 pb-[calc(0.375rem+var(--vs-safe-area-bottom))]">
-        {PRIMARY_NAV.map((item) => {
+      <div className={`mx-auto grid w-full max-w-xl ${{ 1: "grid-cols-1", 2: "grid-cols-2", 3: "grid-cols-3", 4: "grid-cols-4" }[items.length] ?? "grid-cols-4"} gap-x-1 px-2 pt-1.5 pb-[calc(0.375rem+var(--vs-safe-area-bottom))]`}>
+        {items.map((item) => {
           const isActive = item.id === active;
           return (
             <Link

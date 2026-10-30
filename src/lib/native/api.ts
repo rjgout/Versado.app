@@ -9,6 +9,7 @@ import { hashSecret, issueNativeSession, nativeUser, NativeAuthError, rotateNati
 import { nativePasswordLogin, nativePasswordProof } from "./password";
 import { cancelNativeSecuritySetup, finishNativeSecuritySetup, nativeSignInResult } from "./securitySetup";
 import { nativeSetupFinishSchema } from "./contract";
+import { nativeShellHeader } from "./shellHeader.server";
 import { AccountPasswordError, changeAccountPassword } from "@/lib/account/password";
 import { hashPassword, verifyPassword } from "@/lib/auth";
 import { findOpenPendingRegistration, resendPendingVerification } from "@/lib/registration";
@@ -176,7 +177,13 @@ export async function nativeApi(req: NextRequest, parts: string[]): Promise<Next
       catch (error) { if (!(error instanceof AccountPasswordError)) throw error; throw new NativeAuthError(error.code === "wrong_password" ? "wrong_credentials" : "session_changed"); }
       return json({ ok: true, reauthenticationRequired: true });
     }
-    if (req.method === "GET" && path === "me") return json({ id: user.id, handle: user.handle, uiLanguage: user.uiLanguage, onboardingRequired: !user.onboardingSeenAt, passwordLoginEnabled: user.passwordLoginEnabled, totpEnabled: user.totpEnabled, appleLinked: !!(await prisma.externalIdentity.findFirst({ where: { userId: user.id, provider: "APPLE" }, select: { id: true } })) });
+    if (req.method === "GET" && path === "me") {
+      const [identity, shellHeader] = await Promise.all([
+        prisma.externalIdentity.findFirst({ where: { userId: user.id, provider: "APPLE" }, select: { id: true } }),
+        nativeShellHeader(user),
+      ]);
+      return json({ id: user.id, handle: user.handle, uiLanguage: user.uiLanguage, onboardingRequired: !user.onboardingSeenAt, passwordLoginEnabled: user.passwordLoginEnabled, totpEnabled: user.totpEnabled, appleLinked: !!identity, shellHeader });
+    }
     if (req.method === "GET" && path === "today") {
       // Geen impliciete bronwissel of synthetische BOM-fallback.
       const course = !user.activeContentCollectionId && user.activeCourseId ? await prisma.course.findUnique({ where: { id: user.activeCourseId }, select: { contentCollectionId: true } }) : null;
