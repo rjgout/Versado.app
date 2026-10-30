@@ -520,3 +520,16 @@ test("beschermde bezoekcache ververst opnieuw na unmount tijdens een lopende aan
  first.release();store.observe(key,{fetcher:async()=>({fresh:true}),scopes:["dorp"],discardOnRevalidate:true});
  release({stale:true});await flush();await flush();assert.deepEqual(store.getSnapshot(entryKey).data,{fresh:true});
 });
+
+test("een mislukte poll blijft begrensd op het gevraagde interval, zonder één aanvraag per klokslag", async () => {
+  const { env, advance } = makeEnv(), store = new LiveDataStore(env);
+  let calls = 0;
+  store.observe(["failed-context"], { scopes: ["content"], pollMs: 15_000, fetcher: async () => { calls++; throw Error("synthetic unavailable"); } });
+  await flush(); assert.equal(calls, 1);
+  for (let second = 0; second < 14; second++) { advance(1000); store.tick(); await flush(); }
+  assert.equal(calls, 1, "Fout veroorzaakt geen versnelde automatische GET-retries");
+  advance(1000); store.tick(); await flush(); assert.equal(calls, 2);
+  advance(1000); store.tick(); await flush(); assert.equal(calls, 2);
+  store.revalidate({ force: true }); await flush(); assert.equal(calls, 3, "Bewust hervatten mag wel direct herstellen");
+  store.reset();
+});

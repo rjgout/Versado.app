@@ -142,7 +142,7 @@ test("Capacitor: toetsenbord en systeembalken lopen via de centrale variabelen",
 
 // Contentkiezer, header en terugbalk (docs/LAYOUT.md, "Volgorde bovenin").
 const layoutSource = read("src/app/layout.tsx");
-const switcherSource = read("src/components/ContentSwitcher.tsx");
+const switcherSource = read("src/components/content/ContentSwitcherView.tsx");
 
 test("de contentkiezer staat in de headerrij binnen de ene vaste wrapper, vóór de terugbalk", () => {
   const frame = read("src/components/shell/AppShellFrame.tsx");
@@ -174,10 +174,10 @@ test("de standaardhoogte vóór de meting kent de safe area en de terugbalk", ()
 });
 
 test("de contentkiezer is een semantische paginalink zonder dropdown of tweede shell", () => {
-  assert.match(switcherSource, /<Link[^>]*href="\/content"/);
+  assert.match(switcherSource, /<AppLink[^>]*href="\/content"/);
   assert.match(switcherSource, /ResizeObserver/);
   assert.doesNotMatch(switcherSource, /createPortal|data-content-menu|aria-haspopup|placeMenu|menuBox/);
-  const picker = read("src/components/content/FullscreenContentPicker.tsx");
+  const picker = read("src/components/content/ContentPickerView.tsx");
   assert.doesNotMatch(picker, /className="fixed|overflow-y-auto|role="dialog"|top-14/);
   assert.match(picker, /page-fill/);
   assert.match(read("src/lib/focusMode.ts"), /content/);

@@ -234,6 +234,7 @@ export const nl = {
   "disabled": "Deze build staat interne toesteltoegang niet toe. Bouw de juiste interne versie.",
   "realtime": "Realtimeverbindingen zijn nog niet beschikbaar in deze interne Access-build."
 },
+  nativeDiagnostics: {"title": "Interne diagnose", "open": "Interne diagnose", "internalBadge": "Intern", "testBadge": "Testbuild", "recovery": "Verbinding en herstel"},
   nativeFoundation: {
   "welcome": "Welkom bij Versado",
   "login": "Inloggen",

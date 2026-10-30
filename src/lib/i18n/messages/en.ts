@@ -232,6 +232,7 @@ export const en: PartialMessages = {
   "disabled": "This build does not allow internal device access. Build the correct internal version.",
   "realtime": "Realtime connections are not yet available in this internal Access build."
 },
+  nativeDiagnostics: {"title": "Internal diagnostics", "open": "Internal diagnostics", "internalBadge": "Internal", "testBadge": "Test build", "recovery": "Connection and recovery"},
   nativeFoundation: {
   "welcome": "Welcome to Versado",
   "login": "Sign in",

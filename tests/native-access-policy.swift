@@ -43,6 +43,11 @@ private final class FakeAccessProtocol: URLProtocol {
             require(!NativeAccessPolicy.routeAllowed(path, "GET"), "unsafe route enabled")
         }
         require(NativeAccessPolicy.routeAllowed("chapters/synthetic-1/complete", "POST"), "chapter completion rejected")
+        for method in ["GET", "POST"] { require(NativeAccessPolicy.routeAllowed("content-context", method), "content context rejected") }
+        for method in ["PUT", "PATCH", "DELETE", "HEAD"] { require(!NativeAccessPolicy.routeAllowed("content-context", method), "extra content verb allowed") }
+        for path in ["content-context/", "content-context/preview", "content-context?preview=1", "../content-context", "content-context%2f"] {
+            for method in ["GET", "POST"] { require(!NativeAccessPolicy.routeAllowed(path, method), "broad content route allowed") }
+        }
         let valid = try perform()
         if case .success(let response) = valid { require(response.0 == 200 && response.1 == "{\"ok\":true}", "valid response changed") } else { fatalError("native access failed") }
         let headers = FakeAccessProtocol.captured!

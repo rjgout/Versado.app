@@ -105,6 +105,7 @@ interface Entry {
   generation: number;
   lastObserverFetcher: (() => Promise<unknown>) | null;
   lastReleasedAt: number | null;
+  lastFetchStartedAt: number | null;
 }
 
 export interface PageOptions {
@@ -171,6 +172,7 @@ export class LiveDataStore {
         generation: 0,
         lastObserverFetcher: null,
         lastReleasedAt: this.env.now(),
+        lastFetchStartedAt: null,
       };
       this.entries.set(entryKey, entry);
     }
@@ -311,7 +313,8 @@ export class LiveDataStore {
       const intervals = [...entry.observers].map((o) => o.pollMs).filter((ms): ms is number => ms !== null);
       if (intervals.length === 0) continue;
       const pollMs = Math.min(...intervals);
-      const age = entry.snapshot.fetchedAt === null ? Infinity : now - entry.snapshot.fetchedAt;
+      // Ook een fout telt als poging: een oude fetchedAt mag geen poll per klokslag veroorzaken.
+      const age = now - Math.max(entry.snapshot.fetchedAt ?? -Infinity, entry.lastFetchStartedAt ?? -Infinity);
       if (age >= pollMs) this.maybeFetch(entry, true);
     }
   }
@@ -452,6 +455,7 @@ export class LiveDataStore {
     const fetcher = entry.lastObserverFetcher;
     if (!fetcher) return Promise.resolve();
     const generation = entry.generation;
+    entry.lastFetchStartedAt = this.env.now();
     this.patch(entry, { ...(entry.discardOnRevalidate ? { ...LOADING_SNAPSHOT, invalidated: entry.snapshot.invalidated } : {}), isFetching: true });
     // De afronding hangt aan .finally zodat entry.inflight altijd pas ná de toewijzing leeg wordt.
     const run = this.runFetch(entry, fetcher, generation).finally(() => {

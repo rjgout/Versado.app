@@ -59,7 +59,7 @@ export interface UnavailableNotice {
 }
 
 export type SwitchResult =
-  | { applied: true; outcome: Exclude<SwitchOutcome, { kind: "unavailable" }>; changed?: boolean; selection?: ContentSelection; availability?: "ready" | "no-destination" }
+  | { applied: true; outcome: Exclude<SwitchOutcome, { kind: "unavailable" }>; changed?: boolean; selection?: ContentSelection; selectionVersion?: number; availability?: "ready" | "no-destination" }
   | { applied: false; outcome: Extract<SwitchOutcome, { kind: "unavailable" }>; notice: UnavailableNotice };
 
 interface RouteInput {
@@ -279,6 +279,8 @@ export interface ApplySwitchInput {
   /** Alleen de nieuwe één-tikflow; oude clients behouden unavailable/force. */
   picker?: boolean;
   expectedSelection?: ContentSelection;
+  /** Serveradapter voor dezelfde selectiecommit, bijvoorbeeld native sessiecontrole binnen de transactie. */
+  commitSelection?: (target: ContentCollectionView, expected: ContentSelection) => ReturnType<typeof commitContentSelection>;
 }
 
 async function applyPickerSwitch(input: ApplySwitchInput): Promise<SwitchResult> {
@@ -308,10 +310,10 @@ async function applyPickerSwitch(input: ApplySwitchInput): Promise<SwitchResult>
   else if (href !== "/content" && route.kind === "neutral") href = `${location.pathname}${location.search}`;
   if (href === "/courses" && !await prisma.course.count({ where: { contentCollectionId: target.id, enabled: true } }) && !await prisma.studyLessonEdition.count({where:{collectionId:target.id,publishedRevisionId:{not:null},lesson:{retiredAt:null}}})) href = "/content";
   // De collectie opnieuw onder normale rechten controleren binnen de commit.
-  const saved = await commitContentSelection(input.userId, input.isAdmin, target, input.expectedSelection);
+  const saved = await (input.commitSelection ? input.commitSelection(target, input.expectedSelection) : commitContentSelection(input.userId, input.isAdmin, target, input.expectedSelection));
   if (saved.changed) emitToUser(input.userId, DATA_EVENT_SOCKET_NAME, { event: "contentChanged" });
   return {
-    applied: true, changed: saved.changed, selection: saved.selection,
+    applied: true, changed: saved.changed, selection: saved.selection, selectionVersion: saved.selectionVersion,
     availability: href === "/content" ? "no-destination" : "ready", outcome: { kind: "redirect", href },
   };
 }

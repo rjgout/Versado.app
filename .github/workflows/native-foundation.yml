@@ -4,6 +4,13 @@ on:
     branches: [main, develop, 'feat/native-*', 'fix/native-*']
     paths:
       - 'src/lib/native/**'
+      - 'src/lib/data/**'
+      - 'src/lib/contentPickerContract.ts'
+      - 'src/lib/contentCollections.ts'
+      - 'src/lib/contentSwitch.ts'
+      - 'src/components/ContentSwitcher.tsx'
+      - 'src/components/content/**'
+      - 'src/components/versado/ContentIcon.tsx'
       - 'src/lib/liveQuiz.ts'
       - 'src/lib/chapterGuess.ts'
       - 'src/components/GameRoom.tsx'
@@ -42,6 +49,8 @@ on:
       - 'tests/native-foundation*'
       - 'tests/native-navigation*'
       - 'tests/native-shell*'
+      - 'tests/native-content*'
+      - 'tests/native-data*'
       - 'tests/native-account*'
       - 'tests/native-socket*'
       - 'tests/native-distribution*'

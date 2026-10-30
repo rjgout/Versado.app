@@ -9270,20 +9270,14 @@
     },
     {
       "file": "src/components/ContentSwitcher.tsx",
-      "sha256": "bee58b34b18b3e8c840f6b56bd0d0d6d01f444ae34f0e3fdaafbd2cd1e554893",
+      "sha256": "663ad0270bd34419e72186da46b8a9fe7a46c19273198846cb01b9693f6a810b",
       "boundary": "client",
       "imports": [
-        "@/components/I18nProvider",
-        "@/components/versado/ContentIcon",
+        "./content/ContentSwitcherView",
         "@/lib/contentCollections",
-        "@/lib/contentMetadata",
         "@/lib/data/hooks",
-        "@/lib/languages",
         "@/lib/navigationHistory",
-        "lucide-react",
-        "next/link",
-        "next/navigation",
-        "react"
+        "next/navigation"
       ],
       "methods": [],
       "requests": [],
@@ -11951,22 +11945,59 @@
       ]
     },
     {
-      "file": "src/components/content/FullscreenContentPicker.tsx",
-      "sha256": "5cbbafa7ff0a205bc2754b360e3a66b20083aeb96cfb08cb5336275e2a05bb37",
+      "file": "src/components/content/ContentPickerView.tsx",
+      "sha256": "640adfb1e50dd59a9a902df2c0ea5090d46b0a732c3e46696b45acc8894468f3",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
         "@/components/versado/ContentIcon",
         "@/components/versado/PageIntro",
+        "@/lib/contentPickerContract",
+        "@/lib/languages",
+        "lucide-react",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "ContentPickerView"
+      ]
+    },
+    {
+      "file": "src/components/content/ContentSwitcherView.tsx",
+      "sha256": "c201cfdf9b17f755202d50c0c598bf4902a997af75049177ffaed9e96e644282",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
+        "@/components/versado/ContentIcon",
+        "@/lib/contentCollections",
+        "@/lib/contentMetadata",
+        "@/lib/languages",
+        "lucide-react",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "ContentSwitcherView"
+      ]
+    },
+    {
+      "file": "src/components/content/FullscreenContentPicker.tsx",
+      "sha256": "74803cb2f82c34e2103985fe8f96b309abdab43c046b9489581cd820ffea8f6e",
+      "boundary": "client",
+      "imports": [
+        "./ContentPickerView",
         "@/lib/contentPickerContract",
         "@/lib/contentSwitch",
         "@/lib/data/fetchJson",
         "@/lib/data/hooks",
         "@/lib/data/mutation",
-        "@/lib/languages",
         "@/lib/navigationHistory",
-        "lucide-react",
-        "next/link",
         "next/navigation",
         "react"
       ],
@@ -12716,7 +12747,7 @@
     },
     {
       "file": "src/components/native/NativeBuildBanner.tsx",
-      "sha256": "e2f68114825bbbc1d5fb10f9ef094d793ada018e6e31397ce97989df0a151f80",
+      "sha256": "9128ff2e621a416ea18fc9fbe1d52c35cb0d97e2d6f2e81177e545ff5a4bc6ae",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider"
@@ -12726,6 +12757,26 @@
       "checks": [],
       "exports": [
         "NativeBuildBanner"
+      ]
+    },
+    {
+      "file": "src/components/native/NativeContentPicker.tsx",
+      "sha256": "215efceade348da0bb2fc6efcf216aa995d6b001701e75868f1dab76901f9e86",
+      "boundary": "client",
+      "imports": [
+        "@/components/content/ContentPickerView",
+        "@/components/navigation/AppNavigation",
+        "@/lib/contentPickerContract",
+        "@/lib/data/nativeHooks",
+        "@/lib/native/client",
+        "@/lib/native/contract",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NativeContentPicker"
       ]
     },
     {
@@ -12751,9 +12802,10 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "40db9ffa7e748114f095126427b37aaf3b57418f71d48f791a481eb7e6304d1c",
+      "sha256": "1be632fa8bc6191da2819171886d29b81363de5b721d7a12d1393ac9a06eaaba",
       "boundary": "client",
       "imports": [
+        "./NativeContentPicker",
         "./NativeEmailConfirmation",
         "./NativePasswordReset",
         "./NativeShellHeader",
@@ -12766,10 +12818,12 @@
         "@/components/legal/DisclaimerContent",
         "@/components/legal/PrivacyContent",
         "@/components/navigation/AppNavigation",
+        "@/components/profile/settings",
         "@/components/shell/AppShellFrame",
         "@/components/shell/SubpageBackBarView",
         "@/components/versado/MascotSlot",
         "@/components/versado/styles",
+        "@/lib/data/native",
         "@/lib/data/nativeHooks",
         "@/lib/handle",
         "@/lib/native/account",
@@ -12797,7 +12851,7 @@
     },
     {
       "file": "src/components/native/NativeNavigationProvider.tsx",
-      "sha256": "fb998d8612e4322265704eaffa106d7ef11ce0be16ea47a8eedccefed4e6142c",
+      "sha256": "6495318c170f7d473402747b5408311ef2f28e3ef7b2c38fb0afd1b2ca73b788",
       "boundary": "client",
       "imports": [
         "@/components/navigation/AppNavigation",
@@ -12838,9 +12892,10 @@
     },
     {
       "file": "src/components/native/NativeShellHeader.tsx",
-      "sha256": "f51b20d807e58926e517e32d2dc96e606cefec91a68d2056ff53950171df8bbc",
+      "sha256": "4c15d195401a47f32d756eee4c93f3274cec1791ba9a29f7cbe2e2298a21f001",
       "boundary": "client",
       "imports": [
+        "@/components/content/ContentSwitcherView",
         "@/components/shell/AppShellHeader",
         "@/components/shell/HeaderAvatarView",
         "@/components/shell/UserBadgesView",
@@ -12861,7 +12916,7 @@
     },
     {
       "file": "src/components/native/entry.tsx",
-      "sha256": "dd7eefcfe092fcc78cd094b0ea48b578698d227be1fb760cd5f97d1956e50d0e",
+      "sha256": "017cdc32b772e6df7b292aececda53118e34b7216a13e0de0bbf77445185eb13",
       "boundary": "context-dependent",
       "imports": [
         "./NativeAccessPanel",
@@ -12886,7 +12941,7 @@
     },
     {
       "file": "src/components/navigation/AppNavigation.tsx",
-      "sha256": "df100c4e90865a85eee16f4d68a6b10823ff6184c8dc8c24c13e4bf389a584c4",
+      "sha256": "7f630f3303395f9a8564aa471497d56ec6b7d1500d6a943521cf1381ae62bc97",
       "boundary": "client",
       "imports": [
         "react"
@@ -12895,6 +12950,7 @@
       "requests": [],
       "checks": [],
       "exports": [
+        "AppImage",
         "AppLink",
         "AppNavigationProvider",
         "useAppNavigation"
@@ -12902,10 +12958,11 @@
     },
     {
       "file": "src/components/navigation/NextNavigationProvider.tsx",
-      "sha256": "d3ba0c7b6db2102f1a53ed918a639ed69cbd561d64d2e8378f8bbd8bb8909e1d",
+      "sha256": "bf60a9b1d3c7da1980812d535c0ade2e25de6f0b5b8fca68ae18c32bc9f30d82",
       "boundary": "client",
       "imports": [
         "./AppNavigation",
+        "next/image",
         "next/link",
         "next/navigation",
         "react"
@@ -13460,7 +13517,7 @@
     },
     {
       "file": "src/components/shell/AppShellHeader.tsx",
-      "sha256": "9c6b3e175afc534d7b0279b1ed3d3259e5dfe052ab36ac712a7015766b76a810",
+      "sha256": "266bf2e844cb2adb6a6e69753107fa5a4ae1e6bcbcfa459119e05688c12ae261",
       "boundary": "client",
       "imports": [
         "./PrimaryNav",
@@ -14995,11 +15052,11 @@
     },
     {
       "file": "src/components/versado/ContentIcon.tsx",
-      "sha256": "8dd588aba7ff50e6910324944bc96ff4d73486cbe9bbd5ff4305edc7b9800828",
+      "sha256": "b2a679d2d4d925fa7ac880d11be62147533ecba84bbc3f9f8a08daa29d080f1f",
       "boundary": "client",
       "imports": [
+        "@/components/navigation/AppNavigation",
         "@/lib/contentMetadata",
-        "next/image",
         "react"
       ],
       "methods": [],
@@ -16833,7 +16890,7 @@
     },
     {
       "file": "src/lib/contentPickerContract.ts",
-      "sha256": "c613fe4b347492b4f1202e7454a616dce2eb300e64cc292dd053c63bbe134699",
+      "sha256": "40aaa9f9604cb7886f19eb498f716d9c081d929dc8d4e757279a475ceb355b1c",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/contentCollections",
@@ -16844,6 +16901,8 @@
       "requests": [],
       "checks": [],
       "exports": [
+        "contentCollectionViewSchema",
+        "contentPickerContextSchema",
         "contentSelectionSchema",
         "pickerGroup",
         "resolvePickerEdition",
@@ -16871,7 +16930,7 @@
     },
     {
       "file": "src/lib/contentSwitch.ts",
-      "sha256": "f186d4d970d7e1c69f478fbb849dab5703976056dc88b981775bd3bebc89720e",
+      "sha256": "4a53f5bd391d5b77c369dcfc2a9fde43a36bcf1ca0a27d01aae23210280c6170",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/contentCollections",
@@ -17259,7 +17318,7 @@
     },
     {
       "file": "src/lib/data/native.ts",
-      "sha256": "d32d1069544108dd4065eabbfc8266746788dca2bf09ebfa589ef3fd7434ec69",
+      "sha256": "aee3a6c930a053a31815d8d15c4d3ad9dfa580fdcebd158144199cd03c36248e",
       "boundary": "context-dependent",
       "imports": [
         "./scopes",
@@ -17271,11 +17330,16 @@
       "methods": [],
       "requests": [
         "chapters/${encodeURIComponent(id)}",
+        "content-context",
         "me",
         "today"
       ],
-      "checks": [],
-      "exports": []
+      "checks": [
+        "cancelTick"
+      ],
+      "exports": [
+        "nativeContentQueryKey"
+      ]
     },
     {
       "file": "src/lib/data/nativeHooks.tsx",
@@ -17354,7 +17418,7 @@
     },
     {
       "file": "src/lib/data/store.ts",
-      "sha256": "20b87c3e4908f71767ede2d33ebaf773e861b9becf6fda329c96aafe611a0f1e",
+      "sha256": "1184b691df666c58f1536eed14caead404b5a0a36ec79286842a55f986b12d4a",
       "boundary": "context-dependent",
       "imports": [
         "./scopes"
@@ -18986,7 +19050,7 @@
     },
     {
       "file": "src/lib/i18n/messages/de.ts",
-      "sha256": "0d4c2426d0c7c82f8643908831fd7e441aeef978975c2242bc137b38a9500e2c",
+      "sha256": "6cfbbbf8062f820438ab5af349f9da54c3d5ffa0bd51e7d1ea8de09edfea5050",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19001,7 +19065,7 @@
     },
     {
       "file": "src/lib/i18n/messages/en.ts",
-      "sha256": "592414726a4d6b3ced8e7a4d093d627dc3e136289709f4869357741a82345a17",
+      "sha256": "d508d96f2e7535eaf893759c0f1ba4e1c6d46e8090c00a81fe18da9c3e4082d0",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19016,7 +19080,7 @@
     },
     {
       "file": "src/lib/i18n/messages/es.ts",
-      "sha256": "33abe7216f594c01f1125ae217fb6c110cb393c0c2d50f762ec46e1e6dc837e8",
+      "sha256": "31a3cfa10077c5a2ee2c5ccb92e1b166bfbc484e6a3332878babe4acd99a8aec",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19031,7 +19095,7 @@
     },
     {
       "file": "src/lib/i18n/messages/fr.ts",
-      "sha256": "04de65ac5e355d1e101bdd858e6d547f9d4f10929e0fe820b3ab9233240acdff",
+      "sha256": "4909b1ba465ba26ad8fd78260c7226a7e20aed45d6c186cd4db0a7a200d75d6c",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19114,7 +19178,7 @@
     },
     {
       "file": "src/lib/i18n/messages/nl.ts",
-      "sha256": "49d94636bcffbec8588c444db9057245392cf1379d2d61d4bde927eb286bacab",
+      "sha256": "75611d6567dce184fe58c851b622dfd1c3c73975a562fc5ceb06937490d413d8",
       "boundary": "context-dependent",
       "imports": [
         "./kompas/nl"
@@ -20421,7 +20485,7 @@
     },
     {
       "file": "src/lib/native/access.ts",
-      "sha256": "67e78323148a80f5a180a3d06643b520f7e0cbb9912924bfa9591976145e02bd",
+      "sha256": "f8294cd48586924b1b77587c92c5cab653977371a6c4e1aea142c102a1d9884d",
       "boundary": "context-dependent",
       "imports": [
         "./client",
@@ -20457,10 +20521,11 @@
     },
     {
       "file": "src/lib/native/api.ts",
-      "sha256": "08c061f19ccaa21ba9afe65cf62fcf37ed25c224d2d23d946fd2a4bb101cab49",
+      "sha256": "30ee3b84adda92ac23db8a8327ef339fb7a38e111a83df621a5b5095d4de00b4",
       "boundary": "context-dependent",
       "imports": [
         "./apple",
+        "./content.server",
         "./contract",
         "./origin",
         "./password",
@@ -20480,6 +20545,7 @@
         "@/lib/authTokens",
         "@/lib/baseUrl",
         "@/lib/contentAccess",
+        "@/lib/contentCollections",
         "@/lib/db",
         "@/lib/email",
         "@/lib/handle",
@@ -20566,10 +20632,33 @@
       "exports": []
     },
     {
-      "file": "src/lib/native/contract.ts",
-      "sha256": "3a1d3d4645da25d9bcf1ce1998826e884b9c535118bef881576b3346318e8c10",
+      "file": "src/lib/native/content.server.ts",
+      "sha256": "ccc74e00a149de745811412038e4621ea03e467d6b145e842312b0c7c67f3453",
       "boundary": "context-dependent",
       "imports": [
+        "./contract",
+        "./navigation",
+        "./sessions",
+        "@/lib/contentAccess",
+        "@/lib/contentCollections",
+        "@/lib/contentSwitch",
+        "@/lib/db"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "getNativeContentState",
+        "selectNativeContent"
+      ]
+    },
+    {
+      "file": "src/lib/native/contract.ts",
+      "sha256": "bea7661f193e1fd3e8bc40cbe7699da0f81ca7524d440c70d16d4316cda5e51f",
+      "boundary": "context-dependent",
+      "imports": [
+        "./navigation",
+        "@/lib/contentPickerContract",
         "@/lib/leagueTiers",
         "zod"
       ],
@@ -20580,6 +20669,9 @@
         "nativeAccountSchema",
         "nativeCapabilitiesSchema",
         "nativeChapterSchema",
+        "nativeContentResultSchema",
+        "nativeContentSelectionSchema",
+        "nativeContentStateSchema",
         "nativeSetupFinishSchema",
         "nativeSetupSchema",
         "nativeShellHeaderSchema",
@@ -20607,7 +20699,7 @@
     },
     {
       "file": "src/lib/native/navigation.ts",
-      "sha256": "739789c87c62c863220bfa008782fcdcdae7e1e1d3bc9b7cc338de99a01725f2",
+      "sha256": "87ce37680d06f061a3e6e2f1bd82ebc8d099569594a02ae0900e2d6d69a06b6d",
       "boundary": "context-dependent",
       "imports": [],
       "methods": [],
@@ -26036,6 +26128,7 @@
         "src/components/I18nProvider.tsx",
         "src/components/ScriptureAvatar.tsx",
         "src/components/UserAvatar.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
         "src/components/versado/MascotSlot.tsx",
@@ -26121,6 +26214,7 @@
         "src/components/ActivityFeedClient.tsx",
         "src/components/I18nProvider.tsx",
         "src/components/UserAvatar.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
         "src/components/versado/PersonalMascot.tsx",
@@ -26541,6 +26635,7 @@
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
+        "src/lib/native/navigation.ts",
         "src/lib/platform.ts",
         "src/lib/realtime.ts",
         "src/lib/session.ts",
@@ -26636,6 +26731,7 @@
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/annotations/MarkSwatch.tsx",
         "src/components/learning/ContentStatus.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
@@ -26746,6 +26842,7 @@
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
+        "src/lib/native/navigation.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
@@ -26806,6 +26903,7 @@
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/learning/ContentStatus.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
@@ -49541,12 +49639,14 @@
         "src/lib/contentCollections.ts",
         "src/lib/contentPickerContract.ts",
         "src/lib/contentRouting.ts",
+        "src/lib/contentSwitch.ts",
         "src/lib/courseIntegrity.ts",
         "src/lib/courses.ts",
         "src/lib/crypto.ts",
         "src/lib/data/scopes.ts",
         "src/lib/dates.ts",
         "src/lib/db.ts",
+        "src/lib/dictionary.ts",
         "src/lib/dorp/access.ts",
         "src/lib/dorp/catalog.ts",
         "src/lib/dorp/geometry.ts",
@@ -49615,7 +49715,9 @@
         "src/lib/mysteries/types.ts",
         "src/lib/native/api.ts",
         "src/lib/native/apple.ts",
+        "src/lib/native/content.server.ts",
         "src/lib/native/contract.ts",
+        "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/password.ts",
         "src/lib/native/securitySetup.ts",
@@ -51422,6 +51524,7 @@
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
+        "src/lib/native/navigation.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
@@ -51682,7 +51785,9 @@
       "dependencies": [
         "src/app/content/page.tsx",
         "src/components/I18nProvider.tsx",
+        "src/components/content/ContentPickerView.tsx",
         "src/components/content/FullscreenContentPicker.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/versado/ContentIcon.tsx",
         "src/components/versado/PageIntro.tsx",
         "src/lib/alleskenner/content.ts",
@@ -51769,7 +51874,9 @@
       ],
       "clientBoundaries": [
         "src/components/I18nProvider.tsx",
+        "src/components/content/ContentPickerView.tsx",
         "src/components/content/FullscreenContentPicker.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/versado/ContentIcon.tsx",
         "src/lib/data/client.ts",
         "src/lib/data/hooks.ts",
@@ -52120,6 +52227,7 @@
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
+        "src/lib/native/navigation.ts",
         "src/lib/platform.ts",
         "src/lib/podcastChapters.ts",
         "src/lib/podcastPlayerContext.tsx",
@@ -52898,6 +53006,7 @@
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
+        "src/lib/native/navigation.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
@@ -54076,6 +54185,7 @@
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
+        "src/lib/native/navigation.ts",
         "src/lib/platform.ts",
         "src/lib/realtime.ts",
         "src/lib/session.ts",
@@ -54473,6 +54583,7 @@
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
+        "src/lib/native/navigation.ts",
         "src/lib/navigationHistory.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
@@ -54974,26 +55085,74 @@
         "src/components/versado/ToggleSwitch.tsx",
         "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/styles.ts",
+        "src/lib/alleskenner/content.ts",
+        "src/lib/alleskenner/validate.ts",
         "src/lib/auth.ts",
         "src/lib/avatarAccessories.ts",
         "src/lib/avatarTypes.ts",
         "src/lib/characterAssets.ts",
+        "src/lib/contentAccess.ts",
+        "src/lib/contentCollectionIds.ts",
+        "src/lib/contentCollections.ts",
+        "src/lib/contentPickerContract.ts",
+        "src/lib/contentRouting.ts",
+        "src/lib/data/scopes.ts",
         "src/lib/dates.ts",
         "src/lib/db.ts",
+        "src/lib/exerciseGen.ts",
+        "src/lib/gameAvailability.ts",
+        "src/lib/gameAvailabilityPolicy.ts",
+        "src/lib/gameCatalog.ts",
+        "src/lib/gameContentResolver.ts",
+        "src/lib/gameSettings.ts",
+        "src/lib/hymnAvailability.ts",
+        "src/lib/hymns/access.ts",
         "src/lib/i18n/core.ts",
         "src/lib/i18n/messages/kompas/nl.ts",
         "src/lib/i18n/messages/nl.ts",
+        "src/lib/jigsawQuestions.ts",
         "src/lib/languages.ts",
         "src/lib/leagueTiers.ts",
+        "src/lib/mascots.ts",
+        "src/lib/mysteries/game.ts",
+        "src/lib/mysteries/mystery001a.ts",
+        "src/lib/mysteries/mystery001b.ts",
+        "src/lib/mysteries/mystery001c.ts",
+        "src/lib/mysteries/mystery002a.ts",
+        "src/lib/mysteries/mystery002b.ts",
+        "src/lib/mysteries/mystery002c.ts",
+        "src/lib/mysteries/mystery003a.ts",
+        "src/lib/mysteries/mystery003b.ts",
+        "src/lib/mysteries/mystery003c.ts",
+        "src/lib/mysteries/mystery004a.ts",
+        "src/lib/mysteries/mystery004b.ts",
+        "src/lib/mysteries/mystery004c.ts",
+        "src/lib/mysteries/mystery005a.ts",
+        "src/lib/mysteries/mystery005b.ts",
+        "src/lib/mysteries/mystery005c.ts",
+        "src/lib/mysteries/mystery006a.ts",
+        "src/lib/mysteries/mystery006b.ts",
+        "src/lib/mysteries/mystery006c.ts",
+        "src/lib/mysteries/types.ts",
         "src/lib/native/access.ts",
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
+        "src/lib/native/navigation.ts",
         "src/lib/platform.ts",
+        "src/lib/realtime.ts",
         "src/lib/session.ts",
         "src/lib/social/rules.ts",
+        "src/lib/studyContent/cfmProgramme.ts",
+        "src/lib/studyContent/cfmVolumes.ts",
+        "src/lib/studyContent/revisions.ts",
+        "src/lib/studyContent/schema.ts",
+        "src/lib/studyContext.ts",
+        "src/lib/studyContextContract.ts",
         "src/lib/systemIcons.ts",
-        "src/lib/timeZone.ts"
+        "src/lib/timeZone.ts",
+        "src/lib/wordSearch/content.ts",
+        "src/lib/wordSearch/generator.ts"
       ],
       "directModules": [
         "src/components/social/GroupSettingsClient.tsx",
@@ -55175,6 +55334,7 @@
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/annotations/MarkSwatch.tsx",
         "src/components/learning/ContentStatus.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
@@ -55288,6 +55448,7 @@
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
+        "src/lib/native/navigation.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
@@ -55356,6 +55517,7 @@
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/learning/ContentStatus.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
@@ -55532,6 +55694,7 @@
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
+        "src/lib/native/navigation.ts",
         "src/lib/navigation.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
@@ -56192,6 +56355,7 @@
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
+        "src/lib/native/navigation.ts",
         "src/lib/navigation.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
@@ -56419,6 +56583,7 @@
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
+        "src/lib/native/navigation.ts",
         "src/lib/navigation.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
@@ -56562,6 +56727,7 @@
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/annotations/MarkSwatch.tsx",
         "src/components/learning/ContentStatus.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
@@ -56675,6 +56841,7 @@
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
+        "src/lib/native/navigation.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
@@ -56741,6 +56908,7 @@
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/learning/ContentStatus.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
@@ -57167,6 +57335,7 @@
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/annotations/MarkSwatch.tsx",
         "src/components/learning/ContentStatus.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
@@ -57289,6 +57458,7 @@
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
+        "src/lib/native/navigation.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
@@ -57376,6 +57546,7 @@
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/learning/ContentStatus.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
@@ -57612,6 +57783,7 @@
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/annotations/MarkSwatch.tsx",
         "src/components/learning/ContentStatus.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
         "src/components/study/StudyRoom.tsx",
         "src/components/versado/AchievementIcon.tsx",
@@ -57727,6 +57899,7 @@
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
+        "src/lib/native/navigation.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
@@ -57805,6 +57978,7 @@
         "src/components/alleskenner/AlleskennerRoom.tsx",
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/learning/ContentStatus.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
         "src/components/study/StudyRoom.tsx",
         "src/components/versado/AchievementIcon.tsx",
@@ -62367,6 +62541,7 @@
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
+        "src/lib/native/navigation.ts",
         "src/lib/platform.ts",
         "src/lib/pushClient.ts",
         "src/lib/pwaInstall.ts",
@@ -62463,6 +62638,7 @@
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/annotations/MarkSwatch.tsx",
         "src/components/learning/ContentStatus.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
@@ -62576,6 +62752,7 @@
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
+        "src/lib/native/navigation.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
@@ -62642,6 +62819,7 @@
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/learning/ContentStatus.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
@@ -62719,6 +62897,7 @@
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/annotations/MarkSwatch.tsx",
         "src/components/learning/ContentStatus.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
@@ -62828,6 +63007,7 @@
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
+        "src/lib/native/navigation.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
@@ -62886,6 +63066,7 @@
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/learning/ContentStatus.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
@@ -63080,6 +63261,7 @@
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
+        "src/lib/native/navigation.ts",
         "src/lib/platform.ts",
         "src/lib/profileCamera.ts",
         "src/lib/profileCharacterFraming.ts",
@@ -63337,6 +63519,7 @@
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/annotations/MarkSwatch.tsx",
         "src/components/learning/ContentStatus.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
@@ -63455,6 +63638,7 @@
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
+        "src/lib/native/navigation.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
@@ -63537,6 +63721,7 @@
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/learning/ContentStatus.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
@@ -63961,6 +64146,7 @@
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/annotations/MarkSwatch.tsx",
         "src/components/learning/ContentStatus.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
         "src/components/study/ReferenceReturn.tsx",
         "src/components/versado/AchievementIcon.tsx",
@@ -64072,6 +64258,7 @@
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
+        "src/lib/native/navigation.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
@@ -64133,6 +64320,7 @@
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/learning/ContentStatus.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
         "src/components/study/ReferenceReturn.tsx",
         "src/components/versado/AchievementIcon.tsx",
@@ -64833,6 +65021,7 @@
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
+        "src/lib/native/navigation.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
@@ -65682,6 +65871,7 @@
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/annotations/MarkSwatch.tsx",
         "src/components/learning/ContentStatus.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
         "src/components/study/StudyExerciseClient.tsx",
         "src/components/versado/AchievementIcon.tsx",
@@ -65801,6 +65991,7 @@
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
+        "src/lib/native/navigation.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
@@ -65881,6 +66072,7 @@
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/learning/ContentStatus.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
         "src/components/study/StudyExerciseClient.tsx",
         "src/components/versado/AchievementIcon.tsx",
@@ -67070,6 +67262,7 @@
         "src/lib/native/bridge.ts",
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
+        "src/lib/native/navigation.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
@@ -71066,20 +71259,14 @@
     },
     {
       "file": "src/components/ContentSwitcher.tsx",
-      "sha256": "bee58b34b18b3e8c840f6b56bd0d0d6d01f444ae34f0e3fdaafbd2cd1e554893",
+      "sha256": "663ad0270bd34419e72186da46b8a9fe7a46c19273198846cb01b9693f6a810b",
       "boundary": "client",
       "imports": [
-        "@/components/I18nProvider",
-        "@/components/versado/ContentIcon",
+        "./content/ContentSwitcherView",
         "@/lib/contentCollections",
-        "@/lib/contentMetadata",
         "@/lib/data/hooks",
-        "@/lib/languages",
         "@/lib/navigationHistory",
-        "lucide-react",
-        "next/link",
-        "next/navigation",
-        "react"
+        "next/navigation"
       ],
       "methods": [],
       "requests": [],
@@ -73747,22 +73934,59 @@
       ]
     },
     {
-      "file": "src/components/content/FullscreenContentPicker.tsx",
-      "sha256": "5cbbafa7ff0a205bc2754b360e3a66b20083aeb96cfb08cb5336275e2a05bb37",
+      "file": "src/components/content/ContentPickerView.tsx",
+      "sha256": "640adfb1e50dd59a9a902df2c0ea5090d46b0a732c3e46696b45acc8894468f3",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
         "@/components/versado/ContentIcon",
         "@/components/versado/PageIntro",
+        "@/lib/contentPickerContract",
+        "@/lib/languages",
+        "lucide-react",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "ContentPickerView"
+      ]
+    },
+    {
+      "file": "src/components/content/ContentSwitcherView.tsx",
+      "sha256": "c201cfdf9b17f755202d50c0c598bf4902a997af75049177ffaed9e96e644282",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
+        "@/components/versado/ContentIcon",
+        "@/lib/contentCollections",
+        "@/lib/contentMetadata",
+        "@/lib/languages",
+        "lucide-react",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "ContentSwitcherView"
+      ]
+    },
+    {
+      "file": "src/components/content/FullscreenContentPicker.tsx",
+      "sha256": "74803cb2f82c34e2103985fe8f96b309abdab43c046b9489581cd820ffea8f6e",
+      "boundary": "client",
+      "imports": [
+        "./ContentPickerView",
         "@/lib/contentPickerContract",
         "@/lib/contentSwitch",
         "@/lib/data/fetchJson",
         "@/lib/data/hooks",
         "@/lib/data/mutation",
-        "@/lib/languages",
         "@/lib/navigationHistory",
-        "lucide-react",
-        "next/link",
         "next/navigation",
         "react"
       ],
@@ -74423,7 +74647,7 @@
     },
     {
       "file": "src/components/native/NativeBuildBanner.tsx",
-      "sha256": "e2f68114825bbbc1d5fb10f9ef094d793ada018e6e31397ce97989df0a151f80",
+      "sha256": "9128ff2e621a416ea18fc9fbe1d52c35cb0d97e2d6f2e81177e545ff5a4bc6ae",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider"
@@ -74433,6 +74657,26 @@
       "checks": [],
       "exports": [
         "NativeBuildBanner"
+      ]
+    },
+    {
+      "file": "src/components/native/NativeContentPicker.tsx",
+      "sha256": "215efceade348da0bb2fc6efcf216aa995d6b001701e75868f1dab76901f9e86",
+      "boundary": "client",
+      "imports": [
+        "@/components/content/ContentPickerView",
+        "@/components/navigation/AppNavigation",
+        "@/lib/contentPickerContract",
+        "@/lib/data/nativeHooks",
+        "@/lib/native/client",
+        "@/lib/native/contract",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NativeContentPicker"
       ]
     },
     {
@@ -74458,9 +74702,10 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "40db9ffa7e748114f095126427b37aaf3b57418f71d48f791a481eb7e6304d1c",
+      "sha256": "1be632fa8bc6191da2819171886d29b81363de5b721d7a12d1393ac9a06eaaba",
       "boundary": "client",
       "imports": [
+        "./NativeContentPicker",
         "./NativeEmailConfirmation",
         "./NativePasswordReset",
         "./NativeShellHeader",
@@ -74473,10 +74718,12 @@
         "@/components/legal/DisclaimerContent",
         "@/components/legal/PrivacyContent",
         "@/components/navigation/AppNavigation",
+        "@/components/profile/settings",
         "@/components/shell/AppShellFrame",
         "@/components/shell/SubpageBackBarView",
         "@/components/versado/MascotSlot",
         "@/components/versado/styles",
+        "@/lib/data/native",
         "@/lib/data/nativeHooks",
         "@/lib/handle",
         "@/lib/native/account",
@@ -74504,7 +74751,7 @@
     },
     {
       "file": "src/components/native/NativeNavigationProvider.tsx",
-      "sha256": "fb998d8612e4322265704eaffa106d7ef11ce0be16ea47a8eedccefed4e6142c",
+      "sha256": "6495318c170f7d473402747b5408311ef2f28e3ef7b2c38fb0afd1b2ca73b788",
       "boundary": "client",
       "imports": [
         "@/components/navigation/AppNavigation",
@@ -74545,9 +74792,10 @@
     },
     {
       "file": "src/components/native/NativeShellHeader.tsx",
-      "sha256": "f51b20d807e58926e517e32d2dc96e606cefec91a68d2056ff53950171df8bbc",
+      "sha256": "4c15d195401a47f32d756eee4c93f3274cec1791ba9a29f7cbe2e2298a21f001",
       "boundary": "client",
       "imports": [
+        "@/components/content/ContentSwitcherView",
         "@/components/shell/AppShellHeader",
         "@/components/shell/HeaderAvatarView",
         "@/components/shell/UserBadgesView",
@@ -74568,7 +74816,7 @@
     },
     {
       "file": "src/components/native/entry.tsx",
-      "sha256": "dd7eefcfe092fcc78cd094b0ea48b578698d227be1fb760cd5f97d1956e50d0e",
+      "sha256": "017cdc32b772e6df7b292aececda53118e34b7216a13e0de0bbf77445185eb13",
       "boundary": "context-dependent",
       "imports": [
         "./NativeAccessPanel",
@@ -74593,7 +74841,7 @@
     },
     {
       "file": "src/components/navigation/AppNavigation.tsx",
-      "sha256": "df100c4e90865a85eee16f4d68a6b10823ff6184c8dc8c24c13e4bf389a584c4",
+      "sha256": "7f630f3303395f9a8564aa471497d56ec6b7d1500d6a943521cf1381ae62bc97",
       "boundary": "client",
       "imports": [
         "react"
@@ -74602,6 +74850,7 @@
       "requests": [],
       "checks": [],
       "exports": [
+        "AppImage",
         "AppLink",
         "AppNavigationProvider",
         "useAppNavigation"
@@ -74609,10 +74858,11 @@
     },
     {
       "file": "src/components/navigation/NextNavigationProvider.tsx",
-      "sha256": "d3ba0c7b6db2102f1a53ed918a639ed69cbd561d64d2e8378f8bbd8bb8909e1d",
+      "sha256": "bf60a9b1d3c7da1980812d535c0ade2e25de6f0b5b8fca68ae18c32bc9f30d82",
       "boundary": "client",
       "imports": [
         "./AppNavigation",
+        "next/image",
         "next/link",
         "next/navigation",
         "react"
@@ -75139,7 +75389,7 @@
     },
     {
       "file": "src/components/shell/AppShellHeader.tsx",
-      "sha256": "9c6b3e175afc534d7b0279b1ed3d3259e5dfe052ab36ac712a7015766b76a810",
+      "sha256": "266bf2e844cb2adb6a6e69753107fa5a4ae1e6bcbcfa459119e05688c12ae261",
       "boundary": "client",
       "imports": [
         "./PrimaryNav",
@@ -76565,11 +76815,11 @@
     },
     {
       "file": "src/components/versado/ContentIcon.tsx",
-      "sha256": "8dd588aba7ff50e6910324944bc96ff4d73486cbe9bbd5ff4305edc7b9800828",
+      "sha256": "b2a679d2d4d925fa7ac880d11be62147533ecba84bbc3f9f8a08daa29d080f1f",
       "boundary": "client",
       "imports": [
+        "@/components/navigation/AppNavigation",
         "@/lib/contentMetadata",
-        "next/image",
         "react"
       ],
       "methods": [],
@@ -77111,6 +77361,8 @@
     "tests/native-access.test.ts",
     "tests/native-account.integration.test.ts",
     "tests/native-android-release.test.mjs",
+    "tests/native-content.browser.mjs",
+    "tests/native-content.integration.test.ts",
     "tests/native-data.browser.mjs",
     "tests/native-data.test.ts",
     "tests/native-distribution.test.ts",

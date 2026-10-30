@@ -50,8 +50,8 @@ final class NativeAccessTransport {
     }
     static boolean routeAllowed(String path, String method) {
         if (path == null || method == null) return false;
-        if ("GET".equals(method)) return path.matches("capabilities|me|today|chapters/[A-Za-z0-9_-]{1,128}");
-        if ("POST".equals(method)) return path.matches("login|register|forgot-password|reset-password|verify-email|refresh|logout|security-setup/(complete|cancel)|apple/(challenge|complete)|account/password|chapters/[A-Za-z0-9_-]{1,128}/complete");
+        if ("GET".equals(method)) return path.matches("capabilities|me|today|content-context|chapters/[A-Za-z0-9_-]{1,128}");
+        if ("POST".equals(method)) return path.matches("content-context|login|register|forgot-password|reset-password|verify-email|refresh|logout|security-setup/(complete|cancel)|apple/(challenge|complete)|account/password|chapters/[A-Za-z0-9_-]{1,128}/complete");
         return "DELETE".equals(method) && path.matches("apple|account");
     }
     static boolean containsCredential(Object object, Credentials credentials) throws Exception {

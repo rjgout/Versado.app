@@ -81,7 +81,7 @@ try{
    for(let attempt=0;held.length===0&&attempt<100;attempt++)await new Promise(resolve=>setTimeout(resolve,20));
    assert.ok(held.length>0,'Verversen van de echte header is vertraagd');
    holdMe=false; // Nieuwe accountaanvragen doorlaten; het oude A-antwoord blijft vastgehouden.
-   await page.getByRole('button',{name:t('nativeFoundation.logout'),exact:true}).click();await page.locator('form').waitFor();
+   await page.locator('a[data-kompas-target="profile"]').click();await page.getByRole('button',{name:t('nativeFoundation.logout'),exact:true}).click();await page.locator('form').waitFor();
    await login(page,other,t);
    await page.waitForFunction(()=>document.querySelector('[data-app-global-header]')?.textContent.includes('42'));
    const ownHeader=await nativeHeader.textContent();

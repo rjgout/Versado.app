@@ -16,7 +16,7 @@ const out='/tmp/versado-native-browser';rmSync(out,{recursive:true,force:true});
 // Maak een onveranderlijke asset-snapshot vóór de browser start.
 const stylesheet=readFileSync('dist/native/index.css');
 const bundle=await build({entryPoints:['tests/fixtures/native-foundation-client.tsx'],bundle:true,write:false,platform:'browser',define:{'process.env.NODE_ENV':'"production"'},minify:true});
-const secrets=new Map();let network=true,blockMe=false,completionAttempts=0,failChapterReads=false;const backend=process.env.NATIVE_TEST_BASE_URL;
+const secrets=new Map();let network=true,blockMe=false,completionAttempts=0,failChapterReads=false,chapterReadsInFlight=0;const backend=process.env.NATIVE_TEST_BASE_URL;
 const front=createServer(async(req,res)=>{
  try{
   const url=new URL(req.url,'http://127.0.0.1');
@@ -25,8 +25,10 @@ const front=createServer(async(req,res)=>{
    if(failChapterReads&&req.method==='GET'&&/^\/api\/v1\/native\/chapters\/[^/]+$/.test(url.pathname)){res.writeHead(503,{'Content-Type':'application/json'});res.end(JSON.stringify({error:'network_unavailable'}));return;}
    if(!network||(blockMe&&url.pathname==='/api/v1/native/me')){res.destroy();return;}
    const chunks=[];for await(const c of req)chunks.push(c);
+   const chapterRead=req.method==='GET'&&/^\/api\/v1\/native\/chapters\/[^/]+$/.test(url.pathname);
+   if(chapterRead)chapterReadsInFlight++;
    const response=await fetch(`${backend}${req.url}`,{method:req.method,headers:{Origin:'capacitor://localhost','X-Versado-Client':'native-v1','x-real-ip':'127.0.0.21',...(req.headers.authorization?{Authorization:req.headers.authorization}:{}),...(req.headers['content-type']?{'Content-Type':req.headers['content-type']}:{})},body:['GET','HEAD'].includes(req.method)?undefined:Buffer.concat(chunks)});
-   res.writeHead(response.status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(await response.text());return;
+   res.writeHead(response.status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(await response.text());if(chapterRead)chapterReadsInFlight--;return;
   }
   if(url.pathname.startsWith('/test-keychain/')){
    const id=url.pathname;if(req.method==='PUT'){const chunks=[];for await(const c of req)chunks.push(c);secrets.set(id,Buffer.concat(chunks).toString());}if(req.method==='DELETE')secrets.delete(id);
@@ -93,9 +95,13 @@ try{
     assert.equal(await prisma.streakActivity.count({where:{userId:user.id}}),0,'Geen offline reeksactie');
     const refreshed=page.waitForResponse(response=>response.request().method()==='GET'&&/\/api\/v1\/native\/chapters\/[^/]+$/.test(new URL(response.url()).pathname)&&response.status()===200);
     await context.setOffline(false);await refreshed;
-    await page.getByRole('button',{name:'Opnieuw proberen',exact:true}).click({trial:true});
+    await page.waitForFunction(()=>!document.querySelector('form button[type="submit"]')?.disabled);
     assert.equal(await page.evaluate(()=>window.wp6CompletionAttempts),before+1,'Onlineherstel herhaalt de mislukte schrijfactie niet');
     assert.equal(completionAttempts,backendBefore,'Hervatten start geen uitgestelde schrijfactie');
+    await page.getByRole('button',{name:'Markeer als gelezen',exact:true}).click({trial:true});
+    for(let attempt=0;chapterReadsInFlight>0&&attempt<100;attempt++)await new Promise(resolve=>setTimeout(resolve,10));
+    assert.equal(chapterReadsInFlight,0,'Alle online-hervatreads zijn voltooid vóór de gerichte foutinjectie');
+    await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
     failChapterReads=true;
     const postReceipt=page.waitForResponse(response=>response.request().method()==='POST'&&new URL(response.url()).pathname.endsWith('/complete'));
     await page.getByRole('button',{name:'Markeer als gelezen',exact:true}).click();
@@ -123,11 +129,11 @@ try{
    await page.getByRole('link',{name:'Profiel',exact:true}).click();
    await page.getByRole('link',{name:'Wachtwoord wijzigen',exact:true}).click();
    await page.getByLabel('Huidig wachtwoord',{exact:true}).fill(password);
-   await page.getByRole('button',{name:'Uitloggen',exact:true}).click();await page.getByRole('heading',{name:'Welkom bij Versado'}).waitFor();
+   await page.locator('a[data-kompas-target="profile"]').click();await page.getByRole('button',{name:'Uitloggen',exact:true}).click();await page.getByRole('heading',{name:'Welkom bij Versado'}).waitFor();
    assert.equal(await page.getByLabel('Wachtwoord',{exact:true}).inputValue(),'','Logout bewaart geen herauthenticatiewachtwoord');
    await page.reload();await page.getByRole('heading',{name:'Welkom bij Versado'}).waitFor();
    // Het welkomstscherm verschijnt direct; wacht ook op bevestigde intrekking na reload.
-   await page.getByRole('button',{name:'Opnieuw proberen',exact:true}).click({trial:true});
+   await page.waitForFunction(()=>!document.querySelector('form button[type="submit"]')?.disabled);
    assert.equal(secrets.has(`/test-keychain/${device}`),false,'Beveiligde logoutqueue is na serverbevestiging verwijderd');
    const changedPassword='Synthetic-password-changed-42', finalPassword='Synthetic-password-final-42';
    const forced=await prisma.user.create({data:{email:`forced-${randomUUID()}@example.invalid`,handle:`Nativeforced${width}`,discriminator:'01',passwordHash:await hashPassword(password),emailVerifiedAt:new Date(),onboardingSeenAt:new Date(),mustChangePassword:true}});
@@ -136,7 +142,7 @@ try{
    await login(forced.email,password);await page.getByRole('heading',{name:'Wachtwoord wijzigen',exact:true}).waitFor();
    assert.equal(await prisma.nativeSession.count({where:{userId:forced.id}}),0,'Verplichte setup heeft nog geen gewone sessie');
    const setupIntent=JSON.parse(secrets.get(`/test-keychain/${device}`));assert.equal(setupIntent.kind,'setup');assert.equal(setupIntent.logoutPending,true);
-   await page.reload();await page.getByRole('heading',{name:'Welkom bij Versado'}).waitFor();await page.getByRole('button',{name:'Opnieuw proberen',exact:true}).click({trial:true});
+   await page.reload();await page.getByRole('heading',{name:'Welkom bij Versado'}).waitFor();await page.waitForFunction(()=>!document.querySelector('form button[type="submit"]')?.disabled);
    assert.equal(await prisma.nativeAuthChallenge.count({where:{userId:forced.id}}),0,'Heropening trekt het setupbewijs in');
    await login(forced.email,password);await page.getByRole('heading',{name:'Wachtwoord wijzigen',exact:true}).waitFor();blockMe=true;await change(changedPassword);
    await page.getByRole('alert').first().waitFor();blockMe=false;
@@ -153,7 +159,7 @@ try{
    assert.equal(expectedAuthFailures.length,2,'Verlopen sessie en refresh zijn geweigerd, zonder herhaling van de wachtwoordmutatie');
    assert.equal(await verifyPassword(finalPassword,(await prisma.user.findUniqueOrThrow({where:{id:forced.id}})).passwordHash),true,'Een verlopen sessie verandert het wachtwoord niet');
    await login(forced.email,finalPassword);await page.getByRole('heading',{name:'Wachtwoord wijzigen',exact:true}).waitFor();
-   await page.getByRole('button',{name:'Uitloggen',exact:true}).click();await page.getByRole('heading',{name:'Welkom bij Versado'}).waitFor();
+   await page.locator('a[data-kompas-target="profile"]').click();await page.getByRole('button',{name:'Uitloggen',exact:true}).click();await page.getByRole('heading',{name:'Welkom bij Versado'}).waitFor();
    const admin=await prisma.user.create({data:{email:`admin-setup-${randomUUID()}@example.invalid`,handle:`Nativesetup${width}`,discriminator:'01',passwordHash:await hashPassword(password),emailVerifiedAt:new Date(),onboardingSeenAt:new Date(),mustChangePassword:true,isAdmin:true}});
    await login(admin.email,password);await page.getByRole('heading',{name:'Wachtwoord wijzigen',exact:true}).waitFor();await change(changedPassword);
    await page.getByRole('heading',{name:'Tweestapsverificatie',exact:true}).waitFor();await page.getByAltText('QR-code voor tweestapsverificatie').waitFor();
@@ -168,7 +174,7 @@ try{
    assert.equal(secrets.get(`/test-keychain/${device}`).includes(totpSecret),false,'TOTP-sleutel staat niet in de platform-intrekkingsqueue');
    await page.getByRole('button',{name:'Ik heb ze veilig bewaard',exact:true}).click();await page.getByRole('button',{name:'Opnieuw proberen',exact:true}).click();await page.getByRole('heading',{name:/Vandaag/}).waitFor();
    assert.equal(await prisma.nativeSession.count({where:{userId:admin.id}}),1,'Dataherstel na TOTP herhaalt de afronding niet');
-   await page.getByRole('button',{name:'Uitloggen',exact:true}).click();await page.getByRole('heading',{name:'Welkom bij Versado'}).waitFor();
+   await page.locator('a[data-kompas-target="profile"]').click();await page.getByRole('button',{name:'Uitloggen',exact:true}).click();await page.getByRole('heading',{name:'Welkom bij Versado'}).waitFor();
 
    // Bestaande herstelmail wordt lokaal afgehandeld, ook zonder OS-linkassociatie.
    const resetToken=await createAuthToken(forced.id,'PASSWORD_RESET'),resetLink=`${origin}/reset-password?token=${resetToken}`,resetPassword='Synthetic-mail-reset-44';
@@ -188,7 +194,7 @@ try{
    await page.screenshot({path:`${out}/password-reset-${width}-${scheme}-${scale}.png`,fullPage:true});
    await page.getByRole('button',{name:'Terug naar inloggen',exact:true}).click();await page.getByRole('heading',{name:'Welkom bij Versado'}).waitFor();
    await login(forced.email,resetPassword);await page.getByRole('heading',{name:/Vandaag/}).waitFor();
-   await page.getByRole('button',{name:'Uitloggen',exact:true}).click();await page.getByRole('heading',{name:'Welkom bij Versado'}).waitFor();
+   await page.locator('a[data-kompas-target="profile"]').click();await page.getByRole('button',{name:'Uitloggen',exact:true}).click();await page.getByRole('heading',{name:'Welkom bij Versado'}).waitFor();
 
    const verifiedEmail=`verify-browser-${randomUUID()}@example.invalid`,verifyToken=await startPendingRegistration({email:verifiedEmail,handle:`Nieuw${width}`,passwordHash:await hashPassword(password),uiLanguage:'nl',contentLanguage:'nl'},backend);
    assert.ok(verifyToken);await page.getByRole('link',{name:'Bevestigingslink openen',exact:true}).click();
@@ -202,7 +208,7 @@ try{
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);assert.equal(await page.evaluate(()=>localStorage.length+sessionStorage.length),0);assert.equal([...secrets.values()].some(value=>value.includes(verifyToken)),false);
    await page.screenshot({path:`${out}/email-confirmation-${width}-${scheme}-${scale}.png`,fullPage:true});
    await page.getByRole('button',{name:'Log in',exact:true}).click();await page.getByRole('heading',{name:'Welkom bij Versado'}).waitFor();
-   await login(verifiedEmail,password);await page.getByRole('heading',{name:/Vandaag/}).waitFor();await page.getByRole('button',{name:'Uitloggen',exact:true}).click();await page.getByRole('heading',{name:'Welkom bij Versado'}).waitFor();
+   await login(verifiedEmail,password);await page.getByRole('heading',{name:/Vandaag/}).waitFor();await page.locator('a[data-kompas-target="profile"]').click();await page.getByRole('button',{name:'Uitloggen',exact:true}).click();await page.getByRole('heading',{name:'Welkom bij Versado'}).waitFor();
 
   }
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'Geen horizontale overflow');assert.deepEqual(errors,[]);assert.deepEqual(failedResponses,[],'Geen ontbrekende stylesheets/assets of geweigerde geldige API-acties');

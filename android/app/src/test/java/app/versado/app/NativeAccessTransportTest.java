@@ -37,6 +37,13 @@ public class NativeAccessTransportTest {
         assertTrue(NativeAccessTransport.routeAllowed("chapters/synthetic-1/complete", "POST"));
         assertFalse(NativeAccessTransport.routeAllowed("me", "DELETE"));
     }
+    @Test public void contentContextIsExactAndBounded() {
+        for (String method : new String[]{"GET", "POST"}) assertTrue(NativeAccessTransport.routeAllowed("content-context", method));
+        for (String method : new String[]{"PUT", "PATCH", "DELETE", "HEAD"}) assertFalse(NativeAccessTransport.routeAllowed("content-context", method));
+        for (String path : new String[]{"content-context/", "content-context/preview", "content-context?preview=1", "../content-context", "content-context%2f"}) {
+            for (String method : new String[]{"GET", "POST"}) assertFalse(NativeAccessTransport.routeAllowed(path, method));
+        }
+    }
     @Test public void headersAreAddedNativeAndNeverReturned() throws Exception {
         Edge edge = new Edge(); NativeAccessTransport.Reply reply = request(edge);
         assertEquals("https://dev.versado.app/api/v1/native/login", edge.captured.url().toString());

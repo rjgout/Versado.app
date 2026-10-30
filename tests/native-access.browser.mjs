@@ -75,15 +75,15 @@ try{
   const page=await context.newPage(),errors=[],requests=[],consoleMessages=[];let sockets=0;
   page.on('pageerror',error=>errors.push(error.message));page.on('request',request=>requests.push({headers:request.headers(),body:request.postData()??''}));page.on('console',message=>consoleMessages.push(message.text()));page.on('websocket',()=>sockets++);
   try{
-   await page.goto(origin+'/?device='+device);await page.getByRole('region',{name:t('nativeAccess.title')}).waitFor();
-   await page.getByRole('alert').filter({hasText:t('nativeAccess.missing')}).waitFor();
+   await page.goto(origin+'/?device='+device);await page.getByRole('alert').filter({hasText:t('nativeAccess.missing')}).waitFor();await page.getByRole('link',{name:t('nativeDiagnostics.open'),exact:true}).click();await page.getByRole('region',{name:t('nativeAccess.title')}).waitFor();
+   await page.getByRole('status').filter({hasText:t('nativeAccess.missing')}).waitFor();
    assert.equal(await page.getByPlaceholder('Client Secret',{exact:true}).count(),0,'Servicecredentialvelden bestaan niet in JavaScript/HTML');
-   await page.getByRole('button',{name:t('nativeAccess.enroll'),exact:true}).click();await page.getByText(t('nativeAccess.configured'),{exact:true}).waitFor();
+   await page.getByRole('button',{name:t('nativeAccess.enroll'),exact:true}).click();await page.getByText(t('nativeAccess.configured'),{exact:true}).waitFor();await page.locator('[data-subpage-back-bar] button').click();
    assert.ok(JSON.parse((await gate.bridge.accessRequest({path:'capabilities',method:'GET'})).body).features.includes('realtime-ticket-v1'),'Backend biedt realtime aan: client moet de Access-uitsluiting werkelijk afdwingen');
    if(language==='nl'){
     await page.getByLabel(t('nativeFoundation.email')).fill(user.email);await page.getByLabel(t('nativeFoundation.password'),{exact:true}).fill(password);await page.getByRole('button',{name:t('nativeFoundation.login'),exact:true}).click();await page.getByRole('heading',{name:t('nativeFoundation.today')+', '+user.handle,exact:true}).waitFor();
     await page.getByRole('button',{name:/WP6-testboek 1/}).click();await page.getByText('Synthetische WP6-passage 1.',{exact:false}).waitFor();
-    await page.evaluate(()=>window.dispatchEvent(new Event('wp6:test-resume')));await page.getByRole('button',{name:t('nativeFoundation.retry'),exact:true}).click({trial:true});
+    await page.evaluate(()=>window.dispatchEvent(new Event('wp6:test-resume')));await page.getByRole('button',{name:t('nativeFoundation.complete'),exact:true}).waitFor();
     await page.reload();await page.getByText('Synthetische WP6-passage 1.',{exact:false}).waitFor();
     const completedBefore=gate.calls.filter(call=>call.method==='POST'&&call.path.endsWith('/complete')).length;
     holdNextChapterRead=true;
@@ -94,7 +94,7 @@ try{
     assert.equal(await prisma.contentProgress.count({where:{userId:user.id,readStatus:'READ'}}),1);
 
     await page.getByRole('button',{name:t('nativeFoundation.back'),exact:true}).click();
-    await page.getByRole('button',{name:t('nativeFoundation.logout'),exact:true}).click();await page.getByRole('heading',{name:t('nativeFoundation.welcome'),exact:true}).waitFor();
+    await page.locator('a[data-kompas-target="profile"]').click();await page.getByRole('button',{name:t('nativeFoundation.logout'),exact:true}).click();await page.getByRole('heading',{name:t('nativeFoundation.welcome'),exact:true}).waitFor();
     await page.getByLabel(t('nativeFoundation.email')).fill(other.email);await page.getByLabel(t('nativeFoundation.password'),{exact:true}).fill(password);await page.getByRole('button',{name:t('nativeFoundation.login'),exact:true}).click();await page.getByRole('heading',{name:t('nativeFoundation.today')+', '+other.handle,exact:true}).waitFor();
     assert.equal(await page.getByText('Synthetische WP6-passage 1.',{exact:false}).count(),0,'Account B toont geen hoofdstukcache van A');
     await page.evaluate(id=>window.dispatchEvent(new CustomEvent('wp6:test-open',{detail:'https://dev.versado.app/lesson/'+id})),chapters[0].id);
@@ -117,16 +117,16 @@ try{
     await page.evaluate(id=>window.dispatchEvent(new CustomEvent('wp6:test-open',{detail:'https://dev.versado.app/lesson/'+id})),chapters[1].id);await page.getByText('Synthetische WP6-passage 2.',{exact:false}).waitFor();
     assert.equal(await page.getByText('Synthetische WP6-passage 1.',{exact:false}).count(),0,'Andere concrete hoofdstukidentiteit toont nooit vorige tekst');
     await page.getByRole('button',{name:t('nativeFoundation.back'),exact:true}).click();
-    await page.getByRole('button',{name:t('nativeFoundation.logout'),exact:true}).click();await page.getByRole('heading',{name:t('nativeFoundation.welcome'),exact:true}).waitFor();
+    await page.locator('a[data-kompas-target="profile"]').click();await page.getByRole('button',{name:t('nativeFoundation.logout'),exact:true}).click();await page.getByRole('heading',{name:t('nativeFoundation.welcome'),exact:true}).waitFor();
     await page.getByLabel(t('nativeFoundation.email')).fill(user.email);await page.getByLabel(t('nativeFoundation.password'),{exact:true}).fill(password);await page.getByRole('button',{name:t('nativeFoundation.login'),exact:true}).click();await page.getByRole('heading',{name:t('nativeFoundation.today')+', '+user.handle,exact:true}).waitFor();
     gate.revoke();await page.reload();await page.getByRole('alert').filter({hasText:t('nativeAccess.denied')}).waitFor();
     assert.ok(sessions.get(device),'Access-intrekking wist de Versado-refreshstaat niet');
-    gate.rotate();await page.getByRole('button',{name:t('nativeAccess.enroll'),exact:true}).click();await page.getByText(t('nativeAccess.configured'),{exact:true}).waitFor();
+    gate.rotate();await page.getByRole('link',{name:t('nativeDiagnostics.open'),exact:true}).click();await page.getByRole('button',{name:t('nativeAccess.enroll'),exact:true}).click();await page.getByText(t('nativeAccess.configured'),{exact:true}).waitFor();await page.locator('[data-subpage-back-bar] button').click();
     await page.getByRole('heading',{name:t('nativeFoundation.welcome'),exact:true}).waitFor();
     await page.getByLabel(t('nativeFoundation.email')).fill(user.email);await page.getByLabel(t('nativeFoundation.password'),{exact:true}).fill(password);await page.getByRole('button',{name:t('nativeFoundation.login'),exact:true}).click();await page.getByRole('heading',{name:t('nativeFoundation.today')+', '+user.handle,exact:true}).waitFor();
-    await page.getByRole('button',{name:t('nativeAccess.clear'),exact:true}).click();await page.getByRole('alert').filter({hasText:t('nativeAccess.missing')}).waitFor();
+    await page.locator('a[data-kompas-target="profile"]').click();await page.getByRole('link',{name:t('nativeDiagnostics.open'),exact:true}).click();await page.getByRole('button',{name:t('nativeAccess.clear'),exact:true}).click();await page.getByRole('alert').filter({hasText:t('nativeAccess.missing')}).waitFor();
     assert.equal(await prisma.nativeSession.count({where:{userId:user.id,revokedAt:null}}),0,'Online wissen trekt eerst de bestaande Versado-sessie in');
-    await page.getByRole('button',{name:t('nativeAccess.enroll'),exact:true}).click();await page.getByText(t('nativeAccess.configured'),{exact:true}).waitFor();
+    await page.getByRole('button',{name:t('nativeAccess.enroll'),exact:true}).click();await page.getByText(t('nativeAccess.configured'),{exact:true}).waitFor();await page.locator('[data-subpage-back-bar] button').click();
    }
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'Geen horizontale overflow');
    assert.equal(await page.evaluate(()=>localStorage.length+sessionStorage.length),0,'Geen secrets in webopslag');

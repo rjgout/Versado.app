@@ -232,6 +232,7 @@ export const fr: PartialMessages = {
   "disabled": "Cette version n’autorise pas l’accès interne. Compilez la bonne version interne.",
   "realtime": "Les connexions en temps réel ne sont pas encore disponibles dans cette version Access interne."
 },
+  nativeDiagnostics: {"title": "Diagnostic interne", "open": "Diagnostic interne", "internalBadge": "Interne", "testBadge": "Version de test", "recovery": "Connexion et récupération"},
   nativeFoundation: {
   "welcome": "Bienvenue sur Versado",
   "login": "Se connecter",

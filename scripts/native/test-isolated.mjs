@@ -88,9 +88,9 @@ try{
   let started=false;for(let attempt=0;attempt<100;attempt++){try{if((await fetch(`${instance}/api/health`)).ok){started=true;break;}}catch{}if(child.exitCode!==null)throw Error('Sockettestserver gestopt');await delay(500);}if(!started)throw Error('Sockettestserver niet bereikbaar');
  }
  let socketFailure;
- try{await run('npx',['tsx','--test','--test-concurrency=1','tests/native-socket.integration.test.ts'],socketEnv);}catch(error){socketFailure=error;}
+ try{await run('npx',['tsx','--test','--test-concurrency=1','tests/native-socket.integration.test.ts','tests/native-content.integration.test.ts'],socketEnv);}catch(error){socketFailure=error;}
  for(const child of socketServers){try{process.kill(-child.pid,'SIGTERM');}catch{}}
- if(!process.argv.includes('--no-browser')){await run('npx',['tsx','tests/native-foundation.browser.mjs'],env);await run('npx',['tsx','tests/native-access.browser.mjs'],env);await run('npx',['tsx','tests/native-data.browser.mjs'],env);await run('npx',['tsx','tests/native-shell.browser.mjs'],env);await run('npx',['tsx','tests/native-foundation-apple.browser.mjs'],env);}
+ if(!process.argv.includes('--no-browser')){await run('npx',['tsx','tests/native-foundation.browser.mjs'],env);await run('npx',['tsx','tests/native-access.browser.mjs'],env);await run('npx',['tsx','tests/native-data.browser.mjs'],env);await run('npx',['tsx','tests/native-shell.browser.mjs'],env);await run('npx',['tsx','tests/native-content.browser.mjs'],env);await run('npx',['tsx','tests/native-foundation-apple.browser.mjs'],env);}
  if(socketFailure)throw socketFailure; // Browserbewijs verzamelen wist nooit een falende beveiligingstest.
 }finally{
  for(const child of socketServers){try{process.kill(-child.pid,'SIGTERM');}catch{}}
