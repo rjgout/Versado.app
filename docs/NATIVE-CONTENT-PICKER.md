@@ -40,6 +40,10 @@ Deze PR claimt daarvoor geen pariteit.
   automatische schrijfretry of offline wachtrij.
 - Account-ID + sessie-epoch begrenzen de gedeelde cache. Een vertraagde context-GET
   kan een hogere, bevestigde selectieversie in diezelfde store niet terugzetten.
+  De bestaande store weigert ook een al ontvangen GET wanneer `setData` tussen
+  ontvangst en verwerking een bevestiging plaatst. Oude successen kunnen de waarde niet
+  terugzetten; een leesfout blijft zichtbaar naast de bevestiging. Nieuwe GETs
+  blijven normaal werken.
   Hoofdstukken/Vandaag gebruiken ook collectie-/selectieversie, zodat oude tekst
   niet onder een nieuwe bron verschijnt. Oudere servers zonder capability
   behouden hun bestaande Foundation-flow. De beperkte Vandaag-leesproef leest

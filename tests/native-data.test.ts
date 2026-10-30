@@ -175,3 +175,16 @@ test("native start de bestaande storeklok; contextpoll stopt verborgen, offline 
   online = true; target.dispatchEvent(new Event("online")); await flush(); assert.equal(calls, 3);
   query.release(); stop(); assert.equal(timers.size, 0);
 });
+
+test("een reeds ontvangen oude GET mag een bevestiging in de volgende microtaak niet terugzetten", async () => {
+  let finish!: (value: unknown) => void;
+  const { runtime } = fixture(() => new Promise(resolve => { finish = resolve; }));
+  const key = ["native", runtime.getSnapshot(), ...nativeContentQueryKey("account-a")];
+  const observer = runtime.store.observe(key, { scopes: ["content"], fetcher: () => runtime.contentContext("account-a") });
+  const confirmed = contentState("account-a", 2);
+  finish(contentState("account-a", 1));
+  queueMicrotask(() => runtime.store.setData(key, confirmed));
+  await flush();
+  assert.deepEqual(runtime.store.getSnapshot(serializeKey(key)).data, confirmed);
+  observer.release(); runtime.reset();
+});

@@ -533,3 +533,20 @@ test("een mislukte poll blijft begrensd op het gevraagde interval, zonder één 
   store.revalidate({ force: true }); await flush(); assert.equal(calls, 3, "Bewust hervatten mag wel direct herstellen");
   store.reset();
 });
+
+for (const outcome of ["success", "error"] as const) test(`bevestigde setData overleeft een oudere GET-${outcome}; een nieuwe GET blijft leidend`, async () => {
+  const { env } = makeEnv(), store = new LiveDataStore(env);
+  let finish!: (value: number) => void, fail!: (error: Error) => void;
+  const key = ["confirmed-result"];
+  const observer = store.observe(key, { scopes: ["content"], fetcher: () => new Promise<number>((resolve, reject) => { finish = resolve; fail = reject; }) });
+  store.setData(key, 2);
+  if (outcome === "success") finish(1); else fail(Error("synthetic old read failed"));
+  await flush();
+  const confirmed = store.getSnapshot(observer.entryKey);
+  assert.equal(confirmed.data, 2);
+  if (outcome === "success") assert.equal(confirmed.error, null); else assert.ok(confirmed.error instanceof Error);
+  assert.equal(confirmed.isFetching, false);
+  const newer = store.refetch(observer.entryKey); finish(3); await newer;
+  assert.equal(store.getSnapshot(observer.entryKey).data, 3, "Na de bevestiging gestarte GET wordt normaal verwerkt");
+  observer.release(); store.reset();
+});
