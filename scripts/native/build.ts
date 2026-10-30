@@ -5,7 +5,7 @@ import autoprefixer from "autoprefixer";
 import config from "../../tailwind.config";
 import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { staticMascotAsset } from "../../src/lib/mascots";
+import { nativeStaticAssets } from "./assets";
 import { buildMetadata, bundleDirectory, contentSecurityPolicy, findSecrets, hashBundleFiles, resolveBuildProfile, internalAccessEnabled, INTERNAL_ACCESS_FILE } from "./profiles.cjs";
 
 // Het profiel (en met name de toegestane backend-origin) komt uit scripts/native/profiles.cjs; zonder
@@ -18,9 +18,10 @@ const terms = process.env.NATIVE_TERMS_URL ? new URL(process.env.NATIVE_TERMS_UR
 if (terms && (terms.protocol !== "https:" || terms.username || terms.password)) throw new Error("Voorwaarden vereisen een expliciete veilige HTTPS-URL.");
 const outdir = bundleDirectory(process.env);
 await rm(outdir, { recursive: true, force: true }); await mkdir(outdir, { recursive: true });
-await build({ entryPoints: ["src/components/native/entry.tsx"], outdir, entryNames: "index", bundle: true, minify: true, platform: "browser", target: ["safari16", "chrome105"], define: { NATIVE_INTERNAL_ACCESS: JSON.stringify(access), NATIVE_API_BASE_URL: JSON.stringify(url.origin), NATIVE_TERMS_URL: JSON.stringify(terms?.href ?? null), NATIVE_BUILD_DISTRIBUTION: JSON.stringify(resolved.distribution), NATIVE_BUILD_CHANNEL: JSON.stringify(resolved.channel), NATIVE_BUILD_VERSION: JSON.stringify(resolved.version ?? ""), NATIVE_BUILD_NUMBER: JSON.stringify(resolved.buildNumber ?? 0), "process.env.NODE_ENV": '"production"' }, plugins: [{ name: "shared-versado-css", setup(api) { api.onLoad({ filter: /\.css$/ }, async args => ({ loader: "css", contents: (await postcss([tailwind(config), autoprefixer()]).process(await readFile(args.path, "utf8"), { from: args.path })).css })); } }] });
-const mascot = staticMascotAsset("novi", "greeting");
-for (const path of ["/icons/native/versado-flame.png", ...(mascot ? [mascot.src] : [])]) {
+const compilation = await build({ metafile: true, entryPoints: ["src/components/native/entry.tsx"], outdir, entryNames: "index", bundle: true, minify: true, platform: "browser", target: ["safari16", "chrome105"], define: { NATIVE_INTERNAL_ACCESS: JSON.stringify(access), NATIVE_API_BASE_URL: JSON.stringify(url.origin), NATIVE_TERMS_URL: JSON.stringify(terms?.href ?? null), NATIVE_BUILD_DISTRIBUTION: JSON.stringify(resolved.distribution), NATIVE_BUILD_CHANNEL: JSON.stringify(resolved.channel), NATIVE_BUILD_VERSION: JSON.stringify(resolved.version ?? ""), NATIVE_BUILD_NUMBER: JSON.stringify(resolved.buildNumber ?? 0), "process.env.NODE_ENV": '"production"' }, plugins: [{ name: "shared-versado-css", setup(api) { api.onLoad({ filter: /\.css$/ }, async args => ({ loader: "css", contents: (await postcss([tailwind(config), autoprefixer()]).process(await readFile(args.path, "utf8"), { from: args.path })).css })); } }] });
+// Bewijs buiten de verpakte webDir: geen bronpaden of testmetadata in de app.
+await writeFile(`${outdir}.inputs.json`, JSON.stringify(Object.keys(compilation.metafile!.inputs).sort(), null, 2) + "\n");
+for (const path of nativeStaticAssets()) {
   const target = join(outdir, path.slice(1)); await mkdir(join(target, ".."), { recursive: true }); await cp(join("public", path), target);
 }
 const csp = contentSecurityPolicy(url.origin);

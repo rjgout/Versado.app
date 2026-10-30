@@ -34,7 +34,7 @@ const front=createServer(async(req,res)=>{
   }
   if(url.pathname==='/app.js'){res.setHeader('Content-Type','text/javascript');res.end(bundle.outputFiles[0].text);return;}
   if(url.pathname==='/index.css'){res.setHeader('Content-Type','text/css');res.end(stylesheet);return;}
-  if(url.pathname.startsWith('/icons/')||url.pathname.startsWith('/mascots/')){if(url.pathname.includes('..')){res.writeHead(404);res.end();return;}res.setHeader('Content-Type',url.pathname.endsWith('.png')?'image/png':'image/webp');res.end(readFileSync(`public${url.pathname}`));return;}
+  if(url.pathname.startsWith('/icons/')||url.pathname.startsWith('/mascots/')||url.pathname.startsWith('/scripture/')){if(url.pathname.includes('..')){res.writeHead(404);res.end();return;}res.setHeader('Content-Type',url.pathname.endsWith('.png')?'image/png':'image/webp');res.end(readFileSync(`public${url.pathname}`));return;}
   res.setHeader('Content-Type','text/html');res.end('<!doctype html><html lang="nl"><head><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="stylesheet" href="/index.css"></head><body><div id="root"></div><script src="/app.js"></script></body></html>');
  }catch{res.writeHead(500);res.end();}
 });
@@ -120,7 +120,7 @@ try{
    // Vernietig de WebView; alleen de gesimuleerde beveiligde platformopslag blijft bestaan.
    await page.close();page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));page.on('response',recordResponse);
    await page.goto(`${origin}/?device=${device}`);await page.getByRole('heading',{name:/Vandaag/}).waitFor();
-   await page.getByRole('button',{name:'Accountinstellingen',exact:true}).click();
+   await page.getByRole('link',{name:'Profiel',exact:true}).click();
    await page.getByLabel('Wachtwoord',{exact:true}).fill(password);
    await page.getByRole('button',{name:'Uitloggen',exact:true}).click();await page.getByRole('heading',{name:'Welkom bij Versado'}).waitFor();
    assert.equal(await page.getByLabel('Wachtwoord',{exact:true}).inputValue(),'','Logout bewaart geen herauthenticatiewachtwoord');
@@ -142,11 +142,11 @@ try{
    await page.getByRole('button',{name:'Opnieuw proberen',exact:true}).click({timeout:3000});
    await page.getByRole('heading',{name:/Vandaag/}).waitFor();
    assert.equal(await prisma.nativeSession.count({where:{userId:forced.id}}),1,'Herstel na uitval van accountdata herhaalt geen afgeronde setup');
-   await page.getByRole('button',{name:'Accountinstellingen',exact:true}).click();await page.getByRole('link',{name:'Wachtwoord wijzigen',exact:true}).click();
+   await page.getByRole('link',{name:'Profiel',exact:true}).click();await page.getByRole('link',{name:'Wachtwoord wijzigen',exact:true}).click();
    await page.getByRole('heading',{name:'Wachtwoord wijzigen',exact:true}).waitFor();assert.equal(new URL(page.url()).hash,'#/change-password');
    await change(finalPassword,changedPassword);await page.getByRole('heading',{name:'Welkom bij Versado'}).waitFor();
    await login(forced.email,finalPassword);await page.getByRole('heading',{name:/Vandaag/}).waitFor();
-   await page.getByRole('button',{name:'Accountinstellingen',exact:true}).click();await page.getByRole('link',{name:'Wachtwoord wijzigen',exact:true}).click();
+   await page.getByRole('link',{name:'Profiel',exact:true}).click();await page.getByRole('link',{name:'Wachtwoord wijzigen',exact:true}).click();
    await page.getByLabel('Huidig wachtwoord',{exact:true}).waitFor();await prisma.user.update({where:{id:forced.id},data:{sessionVersion:{increment:1}}});
    expectExpired=true;await change('Synthetic-expired-attempt-42',finalPassword);await page.getByRole('heading',{name:'Welkom bij Versado'}).waitFor();expectExpired=false;
    assert.equal(expectedAuthFailures.length,2,'Verlopen sessie en refresh zijn geweigerd, zonder herhaling van de wachtwoordmutatie');

@@ -41,6 +41,7 @@ on:
       - 'tests/fixtures/native-access*'
       - 'tests/native-foundation*'
       - 'tests/native-navigation*'
+      - 'tests/native-shell*'
       - 'tests/native-account*'
       - 'tests/native-socket*'
       - 'tests/native-distribution*'
