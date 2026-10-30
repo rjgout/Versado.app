@@ -7,7 +7,7 @@ import MascotSlot from "@/components/versado/MascotSlot";
 import { useT, useUiLanguage } from "@/components/I18nProvider";
 import { primaryButton, secondaryButton } from "@/components/versado/styles";
 import { isNativeApp, dismissNativeKeyboard, isIOSApp, lightHaptic, nativeAppleAuthorization, openExternalUrl, startNativeFoundationRuntime } from "@/lib/platform";
-import { nativeAccountSchema, nativeTodaySchema, nativeChapterSchema, nativeCapabilitiesSchema, type NativeAccount, type NativeChapter, type NativeSecuritySetup } from "@/lib/native/contract";
+import { nativeCapabilitiesSchema, nativeChapterSchema, type NativeAccount, type NativeChapter, type NativeSecuritySetup } from "@/lib/native/contract";
 import { NativeClientError, type NativeSessionClient, type NativeSignInOutcome } from "@/lib/native/client";
 import { AppLink, useAppNavigation } from "@/components/navigation/AppNavigation";
 import PrivacyContent from "@/components/legal/PrivacyContent";
@@ -24,11 +24,16 @@ import { nativeAccountActions } from "@/lib/native/account";
 import { NativeSocketConnection } from "@/lib/native/socketClient";
 import NativeEmailConfirmation from "./NativeEmailConfirmation";
 import NativePasswordReset from "./NativePasswordReset";
+import { NativeDataProvider, useNativeData, useNativeLiveQuery } from "@/lib/data/nativeHooks";
 import { nativeDeepLink, nativePasswordResetLink, nativeEmailConfirmationLink } from "@/lib/native/navigation";
 
 type Account = NativeAccount;
 type Chapter = NativeChapter;
-export default function NativeFoundation({ client, termsUrl = null, onLanguage, buildBanner = null, internalAccess = null }: { client: NativeSessionClient; termsUrl?: string | null; onLanguage?: (language: string) => void; buildBanner?: ReactNode; internalAccess?: ReactNode }) {
+type FoundationProps = { client: NativeSessionClient; termsUrl?: string | null; onLanguage?: (language: string) => void; buildBanner?: ReactNode; internalAccess?: ReactNode };
+export default function NativeFoundation(props: FoundationProps) {
+  return <NativeDataProvider client={props.client}><NativeFoundationContent {...props} /></NativeDataProvider>;
+}
+function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBanner = null, internalAccess = null }: FoundationProps) {
   const t = useT(), uiLanguage = useUiLanguage(), navigation = useAppNavigation();
   const profile = navigation.pathname === "/profile";
   const resetPage = navigation.pathname === "/reset-password";
@@ -40,10 +45,15 @@ export default function NativeFoundation({ client, termsUrl = null, onLanguage, 
   const mode = navigation.pathname === "/register" ? "register" : navigation.pathname === "/forgot-password" ? "forgot" : "login";
   const [setup, setSetup] = useState<NativeSecuritySetup | null>(null), [recoveryCodes, setRecoveryCodes] = useState<string[] | null>(null), [features, setFeatures] = useState<string[]>([]);
   const [user, setUser] = useState<Account | null>(null), [activity, setActivity] = useState<{ id: string; title: string } | null>(null);
-  const [loadedChapter, setChapter] = useState<Chapter | null>(null), [reloadKey, setReloadKey] = useState(0);
-  const chapter = loadedChapter?.id === chapterId ? loadedChapter : null;
+  const dataRuntime = useNativeData();
+  const [reloadKey, setReloadKey] = useState(0);
+  const chapterQuery = useNativeLiveQuery<Chapter>(["chapter", user?.id ?? null, chapterId], () => dataRuntime.chapter(chapterId!), {
+    scopes: ["content", "progress"], contentScoped: true, enabled: !!chapterId && !!user,
+  });
+  const chapter = user && chapterQuery.data?.id === chapterId ? chapterQuery.data : null;
+  const saved = chapter?.state.read === "READ";
   const [identifier, setIdentifier] = useState(""), [password, setPassword] = useState(""), [code, setCode] = useState(""), [handle, setHandle] = useState("");
-  const [error, setError] = useState(""), [notice, setNotice] = useState(false), [busy, setBusy] = useState(false), [offline, setOffline] = useState(false), [apple, setApple] = useState(false), [saved, setSaved] = useState(false);
+  const [error, setError] = useState(""), [notice, setNotice] = useState(false), [busy, setBusy] = useState(false), [offline, setOffline] = useState(false), [apple, setApple] = useState(false);
   const launchHandled = useRef(false);
   const sequence = useRef(0), current = useRef({ busy, navigation, setup, recoveryCodes });
   useEffect(() => { current.current = { busy, navigation, setup, recoveryCodes }; }, [busy, navigation, setup, recoveryCodes]);
@@ -59,13 +69,13 @@ export default function NativeFoundation({ client, termsUrl = null, onLanguage, 
     const mapping = { wrong_credentials: "wrongCredentials", two_factor_required: "twoFactorRequired", sign_in_then_link_apple: "appleConflict", alternative_login_required: "alternativeRequired", network_unavailable: "offline", session_expired: "sessionExpired", secure_storage_unavailable: "storageUnavailable" } as const;
     setError(key === "email_confirmation_required" ? t("apiErrors.emailNotConfirmed") : key === "email_confirmation_sent" ? t("apiErrors.emailNotConfirmedSent") : key === "wrong_code" ? t("apiErrors.verificationCodeWrong") : t(`nativeFoundation.${mapping[key as keyof typeof mapping] ?? "error"}`));
     if (key === "network_unavailable") setOffline(true);
-    if (err instanceof NativeClientError && err.status === 401 && key !== "two_factor_required" && key !== "wrong_credentials") { setUser(null); setChapter(null); setSetup(null); setRecoveryCodes(null); }
-  }, [t]);
+    if (err instanceof NativeClientError && err.status === 401 && key !== "two_factor_required" && key !== "wrong_credentials") { setUser(null); dataRuntime.reset(); setSetup(null); setRecoveryCodes(null); }
+  }, [t, dataRuntime]);
   const accountActions = useMemo(() => nativeAccountActions(client, () => report(new NativeClientError("session_expired", 401))), [client, report]);
   const load = useCallback(async () => {
-    const [me, today] = await Promise.all([client.api<Account>("me"), client.api<{ activity: typeof activity }>("today")]);
-    return { me: nativeAccountSchema.parse(me), today: nativeTodaySchema.parse(today) };
-  }, [client]);
+    const [me, today] = await Promise.all([dataRuntime.account(), dataRuntime.today()]);
+    return { me, today };
+  }, [dataRuntime]);
   const bootstrap = useCallback(async () => {
     const id = ++sequence.current; setBusy(true); setError("");
     try {
@@ -74,11 +84,11 @@ export default function NativeFoundation({ client, termsUrl = null, onLanguage, 
       setApple(capabilities.apple && isIOSApp()); setFeatures(capabilities.features);
       if (await client.restore()) {
         const data = await load(); if (id !== sequence.current) return; setUser(data.me); setActivity(data.today.activity);
-      } else { setUser(null); setChapter(null); }
-      setOffline(false); setReloadKey(value => value + 1);
+      } else { setUser(null); dataRuntime.reset(); }
+      setOffline(false); dataRuntime.resume(); setReloadKey(value => value + 1);
     } catch (err) { if (id === sequence.current) report(err); }
     finally { if (id === sequence.current) setBusy(false); }
-  }, [client, load, report]);
+  }, [client, load, report, dataRuntime]);
   useEffect(() => {
     const id = ++sequence.current;
     void Promise.resolve().then(() => { if (id === sequence.current) setMailRequest(value => value.route === navigation.pathname ? value : { token: null, id: value.id, route: navigation.pathname }); });
@@ -122,24 +132,15 @@ export default function NativeFoundation({ client, termsUrl = null, onLanguage, 
     const connection = new NativeSocketConnection(client, error => {
       if (error instanceof NativeClientError && error.status === 401) report(error);
     });
+    const detach = dataRuntime.attachSocket(connection.socket);
     connection.start();
-    return () => connection.dispose();
-  }, [accountId, realtime, reloadKey, client, report]);
+    return () => { detach(); connection.dispose(); };
+  }, [accountId, realtime, reloadKey, client, report, dataRuntime]);
   useEffect(() => {
-    if (!chapterId || !accountId) return;
-    const id = ++sequence.current;
-    let cancelled = false;
-    void Promise.resolve().then(async () => {
-      if (cancelled) return;
-      setBusy(true); setError("");
-      try {
-        const value = nativeChapterSchema.parse(await client.api(`chapters/${encodeURIComponent(chapterId)}`));
-        if (!cancelled && id === sequence.current) { setChapter(value); setSaved(value.state.read === "READ"); }
-      } catch (err) { if (!cancelled && id === sequence.current) report(err); }
-      finally { if (!cancelled && id === sequence.current) setBusy(false); }
-    });
-    return () => { cancelled = true; };
-  }, [chapterId, accountId, reloadKey, client, report]);
+    let current = true;
+    void Promise.resolve().then(() => { if (current && chapterQuery.error) report(chapterQuery.error); });
+    return () => { current = false; };
+  }, [chapterQuery.error, report]);
   async function action(run: (isCurrent: () => boolean) => Promise<void>) {
     if (busy) return;
     const id = ++sequence.current; setBusy(true); setError(""); setNotice(false);
@@ -149,7 +150,7 @@ export default function NativeFoundation({ client, termsUrl = null, onLanguage, 
   }
   async function applySignIn(outcome: NativeSignInOutcome, isCurrent: () => boolean) {
     if (!isCurrent()) return;
-    if (outcome.securitySetup) { setSetup(outcome.securitySetup); setUser(null); setChapter(null); setPassword(""); setCode(""); return; }
+    if (outcome.securitySetup) { setSetup(outcome.securitySetup); setUser(null); dataRuntime.reset(); setPassword(""); setCode(""); return; }
     // De sessie is al veilig geïnstalleerd. Een storing in me/today mag de
     // verbruikte setup niet terugzetten of herstelcodes onzichtbaar maken.
     setSetup(null); setRecoveryCodes(outcome.recoveryCodes ?? null); setPassword(""); setCode(""); setBusy(true);
@@ -190,7 +191,7 @@ export default function NativeFoundation({ client, termsUrl = null, onLanguage, 
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/icons/icon-512.png" width="44" height="44" alt="" />
       <span className="text-xl font-extrabold">Versado</span>
-      {user && <button type="button" disabled={busy} className={`${button} ml-auto`} onClick={() => { setPassword(""); setCode(""); void action(() => client.logout(() => { setUser(null); setChapter(null); setSetup(null); setRecoveryCodes(null); setIdentifier(""); navigation.replace("/login"); })); }}><LogOut className="h-4 w-4" />{t("nativeFoundation.logout")}</button>}
+      {user && <button type="button" disabled={busy} className={`${button} ml-auto`} onClick={() => { setPassword(""); setCode(""); void action(() => client.logout(() => { setUser(null); dataRuntime.reset(); setSetup(null); setRecoveryCodes(null); setIdentifier(""); navigation.replace("/login"); })); }}><LogOut className="h-4 w-4" />{t("nativeFoundation.logout")}</button>}
     </div></header>
     {detail && <div data-subpage-back-bar className="border-b border-vs-line bg-vs-elevated pl-[max(1.25rem,var(--vs-safe-area-left))] pr-[max(1.25rem,var(--vs-safe-area-right))] py-2">
       <button className={button} onClick={() => navigation.back()}><ArrowLeft className="h-4 w-4" />{t("nativeFoundation.back")}</button>
@@ -201,8 +202,8 @@ export default function NativeFoundation({ client, termsUrl = null, onLanguage, 
     {internalAccess}
     {offline && <p role="status" className="flex gap-2 rounded-xl bg-vs-surface p-3"><WifiOff className="h-5 w-5 shrink-0" />{t("nativeFoundation.offline")}</p>}
     {error && <p role="alert" className="rounded-xl border border-vs-line bg-vs-surface p-3">{error}</p>}
-    {busy && <p role="status">{t("nativeFoundation.loading")}</p>}
-    {legal ? navigation.pathname === "/privacy" ? <PrivacyContent /> : navigation.pathname === "/disclaimer" ? <DisclaimerContent /> : navigation.pathname === "/contact" ? <ContactContent /> : <CookiesContent /> : resetPage ? <NativePasswordReset key={mailRequest.id} client={client} initialToken={mailRequest.route === navigation.pathname ? mailRequest.token : null} onTokenCleared={() => setMailRequest(value => ({ ...value, token: null }))} onContinue={() => void action(() => client.logout(() => { setUser(null); setChapter(null); setSetup(null); setRecoveryCodes(null); navigation.replace("/login"); }))} /> : confirmationPage ? <NativeEmailConfirmation key={mailRequest.id} client={client} initialToken={mailRequest.route === navigation.pathname ? mailRequest.token : null} onTokenCleared={() => setMailRequest(value => ({ ...value, token: null }))} onContinue={() => void action(() => client.logout(() => { setUser(null); setChapter(null); setSetup(null); setRecoveryCodes(null); navigation.replace("/login"); }))} /> : recoveryCodes ? <>
+    {(busy || (!!chapterId && !!user && chapterQuery.isLoading)) && <p role="status">{t("nativeFoundation.loading")}</p>}
+    {legal ? navigation.pathname === "/privacy" ? <PrivacyContent /> : navigation.pathname === "/disclaimer" ? <DisclaimerContent /> : navigation.pathname === "/contact" ? <ContactContent /> : <CookiesContent /> : resetPage ? <NativePasswordReset key={mailRequest.id} client={client} initialToken={mailRequest.route === navigation.pathname ? mailRequest.token : null} onTokenCleared={() => setMailRequest(value => ({ ...value, token: null }))} onContinue={() => void action(() => client.logout(() => { setUser(null); dataRuntime.reset(); setSetup(null); setRecoveryCodes(null); navigation.replace("/login"); }))} /> : confirmationPage ? <NativeEmailConfirmation key={mailRequest.id} client={client} initialToken={mailRequest.route === navigation.pathname ? mailRequest.token : null} onTokenCleared={() => setMailRequest(value => ({ ...value, token: null }))} onContinue={() => void action(() => client.logout(() => { setUser(null); dataRuntime.reset(); setSetup(null); setRecoveryCodes(null); navigation.replace("/login"); }))} /> : recoveryCodes ? <>
       <h1 tabIndex={-1} className="text-2xl font-extrabold">{t("profile.twoFactor")}</h1>
       <RecoveryCodesCard recoveryCodes={recoveryCodes} onSaved={() => setRecoveryCodes(null)} />
     </> : setup ? <>
@@ -241,7 +242,7 @@ export default function NativeFoundation({ client, termsUrl = null, onLanguage, 
     </> : <>
       <h1 tabIndex={-1} className="text-2xl font-extrabold">{passwordPage ? t("profile.changePassword") : profile ? t("nativeFoundation.account") : (chapterId ? chapter?.title ?? t("pages.lesson") : `${t("nativeFoundation.today")}, ${user.handle}`)}</h1>
       {passwordPage ? <PasswordChangeForm forced={false} requiresSecondFactor={user.totpEnabled} onChanged={async () => {
-        await client.logout(() => { setUser(null); setChapter(null); setRecoveryCodes(null); navigation.replace("/login"); }).catch(report);
+        await client.logout(() => { setUser(null); dataRuntime.reset(); setRecoveryCodes(null); navigation.replace("/login"); }).catch(report);
       }} /> : profile ? <>
         <p>{user.appleLinked ? t("nativeFoundation.appleLinked") : t("nativeFoundation.appleUnavailable")}</p>
         <label>{t("nativeFoundation.password")}<input type="password" autoComplete="current-password" className="input w-full" value={password} onChange={e => setPassword(e.target.value)} maxLength={256} /></label>
@@ -251,7 +252,20 @@ export default function NativeFoundation({ client, termsUrl = null, onLanguage, 
         {!user.passwordLoginEnabled && <p>{t("nativeFoundation.alternativeRequired")}</p>}
       </> : chapterId ? chapter ? <>
         {chapter.verses.map(verse => <p key={verse.number} className="leading-relaxed"><sup className="mr-2">{verse.number}</sup>{verse.text}</p>)}
-        <button className={`${primaryButton} min-h-12 whitespace-normal`} disabled={busy || saved} onClick={() => void action(async isCurrent => { await client.api(`chapters/${encodeURIComponent(chapter.id)}/complete`, {}); if (!isCurrent()) return; setSaved(true); await lightHaptic(); })}>{t(saved ? "nativeFoundation.completeSaved" : "nativeFoundation.complete")}</button>
+        <button className={`${primaryButton} min-h-12 whitespace-normal`} disabled={busy || saved} onClick={() => void action(async isCurrent => {
+          const epoch = dataRuntime.getSnapshot();
+          const confirmed = await dataRuntime.mutation(async () => {
+            const result = await client.api<{ content: unknown }>(`chapters/${encodeURIComponent(chapter.id)}/complete`, {});
+            const state = nativeChapterSchema.shape.state.safeParse(result?.content);
+            if (!state.success || state.data.read !== "READ") throw new NativeClientError("invalid_response");
+            return state.data;
+          }, "activityCompleted");
+          if (!isCurrent() || epoch !== dataRuntime.getSnapshot()) return;
+          // Bevestigde serverdata in dezelfde account-/hoofdstuk-/epochcache.
+          // De invalidatie controleert later opnieuw; een GET-fout maakt deze commit niet ongedaan.
+          chapterQuery.setData(previous => previous?.id === chapter.id ? { ...previous, state: confirmed } : previous);
+          await lightHaptic();
+        })}>{t(saved ? "nativeFoundation.completeSaved" : "nativeFoundation.complete")}</button>
       </> : null : <>
         {user.onboardingRequired && <p>{t("nativeFoundation.onboardingNote")}</p>}
         {activity ? <button className={`${primaryButton} min-h-12 whitespace-normal`} disabled={busy} onClick={() => navigation.push(`/lesson/${encodeURIComponent(activity.id)}`)}>{activity.title} — {t("nativeFoundation.continue")}</button> : <p>{t("nativeFoundation.empty")}</p>}

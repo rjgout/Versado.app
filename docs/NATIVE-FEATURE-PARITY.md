@@ -167,6 +167,17 @@ De bestaande hybride architectuur uit [PLATFORMEN.md](PLATFORMEN.md) blijft staa
 
 De eigenaar heeft op 21 oktober 2026 gekozen voor **gedeelde navigatie- en datalaag per functie**: bestaande schermcomponenten worden stapsgewijs bruikbaar voor Next.js én de lokale app, met expliciete native API-contracten. `CoursesClient`, `ProfileClient`, `LiveLobbyForm` en spelcomponenten gebruiken nu nog Next-imports en relatieve cookie-API's. Die afhankelijkheden worden per functie vervangen door gedeelde poorten met afzonderlijke web/native adapters; er komen geen build-time Next.js-compatibiliteitsshims.
 
+WP6 deel 1 integreert de querykern uit #230 op de actuele `develop`: web en de
+bestaande native hoofdstuklezer gebruiken dezelfde `LiveDataStore` via afzonderlijke
+adapters. Native cachekeys omvatten sessie-epoch, account en concrete hoofdstuk-ID;
+bron-/taalgebonden queries tonen geen vorige SSR-/cached tekst. De actuele Access-
+kaart en authenticatie blijven leidend. Realtime vereist óók
+`client.realtimeSupported`; de interne Access-build maakt geen socket aan.
+Zie [WP6-datalaag](NATIVE-WP6-DATALAAG.md) voor scope, regressiebewijs en toesteltest.
+De eigenaar bevestigde bij #233 de eerdere Foundation-build op een fysieke iPhone
+(Service Auth, login, verplichte 2FA en herstel na afsluiten). De nieuwe WP6-integratie
+vereist opnieuw fysieke acceptatie; andere ontbrekende functies blijven ontbreken.
+
 Vervolg-PR's blijven afhankelijk van deze eerste matrix, het router/data-besluit en geteste authcorrecties. Daarna: shell/context/account → bestaande lees-/leer-/spelroutes → sociaal/realtime → media/push → release-/storevoorbereiding. Geen fase wordt technisch voltooid verklaard zolang een bestaande functie ontbreekt of apparaat-/onafhankelijk bewijs ontbreekt.
 
 ## Verificatie sessiewisselingen
@@ -278,7 +289,7 @@ De onafhankelijke review volgt door ChatGPT. #176 en #178 blijven ongemerged.
 <!-- BEGIN NATIVE PARITY INVENTORY -->
 ## Volledige broninventaris (gegenereerd)
 
-Gevonden: **143 pagina's**, **244 fysieke routehandlers**, **432 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
+Gevonden: **143 pagina's**, **244 fysieke routehandlers**, **433 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
 
 De JSON-bijlage bevat per route alle transitief bereikbare lokale modules, clientgrenzen en statische requestpaden. Dat is een afhankelijkheidsinventaris, geen autorisatiebewijs; voorwaarden per HTTP-methode blijven apart te controleren. Een Client Component kan via een gedeelde helper nog een serverafhankelijkheid hebben. Een module zonder eigen `use client` is contextafhankelijk, niet automatisch browsergeschikt.
 
@@ -1112,6 +1123,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/versado/SystemIcon.tsx](../src/components/versado/SystemIcon.tsx) | contextafhankelijk / server-entry waar page/layout | SystemIcon
 [src/components/versado/ToggleSwitch.tsx](../src/components/versado/ToggleSwitch.tsx) | use client | ToggleSwitch
 [src/components/versado/VisualIdentityIcon.tsx](../src/components/versado/VisualIdentityIcon.tsx) | use client | VisualIdentityIcon
+[src/lib/data/nativeHooks.tsx](../src/lib/data/nativeHooks.tsx) | use client | NativeDataProvider, useNativeData, useNativeLiveQuery
 [src/lib/i18n/rich.tsx](../src/lib/i18n/rich.tsx) | contextafhankelijk / server-entry waar page/layout | rich
 [src/lib/podcastPlayerContext.tsx](../src/lib/podcastPlayerContext.tsx) | use client | PodcastPlayerProvider, usePodcastPlayer
 [src/lib/readAloudPlayerContext.tsx](../src/lib/readAloudPlayerContext.tsx) | use client | ReadAloudPlayerProvider, getVoice, useReadAloudPlayer
