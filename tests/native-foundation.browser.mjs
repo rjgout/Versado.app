@@ -53,6 +53,11 @@ try{
   try{
   const device=`${width}-${randomUUID()}`;
   await page.goto(`${origin}/?device=${device}`);await page.getByRole('heading',{level:1}).waitFor();await page.getByRole('alert').waitFor();
+  const brand=page.locator('header img[src="/icons/native/versado-flame.png"]');
+  await brand.evaluate(image=>image.decode());
+  assert.equal(await brand.evaluate(image=>image.naturalWidth),132);
+  assert.equal(await page.locator('img[src="/icons/icon-512.png"]').count(),0);
+  await page.screenshot({path:`${out}/branding-${width}-${scheme}-${scale}.png`,fullPage:true});
   assert.equal(await page.evaluate(()=>document.documentElement.classList.contains('dark')),scheme==='dark','De echte lokale adapter volgt het systeemthema');
   await page.emulateMedia({colorScheme:scheme==='dark'?'light':'dark'});
   await page.waitForFunction(expected=>document.documentElement.classList.contains('dark')===expected,scheme!=='dark');
