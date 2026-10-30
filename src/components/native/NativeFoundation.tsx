@@ -159,7 +159,7 @@ function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBan
     try {
       const data = await load(); if (!isCurrent()) return;
       setUser(data.me); setActivity(data.today.activity);
-      if (["/login", "/register", "/forgot-password"].includes(navigation.pathname)) navigation.replace("/dashboard");
+      if (["/dashboard", "/login", "/register", "/forgot-password"].includes(navigation.pathname)) navigation.replace("/dashboard");
     } finally { if (isCurrent()) setBusy(false); }
   }
   async function cancelSetup() {

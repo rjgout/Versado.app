@@ -44,6 +44,9 @@ export default function NativeNavigationProvider({ children }: { children: React
     return () => { history.scrollRestoration = previous; };
   }, []);
   useLayoutEffect(() => {
+    // Nieuwe routes beginnen eenmaal bovenaan. Een lees-/ankerscroll van de pagina
+    // daarna heeft voorrang; alleen terug/vooruit vereist gevolgd positieherstel.
+    if (!snapshot.traversal) { window.scrollTo({ top: 0, behavior: "instant" }); return; }
     const target = snapshot.traversal ? positions.current.get(snapshot.index) ?? 0 : 0;
     const root = document.documentElement, previousAnchor = root.style.overflowAnchor;
     const started = performance.now(); let frame = 0, stopped = false, lastHeight = -1, stableSince = started;

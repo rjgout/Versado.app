@@ -14,6 +14,14 @@ navigatiesubscriptie bewaart haar nu vóór de React-notificatie. Zoals de websh
 blijft native herstel daarna kort volgen tot de hoogte 500 ms stabiel is
 (maximaal 1500 ms), met tijdelijke uitschakeling van browser-scrollanchoring.
 Touch, wheel, toetsenbord of pointer beëindigen het herstel onmiddellijk.
+Dit volgen geldt alleen voor terug/vooruit: een nieuwe route begint eenmaal
+bovenaan en laat volgende pagina-/ankerscroll voorgaan, net als op web.
+
+Ook de koude login op de impliciete `/dashboard`-route krijgt na succesvolle
+aanmelding expliciet dezelfde centrale `replace('/dashboard')` als de gewone
+loginroute. Anders bleef bij 200% tekst de oude loginformulier-scrollpositie
+staan nu kopfocus terecht niet meer zelf scrolt. Bootstrap/herstel en private
+deeplinks houden hun bestaande bestemming en scrollbeleid.
 
 ## Dependencyonderzoek op 30 oktober 2026
 
@@ -44,7 +52,8 @@ en gegenereerde native CSS met synthetische HTTP-contractantwoorden. Het is geen
 bewijs van backendauthenticatie; daarvoor blijft `test:native:integration` bestaan.
 De matrix bevat 320/375/390/400 px, 100/200% tekst, licht/donker; echte actieve
 kopfocus en markercleanup, Vandaag → Profiel → Vandaag, login/logout, selectie,
-zichtbare toetsenbordfocus (ook dialoogbedieningen), lange leesroute → privacy →
+zichtbare toetsenbordfocus (ook dialoogbedieningen), koude login met grote tekst
+begint op Vandaag bovenaan, private deeplink na login blijft behouden, lange leesroute → privacy →
 terug en hervatten met exact bewaarde scrollpositie. Screenshots/resultaten staan
 als `native-route-focus-browser` bij de bestaande Native Foundation-CI.
 

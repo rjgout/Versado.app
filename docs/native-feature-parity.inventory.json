@@ -12751,7 +12751,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "34820e6c5a3be0624e433ff96f0fb74fd1960d8bb714e140071b7e3a862a4d99",
+      "sha256": "9f3105541a7c65ee7e1f683666c08e72227fd9661cd2a87c3e03d8f019aceead",
       "boundary": "client",
       "imports": [
         "./NativeEmailConfirmation",
@@ -12798,7 +12798,7 @@
     },
     {
       "file": "src/components/native/NativeNavigationProvider.tsx",
-      "sha256": "00d3be772b763aa9cdd10c0c52d3a1e0dcdb7cb6744f5aecbc85e53c8674e1df",
+      "sha256": "642b4b052fde4e0569911eb504a9f94952b1247e0ff2737b8cc272c001eb6a0e",
       "boundary": "client",
       "imports": [
         "@/components/navigation/AppNavigation",
@@ -74471,7 +74471,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "34820e6c5a3be0624e433ff96f0fb74fd1960d8bb714e140071b7e3a862a4d99",
+      "sha256": "9f3105541a7c65ee7e1f683666c08e72227fd9661cd2a87c3e03d8f019aceead",
       "boundary": "client",
       "imports": [
         "./NativeEmailConfirmation",
@@ -74518,7 +74518,7 @@
     },
     {
       "file": "src/components/native/NativeNavigationProvider.tsx",
-      "sha256": "00d3be772b763aa9cdd10c0c52d3a1e0dcdb7cb6744f5aecbc85e53c8674e1df",
+      "sha256": "642b4b052fde4e0569911eb504a9f94952b1247e0ff2737b8cc272c001eb6a0e",
       "boundary": "client",
       "imports": [
         "@/components/navigation/AppNavigation",

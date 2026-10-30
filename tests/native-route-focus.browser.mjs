@@ -71,8 +71,12 @@ try {
     const email = page.getByLabel('E-mail of gebruikerstag'); await keyboardFocus(page, email);
     assert.equal(await page.locator('h1').getAttribute('data-native-route-focus'), null, 'Marker verdwijnt na blur');
     await email.fill('focus@example.invalid'); await page.getByLabel('Wachtwoord', { exact: true }).fill('Synthetisch-42');
-    await page.getByRole('button', { name: 'Inloggen', exact: true }).click();
+    const submit = page.getByRole('button', { name: 'Inloggen', exact: true });
+    await submit.scrollIntoViewIfNeeded();
+    if (scale === 2) assert.ok(await page.evaluate(() => scrollY > 100), 'Koude login heeft bij 200% echt een oude formulier-scrollpositie');
+    await submit.click();
     await headingFocused(page, /Vandaag/);
+    await page.waitForFunction(() => scrollY === 0, undefined, { timeout: 3000 });
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false);
     await page.screenshot({ path: `${out}/today-${width}-${scale}-${scheme}.png`, fullPage: true });
     await keyboardFocus(page, page.locator('a[data-kompas-target="profile"]'));
@@ -89,7 +93,10 @@ try {
     await page.waitForFunction(() => scrollY > 1000);
     const position = await page.evaluate(() => scrollY); assert.ok(position > 1000);
     // Een DOM-klik schuift de footerlink niet eerst in beeld en behoudt de leespositie.
-    await page.locator('a[href="#/privacy"]').evaluate(a => a.click()); await page.getByRole('heading', { level: 1 }).waitFor();
+    await page.locator('a[href="#/privacy"]').evaluate(a => a.click()); await page.getByRole('heading', { level: 1, name: 'Privacybeleid' }).waitFor();
+    assert.equal(await page.evaluate(async () => {
+      scrollTo(0, 300); await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))); return scrollY;
+    }), 300, 'Een nieuwe route mag volgende programmatische pagina-/ankerscroll niet terugzetten');
     await page.goBack(); await headingFocused(page, chapter.title);
     await page.waitForFunction(position => Math.abs(scrollY - position) < 2, position, { timeout: 3000 }).catch(async error => { console.error('Leespositie', { expected: position, actual: await page.evaluate(() => ({ scroll: scrollY, history: history.state })) }); throw error; });
     await page.screenshot({ path: `${out}/reader-${width}-${scale}-${scheme}.png` });
@@ -106,6 +113,17 @@ try {
     assert.equal(await page.locator('dialog h1').getAttribute('data-native-route-focus'), null);
     results.push({ width, scale, scheme, scrollRestored: position }); await context.close();
   }
+  // Een expliciete login vanuit een private deeplink behoudt juist die bestemming.
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'nl-NL' });
+  const page = await context.newPage(); page.on('pageerror', error => errors.push(error.message));
+  await page.goto(`${origin}/?device=private-deeplink#/lesson/${chapter.id}`);
+  await headingFocused(page, 'Welkom bij Versado');
+  await page.getByLabel('E-mail of gebruikerstag').fill('focus@example.invalid');
+  await page.getByLabel('Wachtwoord', { exact: true }).fill('Synthetisch-42');
+  await page.getByRole('button', { name: 'Inloggen', exact: true }).click();
+  await headingFocused(page, chapter.title);
+  assert.equal(await page.evaluate(() => location.hash), `#/lesson/${chapter.id}`);
+  await context.close();
   assert.deepEqual(errors, []);
   assert.ok(calls.every(c => c.method === 'GET' || ['login', 'logout', 'refresh'].includes(c.path)), 'Geen lees-/XP-mutaties');
   writeFileSync(`${out}/results.json`, JSON.stringify(results, null, 2));
