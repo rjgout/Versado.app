@@ -126,7 +126,8 @@
     "test:audio:browser": "node scripts/audio/test-isolated.mjs --browser",
     "test:daily-text": "tsx --test tests/daily-text.test.ts",
     "test:daily-text:integration": "node scripts/content-architecture/test-access-isolated.mjs --focused --daily-text --browser",
-    "test:cfm-content:integration": "node scripts/content-architecture/test-access-isolated.mjs --focused --cfm-content --browser"
+    "test:cfm-content:integration": "node scripts/content-architecture/test-access-isolated.mjs --focused --cfm-content --browser",
+    "test:native:focus": "tsx --test tests/native-responsive-css.test.ts && node tests/native-route-focus.browser.mjs"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.2",
@@ -167,7 +168,7 @@
   },
   "devDependencies": {
     "@capacitor/android": "^8.5.2",
-    "@capacitor/cli": "^8.5.2",
+    "@capacitor/cli": "^8.6.0",
     "@capacitor/ios": "^8.5.2",
     "@types/node": "24.19.1",
     "@types/nodemailer": "^8.0.2",

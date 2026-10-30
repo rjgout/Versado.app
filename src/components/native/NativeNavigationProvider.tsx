@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { AppNavigationProvider, useAppNavigation, type AppLinkProps } from "@/components/navigation/AppNavigation";
 import { NativeNavigator, nativeRoute } from "@/lib/native/navigation";
 import { openExternalUrl } from "@/lib/platform";
@@ -20,8 +20,18 @@ function NativeLink({ href, replace, onClick, ...props }: AppLinkProps) {
 /** Alleen lokaal gebruikt; bevat geen Next-import of browseropslag. */
 export default function NativeNavigationProvider({ children }: { children: ReactNode }) {
   const [router] = useState(() => new NativeNavigator(window));
-  const snapshot = useSyncExternalStore(router.subscribe, router.getSnapshot);
   const positions = useRef(new Map<number, number>());
+  const subscribe = useCallback((notify: () => void) => {
+    let previous = router.getSnapshot();
+    return router.subscribe(() => {
+      // Vóór React de oude DOM vervangt: een kortere pagina/shell kan scrollY al
+      // begrenzen voordat de layout-effectcleanup van die oude route draait.
+      positions.current.set(previous.index, window.scrollY);
+      previous = router.getSnapshot();
+      notify();
+    });
+  }, [router]);
+  const snapshot = useSyncExternalStore(subscribe, router.getSnapshot);
   useEffect(() => router.listen(), [router]);
   useLayoutEffect(() => {
     const media = window.matchMedia("(prefers-color-scheme: dark)");
@@ -35,18 +45,26 @@ export default function NativeNavigationProvider({ children }: { children: React
   }, []);
   useLayoutEffect(() => {
     const target = snapshot.traversal ? positions.current.get(snapshot.index) ?? 0 : 0;
-    const started = performance.now(); let frame = 0, stopped = false;
+    const root = document.documentElement, previousAnchor = root.style.overflowAnchor;
+    const started = performance.now(); let frame = 0, stopped = false, lastHeight = -1, stableSince = started;
+    const stop = () => { stopped = true; cancelAnimationFrame(frame); root.style.overflowAnchor = previousAnchor; };
     const restore = () => {
       if (stopped) return;
-      window.scrollTo({ top: Math.min(target, Math.max(0, document.documentElement.scrollHeight - innerHeight)), behavior: "instant" });
-      if (performance.now() - started < 1500 && scrollY < target) frame = requestAnimationFrame(restore);
+      const now = performance.now(), height = root.scrollHeight;
+      if (height !== lastHeight) { lastHeight = height; stableSince = now; }
+      const top = Math.min(target, Math.max(0, height - innerHeight));
+      if (Math.abs(scrollY - top) > 1) window.scrollTo({ top, behavior: "instant" });
+      // Net als de webshell: ook na het eerste bereiken even blijven volgen.
+      // Late header-/inhoudmetingen en browseranchoring mogen leesherstel niet verschuiven.
+      if ((top >= target && now - stableSince > 500) || now - started >= 1500) { stop(); return; }
+      frame = requestAnimationFrame(restore);
     };
-    const stop = () => { stopped = true; cancelAnimationFrame(frame); };
+    root.style.overflowAnchor = "none";
     restore();
-    window.addEventListener("touchstart", stop, { passive: true }); window.addEventListener("wheel", stop, { passive: true }); window.addEventListener("keydown", stop);
+    window.addEventListener("touchstart", stop, { passive: true }); window.addEventListener("wheel", stop, { passive: true }); window.addEventListener("keydown", stop); window.addEventListener("pointerdown", stop, { passive: true });
     return () => {
-      positions.current.set(snapshot.index, scrollY); stop();
-      window.removeEventListener("touchstart", stop); window.removeEventListener("wheel", stop); window.removeEventListener("keydown", stop);
+      stop();
+      window.removeEventListener("touchstart", stop); window.removeEventListener("wheel", stop); window.removeEventListener("keydown", stop); window.removeEventListener("pointerdown", stop);
     };
   }, [snapshot]);
   const adapter = useMemo(() => ({ pathname: snapshot.href, push: router.push, replace: router.replace, back: router.back, canGoBack: router.canGoBack, refresh: router.refresh, Link: NativeLink }), [router, snapshot]);

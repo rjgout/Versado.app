@@ -11572,7 +11572,7 @@
     },
     {
       "file": "src/components/admin/AdminStudyPublicationsClient.tsx",
-      "sha256": "78e30ad50c49ffcdcafa4f3ecdfea349c6d93e47b2bfd3c8139a001bb48f20b6",
+      "sha256": "c63f25b1cf3f38e04a012edbfd152b457f26ceb7f0158421704d4ae756b35461",
       "boundary": "client",
       "imports": [
         "./AdminNotice",
@@ -12751,7 +12751,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "40db9ffa7e748114f095126427b37aaf3b57418f71d48f791a481eb7e6304d1c",
+      "sha256": "34820e6c5a3be0624e433ff96f0fb74fd1960d8bb714e140071b7e3a862a4d99",
       "boundary": "client",
       "imports": [
         "./NativeEmailConfirmation",
@@ -12776,6 +12776,7 @@
         "@/lib/native/client",
         "@/lib/native/contract",
         "@/lib/native/navigation",
+        "@/lib/native/routeFocus",
         "@/lib/native/shell",
         "@/lib/native/socketClient",
         "@/lib/platform",
@@ -12797,7 +12798,7 @@
     },
     {
       "file": "src/components/native/NativeNavigationProvider.tsx",
-      "sha256": "fb998d8612e4322265704eaffa106d7ef11ce0be16ea47a8eedccefed4e6142c",
+      "sha256": "00d3be772b763aa9cdd10c0c52d3a1e0dcdb7cb6744f5aecbc85e53c8674e1df",
       "boundary": "client",
       "imports": [
         "@/components/navigation/AppNavigation",
@@ -20680,6 +20681,18 @@
       "checks": [],
       "exports": [
         "nativePasswordResetActions"
+      ]
+    },
+    {
+      "file": "src/lib/native/routeFocus.ts",
+      "sha256": "9024917e4d9bfc5e35fd90c5088267112b7a386f252d4f61684112dba568d613",
+      "boundary": "context-dependent",
+      "imports": [],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "focusNativeRouteHeading"
       ]
     },
     {
@@ -73368,7 +73381,7 @@
     },
     {
       "file": "src/components/admin/AdminStudyPublicationsClient.tsx",
-      "sha256": "78e30ad50c49ffcdcafa4f3ecdfea349c6d93e47b2bfd3c8139a001bb48f20b6",
+      "sha256": "c63f25b1cf3f38e04a012edbfd152b457f26ceb7f0158421704d4ae756b35461",
       "boundary": "client",
       "imports": [
         "./AdminNotice",
@@ -74458,7 +74471,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "40db9ffa7e748114f095126427b37aaf3b57418f71d48f791a481eb7e6304d1c",
+      "sha256": "34820e6c5a3be0624e433ff96f0fb74fd1960d8bb714e140071b7e3a862a4d99",
       "boundary": "client",
       "imports": [
         "./NativeEmailConfirmation",
@@ -74483,6 +74496,7 @@
         "@/lib/native/client",
         "@/lib/native/contract",
         "@/lib/native/navigation",
+        "@/lib/native/routeFocus",
         "@/lib/native/shell",
         "@/lib/native/socketClient",
         "@/lib/platform",
@@ -74504,7 +74518,7 @@
     },
     {
       "file": "src/components/native/NativeNavigationProvider.tsx",
-      "sha256": "fb998d8612e4322265704eaffa106d7ef11ce0be16ea47a8eedccefed4e6142c",
+      "sha256": "00d3be772b763aa9cdd10c0c52d3a1e0dcdb7cb6744f5aecbc85e53c8674e1df",
       "boundary": "client",
       "imports": [
         "@/components/navigation/AppNavigation",
@@ -77121,6 +77135,8 @@
     "tests/native-ios-release.test.mjs",
     "tests/native-navigation.test.ts",
     "tests/native-parity.test.mjs",
+    "tests/native-responsive-css.test.ts",
+    "tests/native-route-focus.browser.mjs",
     "tests/native-shell.browser.mjs",
     "tests/native-shell.integration.test.ts",
     "tests/native-shell.test.tsx",

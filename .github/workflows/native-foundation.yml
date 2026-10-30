@@ -42,6 +42,9 @@ on:
       - 'tests/native-foundation*'
       - 'tests/native-navigation*'
       - 'tests/native-shell*'
+      - 'tests/native-route-focus*'
+      - 'tests/native-responsive-css*'
+      - 'tailwind.config.ts'
       - 'tests/native-account*'
       - 'tests/native-socket*'
       - 'tests/native-distribution*'
@@ -92,6 +95,8 @@ jobs:
           npm install --prefix "$RUNNER_TEMP/versado-browser" playwright@1.64.0
           bash scripts/ci/install-browser.sh node "$RUNNER_TEMP/versado-browser/node_modules/playwright/cli.js"
           echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/versado-browser/node_modules/playwright" >> "$GITHUB_ENV"
+      - name: Routefocus, selectie en mobiele CSS (320/375/390/400px, 100/200%, licht/donker)
+        run: npm run test:native:focus
       - name: Migratie, sessies, Apple en lokale leesflow op geïsoleerde PostgreSQL
         run: npm run test:native:integration
       - name: Browserbewijs
@@ -100,4 +105,11 @@ jobs:
         with:
           name: native-foundation-browser
           path: /tmp/versado-native-browser
+          retention-days: 7
+      - name: Focusbewijs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-route-focus-browser
+          path: /tmp/versado-focus-browser
           retention-days: 7
