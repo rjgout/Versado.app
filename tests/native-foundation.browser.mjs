@@ -121,7 +121,8 @@ try{
    await page.close();page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));page.on('response',recordResponse);
    await page.goto(`${origin}/?device=${device}`);await page.getByRole('heading',{name:/Vandaag/}).waitFor();
    await page.getByRole('link',{name:'Profiel',exact:true}).click();
-   await page.getByLabel('Wachtwoord',{exact:true}).fill(password);
+   await page.getByRole('link',{name:'Wachtwoord wijzigen',exact:true}).click();
+   await page.getByLabel('Huidig wachtwoord',{exact:true}).fill(password);
    await page.getByRole('button',{name:'Uitloggen',exact:true}).click();await page.getByRole('heading',{name:'Welkom bij Versado'}).waitFor();
    assert.equal(await page.getByLabel('Wachtwoord',{exact:true}).inputValue(),'','Logout bewaart geen herauthenticatiewachtwoord');
    await page.reload();await page.getByRole('heading',{name:'Welkom bij Versado'}).waitFor();

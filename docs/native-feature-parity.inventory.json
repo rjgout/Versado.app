@@ -12751,7 +12751,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "e3f18ddda04341e5683db9165c5841417cc798c93c3957a738ca28c05264736a",
+      "sha256": "40db9ffa7e748114f095126427b37aaf3b57418f71d48f791a481eb7e6304d1c",
       "boundary": "client",
       "imports": [
         "./NativeEmailConfirmation",
@@ -74458,7 +74458,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "e3f18ddda04341e5683db9165c5841417cc798c93c3957a738ca28c05264736a",
+      "sha256": "40db9ffa7e748114f095126427b37aaf3b57418f71d48f791a481eb7e6304d1c",
       "boundary": "client",
       "imports": [
         "./NativeEmailConfirmation",
@@ -77114,6 +77114,7 @@
     "tests/native-data.browser.mjs",
     "tests/native-data.test.ts",
     "tests/native-distribution.test.ts",
+    "tests/native-foundation-apple.browser.mjs",
     "tests/native-foundation.browser.mjs",
     "tests/native-foundation.integration.test.ts",
     "tests/native-foundation.test.ts",
