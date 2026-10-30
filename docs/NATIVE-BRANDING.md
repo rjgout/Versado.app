@@ -1,62 +1,93 @@
 # Native vlambranding
 
 De eigenaar leverde `assets/native/versado-vlam-logo-bron.png` aan (1254 × 1254,
-RGB, zonder transparantie). SHA-256 van het ongewijzigde origineel:
+RGB, zonder transparantie). Het origineel blijft ongewijzigd. SHA-256:
 `d71499b1acb9ade60d44dcf56218f16339f3b497e9df0c7423fb65a8ae19d4c4`.
 
-Afgeleide PNG's opnieuw maken: `node scripts/native/branding.mjs`.
-Dit gebruikt de bestaande Sharp-dependency en alleen schalen en centreren;
-geen gegenereerde illustratie, uitsnede of nieuwe interpretatie van het logo.
+Assets opnieuw maken: `node scripts/native/branding.mjs`.
+Previews opnieuw maken: `node scripts/native/branding-previews.mjs`.
+Beide gebruiken uitsluitend de bestaande Sharp-dependency en de eigenaarbron;
+geen AI-hertekening, vervangend logo of nieuwe afhankelijkheid.
 
-- iOS: één ondoorzichtig 1024 × 1024 app-icoon, zonder vooraf afgeronde hoeken.
-  `AppIcon.appiconset/Contents.json` verwijst naar `versado-flame-1024.png`.
-- iOS-launch: de bestaande `Splash`-imageset en witte, gecentreerde presentatie
-  blijven behouden. De drie schalen delen één 2732 × 2732 bestand met het logo
-  in het midden. `LaunchScreen.storyboard` verwijst al naar deze imageset en
-  hoeft daarom niet te veranderen.
-- Android: bestaande mdpi–xxxhdpi app-, ronde en adaptive-iconbestanden en
-  portrait/landscape-splashbestanden zijn vervangen. Het volledige bronbeeld
-  wordt voor ronde/adaptive maskers verkleind binnen de veilige zone. Android 12+
-  krijgt expliciet hetzelfde beeldmerk via `windowSplashScreenAnimatedIcon`.
-- Native header: `/icons/native/versado-flame.png` (132 × 132), weergegeven op de
-  bestaande 44 × 44 ruimte. `scripts/native/build.ts` kopieert dit bestand naar
-  de lokale bundel; Capacitor sync neemt het mee naar beide platformen.
+## Correctie na onafhankelijke review
 
-De gedeelde web/PWA-iconen (`public/icons/icon-*.png`, maskable-iconen,
-favicon en apple-touch-icon) blijven behouden. De native shell gebruikt nu een
-afzonderlijke asset; inhoudelijke boekiconen zijn geen appbranding.
-Authenticatie, routing, sessies, data en layout zijn niet gewijzigd.
+De eerste afleiding zette de blauwe, vierkante bron op wit of effen blauw. Dat
+maakte een zichtbare tegel. De herziene splash-/maskerafleiding trekt de blauwe
+randpixels door en laat uitsluitend de achtergrond met een gladde, radiale
+overgang aansluiten op `#051E7B` (de rechteronderhoek van de bron). De vlam in
+de centrale broncirkel met straal 0,52 × bronzijde blijft pixel-identiek aan de
+correct geschaalde bron. Er is geen uitsnede of vervaging van de vlam.
 
-## Controle en installatie
+- **iOS AppIcon:** het goedgekeurde ondoorzichtige 1024px bestand en de
+  catalogusverwijzing blijven byte-identiek aan de eerste PR-head.
+- **iOS-launch:** bestaande 2732px `Splash`-imageset en `scaleAspectFill` blijven;
+  het merkbeeld is groter en de achtergrond sluit nu zonder vierkante rand aan.
+  De storyboard-achtergrond gebruikt dezelfde bronkleur, zonder witte flits.
+  De volledige vlam past binnen iPhone SE en grotere iPhones, iPad portrait en
+  landscape. De drie bestaande schaalverwijzingen delen hetzelfde PNG-bestand.
+- **Android adaptive:** 108dp foreground, zichtbaar maskervenster 72dp. De
+  ongewijzigde vlam past binnen de centrale veilige cirkel van 66dp. De achtergrond
+  loopt vóór de ronde maskerrand uit naar dezelfde systeemkleur. Round-iconen
+  gebruiken dezelfde aanpak, met een grotere vlam dan de eerste versie.
+- **Android vóór 12:** één `drawable/splash.xml` met achtergrondkleur en een
+  gecentreerde bitmap op intrinsieke dp-grootte, in vijf dichtheden. De oude
+  portrait/landscape-rasterachtergronden zijn vervangen: andere schermverhoudingen
+  rekken het logo daardoor niet uit. `android:windowBackground` verwijst expliciet
+  naar deze compositie.
+- **Android 12+:** bestaande `windowSplashScreenAnimatedIcon` gebruikt het
+  aangepaste foreground; `windowSplashScreenBackground` gebruikt dezelfde blauwe
+  bronkleur. Geen contrasterend icon-background toegevoegd.
+- **Header/web:** headerasset, 44 × 44 ruimte, bundelverwijzing, gedeelde
+  web/PWA-iconen, favicon en apple-touch-icon blijven ongewijzigd in deze correctie.
+  Ook klassieke vierkante Android-launchericonen blijven byte-identiek.
 
-Voer TypeScript, gerichte ESLint en `npm run test:native` uit. Bouw de native
-bundel met een expliciet bestaand buildprofiel en toegestane backend-origin,
-voer `npx cap sync` uit met hetzelfde profiel en controleer beide platformen met
-`scripts/native/verify-distribution.mjs`. Bestaande platform-CI compileert Android
-en iOS; de Foundation-browserproef controleert ook dat het nieuwe headerbeeld
-laadt, en bewaart branding-screenshots bij de bestaande viewports/tekstschaling.
+Authenticatie, navigatie, sessies, gegevens, app-layout en API's veranderen niet.
 
-Na een nieuwe Xcode-build én installatie op de iPhone horen app-icoon,
-launchscreen en native header de vlam te tonen. Alleen een webdeploy vervangt
-geen geïnstalleerd app-icoon of launchscreen. iOS kan icoon/launchsnapshot cachen:
-sluit de app volledig en open opnieuw; gebruik zo nodig Clean Build Folder en
-herinstalleer de testapp. Verwijderen van de app kan lokale sessie-/toesteltoegang
-verwijderen en vereist opnieuw aanmelden/enrollment. Doe dit niet onnodig.
+## Beoordelingspreviews
 
-Een fysieke iPhone-/Android-controle blijft nodig voor de systeemmaskers,
-launchsnapshot, iPad-landscape en de uiteindelijke installatie. CI-compilatie
-en browserscreenshots bewijzen geen fysieke toestelacceptatie.
+- [Contactblad splashscreens](native-branding/previews/splash-contact-sheet.png):
+  iPhone SE, iPhone, iPad portrait/landscape, Android vóór 12 en Android 12.
+- [Contactblad Android-maskers](native-branding/previews/android-masks.png):
+  adaptive rond, afgerond en squircle, legacy round en de normale launcher.
+- Losse composities staan in dezelfde map op hun aangegeven schermverhouding.
 
-## Lokale verificatie van deze wijziging
+De previews lezen de werkelijk verpakte PNG's. iOS gebruikt dezelfde aspect-fill
+als het storyboard; Android vóór 12 dezelfde gecentreerde 256dp-bitmap. Android 12
+simuleert het standaardgeval zonder aparte icon-background: 288dp iconbox met
+centrale 192dp cirkel. Adaptive-previews snijden het centrale 72dp-venster uit de
+108dp-laag voordat ze het masker toepassen. Het zijn geometrische composities,
+geen screenshots van een draaiende simulator of fysieke launcher. OEM-maskers,
+animatie/parallax en systeemcaches vragen nog afzonderlijke toestelacceptatie.
 
-- TypeScript en gerichte ESLint: geslaagd.
-- Native unit-/dataregressies: 138 geslaagd; pariteitschecks: 6 geslaagd.
-- Schone Next.js-productiebuild: geslaagd. Bestaande Tailwind-waarschuwing over
-  gemengde eenheden in `screens` en Prisma-meldingen doordat lokaal geen
-  databron is geconfigureerd voor prerendering; build eindigt succesvol.
-- Native bundel, Capacitor sync en assetverificatie voor iOS en Android: geslaagd.
-- Alle 29 afgeleide native PNG's volledig gedecodeerd en ondoorzichtig.
-- Browsercontrole van de echte lokale bundel: headerbeeld laadt bij 390px en
-  320px/200% tekst op 44 × 44, zonder JavaScript-crash. Geen toestelacceptatie.
-- Platformcompilatie en volledige Foundation-browserregressies: zie de checks
-  op de actuele PR-head; er is lokaal geen Xcode- of Android-SDK-compilatie gedaan.
+## Gerichte regressies
+
+`npm run test:native` voert ook de drie brandingtests in
+`tests/native-distribution.test.ts` uit:
+
+1. Alle dichtheden: systeemkleur aan de buitenrand, geen rechthoekige kleursprong
+   boven op het plaatselijke verloop, en pixelbehoud van de beschermde broncirkel.
+   Randmetingen worden op dezelfde fysieke schaal vergeleken; mdpi heeft minder
+   pixels per verloop dan xxxhdpi. Elk beschermd foregroundpunt past binnen de
+   conservatieve Android-cirkel van 66dp.
+2. Negatieve controles: de oude blauwe tegel op wit én een bronvierkant op dezelfde
+   effen blauwe systeemkleur worden daadwerkelijk opgebouwd en afgekeurd.
+3. De volledige vlam blijft binnen de iOS aspect-fill-vensters bij telefoon- en
+   tabletverhoudingen, met extra marge tot de schermrand.
+
+Bestaande platform-CI compileert iOS/Android en de distributieprofielen. Foundation
+controleert daarnaast de bestaande header, account-/sessieflows en browserlayout.
+Zie de checks op de actuele PR-head voor de werkelijk uitgevoerde CI-resultaten;
+eerdere groene runs gelden niet als bewijs voor een nieuwe head.
+
+## Installatie en fysieke acceptatie
+
+Na een nieuwe Xcode-build/sync én installatie horen app-icoon, launchscreen en
+header de vlam te tonen. Alleen een webdeploy vervangt geen geïnstalleerde
+systeemassets. iOS kan icoon/launchsnapshot cachen: sluit volledig en open opnieuw;
+gebruik zo nodig Clean Build Folder en herinstalleer de testapp. Appverwijdering
+kan opnieuw aanmelden/enrollment vereisen; doe dit niet onnodig.
+
+Controleer nog op iPhone, iPad portrait/landscape en Android vóór/na 12:
+geen tegelrand, geen vervormde of afgesneden vlam, juiste systeemmaskers en
+normale overgang naar de bestaande native header. Geen merge/deployment of
+fysieke toestelacceptatie uitgevoerd door deze assetcorrectie.
