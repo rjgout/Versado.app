@@ -232,6 +232,7 @@ export const es: PartialMessages = {
   "disabled": "Esta compilación no permite acceso interno. Compila la versión interna correcta.",
   "realtime": "Las conexiones en tiempo real aún no están disponibles en esta compilación interna con Access."
 },
+  nativeToday: { unavailable: "Este destino o acción aún no está disponible en esta versión de la aplicación. Tu progreso se conserva. Utiliza el sitio web por ahora." },
   nativeContentFallback: { unsupported: "Este servidor aún no admite el selector de contenido en la app. Puedes volver a Hoy.", signIn: "Inicia sesión para elegir tu contenido." },
   nativeDiagnostics: {"title": "Diagnóstico interno", "open": "Diagnóstico interno", "internalBadge": "Interna", "testBadge": "Versión de prueba", "recovery": "Conexión y recuperación"},
   nativeFoundation: {

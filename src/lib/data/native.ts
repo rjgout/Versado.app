@@ -1,5 +1,6 @@
 // Native adapter van dezelfde LiveDataStore als web. Geen cookiesocket,
 // web-API-fallback, opslag of tweede voortgangs-/beloningssysteem.
+import { nativeTodayOverviewSchema } from "@/lib/native/todayContract";
 import type { Socket } from "socket.io-client";
 import { LiveDataStore, serializeKey, type LiveEnvironment } from "./store";
 import { DATA_EVENT_SOCKET_NAME, SOCKET_EVENT_TO_DATA_EVENT, dataEventsForSocketEvent, isDataEvent, type DataEvent, type DataScope } from "./scopes";
@@ -18,6 +19,15 @@ export class NativeDataRuntime {
   reset = () => { this.epoch++; this.store.reset(); for (const listener of this.listeners) listener(); };
   async account() { return nativeAccountSchema.parse(await this.client.api("me")); }
   async today() { return nativeTodaySchema.parse(await this.client.api("today")); }
+  async todayOverview(userId: string, context: { activeCollectionId: string | null; selectionVersion: number }) {
+    const epoch = this.epoch;
+    const result = nativeTodayOverviewSchema.parse(await this.client.api("today-overview"));
+    if (epoch !== this.epoch || result.userId !== userId) throw new NativeClientError("session_changed", 409);
+    const current = this.store.getSnapshot<NativeContentState>(serializeKey(["native", epoch, ...nativeContentQueryKey(userId)])).data;
+    const expected = current?.picker ?? context;
+    if (result.activeCollectionId !== expected.activeCollectionId || result.selectionVersion !== expected.selectionVersion) throw new NativeClientError("content_context_changed", 409);
+    return result;
+  }
   async contentContext(userId: string) {
     const epoch = this.epoch;
     const state = nativeContentStateSchema.parse(await this.client.api("content-context"));

@@ -5,6 +5,20 @@ on:
     paths:
       - 'src/lib/native/**'
       - 'src/lib/data/**'
+      - 'src/lib/today*'
+      - 'src/lib/artwork.ts'
+      - 'src/lib/learning/streakReturnRules.ts'
+      - 'src/lib/hymns/sunday.ts'
+      - 'src/lib/generalConference.ts'
+      - 'src/lib/studyContent/presentation.ts'
+      - 'src/components/versado/MediaArtwork.tsx'
+      - 'src/components/versado/VisualIdentityIcon.tsx'
+      - 'src/components/versado/CardMenu.tsx'
+      - 'src/components/today/**'
+      - 'src/components/kompas/KompasEntryCard*'
+      - 'src/components/study/Program*'
+      - 'src/components/study/CfmTodayCard.tsx'
+      - 'src/app/dashboard/**'
       - 'src/lib/contentPickerContract.ts'
       - 'src/lib/contentCollections.ts'
       - 'src/lib/contentSwitch.ts'
@@ -50,6 +64,11 @@ on:
       - 'tests/native-navigation*'
       - 'tests/native-shell*'
       - 'tests/native-content*'
+      - 'tests/native-today*'
+      - 'tests/hymns-sunday.test.ts'
+      - 'tests/artwork.test.ts'
+      - 'tests/streak-return.test.ts'
+      - 'tests/generalConference.test.ts'
       - 'tests/native-data*'
       - 'tests/native-route-focus*'
       - 'tests/native-responsive-css*'
@@ -89,6 +108,7 @@ jobs:
           npm run test:native
           npm run test:focus
           npm run test:profile
+          npx tsx --test tests/hymns-sunday.test.ts tests/artwork.test.ts tests/streak-return.test.ts tests/generalConference.test.ts
           npm run test:native:parity
           npm run native:parity:check
           npm run lint

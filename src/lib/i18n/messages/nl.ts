@@ -234,6 +234,7 @@ export const nl = {
   "disabled": "Deze build staat interne toesteltoegang niet toe. Bouw de juiste interne versie.",
   "realtime": "Realtimeverbindingen zijn nog niet beschikbaar in deze interne Access-build."
 },
+  nativeToday: { unavailable: "Deze bestemming of actie is nog niet beschikbaar in deze appbuild. Je voortgang blijft bewaard. Gebruik hiervoor voorlopig de website." },
   nativeContentFallback: { unsupported: "Deze backend ondersteunt de contentkiezer in de app nog niet. Je kunt terug naar Vandaag.", signIn: "Log in om je content te kiezen." },
   nativeDiagnostics: {"title": "Interne diagnose", "open": "Interne diagnose", "internalBadge": "Intern", "testBadge": "Testbuild", "recovery": "Verbinding en herstel"},
   nativeFoundation: {

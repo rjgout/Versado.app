@@ -20,7 +20,7 @@ export default function NativeShellHeader({ account, onError, content, buildIndi
     const value = await runtime.account();
     if (value.id !== account?.id) throw new NativeClientError("session_changed", 409);
     return value;
-  }, { scopes: ["xp", "streak", "profile", "competition"], enabled: !!account, initialData: account ?? undefined, staleTime: 60_000 });
+  }, { scopes: ["xp", "streak", "profile", "competition"], enabled: !!account, initialData: account ?? undefined, staleTime: 60_000, pollMs: 60_000 });
   const { setData } = query;
   const epoch = runtime.getSnapshot();
   // Een bevestigde bootstrap is net als web-SSR een actuele serverwaarde.

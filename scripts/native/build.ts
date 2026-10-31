@@ -1,4 +1,6 @@
 import { build } from "esbuild";
+import sharp from "sharp";
+import { NATIVE_TODAY_ARTWORK, nativeArtworkPath } from "../../src/lib/native/todayAssets";
 import postcss from "postcss";
 import tailwind from "tailwindcss";
 import autoprefixer from "autoprefixer";
@@ -24,6 +26,15 @@ await writeFile(`${outdir}.inputs.json`, JSON.stringify(Object.keys(compilation.
 for (const path of nativeStaticAssets()) {
   const target = join(outdir, path.slice(1)); await mkdir(join(target, ".."), { recursive: true }); await cp(join("public", path), target);
 }
+// De originelen blijven ongewijzigd. Zelfde beeld/compositie, begrensde lokale variant zoals Next Image op web.
+let artworkBytes = 0;
+for (const source of NATIVE_TODAY_ARTWORK) {
+  const target = join(outdir, nativeArtworkPath(source).slice(1)); await mkdir(join(target, ".."), { recursive: true });
+  const result = await sharp(join("public", source)).resize({ width: 640, withoutEnlargement: true }).webp({ quality: 78 }).toFile(target);
+  artworkBytes += result.size;
+}
+if (artworkBytes > 8 * 1024 * 1024) throw new Error("Het begrensde native Vandaag-artwork overschrijdt 8 MiB; onderzoek de assetselectie.");
+console.log(`Geregistreerd Vandaag-artwork: ${NATIVE_TODAY_ARTWORK.length} beelden, ${artworkBytes} bytes; geen externe download.`);
 const csp = contentSecurityPolicy(url.origin);
 await writeFile(join(outdir, "index.html"), `<!doctype html><html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta http-equiv="Content-Security-Policy" content="${csp}"><title>Versado</title><link rel="stylesheet" href="index.css"></head><body><div id="root"></div><script src="index.js" defer></script></body></html>`);
 // Geheimen horen nooit in de bundel; dit is een tweede vangnet naast de verificatie op de verpakte assets.

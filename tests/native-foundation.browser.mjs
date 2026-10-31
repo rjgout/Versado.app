@@ -1,3 +1,4 @@
+// Bestaande Foundation-leesflow op een expliciet oudere backend zonder today-overview-v1.
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import {createServer} from 'node:http';
@@ -28,7 +29,7 @@ const front=createServer(async(req,res)=>{
    const chapterRead=req.method==='GET'&&/^\/api\/v1\/native\/chapters\/[^/]+$/.test(url.pathname);
    if(chapterRead)chapterReadsInFlight++;
    const response=await fetch(`${backend}${req.url}`,{method:req.method,headers:{Origin:'capacitor://localhost','X-Versado-Client':'native-v1','x-real-ip':'127.0.0.21',...(req.headers.authorization?{Authorization:req.headers.authorization}:{}),...(req.headers['content-type']?{'Content-Type':req.headers['content-type']}:{})},body:['GET','HEAD'].includes(req.method)?undefined:Buffer.concat(chunks)});
-   res.writeHead(response.status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(await response.text());if(chapterRead)chapterReadsInFlight--;return;
+   res.writeHead(response.status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(url.pathname==='/api/v1/native/capabilities'&&response.ok?JSON.stringify({...await response.clone().json(),features:(await response.json()).features.filter(f=>f!=='today-overview-v1')}):await response.text());if(chapterRead)chapterReadsInFlight--;return;
   }
   if(url.pathname.startsWith('/test-keychain/')){
    const id=url.pathname;if(req.method==='PUT'){const chunks=[];for await(const c of req)chunks.push(c);secrets.set(id,Buffer.concat(chunks).toString());}if(req.method==='DELETE')secrets.delete(id);

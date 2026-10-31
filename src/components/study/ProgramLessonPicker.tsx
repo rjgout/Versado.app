@@ -1,4 +1,5 @@
 "use client";
+import ProgramSummaryView from "./ProgramSummaryView";
 import {useEffect,useRef,useState} from 'react';
 import Link from 'next/link';
 import {useRouter} from 'next/navigation';
@@ -6,8 +7,8 @@ import {useT,useUiLanguage} from '@/components/I18nProvider';
 import {fsyLessonMetadata} from '@/lib/fsyPresentation';
 import {jsonMutation} from '@/lib/data/mutation';
 import {ApiRequestError} from '@/lib/data/fetchJson';
-import {secondaryButton,surfaceCard,focusRing} from '@/components/versado/styles';
-import {BookOpen,ListChecks,ChevronRight} from 'lucide-react';
+import {secondaryButton} from '@/components/versado/styles';
+import {ListChecks} from 'lucide-react';
 import {formatWeekPeriod} from './PersonalStudyParts';
 import {PERSONAL_STUDY_STEPS} from '@/lib/studyContent/personalStudy';
 import type {getStudyCatalogue} from '@/lib/studyContent/catalogue';
@@ -21,7 +22,6 @@ export default function ProgramLessonPicker({data,choose=false}:{data:Catalogue;
  const [busy,setBusy]=useState(false),[error,setError]=useState<string|null>(null),[retry,setRetry]=useState(false);
  if(!data.context || !data.programName)return null;
  // De opgeslagen leeswijze (standaard Stap voor stap) staat vooraan; beide blijven één tik weg.
- const preferSteps=(data.personalMode??'STEPS')==='STEPS';
  const personalProgram=data.lessons.some(l=>l.personal),currentLesson=data.lessons.find(l=>l.lessonKey===data.currentLessonKey&&l.personal)??null;
  const lessonPath=(l:{lessonId:string;collectionId:string})=>`/study-lesson/${encodeURIComponent(l.lessonId)}/${encodeURIComponent(l.collectionId)}`;
  const context=data.context,active=data.lessons.find(l=>l.lessonKey===context.activeLessonKey||(l.legacyKey!==null&&l.legacyKey===context.activeLessonKey));
@@ -44,20 +44,11 @@ export default function ProgramLessonPicker({data,choose=false}:{data:Catalogue;
    setRetry(!definitive);setError(t(e instanceof ApiRequestError&&e.status===409?'programPicker.conflict':'programPicker.failed'));
   }finally{locked.current=false;if(alive.current)setBusy(false); }
  }
+ if(!choose)return <ProgramSummaryView data={{programName:data.programName,personalMode:data.personalMode??null,context,active:active?{title:active.title,read:active.read}:null,currentLesson:currentLesson?{lessonId:currentLesson.lessonId,collectionId:currentLesson.collectionId,title:currentLesson.title}:null,personalProgram}}/>;
  return <section data-program-context className={personalProgram&&choose?"min-w-0 space-y-4":"min-w-0 rounded-2xl border border-vs-line bg-vs-surface p-4 space-y-4"}>
   <h2 className="break-words text-lg font-extrabold text-vs-fg">{data.programName}</h2>
   {!(personalProgram&&choose)&&<p className="text-sm text-vs-fg-2">{t('programPicker.remembered')}</p>}
   {choose&&!data.truncated&&!personalProgram&&<p className="text-sm text-vs-fg-2">{t('programPicker.availableCount',{count:data.lessons.length})}</p>}
-  {personalProgram&&!choose&&<div data-cfm-modes className="grid gap-2 sm:grid-cols-2">
-   {context.available&&context.lessonHref?<Link href={context.lessonHref} prefetch={false} className={`${surfaceCard} ${focusRing} ${preferSteps?'':'order-first'} flex min-h-16 min-w-0 items-center gap-3 p-3 hover:bg-vs-subtle`}>
-    <BookOpen aria-hidden className="h-6 w-6 shrink-0 text-vs-accent"/>
-    <span className="min-w-0 flex-1"><span className="block font-extrabold text-vs-fg">{t('cfmStudy.modeFree')}</span><span className="block break-words text-sm text-vs-fg-2">{active?.title??t('programPicker.continue')}</span></span>
-    <ChevronRight aria-hidden className="h-5 w-5 shrink-0 text-vs-fg-3"/></Link>:null}
-   {currentLesson?<Link href={`${lessonPath(currentLesson)}/stappen`} prefetch={false} className={`${surfaceCard} ${focusRing} ${preferSteps?'order-first':''} flex min-h-16 min-w-0 items-center gap-3 p-3 hover:bg-vs-subtle`}>
-    <ListChecks aria-hidden className="h-6 w-6 shrink-0 text-vs-accent"/>
-    <span className="min-w-0 flex-1"><span className="block font-extrabold text-vs-fg">{t('cfmStudy.modeSteps')}</span><span className="block break-words text-sm text-vs-fg-2">{t('cfmStudy.currentWeek')} · {currentLesson.title}</span></span>
-    <ChevronRight aria-hidden className="h-5 w-5 shrink-0 text-vs-fg-3"/></Link>:<p role="status" className="text-sm text-vs-fg-2">{t('cfmStudy.noCurrentWeek')}</p>}
-  </div>}
  {personalProgram&&choose?null:context.activeLessonKey ? <div className="space-y-2">
    <p className="font-bold text-vs-fg">{active?.title??t('programPicker.active')}</p>
    <p className="text-sm text-vs-fg-2">{t(active?.read?'programPicker.read':'programPicker.reading')}</p>

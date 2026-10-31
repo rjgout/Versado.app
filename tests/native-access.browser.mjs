@@ -36,6 +36,8 @@ const front=createServer(async(req,res)=>{
      case 'clearAccess':value=await gate.bridge.clearAccess();break;
      case 'accessRequest':
       value=await gate.bridge.accessRequest(options);
+      // Compatibiliteit met de oudere Access-backend; de nieuwe Vandaag-proef gebruikt echte capabilities.
+      if(options.path==='capabilities'&&value.status===200){const body=JSON.parse(value.body);body.features=body.features.filter(f=>f!=='today-overview-v1');value={...value,body:JSON.stringify(body)};}
       if(holdNextChapterRead&&options.method==='GET'&&/^chapters\/[^/]+$/.test(options.path)){
        holdNextChapterRead=false;
        heldReads.push({path:options.path,authorization:options.authorization,finish(){if(!res.destroyed){res.setHeader('Content-Type','application/json');res.end(JSON.stringify(value));}}});return;

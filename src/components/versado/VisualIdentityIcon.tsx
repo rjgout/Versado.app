@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { AppImage as Image } from "@/components/navigation/AppNavigation";
 import { createElement, useState } from "react";
 import { visualIdentityAsset, type VisualIdentityAssetId } from "@/lib/visualIdentityAssets";
 
