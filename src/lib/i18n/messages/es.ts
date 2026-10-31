@@ -1403,6 +1403,9 @@ export const es: PartialMessages = {
     }
   },
   "today": {
+    actionFailed: "La acción no se ha confirmado. Inténtalo de nuevo cuando tengas conexión.",
+    friendAccepted: "Solicitud de amistad aceptada",
+    friendDeclined: "Solicitud de amistad rechazada",
     "greeting": {
       "morning": "Buenos días, {name}",
       "afternoon": "Buenas tardes, {name}",

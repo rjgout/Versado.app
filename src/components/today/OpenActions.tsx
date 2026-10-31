@@ -48,7 +48,7 @@ export default function OpenActions({ actions, total, language }: { actions: Ope
           const when = relativeTime(action.at, locale);
           const detail = [action.subject, when].filter(Boolean).join(" · ");
           return (
-            <li key={action.key} className="flex items-center gap-3 px-4 py-3 sm:gap-4 sm:px-5">
+            <li key={action.key} className="flex flex-wrap items-center gap-3 px-4 py-3 sm:gap-4 sm:px-5">
               {action.person ? (
                 <UserAvatar id={action.person.id} handle={action.person.handle} size="md" />
               ) : (

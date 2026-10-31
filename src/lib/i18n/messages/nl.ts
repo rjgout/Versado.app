@@ -1019,6 +1019,9 @@ export const nl = {
     },
   },
   today: {
+    actionFailed: "De actie is niet bevestigd. Probeer het zelf opnieuw wanneer je verbinding hebt.",
+    friendAccepted: "Vriendenverzoek geaccepteerd",
+    friendDeclined: "Vriendenverzoek afgewezen",
     greeting: {
       morning: "Goedemorgen, {name}",
       afternoon: "Goedemiddag, {name}",

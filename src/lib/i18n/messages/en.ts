@@ -1391,6 +1391,9 @@ export const en: PartialMessages = {
     },
   },
   today: {
+    actionFailed: "The action was not confirmed. Please try again when connected.",
+    friendAccepted: "Friend request accepted",
+    friendDeclined: "Friend request declined",
     greeting: {
       morning: "Good morning, {name}",
       afternoon: "Good afternoon, {name}",

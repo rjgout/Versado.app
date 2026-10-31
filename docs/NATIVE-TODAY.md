@@ -120,8 +120,8 @@ controleerbaar. De gebruiker krijgt een expliciete melding, geen leeg scherm.
 | Ga verder, dagelijkse tekst | cursus-/hoofdstuk-/leesles-/podcast-/kids-/introroute | B3: werkelijke cursus-/verscursor en reader |
 | CFM/programmacontext | `/study-lesson/...`, cursus-/weekpad | B3; beveiligde studiemedia B2-vervolg/B5 |
 | Reeks, Kompas | `/streak`, `/kompas` | B4 |
-| Hide voortzetkaart | bestaande persoonlijke lijstvoorkeur | B2-vervolg: exacte native mutatiepoort |
-| Vriendenverzoek accepteren/weigeren | bestaande vriendschapsservice | B2-vervolg/B5: native autorisatie/commitcontract |
+| Hide voortzetkaart | bestaande persoonlijke lijstvoorkeur | B2b-1: dezelfde UserListOrder-service via expliciete native poort |
+| Vriendenverzoek accepteren/weigeren | bestaande vriendschapsservice | B2b-1: gedeelde transactieservice; volledige vriendenpagina blijft B5 |
 | Open acties/uitnodigingen | `/acties`, bestaande spel-/groepsroutes | B5 |
 | Woord, dagelijkse quiz, ontdekspellen | bestaande spelroutes | B5 |
 | Lofzangen | `/dev/lofzangen` | B5, inclusief veilige media |
@@ -175,3 +175,79 @@ appbuild (beide moeten `today-overview-v1` ondersteunen):
 8. Rond lokale middernacht/woordrelease verversen en zondagse Lofzangen-gate
    controleren met bestaande accountinstellingen. Geen apparaataflevering van
    push, reader-/audio- of multiplayerpariteit afleiden uit deze proef.
+
+
+## B2b-1 — bevestigde Vandaag-acties
+
+Voortzetkaarten verbergen en inkomende vriendenverzoeken accepteren/afwijzen
+gebruiken dezelfde componenten op web en native. `FriendRequestControl` bewaakt
+snelle tikken met een synchrone in-flight-vlag, toont fouten en bewaart de
+serverbevestiging wanneer een volgende leesactie mislukt. `CardMenu` en
+`ContinueSection` blijven gedeeld. Een mislukte actie blijft handmatig te proberen;
+een offline actie wordt niet bewaard of automatisch opnieuw verstuurd.
+
+De additieve capability `today-actions-v1` ontsluit uitsluitend:
+
+- `POST /api/v1/native/today-actions/hide` met `{ itemKey }`.
+- `POST /api/v1/native/today-actions/friend-response` met
+  `{ friendshipId, action: "accept" | "decline" }`.
+
+Beide leveren een begrensd versie-1-contract met actor-ID en de bevestigde
+uitkomst. TypeScript, Swift en Java staan alleen deze exacte POST-paden toe.
+Oudere apps blijven werken; zonder capability behoudt native de melding uit B2a.
+Er is geen tweede cookie-/Bearer-sessie, endpointwildcard of Access-omweg.
+
+`saveListPreferences` bewaart dezelfde `UserListOrder`-voorkeuren als web.
+Lezen en herschrijven gebeuren nu binnen één transactie en User-lock, zodat
+tegelijk verbergen geen eerder opgeslagen voorkeur verliest. Een expliciete
+verbergactie heeft ook bij een eerder geordende kaart voorrang. Geen cursus,
+leespositie, beloning of bronselectie wordt aangepast. De bestaande activiteit-
+gebonden visibilityKey maakt de kaart pas bij nieuwe activiteit weer relevant.
+
+`respondFriendRequest` gebruikt de bestaande Friendship-status en
+`checkAndAwardAchievements`, zonder nieuwe beloningsregels of notificaties.
+Alle betrokken User-rijen worden op ID gesorteerd vergrendeld, vervolgens de
+NativeSession indien van toepassing en daarna de Friendship-rij. Alleen de
+ontvanger mag native reageren; web behoudt het annuleren van een eigen
+uitgaand PENDING-verzoek. Een reeds geaccepteerd verzoek opnieuw accepteren is
+een bevestiging zonder nieuwe prestaties of feeditems. Afwijzen verwijdert
+zoals voorheen de PENDING-rij; opnieuw reageren op die verdwenen identiteit
+levert 404 zonder mutatie. Een accept/decline-race kan nooit een reeds
+geaccepteerde vriendschap verwijderen (409); verwijderen als vriend blijft de
+bestaande aparte handeling. Beide gebruikers krijgen pas na commit het bestaande
+`friends_changed`-signaal. Er wordt geen extra push-/meldingssysteem toegevoegd.
+
+Voor native bewaakt `commitAccountMutation` dezelfde bestaande NativeSession
+vóór en na domeinwerk binnen de commitgrens. User → NativeSession-locks
+serialiseren logout, replay en beveiligingswijzigingen met de actie; de tweede
+controle weigert ook klokverloop. Geen netwerkwerk binnen deze transactie.
+De app gebruikt `actionOnce`: ook een 401 herhaalt deze write niet automatisch.
+
+Bevestigde resultaten worden gericht geprojecteerd in dezelfde LiveDataStore-
+entry en maken alleen relevante scopes ongeldig. De bestaande writeVersion
+verwerpt oudere GET-antwoorden. De port legt de sessie-epoch bij render vast;
+een oude klik of laat antwoord van A kan nooit B wijzigen. De actieve querykey
+wordt expliciet doorgegeven, ook wanneer een gewijzigde accounttaal eerder in
+het Vandaag-antwoord dan in `me` zichtbaar wordt. Er is geen tweede cache.
+
+Deze PR levert geen private studiemedia, readers, spellen of volledige sociale
+schermen. De beveiligde media-adapter is B2b-2; de overige bestemmingen houden de
+veilige melding uit B2a. Geen schema-/migratie-, Apple-, CFM-inhouds-, NAS- of
+productiewijzigingen.
+
+Gerichte proeven: afzonderlijke Node-processen op dezelfde geïsoleerde
+PostgreSQL/Redis, web/native-preferentieraces, dubbele acceptatie en tegengestelde
+reacties, actor/methode/bodycontrole, intrekking/beveiligingswijziging en verloop
+bij lockwachten, rollback van voorkeuren en prestatieverwerking. Browserbewijs
+in `native-foundation-browser/today-actions` omvat fouten, handmatige retry,
+offline zonder replay, bevestigde write gevolgd door mislukte/oude GET,
+herstart, late A-bevestiging na B-login en 320px/200%-bediening. De definitieve
+PR vermeldt de daadwerkelijk geslaagde aantallen en CI-head; hieruit volgt
+geen fysieke apparaatacceptatie.
+
+Aanvullende eigenaarstest op iPhone en Android: verberg één echte voortzetkaart,
+controleer dezelfde webvoorkeur na herstart en behoud van de cursuspositie;
+accepteer en wijs afzonderlijke verzoeken af; controleer beide accounts op web,
+offline/fout/herstel zonder spontane acties, accountwisseling, Access,
+schermlezer, menu-/knopfocus en scrollherstel. Publicatie/deployment blijft een
+afzonderlijke eigenaarshandeling.

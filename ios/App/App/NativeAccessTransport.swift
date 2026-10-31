@@ -12,7 +12,7 @@ enum NativeAccessPolicy {
         let pattern: String
         switch method {
         case "GET": pattern = "(?:capabilities|me|today|today-overview|content-context|chapters/[A-Za-z0-9_-]{1,128})"
-        case "POST": pattern = "(?:content-context|login|register|forgot-password|reset-password|verify-email|refresh|logout|security-setup/(?:complete|cancel)|apple/(?:challenge|complete)|account/password|chapters/[A-Za-z0-9_-]{1,128}/complete)"
+        case "POST": pattern = "(?:today-actions/(hide|friend-response)|content-context|login|register|forgot-password|reset-password|verify-email|refresh|logout|security-setup/(?:complete|cancel)|apple/(?:challenge|complete)|account/password|chapters/[A-Za-z0-9_-]{1,128}/complete)"
         case "DELETE": pattern = "(?:apple|account)"
         default: return false
         }

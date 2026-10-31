@@ -6,6 +6,7 @@ import type { ContinueItem } from "@/lib/today";
 export type FriendActionProps = { friendshipId: string; otherUserId: string; name: string };
 export type TodayInteractions = {
   hideContinue(item: ContinueItem): Promise<void>;
+  respondFriend?: (friendshipId: string, action: "accept" | "decline") => Promise<void>;
   FriendActions: ComponentType<FriendActionProps>;
   Social: ComponentType<{ social: TodayData["social"] }>;
   Avatar: ComponentType<ComponentProps<typeof UserAvatarView>>;

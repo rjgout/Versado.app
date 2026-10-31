@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { AppLink as Link } from "@/components/navigation/AppNavigation";
 import { ArrowRight, EyeOff } from "lucide-react";
 import { getT } from "@/lib/i18n";
@@ -87,17 +87,21 @@ function ContinueSectionContent({ initialItems, language }: { initialItems: Cont
   const t = getT(language);
   const { hideContinue } = useTodayInteractions();
   const [items, setItems] = useState(initialItems);
+  const pending = useRef(false);
+  const [failed, setFailed] = useState(false);
   const [hidingKey, setHidingKey] = useState<string | null>(null);
 
   async function hide(item: ContinueItem) {
-    if (hidingKey) return;
+    if (pending.current) return;
+    pending.current = true; setFailed(false);
     setHidingKey(item.visibilityKey);
     try {
       await hideContinue(item);
       setItems((current) => current.filter((candidate) => candidate.key !== item.key));
     } catch {
-      // De kaart blijft staan als de persoonlijke voorkeur niet kon opslaan.
+      setFailed(true); // De kaart blijft staan; alleen handmatig opnieuw proberen.
     } finally {
+      pending.current = false;
       setHidingKey(null);
     }
   }
@@ -107,6 +111,7 @@ function ContinueSectionContent({ initialItems, language }: { initialItems: Cont
   return (
     <section aria-labelledby="today-continue" className="vs-rise min-w-0">
       <SectionHeader id="today-continue" title={t("today.continueTitle")} href="/courses" linkLabel={t("nav.learn")} />
+      {failed && <p role="alert" className="mb-3 text-sm text-vs-danger">{t("today.actionFailed")}</p>}
       {items.length === 1 ? (
         <div className="sm:max-w-md">
           <ContinueCard item={items[0]} language={language} hiding={hidingKey === items[0].visibilityKey} onHide={() => void hide(items[0])} />
