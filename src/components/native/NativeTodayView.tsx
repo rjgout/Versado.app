@@ -15,6 +15,8 @@ import KompasEntryCardView from "@/components/kompas/KompasEntryCardView";
 import { TodayInteractionsProvider, type TodayInteractions, useTodayInteractions } from "@/components/today/TodayInteractions";
 import { nativeTodayDestination } from "@/lib/native/todayDestinations";
 import { nativeTodayImageSource } from "@/lib/native/todayAssets";
+import NativeStudyImage, { NativeStudyMediaProvider } from "./NativeStudyImage";
+import { studyMediaIdFromSource } from "@/lib/native/studyMediaContract";
 import type { NativeTodayOverview } from "@/lib/native/todayContract";
 
 type Actions = { hideContinue: TodayInteractions["hideContinue"]; respondFriend: NonNullable<TodayInteractions["respondFriend"]> };
@@ -22,10 +24,10 @@ function NativeFriendActions({ friendshipId, name }: { friendshipId: string; nam
   const { respondFriend } = useTodayInteractions();
   return <FriendRequestControl name={name} respond={action => respondFriend!(friendshipId, action)}/>;
 }
-export default function NativeTodayView({ state, actions }: { state: NativeTodayOverview; actions?: Actions }) {
-  return <ConfirmProvider><NativeTodayContent state={state} actions={actions}/></ConfirmProvider>;
+export default function NativeTodayView({ state, actions, mediaEnabled = false }: { state: NativeTodayOverview; actions?: Actions; mediaEnabled?: boolean }) {
+  return <ConfirmProvider><NativeStudyMediaProvider state={state}><NativeTodayContent state={state} actions={actions} mediaEnabled={mediaEnabled}/></NativeStudyMediaProvider></ConfirmProvider>;
 }
-function NativeTodayContent({ state, actions }: { state: NativeTodayOverview; actions?: Actions }) {
+function NativeTodayContent({ state, actions, mediaEnabled }: { state: NativeTodayOverview; actions?: Actions; mediaEnabled: boolean }) {
   const navigation = useAppNavigationAdapter(), t = useT();
   const confirm = useConfirm();
   const notify = useCallback(() => { void confirm(t("nativeToday.unavailable"), { native: true, notice: true, title: t("nav.today"), confirmLabel: t("common.close") }); }, [confirm, t]);
@@ -37,8 +39,8 @@ function NativeTodayContent({ state, actions }: { state: NativeTodayOverview; ac
       return <a {...anchor} role="button" tabIndex={props.tabIndex ?? 0} data-native-unavailable-href={href} aria-describedby="native-today-destinations" onClick={event => { event.preventDefault(); notify(); }} onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); notify(); } }}/>;
     }
     // The supported links use the parent adapter, not a recursively nested AppLink.
-    return { ...navigation, Link: TodayLink, imageSource: nativeTodayImageSource };
-  }, [navigation, notify]);
+    return { ...navigation, Link: TodayLink, ...(mediaEnabled ? { Image: NativeStudyImage } : {}), imageSource: (src: string) => mediaEnabled && studyMediaIdFromSource(src) ? src : nativeTodayImageSource(src) };
+  }, [navigation, notify, mediaEnabled]);
   const interactions = useMemo<TodayInteractions>(() => ({
     Avatar: ({ avatarEmoji, ...props }) => { void avatarEmoji; return <UserAvatarView {...props} appearance={state.avatars[props.id] ?? EMPTY_AVATAR_APPEARANCE}/>; },
     Social: SocialView,

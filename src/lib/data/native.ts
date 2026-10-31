@@ -2,6 +2,7 @@
 // web-API-fallback, opslag of tweede voortgangs-/beloningssysteem.
 import { nativeTodayActionResultSchema } from "@/lib/native/todayActionsContract";
 import type { NativeTodayOverview } from "@/lib/native/todayContract";
+import { nativeStudyMediaId, nativeStudyDataUrl } from "@/lib/native/studyMediaContract";
 import { nativeTodayOverviewSchema } from "@/lib/native/todayContract";
 import type { Socket } from "socket.io-client";
 import { LiveDataStore, serializeKey, type LiveEnvironment, type QueryKey } from "./store";
@@ -72,6 +73,21 @@ export class NativeDataRuntime {
       respondFriend: (friendshipId: string, action: "accept" | "decline") => run("friend-response", { friendshipId, action }),
     };
   }
+  async studyImage(mediaId: string, expected: { userId: string; activeCollectionId: string | null; selectionVersion: number }) {
+    const id = nativeStudyMediaId.parse(mediaId), epoch = this.epoch, requestedAt = this.environment.now();
+    const checkContext = () => {
+      if (epoch !== this.epoch) throw new NativeClientError("session_changed", 409);
+      const current = this.store.getSnapshot<NativeContentState>(serializeKey(["native", epoch, ...nativeContentQueryKey(expected.userId)])).data;
+      if (!current || current.userId !== expected.userId || current.picker.activeCollectionId !== expected.activeCollectionId || current.picker.selectionVersion !== expected.selectionVersion) throw new NativeClientError("content_context_changed", 409);
+    };
+    checkContext();
+    const value = await nativeStudyDataUrl(await this.client.api(`study-media/${id}`));
+    checkContext();
+    if (value.userId !== expected.userId || value.mediaId !== id || value.selectionVersion !== expected.selectionVersion) throw new NativeClientError("content_context_changed", 409);
+    const validUntil = requestedAt + Date.parse(value.expiresAt) - value.serverNow;
+    if (this.environment.now() >= validUntil) throw new NativeClientError("media_expired", 409);
+    return { ...value, validUntil };
+  }
   async contentContext(userId: string) {
     const epoch = this.epoch;
     const state = nativeContentStateSchema.parse(await this.client.api("content-context"));
@@ -79,6 +95,7 @@ export class NativeDataRuntime {
     // Een GET van vóór een bevestigde keuze mag de bestaande gedeelde cache
     // nooit terugzetten. Geen tweede cache: lees uitsluitend de actieve store-entry.
     const current = this.store.getSnapshot<NativeContentState>(serializeKey(["native", epoch, ...nativeContentQueryKey(userId)])).data;
+    if (current && state.picker.selectionVersion >= current.picker.selectionVersion && (current.picker.selectionVersion !== state.picker.selectionVersion || current.picker.activeCollectionId !== state.picker.activeCollectionId)) this.store.invalidate(["studyContent"]);
     return current?.userId === userId && current.picker.selectionVersion > state.picker.selectionVersion ? current : state;
   }
   async selectContent(userId: string, input: NativeContentSelection) {
@@ -120,6 +137,7 @@ export class NativeDataRuntime {
     const cleanups = [this.client.onSessionChange(this.reset)];
     const listen = (source: Window | Document, name: string, handler: () => void) => { source.addEventListener(name, handler); cleanups.push(() => source.removeEventListener(name, handler)); };
     listen(target, "online", this.resume);
+    listen(target, "offline", () => this.store.invalidate(["studyContent"]));
     listen(target, "focus", () => this.store.revalidate());
     let stopped = false, cancelTick: (() => void) | undefined;
     const scheduleTick = () => {

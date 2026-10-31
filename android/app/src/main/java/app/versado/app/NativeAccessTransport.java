@@ -50,7 +50,7 @@ final class NativeAccessTransport {
     }
     static boolean routeAllowed(String path, String method) {
         if (path == null || method == null) return false;
-        if ("GET".equals(method)) return path.matches("capabilities|me|today|today-overview|content-context|chapters/[A-Za-z0-9_-]{1,128}");
+        if ("GET".equals(method)) return path.matches("capabilities|me|today|today-overview|content-context|(chapters|study-media)/[A-Za-z0-9_-]{1,128}");
         if ("POST".equals(method)) return path.matches("today-actions/(hide|friend-response)|content-context|login|register|forgot-password|reset-password|verify-email|refresh|logout|security-setup/(complete|cancel)|apple/(challenge|complete)|account/password|chapters/[A-Za-z0-9_-]{1,128}/complete");
         return "DELETE".equals(method) && path.matches("apple|account");
     }

@@ -103,9 +103,10 @@ de build weigert meer dan 8 MiB gegenereerd Vandaag-artwork.
 De bestaande drie gidsen en hun benodigde begroeting-/rust-/ontdekstates worden
 lokaal verpakt. Er wordt geen gids vervangen door Novi als een andere gekozen is.
 Private `/api/study-media`-afbeeldingen worden **niet** als cookie-URL vanuit de
-native WebView opgehaald. De gedeelde CFM-kaart toont zijn bestaande veilige
-weergave zonder afbeelding. Een geautoriseerde native media-adapter blijft
-B2-vervolg/B5; ook daarom is nog geen volledige visuele pariteit geclaimd.
+native WebView opgehaald. Zonder `study-media-v1` blijft de bestaande veilige
+CFM-weergave zonder foto behouden. B2b-2 koppelt hieronder dezelfde kaart aan de
+beveiligde native media-adapter. Volledige reader-/audiopariteit is hiermee niet
+geleverd.
 
 ## Ontbrekende acties en bestemmingen
 
@@ -230,8 +231,8 @@ een oude klik of laat antwoord van A kan nooit B wijzigen. De actieve querykey
 wordt expliciet doorgegeven, ook wanneer een gewijzigde accounttaal eerder in
 het Vandaag-antwoord dan in `me` zichtbaar wordt. Er is geen tweede cache.
 
-Deze PR levert geen private studiemedia, readers, spellen of volledige sociale
-schermen. De beveiligde media-adapter is B2b-2; de overige bestemmingen houden de
+B2b-1 levert geen private studiemedia, readers, spellen of volledige sociale
+schermen. De beveiligde media-adapter staat hieronder in B2b-2; de overige bestemmingen houden de
 veilige melding uit B2a. Geen schema-/migratie-, Apple-, CFM-inhouds-, NAS- of
 productiewijzigingen.
 
@@ -251,3 +252,100 @@ accepteer en wijs afzonderlijke verzoeken af; controleer beide accounts op web,
 offline/fout/herstel zonder spontane acties, accountwisseling, Access,
 schermlezer, menu-/knopfocus en scrollherstel. Publicatie/deployment blijft een
 afzonderlijke eigenaarshandeling.
+
+
+
+
+## B2b-2 — beveiligde studiemedia
+
+Synchronisatiebasis van #246: develop-squashmerge #245
+`8a3a97cddfc192c656634d5a2fc80d175910aa51`. De actuele integratiebasis is
+`0224360dd31f230bc203ea701697bf87c211d62e`, inclusief de ongewijzigd behouden
+broncontroles van #247 en #248 (drie tests en de development-workflow; geen
+applicatiecode). Alleen de mediacommit
+`ee6b50338cb9c04eb05e6ffbda3f6fb11e196ac2` is overgezet; de oorspronkelijke
+actiecommit `1c3e69cdb0b9251010abe53a52533d29b94ee4a0` is geen extra commit
+in deze branch. Squash- en actiebestandsboom zijn identiek; de overzetting had
+geen conflicten of applicatiecodeaanpassingen nodig. Aanvullend zijn deze
+basisnotitie en de pariteitsintroductie bijgewerkt. De hercontrole vond één
+onbetrouwbare testwachtrij: `native-study-media.test.ts` wacht nu op dezelfde
+lopende LiveDataStore-query inclusief WebCrypto, in plaats van op twee
+eventlooprondes. Alle deduplicatie-, wis- en foutasserties blijven behouden;
+er is geen timeout verhoogd of productcode aangepast. De broninventaris is
+opnieuw gegenereerd voor deze testwijziging.
+De nieuwe head en opnieuw uitgevoerde checks staan in de PR; eerdere groene
+runs op de oude gestapelde head gelden niet als bewijs voor deze synchronisatie.
+
+De bestaande `CfmTodayCard` gebruikt op web en native dezelfde Image-poort.
+Met capability `study-media-v1` onderschept uitsluitend de native adapter een
+exacte `/api/study-media/<id>`-bron. Die web-URL wordt nooit aan native `img.src`
+of een cookie-fetch gegeven: de ID gaat via de bestaande Bearer-/Service
+Auth-bridge naar `GET /api/v1/native/study-media/<id>`. Zonder capability blijft
+de veilige B2a-weergave zonder foto behouden. Publiek artwork blijft lokaal.
+
+`authorizeStudyMedia` is geëxtraheerd uit dezelfde bestaande
+`authorizedStudyMedia`-service. De webroute blijft dezelfde oorspronkelijke
+bytes leveren. De native route gebruikt exact dezelfde gepubliceerde revisie-,
+collectie-, bronpin-, rechtenhash-, figuur- en opslagcontroles, zonder adminpreview.
+Na lezen/decoderen worden sessie, bronselectie en publicatierechten opnieuw
+gecontroleerd. Niet-READY, verborgen/niet-toegankelijke, DRAFT, retired,
+ontpubliceerde of corrupte brondata levert geen afbeelding op. Bestaande
+beheerrechten blijven leidend: beheerders mogen vrijgegeven verborgen bronnen
+lezen zoals op web, nooit DRAFT via deze gewone route.
+
+Er is geen bron-URL-, bestandspad- of proxyparameter. Alleen een ID van maximaal
+128 ASCII-tekens en de exacte GET-methode zijn toegestaan in TypeScript, Swift
+en Java. Queryparameters, traversal en preview worden geweigerd. Het antwoord
+is versie 1 met noodzakelijke actor-/selectie-identiteit, bronchecksum,
+uitvoerchecksum, MIME, afmetingen, grootte, serverklok/expiry en base64. Geen
+cookie, servicecredential, sleutel of sessietoken staat in een afbeeldings-URL.
+De bestaande HTTP-bridge blijft JSON, zonder redirects/cookies/schijfcache en
+met zijn ongewijzigde responslimiet van 1 MiB.
+
+Een tijdelijke WebP-weergave blijft binnen 640×640 pixels en 256 KiB (circa
+350 KiB JSON). Er worden geen originelen aangepast of varianten opgeslagen.
+De bestaande bronlimiet is 10 MiB; de transformatie weigert meer dan 16 miljoen
+invoerpixels en verwerkt maximaal twee aanvragen per proces tegelijk. Het
+bestaande gedeelde authenticatiebudget begrenst aanvragen tot 30 per gebruiker
+per minuut; drukte/uitval geeft een placeholder. Dit zijn grenzen, geen gemeten
+NAS-capaciteitsclaim. Er is geen nieuwe persistentie, importer of database.
+
+De client controleert de DTO, base64lengte, WebP-signatuur/RIFF-lengte en
+SHA-256 vóór weergave. Alleen de bestaande LiveDataStore bewaart de beelddata
+in geheugen, met dezelfde sessie-epoch en bron-/selectieversie. Gelijktijdige
+lezers delen één aanvraag. `discardOnRevalidate` wist de beschermde entry vóór
+een hercontrole, ook als die mislukt. Actieve beelden krijgen maximaal iedere
+60 seconden (+ de bestaande storetick) een rechtenhercontrole; netwerk-/decodewachttijd
+verlengt de geldigheid niet. Achtergrond/offline pollt niet. Hervatten,
+bronwisseling (ook via web), offline en logout/accountwisseling wissen of
+hercontroleren de relevante beelden. Losgelaten entries worden ook bij een
+bevestigde nieuwe bron ongeldig gemaakt; oude netwerk-/decode-antwoorden
+worden verworpen. Geen tweede cache, offline beeldarchief of writes.
+
+Een nette decoratieve placeholder verschijnt bij laden, ontbrekende rechten,
+netwerkproblemen, beschadigde antwoorden of een decodefout. De overige kaarten,
+publieke lokale beelden, focus/scroll, grote tekst en navigatiemeldingen blijven
+werken. Een externe intrekking is zonder realtime pas bij de volgende controle
+bekend (maximaal het 60-secondenvenster terwijl zichtbaar); reeds waargenomen
+pixels kunnen niet op afstand uit een screenshot worden gewist. Er wordt geen
+onbeveiligde socket gebruikt om die grens te omzeilen.
+
+Gerichte proeven gebruiken uitsluitend bestaande synthetische CFM-fixtures en
+een eigen gemarkeerde testmediamap. De echte importer/publicatieservices maken
+alleen in die wegwerpdatabase de testpublicatie. Tests controleren dezelfde
+webbron, hash/grootte/decodering, verborgen/retired/ontpubliceerde bronnen,
+bestandscorruptie, vertraagde intrekking/selectiewissel, accountisolatie,
+querydeduplicatie en cachewissen vóór een geweigerde hercontrole. Browserbewijs
+staat onder `native-foundation-browser/study-media`: dezelfde echte gepubliceerde
+Vandaag-kaart, vijf talen, 320px/200%, licht/donker/tablet, placeholder/offline,
+bronwissel en late A-bytes na B-login. Definitieve aantallen en CI-head staan
+in de PR; geen fysieke acceptatie of productiecontrole geclaimd.
+
+Eigenaarstest op iPhone én Android na afzonderlijk goedgekeurde backend/appbuild:
+open dezelfde gepubliceerde CFM-week naast web; controleer foto en kaart,
+Access/sessionherstel, offline-placeholder en herstel, achtergrond/hervatten,
+bron/taal, grote tekst/oriëntatie, logout en accountwisseling. Controleer een
+veilige tijdelijke intrekking uitsluitend in de ontwikkelomgeving en verifieer
+de placeholder bij hercontrole. Geen productiepublicatie of NAS-wijziging is
+onderdeel van deze PR. Volledige studielezer/cursuspariteit blijft B3; audio en
+andere doelroutes worden hiermee niet alsnog geleverd.
