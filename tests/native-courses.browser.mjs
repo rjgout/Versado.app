@@ -19,11 +19,12 @@ copyFileSync('dist/native.inputs.json',`${out}/native.inputs.json`);
 const osBoundary={name:'native-today-os-events-only',setup(api){api.onLoad({filter:/src\/lib\/platform\.ts$/},args=>{const source=readFileSync(args.path,'utf8'),start=source.indexOf('export async function startNativeFoundationRuntime(');assert.ok(start>0);return{loader:'ts',contents:source.slice(0,start)+`export async function startNativeFoundationRuntime(options){const back=()=>options.onBack(),resume=()=>options.onResume();window.addEventListener('today:test-back',back);window.addEventListener('today:test-resume',resume);return()=>{window.removeEventListener('today:test-back',back);window.removeEventListener('today:test-resume',resume);};}`};});}};
 const bundle=await build({plugins:[osBoundary],entryPoints:['tests/fixtures/native-foundation-client.tsx'],bundle:true,write:false,minify:true,platform:'browser',define:{'process.env.NODE_ENV':'"production"'}});
 const css=readFileSync('dist/native/index.css'),secrets=new Map(),calls=[],errors=[];
-let failOverview=false,holdNext=false,held=[];let oldBackend=false;
+let failOverview=false,holdNext=false,held=[];let oldBackend=false;let courseFailure=0;
 const front=createServer(async(req,res)=>{try{
  const url=new URL(req.url,'http://127.0.0.1');
  if(url.pathname.startsWith('/api/v1/native/')){
   const record={method:req.method,path:url.pathname};calls.push(record);
+  if(courseFailure && /^\/api\/v1\/native\/courses\/[^/]+\/path$/.test(url.pathname)){res.writeHead(courseFailure,{'Content-Type':'application/json'});res.end(JSON.stringify({error:'native_request_failed'}));return;}
   if(failOverview&&url.pathname.endsWith('/today-overview')){res.writeHead(503,{'Content-Type':'application/json'});res.end(JSON.stringify({error:'native_request_failed'}));return;}
   const chunks=[];for await(const chunk of req)chunks.push(chunk);
   const response=await fetch(`${backend}${req.url}`,{method:req.method,headers:{Origin:'capacitor://localhost','X-Versado-Client':'native-v1','x-real-ip':'127.0.0.61',...(req.headers.authorization?{Authorization:req.headers.authorization}:{}),...(req.headers['content-type']?{'Content-Type':req.headers['content-type']}:{})},body:['GET','HEAD'].includes(req.method)?undefined:Buffer.concat(chunks)});
@@ -38,7 +39,8 @@ const front=createServer(async(req,res)=>{try{
 }catch(error){console.error('Today testproxy:',error.message);res.writeHead(500);res.end();}});
 await new Promise(resolve=>front.listen(0,'127.0.0.1',resolve));const origin=`http://127.0.0.1:${front.address().port}`,browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH,args:['--no-sandbox']});
 
-const artifacts=[],fixtures=[];
+const artifacts=[],fixtures=[],acceptanceFailures=[];
+async function acceptance(name,run){try{await run();console.log(`B3 review PASS: ${name}`);}catch(error){acceptanceFailures.push(name);console.error(`B3 review FAIL: ${name}: ${error.message}`);}}
 try {
  await prisma.contentSwitcherSettings.upsert({where:{id:"singleton"},create:{id:"singleton",enabled:true},update:{enabled:true}});
  for(const language of ['nl','en','de','fr','es']) {
@@ -96,11 +98,39 @@ try {
    assert.equal(await page.locator('main [role="progressbar"]').count(),1,'Alleen de persoonlijke cursus van B toont voortgang; de twee beschikbare cataloguscursussen hebben geen persoonlijke voortgang');
    assert.equal(await page.locator('[aria-labelledby="discover-courses"]').count(),0,'Laat antwoord van A herstelt niet diens twee andere persoonlijke cursussen');
    assert.ok((await page.locator('[aria-labelledby="current-journey"] .card-title-link').getAttribute('href')).includes(free.id));
+   // Nieuwe acceptatie: twee boekgroepen en lokaal uitgeklapte staat, geen lees-/voortgangsmutatie.
+   const extraBook=await prisma.book.create({data:{slug:`review-${fixture.collection.id}`,key:'bofm/mosiah',name:'Mosiah',order:2,contentCollectionId:fixture.collection.id}});
+   const extraChapter=await prisma.chapter.create({data:{bookId:extraBook.id,number:1,order:1,verses:{create:{number:1,text:'Synthetisch acceptatievers.'}}}});
+   await prisma.courseChapter.create({data:{courseId:free.id,chapterId:extraChapter.id,order:3}});
+   await page.goto(`${origin}/?accountLanguage=1&device=${user.id}&case=review-refresh#/courses/${free.id}/pad`);
+   await page.locator('[data-book="bofm/mosiah"] button').click();
+   const toggle=page.locator('[data-book="bofm/mosiah"] button');assert.equal(await toggle.getAttribute('aria-expanded'),'true');
+   await toggle.evaluate(el=>{el.focus({preventScroll:true});window.__b3ReviewToggle=el;});
+   await acceptance('confirmed path survives failed background GET without losing expanded books or focus',async()=>{
+    try{courseFailure=503;const reload=page.waitForResponse(r=>r.url().endsWith(`/courses/${free.id}/path`)&&r.status()===503);
+     await page.evaluate(()=>window.dispatchEvent(new Event('versado:app-resumed')));await reload;await page.waitForLoadState('networkidle');
+     await page.screenshot({path:`${out}/review-retained-path.png`,fullPage:true});
+     assert.equal(await page.locator('[data-reading-path]').count(),1,'Een tijdelijke GET-fout mag het bevestigde pad niet unmounten');
+     assert.equal(await toggle.getAttribute('aria-expanded'),'true');assert.equal(await toggle.evaluate(el=>el===window.__b3ReviewToggle&&el===document.activeElement),true);
+    }finally{courseFailure=0;}
+   });
+   // Legale contract-ID "list" mag nooit dezelfde cache-entry als het overzicht gebruiken.
+   assert.equal(await prisma.course.findUnique({where:{id:'list'}}),null,'Alleen een eigen wegwerpfixture mag deze ID gebruiken');
+   await prisma.course.create({data:{id:'list',slug:`review-list-${fixture.collection.id}`,name:'Review cache-identiteit',type:'READING_LESSONS',contentCollectionId:fixture.collection.id,lessons:{create:{chapterId:fixture.chapters[1].id,order:1,startVerse:1,endVerse:2}}}});
+   await page.goto(`${origin}/?accountLanguage=1&device=${user.id}&case=review-list#/courses`);await page.locator('.card-title-link[href="#/courses/list"]').waitFor();
+   await acceptance('overview and legal course ID list have distinct cache identities',async()=>{
+    await page.locator('.card-title-link[href="#/courses/list"]').click();
+    await page.waitForFunction(()=>document.querySelector('[data-reading-path]'),{},{timeout:5000});
+    assert.equal(await page.getByRole('heading',{level:1}).textContent(),'Review cache-identiteit');
+    await page.screenshot({path:`${out}/review-list-id.png`,fullPage:true});
+   });
+
 
   }
   assert.equal((await prisma.user.findUniqueOrThrow({where:{id:user.id}})).xpTotal,0);assert.equal(await prisma.streakDay.count({where:{userId:user.id}}),0);assert.equal(await prisma.userCourseLessonProgress.count({where:{userId:user.id}}),0);
   await context.close();
  }
+ assert.deepEqual(acceptanceFailures,[],'Nieuwe technische acceptatiegevallen moeten allemaal slagen');
  assert.deepEqual(errors,[]);assert.equal(calls.some(c=>c.method==='POST'&&/complete|exercise|courses/.test(c.path)),false);
  console.log(`B3a: ${artifacts.length} echte web/native screenshots, vijf talen, 320px/200%, drie gedeelde leespaden, echte verscursor, oude capabilityfallback, offline/online herstel en veilige lesmelding; geen afrondings-/XP-mutaties. Geen fysieke acceptatie.`);
 } finally {for(const finish of held)finish();await browser.close();front.closeAllConnections?.();await new Promise(resolve=>front.close(resolve));for(const fixture of fixtures)await prisma.contentCollection.update({where:{id:fixture.collection.id},data:{enabled:false}});await prisma.$disconnect();}

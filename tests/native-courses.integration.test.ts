@@ -38,12 +38,29 @@ test("auth, no cookie fallback, exact GETs, disabled/private/retired source and 
  const other=await seedNativeCourses("en");try{assert.equal((await call(pair.accessToken,`courses/${other.steps.id}/path`)).status,404);}finally{await prisma.contentCollection.update({where:{id:other.collection.id},data:{enabled:false}});}
  await prisma.course.update({where:{id:fixture.steps.id},data:{enabled:false}});assert.equal((await call(pair.accessToken,path)).status,404);await prisma.course.update({where:{id:fixture.steps.id},data:{enabled:true}});
 });
-async function delayed(change:(userId:string,sessionId:string)=>Promise<unknown>){
- const {user,pair}=await account(),identity=await nativeSessionIdentity(pair.accessToken),lock=new pg.Client({connectionString:db.href});await lock.connect();await lock.query('BEGIN');await lock.query('LOCK TABLE "Course" IN ACCESS EXCLUSIVE MODE');let pending:Promise<Response>|undefined;
- try{pending=call(pair.accessToken);let waiting=false;for(let i=0;i<100;i++){const row=await lock.query("SELECT 1 FROM pg_locks WHERE NOT granted AND relation='\"Course\"'::regclass AND pid<>pg_backend_pid() LIMIT 1");if(row.rowCount){waiting=true;break;}await new Promise(r=>setTimeout(r,25));}assert.ok(waiting,"echte SQL-lockwachttijd vereist");await change(user.id,identity.binding.sessionId);await lock.query('COMMIT');return await pending;}finally{await lock.query('ROLLBACK');await lock.end();if(pending)await pending.catch(()=>{});}
+async function delayed(change:(userId:string,sessionId:string)=>Promise<unknown>, requestPath="courses", table: "Course" | "CourseLesson" = "Course"){
+ const {user,pair}=await account(),identity=await nativeSessionIdentity(pair.accessToken),lock=new pg.Client({connectionString:db.href});await lock.connect();await lock.query('BEGIN');await lock.query(`LOCK TABLE "${table}" IN ACCESS EXCLUSIVE MODE`);let pending:Promise<Response>|undefined;
+ try{pending=call(pair.accessToken,requestPath);let waiting=false;for(let i=0;i<100;i++){const row=await lock.query("SELECT 1 FROM pg_locks WHERE NOT granted AND relation=$1::regclass AND pid<>pg_backend_pid() LIMIT 1",[`"${table}"`]);if(row.rowCount){waiting=true;break;}await new Promise(r=>setTimeout(r,25));}assert.ok(waiting,"echte SQL-lockwachttijd vereist");await change(user.id,identity.binding.sessionId);await lock.query('COMMIT');return await pending;}finally{await lock.query('ROLLBACK');await lock.end();if(pending)await pending.catch(()=>{});}
 }
 test("revocation, source and timezone changes while SQL is blocked reject the complete old response",async()=>{
  assert.equal((await delayed((_,id)=>prisma.nativeSession.update({where:{id},data:{revokedAt:new Date()}}))).status,401);
  assert.equal((await delayed(userId=>prisma.user.update({where:{id:userId},data:{activeContentCollectionId:null}}))).status,409);
  assert.equal((await delayed(userId=>prisma.user.update({where:{id:userId},data:{timeZone:"America/New_York"}}))).status,409);
+});
+
+test("repeated native GETs leave sessions, lists, cursors, XP and all existing progress unchanged",async()=>{
+ const {user,pair}=await account(),before=await snapshot(user.id),sessions=await prisma.nativeSession.findMany({where:{userId:user.id}}),orders=await prisma.userListOrder.findMany({where:{userId:user.id}}),lessonCount=await prisma.courseLesson.count();
+ for(let i=0;i<3;i++)for(const path of ["courses",...fixture.courses.map(c=>`courses/${c.id}/path`)])assert.equal((await call(pair.accessToken,path)).status,200);
+ assert.deepEqual(await snapshot(user.id),before);assert.deepEqual(await prisma.nativeSession.findMany({where:{userId:user.id}}),sessions);assert.deepEqual(await prisma.userListOrder.findMany({where:{userId:user.id}}),orders);assert.equal(await prisma.courseLesson.count(),lessonCount);
+});
+test("path reads recheck expiry, mandatory setup and source after actual lock waiting",async()=>{
+ const path=`courses/${fixture.steps.id}/path`;
+ for(const change of [async (_userId:string,id:string)=>{await prisma.nativeSession.update({where:{id},data:{expiresAt:new Date(Date.now()+150)}});await new Promise(r=>setTimeout(r,200));},(userId:string)=>prisma.user.update({where:{id:userId},data:{mustChangePassword:true}}),(userId:string)=>prisma.user.update({where:{id:userId},data:{isAdmin:true,totpEnabled:false}})])assert.equal((await delayed(change,path)).status,401);
+ assert.equal((await delayed(userId=>prisma.user.update({where:{id:userId},data:{activeContentCollectionId:null}}),path)).status,409);
+});
+test("a course disabled during aggregation is not offered in either the personal list or catalog",async()=>{
+ try{
+  const response=await delayed(()=>prisma.course.update({where:{id:fixture.steps.id},data:{enabled:false}}),"courses","CourseLesson");
+  assert.equal(response.status,200);const result=nativeCoursesSchema.parse(await response.json());assert.equal([...result.courses,...result.catalog].some(c=>c.id===fixture.steps.id),false,"Laat ingetrokken cursusmetadata mag niet alsnog verschijnen");
+ }finally{await prisma.course.update({where:{id:fixture.steps.id},data:{enabled:true}});}
 });
