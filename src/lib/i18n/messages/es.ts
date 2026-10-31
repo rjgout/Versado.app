@@ -3,6 +3,11 @@ import { kompasEs } from "./kompas/es";
 
 // Spaanse app-teksten; ontbrekende teksten vallen terug volgens fallbackChain.
 export const es: PartialMessages = {
+  nativeLearning: {
+    "readOnly": "Puedes consultar cursos e itinerarios. Añadir, ocultar y seguir lecciones estará disponible en una próxima versión. Tu progreso se conserva.",
+    "unsupported": "Este servidor aún no admite la lista de cursos.",
+    "pathUnavailable": "Este itinerario aún no está disponible en esta versión de la aplicación."
+},
   mailLog: {
     "title": "Correos enviados",
     "intro": "Historial desde la activación; se conserva hasta 90 días. Los nuevos envíos aparecen automáticamente.",

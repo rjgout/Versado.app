@@ -14,7 +14,7 @@ import type { NativeAccount, NativeContentState } from "@/lib/native/contract";
 import { NATIVE_PRIMARY_NAV } from "@/lib/native/shell";
 
 /** Alleen de native data-/assetadapter; alle zichtbare shell-JSX is gedeeld. */
-export default function NativeShellHeader({ account, onError, content, buildIndicator }: { account: NativeAccount | null; onError: (error: unknown) => void; content?: NativeContentState; buildIndicator?: ReactNode }) {
+export default function NativeShellHeader({ account, onError, content, buildIndicator, destinations = NATIVE_PRIMARY_NAV }: { destinations?: typeof NATIVE_PRIMARY_NAV; account: NativeAccount | null; onError: (error: unknown) => void; content?: NativeContentState; buildIndicator?: ReactNode }) {
   const runtime = useNativeData();
   const query = useNativeLiveQuery<NativeAccount>(["shell-account", account?.id ?? null], async () => {
     const value = await runtime.account();
@@ -30,7 +30,7 @@ export default function NativeShellHeader({ account, onError, content, buildIndi
   const header = current?.shellHeader;
   const active = content?.userId === current?.id ? content?.picker.works.flatMap(work => work.editions).find(edition => edition.id === content.picker.activeCollectionId) : undefined;
   const showSwitcher = !!active && !!content?.switcherEnabled;
-  return <AppShellHeader authenticated={!!current} homeHref={current ? "/dashboard" : "/login"} showBrandOnMobile={!showSwitcher} destinations={NATIVE_PRIMARY_NAV}
+  return <AppShellHeader authenticated={!!current} homeHref={current ? "/dashboard" : "/login"} showBrandOnMobile={!showSwitcher} destinations={destinations}
     brand={<><img src="/icons/native/versado-flame.png" width="44" height="44" alt="" /><span>Versado</span></>}
     contextLabel={buildIndicator}
     leading={active && <ContentSwitcherView active={active} enabled={content!.switcherEnabled} showLanguage onNavigate={() => {}} />}

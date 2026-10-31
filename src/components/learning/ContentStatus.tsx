@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { AppLink as Link } from "@/components/navigation/AppNavigation";
 import { BookOpenCheck, BookOpenText, Clock, Info, ListChecks } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
 

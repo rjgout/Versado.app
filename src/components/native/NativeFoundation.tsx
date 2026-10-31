@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import NativeLearningView from "./NativeLearningView";
+import { nativePrimaryNav } from "@/lib/native/shell";
 import { HANDLE_MAX_LENGTH } from "@/lib/handle";
 import { LogOut, WifiOff } from "lucide-react";
 import MascotSlot from "@/components/versado/MascotSlot";
@@ -21,7 +23,7 @@ import { type NativeTodayOverview } from "@/lib/native/todayContract";
 import NativeContentPicker from "./NativeContentPicker";
 import { SettingsSection } from "@/components/profile/settings";
 import NativeShellHeader from "./NativeShellHeader";
-import { NATIVE_PRIMARY_NAV, nativeAppleLoginUIAvailable } from "@/lib/native/shell";
+import { nativeAppleLoginUIAvailable } from "@/lib/native/shell";
 import PasswordChangeForm from "@/components/account/PasswordChangeForm";
 import { AccountActionsProvider } from "@/components/account/AccountActionsProvider";
 import { RecoveryCodesCard, TwoFactorSetupCard } from "@/components/account/TwoFactorCards";
@@ -247,12 +249,14 @@ function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBan
   }
   const button = `${secondaryButton} min-h-12 whitespace-normal`;
   const appleLoginAvailable = isIOSApp() && nativeAppleLoginUIAvailable(apple, features);
-  const detail = diagnostics || pickerPage || legal || profile || passwordPage || resetPage || confirmationPage || !!chapterId;
+  const learningPage = /^\/courses(?:\/|$)/.test(navigation.pathname);
+  const destinations = nativePrimaryNav(features);
+  const detail = (learningPage && navigation.pathname !== "/courses") || diagnostics || pickerPage || legal || profile || passwordPage || resetPage || confirmationPage || !!chapterId;
   const shellAccount = user && !setup && !recoveryCodes ? user : null;
   return <AccountActionsProvider actions={accountActions}><AppShellFrame
-    header={<NativeShellHeader account={shellAccount} onError={report} content={content} buildIndicator={buildIndicator} />}
-    headerExtras={detail && <SubpageBackBarView title={diagnostics ? t("nativeDiagnostics.title") : pickerPage ? t("contentSwitcher.picker.title") : profile ? t("nav.profile") : chapterId ? chapter?.title ?? t("pages.lesson") : t("common.back")} onBack={() => navigation.back()} />}
-    showNavigation={!!shellAccount} destinations={NATIVE_PRIMARY_NAV}
+    header={<NativeShellHeader account={shellAccount} onError={report} content={content} buildIndicator={buildIndicator} destinations={destinations} />}
+    headerExtras={detail && <SubpageBackBarView title={diagnostics ? t("nativeDiagnostics.title") : pickerPage ? t("contentSwitcher.picker.title") : profile ? t("nav.profile") : learningPage ? t("pages.course") : chapterId ? chapter?.title ?? t("pages.lesson") : t("common.back")} onBack={() => navigation.back(learningPage ? "/courses" : "/dashboard")} />}
+    showNavigation={!!shellAccount} destinations={destinations}
     mainClassName="native-foundation flex min-h-dvh w-full flex-col gap-5 bg-vs-bg text-vs-fg"
   >
     {offline && <p role="status" className="flex gap-2 rounded-xl bg-vs-surface p-3"><WifiOff className="h-5 w-5 shrink-0" />{t("nativeFoundation.offline")}</p>}
@@ -305,10 +309,10 @@ function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBan
       <div className="flex flex-wrap gap-3">{(["login", "register", "forgot"] as const).filter(v => v !== mode).map(value => <button className={button} disabled={busy} key={value} onClick={() => { navigation.push(value === "forgot" ? "/forgot-password" : `/${value}`); setError(""); setNotice(false); }}>{t(`nativeFoundation.${value}`)}</button>)}</div>
       {appleLoginAvailable && <p className="text-sm">{t("nativeFoundation.appleResetHelp")}</p>}
       {!termsUrl && <p className="text-sm">{t("nativeFoundation.termsUnavailable")}</p>}
-    </> : overviewEnabled && navigation.pathname === "/dashboard" ? overview ? <>
+    </> : learningPage ? <NativeLearningView key={`${user.id}:${dataRuntime.getSnapshot()}:${contentStamp}`} userId={user.id} language={user.uiLanguage} content={content} enabled={features.includes("courses-overview-v1")} mediaEnabled={features.includes("study-media-v1")} onError={error => { if (error instanceof NativeClientError && error.code === "content_context_changed") { void refreshContent(); } else report(error); }}/> : overviewEnabled && navigation.pathname === "/dashboard" ? overview ? <>
       {!!overviewQuery.error && <section role="alert" className="rounded-2xl border border-vs-line p-4"><p>{t("nativeFoundation.error")}</p><button type="button" className={button} onClick={() => { void overviewQuery.refetch(); }}>{t("nativeFoundation.retry")}</button></section>}
       {user.onboardingRequired && <p>{t("nativeFoundation.onboardingNote")}</p>}
-      <NativeTodayView key={`${user.id}:${dataRuntime.getSnapshot()}:${contentStamp}`} state={overview} mediaEnabled={features.includes("study-media-v1")} actions={features.includes("today-actions-v1") ? (() => {
+      <NativeTodayView key={`${user.id}:${dataRuntime.getSnapshot()}:${contentStamp}`} state={overview} coursesEnabled={features.includes("courses-overview-v1")} mediaEnabled={features.includes("study-media-v1")} actions={features.includes("today-actions-v1") ? (() => {
         const actions = dataRuntime.todayActions(overview, overviewKey);
         const perform = async (run: () => Promise<void>) => { try { await run(); } catch (error) { if (error instanceof NativeClientError && (error.status === 401 || error.code.startsWith("access_"))) report(error); throw error; } };
         return { hideContinue: item => perform(() => actions.hideContinue(item)), respondFriend: (id, action) => perform(() => actions.respondFriend(id, action)) };

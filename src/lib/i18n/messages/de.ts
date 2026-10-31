@@ -3,6 +3,11 @@ import { kompasDe } from "./kompas/de";
 
 // Ontbrekende teksten vallen terug volgens fallbackChain (src/lib/languages.ts).
 export const de: PartialMessages = {
+  nativeLearning: {
+    "readOnly": "Du kannst Kurse und Lernpfade ansehen. Hinzufügen, Ausblenden und Lektionen folgen in einer späteren App-Version. Dein Fortschritt bleibt erhalten.",
+    "unsupported": "Dieser Server unterstützt die Kursübersicht noch nicht.",
+    "pathUnavailable": "Dieser Lernpfad ist in dieser App-Version noch nicht verfügbar."
+},
   mailLog: {
     "title": "Versendete E-Mails",
     "intro": "Verlauf ab Aktivierung; Aufbewahrung höchstens 90 Tage. Neue Nachrichten erscheinen automatisch.",
