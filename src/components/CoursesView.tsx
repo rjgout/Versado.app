@@ -172,7 +172,7 @@ export default function CoursesView({ courses, catalog = null, failed = false, b
 
       {!add && catalog && catalog.length > 0 && <section className="flex flex-col gap-3"><h2 className="text-lg font-extrabold">{t("courses.addCourse")}</h2><div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">{catalog.map(course => <ContentCard key={course.id} title={course.name} href={`/courses/${course.id}`} artwork={{kind:"course",keys:course.artwork,sizes:CARD_SIZES}} label={t(TYPE_LABELS[course.type])} description={course.description}/>)}</div></section>}
       <Link href="/tools" className="card !py-3 flex items-center justify-between gap-3 text-sm font-extrabold text-slate-600 dark:text-slate-300 hover:!border-brand-300 dark:hover:!border-brand-700 transition-colors">
-        <span className="flex items-center gap-2"><VisualIdentityIcon asset="tools" className="h-8 w-8" sizes="32px" />{t("pages.tools")}</span>
+        <span className="flex min-w-0 flex-wrap items-center gap-2"><VisualIdentityIcon asset="tools" className="h-8 w-8 shrink-0" sizes="32px" /><span data-course-tools-label className="min-w-0">{t("pages.tools")}</span></span>
         <span aria-hidden className="text-slate-400 dark:text-slate-500">→</span>
       </Link>
     </div>

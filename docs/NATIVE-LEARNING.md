@@ -16,6 +16,9 @@ read-only gegevens uit dezelfde serverdiensten (`getUserCourses`,
 Alleen Link/Image en de scroll-entrysleutel lopen via platformneutrale poorten.
 Web behoudt Next Link/Image, SSR, cookies en zijn bestaande cursusmutaties.
 Geen gekopieerde cursuskaart, vragenbank, cursusvolgorde of voortgangstabel.
+De gedeelde Hulpmiddelen-kaart laat icoon en label bij grote tekst zo nodig
+op aparte regels staan; een lange vertaling wordt geen smalle letterkolom.
+De browsercontrole bewaakt maximaal drie labelregels op 320px/200%.
 
 ## Read-only contract en rechten
 

@@ -58,12 +58,12 @@ try {
 
   for(const scale of [1,2]) {
    for(const p of [page,web])await p.evaluate(scale=>{document.documentElement.style.fontSize=`${scale*100}%`;window.dispatchEvent(new Event('resize'));},scale);
-   for(const [name,p]of [['native',page],['web',web]]){assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));const file=`${out}/${language}-courses-${scale}-${name}.png`;await p.screenshot({path:file,fullPage:true});artifacts.push(file);}
+   for(const [name,p]of [['native',page],['web',web]]){assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));const tools=await p.locator('[data-course-tools-label]').evaluate(el=>({height:el.getBoundingClientRect().height,lineHeight:parseFloat(getComputedStyle(el).lineHeight)}));assert.ok(tools.height<=tools.lineHeight*3+1,`${name} ${language} ${scale}: hulpmiddelenlabel blijft leesbaar, geen letterkolom`);const file=`${out}/${language}-courses-${scale}-${name}.png`;await p.locator('main [data-artwork] img').evaluateAll(images=>Promise.all(images.map(image=>{image.loading='eager';return image.decode();})));await p.screenshot({path:file,fullPage:true});artifacts.push(file);}
   }
   await page.evaluate(()=>{document.documentElement.style.fontSize='100%';});
   if(language==='nl') {
    for(const size of [{width:768,height:1024},{width:1024,height:768}]) {
-    for(const [name,p]of [['native',page],['web',web]]){await p.setViewportSize(size);await p.evaluate(()=>{document.documentElement.style.fontSize='100%';window.dispatchEvent(new Event('resize'));});assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));const file=`${out}/nl-tablet-${size.width}-${name}.png`;await p.screenshot({path:file,fullPage:true});artifacts.push(file);}
+    for(const [name,p]of [['native',page],['web',web]]){await p.setViewportSize(size);await p.evaluate(()=>{document.documentElement.style.fontSize='100%';window.dispatchEvent(new Event('resize'));});assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));const file=`${out}/nl-tablet-${size.width}-${name}.png`;await p.locator('main [data-artwork] img').evaluateAll(images=>Promise.all(images.map(image=>{image.loading='eager';return image.decode();})));await p.screenshot({path:file,fullPage:true});artifacts.push(file);}
    }
    for(const p of [page,web])await p.setViewportSize({width:320,height:844});
    await page.mouse.wheel(0,400);await page.waitForFunction(()=>scrollY>200);const position=await page.evaluate(()=>scrollY);
@@ -78,7 +78,7 @@ try {
    assert.equal(await page.getByRole('heading',{level:1}).textContent(),await web.getByRole('heading',{level:1}).textContent());
    assert.equal(await page.locator('[data-subpage-back-bar]').innerText(),await web.locator('[data-subpage-back-bar]').innerText(),'Dezelfde cursus-terugbalk op web en native');
    assert.equal(await page.locator('[data-path-chapter]').count(),await web.locator('[data-path-chapter]').count());
-   for(const [name,p]of [['native',page],['web',web]]){const file=`${out}/${language}-${course.type}-${name}.png`;await p.screenshot({path:file,fullPage:true});artifacts.push(file);}
+   for(const [name,p]of [['native',page],['web',web]]){const file=`${out}/${language}-${course.type}-${name}.png`;await p.locator('main [data-artwork] img').evaluateAll(images=>Promise.all(images.map(image=>{image.loading='eager';return image.decode();})));await p.screenshot({path:file,fullPage:true});artifacts.push(file);}
    if(course.type==='READING_LESSONS') {assert.ok(await page.locator(`[data-native-unavailable-href="/reading-lesson/${fixture.steps.lessons[1].id}"]`).count());await page.locator(`[data-native-unavailable-href="/reading-lesson/${fixture.steps.lessons[1].id}"]`).click();await page.getByRole('dialog').waitFor();await page.getByRole('button',{name:t('common.close'),exact:true}).click();}
   }
   if(language==='nl') {

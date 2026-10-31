@@ -9317,7 +9317,7 @@
     },
     {
       "file": "src/components/CoursesView.tsx",
-      "sha256": "824bdf47aaa49dcff37efbf0bad7dd1a85e60183f8a7f09a75b53ed6c70d6d44",
+      "sha256": "bd2cc1f0a6e799a8a31fc0bf4c2afb436a91c6daf2b6cc42b61d11e3b470cc60",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -72124,7 +72124,7 @@
     },
     {
       "file": "src/components/CoursesView.tsx",
-      "sha256": "824bdf47aaa49dcff37efbf0bad7dd1a85e60183f8a7f09a75b53ed6c70d6d44",
+      "sha256": "bd2cc1f0a6e799a8a31fc0bf4c2afb436a91c6daf2b6cc42b61d11e3b470cc60",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
