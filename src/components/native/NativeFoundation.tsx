@@ -56,6 +56,7 @@ function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBan
   const dataRuntime = useNativeData();
   const [reloadKey, setReloadKey] = useState(0);
   const contentEnabled = !!user && features.includes("content-picker-v1") && !setup && !recoveryCodes;
+  const pickerAvailable = pickerPage && contentEnabled;
   const contentQuery = useNativeLiveQuery<NativeContentState>(nativeContentQueryKey(user?.id ?? null), () => dataRuntime.contentContext(user!.id), {
     scopes: ["content", "studyContext"], enabled: contentEnabled, staleTime: 15_000, pollMs: 15_000,
   });
@@ -83,7 +84,7 @@ function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBan
   const sequence = useRef(0), current = useRef({ busy, navigation, setup, recoveryCodes });
   useEffect(() => { current.current = { busy, navigation, setup, recoveryCodes }; }, [busy, navigation, setup, recoveryCodes]);
   useEffect(() => { if (user?.uiLanguage) onLanguage?.(user.uiLanguage); }, [user?.uiLanguage, onLanguage]);
-  useEffect(() => focusNativeRouteHeading(), [chapter?.id, navigation.pathname, user?.id, setup?.step, recoveryCodes]);
+  useEffect(() => focusNativeRouteHeading(), [chapter?.id, navigation.pathname, user?.id, setup?.step, recoveryCodes, pickerAvailable]);
   const report = useCallback((err: unknown) => {
     const key = err instanceof NativeClientError ? err.code : "request_failed";
     if (key.startsWith("access_")) {
@@ -244,8 +245,12 @@ function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBan
         <button className={button} onClick={() => void bootstrap()} disabled={busy || !!setup || !!recoveryCodes}>{t("nativeFoundation.retry")}</button>
         <button className={button} onClick={() => void dismissNativeKeyboard()}>{t("nativeFoundation.keyboardDone")}</button>
       </SettingsSection>
-    </> : pickerPage && user && contentEnabled ? <NativeContentPicker key={user.id} userId={user.id} state={content} error={!!contentQuery.error}
-      onRetry={() => { void refreshContent(); }} onCommitted={value => { contentQuery.setData(value); }} /> : legal ? navigation.pathname === "/privacy" ? <PrivacyContent /> : navigation.pathname === "/disclaimer" ? <DisclaimerContent /> : navigation.pathname === "/contact" ? <ContactContent /> : <CookiesContent /> : resetPage ? <NativePasswordReset key={mailRequest.id} client={client} initialToken={mailRequest.route === navigation.pathname ? mailRequest.token : null} onTokenCleared={() => setMailRequest(value => ({ ...value, token: null }))} onContinue={() => void action(() => client.logout(() => { setUser(null); dataRuntime.reset(); setSetup(null); setRecoveryCodes(null); navigation.replace("/login"); }))} /> : confirmationPage ? <NativeEmailConfirmation key={mailRequest.id} client={client} initialToken={mailRequest.route === navigation.pathname ? mailRequest.token : null} onTokenCleared={() => setMailRequest(value => ({ ...value, token: null }))} onContinue={() => void action(() => client.logout(() => { setUser(null); dataRuntime.reset(); setSetup(null); setRecoveryCodes(null); navigation.replace("/login"); }))} /> : recoveryCodes ? <>
+    </> : pickerPage && !setup && !recoveryCodes ? user && contentEnabled ? <NativeContentPicker key={user.id} userId={user.id} state={content} error={!!contentQuery.error}
+      onRetry={() => { void refreshContent(); }} onCommitted={value => { contentQuery.setData(value); }} /> : <section data-native-content-unavailable className="flex flex-col gap-4">
+      <h1 tabIndex={-1} className="text-3xl font-extrabold">{t("contentSwitcher.picker.title")}</h1>
+      <p role="status">{t(busy ? "nativeFoundation.loading" : user ? "nativeContentFallback.unsupported" : "nativeContentFallback.signIn")}</p>
+      <AppLink className={button} href={user ? "/dashboard" : "/login"}>{t(user ? "nav.today" : "nativeFoundation.login")}</AppLink>
+    </section> : legal ? navigation.pathname === "/privacy" ? <PrivacyContent /> : navigation.pathname === "/disclaimer" ? <DisclaimerContent /> : navigation.pathname === "/contact" ? <ContactContent /> : <CookiesContent /> : resetPage ? <NativePasswordReset key={mailRequest.id} client={client} initialToken={mailRequest.route === navigation.pathname ? mailRequest.token : null} onTokenCleared={() => setMailRequest(value => ({ ...value, token: null }))} onContinue={() => void action(() => client.logout(() => { setUser(null); dataRuntime.reset(); setSetup(null); setRecoveryCodes(null); navigation.replace("/login"); }))} /> : confirmationPage ? <NativeEmailConfirmation key={mailRequest.id} client={client} initialToken={mailRequest.route === navigation.pathname ? mailRequest.token : null} onTokenCleared={() => setMailRequest(value => ({ ...value, token: null }))} onContinue={() => void action(() => client.logout(() => { setUser(null); dataRuntime.reset(); setSetup(null); setRecoveryCodes(null); navigation.replace("/login"); }))} /> : recoveryCodes ? <>
       <h1 tabIndex={-1} className="text-2xl font-extrabold">{t("profile.twoFactor")}</h1>
       <RecoveryCodesCard recoveryCodes={recoveryCodes} onSaved={() => setRecoveryCodes(null)} />
     </> : setup ? <>

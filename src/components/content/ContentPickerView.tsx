@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type Ref } from "react";
 import { AppLink } from "@/components/navigation/AppNavigation";
 import { BookHeart, Check, ChevronRight, Globe2, LoaderCircle, Music2 } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
@@ -11,17 +11,16 @@ import { pickerGroup, resolvePickerEdition, type ContentPickerContext, type Pick
 
 export type PickerMessage = "error" | "conflict" | "unavailableLanguage" | "unavailableSource";
 /** De bestaande kaarten/edities/talen, zonder Next, transport of eigen voorkeurenopslag. */
-export default function ContentPickerView({ data, busy, message, onSelect, onRetry, noDestination = false, links = {} }: {
+export default function ContentPickerView({ data, busy, message, onSelect, onRetry, noDestination = false, links = {}, rootRef }: {
   data?: ContentPickerContext; busy: boolean; message: PickerMessage | null;
   onSelect: (edition: PickerEdition) => Promise<boolean>; onRetry: () => void;
-  noDestination?: boolean; links?: { hymns?: string; studyFolder?: string; admin?: string };
+  rootRef?: Ref<HTMLDivElement>; noDestination?: boolean; links?: { hymns?: string; studyFolder?: string; admin?: string };
 }) {
-  const t = useT(), titleRef = useRef<HTMLDivElement>(null), editionRef = useRef<HTMLSelectElement>(null);
+  const t = useT(), editionRef = useRef<HTMLSelectElement>(null);
   const [editionChoice, setEditionChoice] = useState<{ workKey: string; language: string } | null>(null);
   const [choiceMessage, setChoiceMessage] = useState<PickerMessage | null>(null);
   const shownMessage = message ?? choiceMessage;
   useEffect(() => { editionRef.current?.focus(); }, [editionChoice]);
-  useEffect(() => { const heading = titleRef.current?.querySelector("h1"); if (heading) { heading.tabIndex = -1; heading.focus({ preventScroll: true }); } }, []);
   const works = (data?.works ?? []).map(work => ({ ...work, editions: work.editions.filter(e => e.selectable) })).filter(work => work.editions.length > 0);
   const active = works.flatMap(w => w.editions).find(e => e.id === data?.activeCollectionId);
   const language = active?.language ?? data?.selection.contentLanguage ?? "nl";
@@ -37,8 +36,8 @@ export default function ContentPickerView({ data, busy, message, onSelect, onRet
   }
   const focusClass = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vs-accent focus-visible:ring-offset-2 focus-visible:ring-offset-vs-bg";
   // De titel blijft bij het laden hetzelfde DOM-element; routefocus/scroll blijven intact.
-  return <div data-content-picker aria-busy={busy} className="page-fill vs-motion mx-auto flex w-full max-w-5xl flex-col gap-5 pb-6">
-    <div ref={titleRef}><PageIntro title={t("contentSwitcher.picker.title")} text={t("contentSwitcher.picker.intro")} /></div>
+  return <div ref={rootRef} data-content-picker aria-busy={busy} className="page-fill vs-motion mx-auto flex w-full max-w-5xl flex-col gap-5 pb-6">
+    <div><PageIntro titleTabIndex={-1} title={t("contentSwitcher.picker.title")} text={t("contentSwitcher.picker.intro")} /></div>
     <div aria-live="polite" aria-atomic="true" className="empty:hidden">
       {busy && <p role="status" className="flex items-center gap-2 text-sm font-semibold text-vs-fg-2"><LoaderCircle className="h-5 w-5 animate-spin motion-reduce:animate-none" aria-hidden />{t("contentSwitcher.picker.loading")}</p>}
       {shownMessage && <div role="alert" className="rounded-2xl border border-vs-line bg-vs-elevated p-3 text-sm text-vs-fg"><p>{t(`contentSwitcher.picker.${shownMessage ?? "error"}`)}</p><button type="button" className="btn-secondary mt-2 min-h-11" onClick={() => { setChoiceMessage(null); onRetry(); }}>{t("contentSwitcher.picker.retry")}</button></div>}

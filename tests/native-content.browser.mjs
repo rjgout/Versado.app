@@ -61,6 +61,10 @@ try{
   assert.equal(await page.getByRole('region',{name:t('nativeAccess.title')}).count(),0,'Geen intern paneel in gewone contentkiezer');
   assert.equal(await page.getByRole('button',{name:t('nativeFoundation.keyboardDone'),exact:true}).count(),0);
   await web.addCookies([{name:'bvm_session',value:await createSessionToken(user.id),url:backend}]);await webPage.goto(`${backend}/content`);await webPage.locator('[data-content-work="bofm"]').waitFor();
+  await page.waitForFunction(()=>document.activeElement?.matches('[data-content-picker] h1[data-native-route-focus]'));
+  assert.equal(await page.locator('[data-content-picker] h1').evaluate(h=>getComputedStyle(h).outlineStyle),'none');
+  await webPage.waitForFunction(()=>document.activeElement?.matches('[data-content-picker] h1'));
+  assert.equal(await webPage.locator('[data-content-picker] h1').getAttribute('data-native-route-focus'),null,'Web behoudt eigen focus zonder native marker');
   const cards=async p=>p.locator('[data-content-work]').evaluateAll(cards=>cards.map(card=>({work:card.dataset.contentWork,text:card.textContent,classes:card.className})).sort((a,b)=>a.work.localeCompare(b.work)));
   assert.deepEqual(await cards(page),await cards(webPage),'Exact dezelfde kaarten, teksten en stijlen uit één renderer');
   for(const [width,height,scale,scheme]of [[320,844,1,'light'],[320,844,2,'dark'],[375,844,1,'dark'],[375,844,2,'light'],[390,844,1,'light'],[390,844,2,'dark'],[400,844,1,'dark'],[400,844,2,'light'],[1024,1366,1,'light'],[1366,1024,2,'dark']]){

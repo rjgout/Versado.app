@@ -1,7 +1,7 @@
 # B1 — dezelfde contentkiezer op web en native
 
-Basis: develop `0c56b029ab246da5645f20a3fd3dcdcc0e7831c1` (gedeelde shell
-uit #239). De eigenaar bevestigde de fysieke iPhone-proef van die eerdere
+Basis: develop `c38001326e329e00c03f019707bf22862f26ba91` (gedeelde shell
+uit #239 en focus-, scroll-, CSS- en Capacitor-correcties uit #241). De eigenaar bevestigde de fysieke iPhone-proef van die eerdere
 shell. **Deze nieuwe integratie vraagt opnieuw fysieke acceptatie.**
 
 ## Werkelijke hergebruikgrens
@@ -46,7 +46,10 @@ Deze PR claimt daarvoor geen pariteit.
   blijven normaal werken.
   Hoofdstukken/Vandaag gebruiken ook collectie-/selectieversie, zodat oude tekst
   niet onder een nieuwe bron verschijnt. Oudere servers zonder capability
-  behouden hun bestaande Foundation-flow. De beperkte Vandaag-leesproef leest
+  behouden hun bestaande Foundation-flow buiten `/content`. Op `/content` staat
+  een expliciete melding met een link naar Vandaag; zonder geldige sessie staat
+  daar een inloglink. Er verschijnt geen Vandaag-inhoud onder de contenttitel
+  en zonder capability wordt het contentcontract niet aangeroepen. De beperkte Vandaag-leesproef leest
   dezelfde canonieke bron als de kiezer; een oude actieve cursus zonder expliciete
   bron mag geen andere tekst aanbieden. Dit blijft een eerste-hoofdstukproef,
   geen vervanging voor de servercursor en volledige cursussen in B3.
@@ -92,6 +95,57 @@ De definitieve PR bevat de exacte uitgevoerde resultaten en CI-links.
   leesafrondingsresponses blijven in de browserrunner getest.
 - TypeScript, lint, vertalingen, schone Next-build, lokale bundel/profielen en
   iOS-/Android-compilaties. Een browser- of CI-build bewijst geen fysieke acceptatie.
+
+## Reviewcorrecties na integratie van #241
+
+De daadwerkelijke mergeconflicten waren de triggerpaden in
+`.github/workflows/native-foundation.yml` en de gegenereerde pariteitsinventaris.
+De workflow bevat de vereniging van beide gerichte testpaden en behoudt de
+focusregressiestap en artifacts uit #241. De inventaris is opnieuw uit de
+gecombineerde broncode gegenereerd, niet handmatig teruggezet.
+
+`NativeFoundation` en `NativeNavigationProvider` mergeerden automatisch en zijn
+inhoudelijk gecontroleerd: de centrale routefocus, scrollregistratie vóór de
+DOM-wissel, begrensd positieherstel en annulering door gebruikersinteractie uit
+#241 blijven leidend; de lokale contentroute, vertrekgeschiedenis en NativeLink
+uit B1 blijven behouden. Capacitor CLI 8.6.0 en de mobiele CSS-correcties uit
+#241 blijven intact.
+
+De gedeelde `ContentPickerView` maakt de titel focusbaar, maar beheert geen
+routefocus. Native gebruikt uitsluitend de centrale focushelper uit #241;
+alleen de webadapter behoudt de bestaande webfocus met `preventScroll`.
+Een bevestigde capabilitywisseling kan de native titel opnieuw focussen;
+herladen van contentgegevens doet dat niet. De interactieve editie-selector
+behoudt zijn eigen toetsenbordfocus.
+
+De focusbrowserregressie controleert naast de bestaande 16 combinaties drie
+oude/ontbrekende-capabilityvarianten en acht gecombineerde flows op
+320/375/390/400px, 200% tekst en licht/donker. Ze bewijst één focusaanroep per
+native contentopening, geen titeloutline, zichtbare tabfocus, readerpositie na
+terug, bronwissel bovenaan, directe route/heropenen en sessieverloop zonder
+privécontent. De gepaarde web/native-browserproef controleert beide werkelijke
+focusadapters. Dit bewijst geen fysieke schermlezeracceptatie.
+
+### Werkelijk lokaal uitgevoerd na synchronisatie
+
+- Native/auth/Access/navigatie 78 + gedeelde data/web/content 80 tests geslaagd.
+- Shell/layout/focus 28, profiel 13 en pariteitsinventaris 6 tests geslaagd.
+- Geïsoleerde PostgreSQL/Redis: 43 account-/sessie-integraties en 55
+  socket-/contentselectietests geslaagd, inclusief twee echte Node-processen,
+  lockraces en rollback. De zes native browserrunners en de daarin gebruikte
+  gedeelde webaccountproef slagen; de contentproef vergelijkt 100 web/native-paren.
+- Mobiele CSS-regressie en focusbrowser: 16 oorspronkelijke combinaties,
+  drie backendfallbacks en acht gecombineerde content-/scrollflows geslaagd.
+- TypeScript, schone Next-productiebuild, lokale bundel, Capacitor-sync voor
+  beide platforms, Prisma-validatie, i18n-controle en actionlint geslaagd.
+  Productie-dependencyaudit: nul kwetsbaarheden.
+- Volledige lint: nul fouten, 171 bestaande waarschuwingen. De bestaande
+  i18n-controle meldt 4464/4882 vertaalde sleutels per extra taal; de twee nieuwe
+  fallbackteksten zijn in alle vijf talen aanwezig. Deze correctie lost de
+  overige bestaande vertaalachterstand niet op.
+
+De definitieve GitHub-runlinks en platformcompilaties staan in PR #242;
+oudere groene runs gelden niet als bewijs voor deze combinatie.
 
 ## Volgende uitvoerbare fasen
 

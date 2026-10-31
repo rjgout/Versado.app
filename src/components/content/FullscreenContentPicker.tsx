@@ -11,6 +11,7 @@ import type { SwitchResult } from "@/lib/contentSwitch";
 import ContentPickerView from "./ContentPickerView";
 
 export default function FullscreenContentPicker({ initialData, sessionKey, isAdmin = false }: { initialData: ContentPickerContext; sessionKey: string; isAdmin?: boolean }) {
+  const titleRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const search = useSearchParams();
   const query = useLiveQuery<ContentPickerContext>(["content", "picker", sessionKey], () => fetchJson("/api/content-context?view=picker"), {
@@ -20,7 +21,7 @@ export default function FullscreenContentPicker({ initialData, sessionKey, isAdm
   const locked = useRef(false), alive = useRef(true);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<"error" | "conflict" | "unavailableLanguage" | "unavailableSource" | null>(null);
-  useEffect(() => { alive.current = true; contentDepartureLocation(sessionKey); return () => { alive.current = false; }; }, [sessionKey]);
+  useEffect(() => { alive.current = true; titleRef.current?.querySelector("h1")?.focus({ preventScroll: true }); contentDepartureLocation(sessionKey); return () => { alive.current = false; }; }, [sessionKey]);
 
   async function select(edition: PickerEdition) {
     if (locked.current || !edition.selectable) return false;
@@ -60,7 +61,7 @@ export default function FullscreenContentPicker({ initialData, sessionKey, isAdm
     } finally { if (!navigating && alive.current) { locked.current = false; setBusy(false); } }
   }
 
-  return <ContentPickerView data={data} busy={busy} message={message ?? (query.error ? "error" : null)} onSelect={select}
+  return <ContentPickerView rootRef={titleRef} data={data} busy={busy} message={message ?? (query.error ? "error" : null)} onSelect={select}
     onRetry={() => { setMessage(null); void query.refetch(); }} noDestination={search.get("status") === "no-destination"}
     links={{ hymns: "/dev/lofzangen", studyFolder: "/study-folder", admin: isAdmin ? "/adminbackend/content/inspect" : undefined }} />;
 }
