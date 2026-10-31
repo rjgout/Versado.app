@@ -3,7 +3,7 @@ import {spawn,spawnSync} from 'node:child_process';
 import {randomUUID} from 'node:crypto';
 import {setTimeout as delay} from 'node:timers/promises';
 import {createServer} from 'node:net';
-import {mkdtempSync,cpSync,writeFileSync,readFileSync} from 'node:fs';
+import {mkdtempSync,rmSync,cpSync,writeFileSync,readFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
 import assert from 'node:assert/strict';
@@ -13,7 +13,7 @@ for(const key of ['DOCKER_HOST','DOCKER_CONTEXT','DOCKER_TLS','DOCKER_TLS_VERIFY
 function docker(args){const r=spawnSync('docker',['--host=unix:///var/run/docker.sock',...args],{env:dockerEnv,encoding:'utf8'});if(r.status!==0)throw Error(r.stderr||'Lokale Docker mislukt');return r.stdout.trim();}
 function run(cmd,args,env){return new Promise((resolve,reject)=>{const p=spawn(cmd,args,{env,stdio:'inherit'});p.on('error',reject);p.on('exit',c=>c===0?resolve():reject(Error(`${cmd} stopte met ${c}`)));});}
 const port=await new Promise(resolve=>{const s=createServer();s.listen(0,'127.0.0.1',()=>{const p=s.address().port;s.close(()=>resolve(p));});});
-let server;const socketServers=[];
+let server,mediaRoot;const socketServers=[];
 try{
  docker(['run','--rm','-d','--name',container,'-e','POSTGRES_PASSWORD=synthetic-only','-e','POSTGRES_DB=versado_content_access_test','-p','127.0.0.1::5432','postgres:16-alpine']);
  let ready=false;for(let i=0;i<60;i++){try{docker(['exec',container,'pg_isready','-h','127.0.0.1','-U','postgres']);ready=true;break;}catch{}await delay(250);}if(!ready)throw Error('Eigen Postgres start niet');
@@ -21,7 +21,9 @@ try{
  let redisReady=false;for(let i=0;i<60;i++){try{if(docker(['exec',redisContainer,'redis-cli','ping'])==='PONG'){redisReady=true;break;}}catch{}await delay(250);}if(!redisReady)throw Error('Eigen Redis start niet');
  const redisPort=docker(['port',redisContainer,'6379/tcp']).split(':').at(-1);
  const dbPort=docker(['port',container,'5432/tcp']).split(':').at(-1),db=`postgresql://postgres:synthetic-only@127.0.0.1:${dbPort}/versado_content_access_test`,base=`http://127.0.0.1:${port}`;
- const env={...process.env,REDIS_URL:`redis://127.0.0.1:${redisPort}`,DATABASE_URL:db,CONTENT_ACCESS_TEST_DATABASE_URL:db,CONTENT_ACCESS_TEST_BASE_URL:base,NATIVE_TEST_DATABASE_URL:db,LEARNING_TEST_DATABASE_URL:db,NATIVE_TEST_BASE_URL:base,APP_URL:base,SESSION_SECRET:'native-isolated-web-secret-at-least-32-chars',NATIVE_SESSION_SECRET:'native-isolated-only-secret-at-least-32-chars',NATIVE_API_ENABLED:'1',APPLE_SIGN_IN_ENABLED:'1',APPLE_TEAM_ID:'TESTTEAM01',APPLE_IOS_CLIENT_ID:'app.versado.synthetic',NODE_ENV:'production'};
+ mediaRoot=mkdtempSync(join(tmpdir(),'versado-native-study-media-'));
+ writeFileSync(join(mediaRoot,'.versado-study-volume.json'),JSON.stringify({version:1,purpose:'versado-study-media',volumeId:randomUUID()}),{mode:0o600});
+ const env={...process.env,STUDY_MEDIA_DIR:mediaRoot,STUDY_MEDIA_TEST_ROOT:mediaRoot,STUDY_PUBLICATION_PROFILE:'synthetic-test',REDIS_URL:`redis://127.0.0.1:${redisPort}`,DATABASE_URL:db,CONTENT_ACCESS_TEST_DATABASE_URL:db,CONTENT_ACCESS_TEST_BASE_URL:base,NATIVE_TEST_DATABASE_URL:db,LEARNING_TEST_DATABASE_URL:db,NATIVE_TEST_BASE_URL:base,APP_URL:base,SESSION_SECRET:'native-isolated-web-secret-at-least-32-chars',NATIVE_SESSION_SECRET:'native-isolated-only-secret-at-least-32-chars',NATIVE_API_ENABLED:'1',APPLE_SIGN_IN_ENABLED:'1',APPLE_TEAM_ID:'TESTTEAM01',APPLE_IOS_CLIENT_ID:'app.versado.synthetic',NODE_ENV:'production'};
  // Gecontroleerde oude database: alle bestaande migraties zonder nieuwe auth-DDL.
  const migration='20261125120000_native_auth_foundation',setupMigration='20261127120000_native_security_setup',quizMigration='20261203120000_live_quiz_actions',work=mkdtempSync(join(tmpdir(),'versado-native-')),path=join(work,'migrations');
  cpSync('prisma/migrations',path,{recursive:true,filter:src=>![migration,setupMigration,quizMigration].some(name=>src.endsWith(name)||src.includes(`${name}/`))});
@@ -78,7 +80,12 @@ try{
  }finally{await client.end();}
  server=spawn('node',['scripts/content-architecture/test-server.mjs'],{env,stdio:'inherit',detached:true});
  let healthy=false;for(let i=0;i<100;i++){try{if((await fetch(`${base}/api/health`)).ok){healthy=true;break;}}catch{}if(server.exitCode!==null)throw Error('Testserver gestopt');await delay(500);}if(!healthy)throw Error('Productiebuild niet bereikbaar');
- await run('npx',['tsx','--test','--test-concurrency=1','tests/native-foundation.integration.test.ts','tests/native-account.integration.test.ts','tests/registration.integration.test.ts'],env);
+ if(process.argv.includes('--today-only')) {
+  // Expliciete gerichte lokale ontwikkelcontrole; CI gebruikt altijd de volledige standaardketen hieronder.
+  await run('npx',['tsx','--test','tests/native-today.integration.test.ts','tests/today-continue-cards.test.ts','tests/native-study-media.integration.test.ts'],env);
+  if(!process.argv.includes('--no-browser')){await run('npx',['tsx','tests/native-today.browser.mjs'],env);await run('npx',['tsx','tests/native-today-actions.browser.mjs'],env);await run('npx',['tsx','tests/native-study-media.browser.mjs'],env);}
+ } else {
+ await run('npx',['tsx','--test','--test-concurrency=1','tests/native-foundation.integration.test.ts','tests/native-shell.integration.test.ts','tests/native-account.integration.test.ts','tests/registration.integration.test.ts','tests/native-access.integration.test.ts','tests/content-switch.integration.test.ts','tests/native-today.integration.test.ts','tests/today-continue-cards.test.ts','tests/native-study-media.integration.test.ts'],env);
  // Twee onafhankelijke processen, dezelfde bestaande database/Redis-adapter.
  const available=()=>new Promise(resolve=>{const listener=createServer();listener.listen(0,'127.0.0.1',()=>{const chosen=listener.address().port;listener.close(()=>resolve(chosen));});});
  const socketA=`http://127.0.0.1:${await available()}`;let socketB;do{socketB=`http://127.0.0.1:${await available()}`;}while(socketB===socketA);
@@ -88,13 +95,15 @@ try{
   let started=false;for(let attempt=0;attempt<100;attempt++){try{if((await fetch(`${instance}/api/health`)).ok){started=true;break;}}catch{}if(child.exitCode!==null)throw Error('Sockettestserver gestopt');await delay(500);}if(!started)throw Error('Sockettestserver niet bereikbaar');
  }
  let socketFailure;
- try{await run('npx',['tsx','--test','--test-concurrency=1','tests/native-socket.integration.test.ts'],socketEnv);}catch(error){socketFailure=error;}
+ try{await run('npx',['tsx','--test','--test-concurrency=1','tests/native-socket.integration.test.ts','tests/native-content.integration.test.ts','tests/native-today-actions.integration.test.ts'],socketEnv);}catch(error){socketFailure=error;}
  for(const child of socketServers){try{process.kill(-child.pid,'SIGTERM');}catch{}}
- if(!process.argv.includes('--no-browser'))await run('npx',['tsx','tests/native-foundation.browser.mjs'],env);
+ if(!process.argv.includes('--no-browser')){await run('npx',['tsx','tests/native-foundation.browser.mjs'],env);await run('npx',['tsx','tests/native-access.browser.mjs'],env);await run('npx',['tsx','tests/native-data.browser.mjs'],env);await run('npx',['tsx','tests/native-shell.browser.mjs'],env);await run('npx',['tsx','tests/native-content.browser.mjs'],env);await run('npx',['tsx','tests/native-foundation-apple.browser.mjs'],env);await run('npx',['tsx','tests/native-today.browser.mjs'],env);await run('npx',['tsx','tests/native-today-actions.browser.mjs'],env);await run('npx',['tsx','tests/native-study-media.browser.mjs'],env);}
  if(socketFailure)throw socketFailure; // Browserbewijs verzamelen wist nooit een falende beveiligingstest.
+ }
 }finally{
  for(const child of socketServers){try{process.kill(-child.pid,'SIGTERM');}catch{}}
  if(server){try{process.kill(-server.pid,'SIGTERM');}catch{}await Promise.race([new Promise(r=>server.once('exit',r)),delay(5000)]);}
  try{docker(['stop',container]);}catch{}
  try{docker(['stop',redisContainer]);}catch{}
+ if(mediaRoot)rmSync(mediaRoot,{recursive:true,force:true});
 }

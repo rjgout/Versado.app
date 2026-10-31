@@ -221,6 +221,22 @@ export const nl = {
   "active": "Actieve opname",
   "legacy": "Registraties; bestaande hoofdstukaudio blijft behouden."
 },
+  nativeAccess: {
+  "title": "Interne toesteltoegang",
+  "help": "Voeg de Cloudflare-toegang voor dit testtoestel toe in het beveiligde systeemvenster. Wijzigen of wissen logt je uit bij Versado.",
+  "missing": "Toesteltoegang ontbreekt. Voeg de gegevens van de eigenaar toe.",
+  "configured": "Toesteltoegang is opgeslagen. Geldigheid wordt bij elk verzoek gecontroleerd.",
+  "enroll": "Toegang toevoegen of vervangen",
+  "clear": "Toegang wissen",
+  "busy": "Toesteltoegang bijwerken…",
+  "error": "De toesteltoegang kon niet worden gebruikt. Controleer je verbinding en laat de eigenaar de toegang controleren.",
+  "denied": "De toesteltoegang is geweigerd of ingetrokken. Vraag de eigenaar om nieuwe gegevens.",
+  "disabled": "Deze build staat interne toesteltoegang niet toe. Bouw de juiste interne versie.",
+  "realtime": "Realtimeverbindingen zijn nog niet beschikbaar in deze interne Access-build."
+},
+  nativeToday: { unavailable: "Deze bestemming of actie is nog niet beschikbaar in deze appbuild. Je voortgang blijft bewaard. Gebruik hiervoor voorlopig de website." },
+  nativeContentFallback: { unsupported: "Deze backend ondersteunt de contentkiezer in de app nog niet. Je kunt terug naar Vandaag.", signIn: "Log in om je content te kiezen." },
+  nativeDiagnostics: {"title": "Interne diagnose", "open": "Interne diagnose", "internalBadge": "Intern", "testBadge": "Testbuild", "recovery": "Verbinding en herstel"},
   nativeFoundation: {
   "welcome": "Welkom bij Versado",
   "login": "Inloggen",
@@ -1003,6 +1019,9 @@ export const nl = {
     },
   },
   today: {
+    actionFailed: "De actie is niet bevestigd. Probeer het zelf opnieuw wanneer je verbinding hebt.",
+    friendAccepted: "Vriendenverzoek geaccepteerd",
+    friendDeclined: "Vriendenverzoek afgewezen",
     greeting: {
       morning: "Goedemorgen, {name}",
       afternoon: "Goedemiddag, {name}",

@@ -105,6 +105,8 @@ interface Entry {
   generation: number;
   lastObserverFetcher: (() => Promise<unknown>) | null;
   lastReleasedAt: number | null;
+  lastFetchStartedAt: number | null;
+  writeVersion: number;
 }
 
 export interface PageOptions {
@@ -171,6 +173,8 @@ export class LiveDataStore {
         generation: 0,
         lastObserverFetcher: null,
         lastReleasedAt: this.env.now(),
+        lastFetchStartedAt: null,
+        writeVersion: 0,
       };
       this.entries.set(entryKey, entry);
     }
@@ -237,6 +241,7 @@ export class LiveDataStore {
     const next = typeof update === "function" ? (update as (previous: T | undefined) => T | undefined)(entry.snapshot.data as T | undefined) : update;
     // Een updater zonder resultaat (er was nog niets om bij te werken) laat de data zoals ze is.
     if (next === undefined) return;
+    entry.writeVersion += 1;
     this.patch(entry, { data: next, status: "success", error: null, fetchedAt: this.env.now() });
   }
 
@@ -311,7 +316,8 @@ export class LiveDataStore {
       const intervals = [...entry.observers].map((o) => o.pollMs).filter((ms): ms is number => ms !== null);
       if (intervals.length === 0) continue;
       const pollMs = Math.min(...intervals);
-      const age = entry.snapshot.fetchedAt === null ? Infinity : now - entry.snapshot.fetchedAt;
+      // Ook een fout telt als poging: een oude fetchedAt mag geen poll per klokslag veroorzaken.
+      const age = now - Math.max(entry.snapshot.fetchedAt ?? -Infinity, entry.lastFetchStartedAt ?? -Infinity);
       if (age >= pollMs) this.maybeFetch(entry, true);
     }
   }
@@ -452,9 +458,10 @@ export class LiveDataStore {
     const fetcher = entry.lastObserverFetcher;
     if (!fetcher) return Promise.resolve();
     const generation = entry.generation;
+    entry.lastFetchStartedAt = this.env.now();
     this.patch(entry, { ...(entry.discardOnRevalidate ? { ...LOADING_SNAPSHOT, invalidated: entry.snapshot.invalidated } : {}), isFetching: true });
     // De afronding hangt aan .finally zodat entry.inflight altijd pas ná de toewijzing leeg wordt.
-    const run = this.runFetch(entry, fetcher, generation).finally(() => {
+    const run = this.runFetch(entry, fetcher, generation, entry.writeVersion).finally(() => {
       entry.inflight = null;
       if (entry.snapshot.invalidated && entry.snapshot.error === null) this.maybeFetch(entry, true);
     });
@@ -462,9 +469,12 @@ export class LiveDataStore {
     return run;
   }
 
-  private async runFetch(entry: Entry, fetcher: () => Promise<unknown>, generation: number): Promise<void> {
+  private async runFetch(entry: Entry, fetcher: () => Promise<unknown>, generation: number, writeVersion: number): Promise<void> {
     try {
       const fetched = await fetcher();
+      // Een expliciet setData-antwoord heeft voorrang op reeds lopende GETs,
+      // ook wanneer de bevestiging tussen twee promisevervolgen binnenkomt.
+      if (entry.writeVersion !== writeVersion && !sameJson(entry.snapshot.data, fetched)) { this.patch(entry, { isFetching: false }); return; }
       if (entry.discardOnRevalidate && entry.generation !== generation) return;
       // Ongewijzigde data behoudt zijn verwijzing: geen onnodige renders en een lijst waar
       // je doorheen scrolt blijft staan na een stille controle.

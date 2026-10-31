@@ -1,0 +1,129 @@
+name: Development-controles en images
+
+on:
+  pull_request:
+    branches: [develop]
+  push:
+    branches: [develop]
+
+permissions:
+  contents: read
+
+# PR-updates vervangen oude controles; publicaties worden nooit halverwege afgebroken.
+concurrency:
+  group: development-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  NODE_OPTIONS: --max-old-space-size=4096
+  NEXT_TELEMETRY_DISABLED: '1'
+
+jobs:
+  checks:
+    name: Development-controles
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: node --test tests/development-pipeline.test.mjs
+      - run: npx prisma validate && npm run db:generate && npx tsc --noEmit
+      - run: npm run lint
+      - name: Bestaande beveiligings-, native en releaseguards
+        run: |
+          npm run test:security
+          npm run test:native
+          npm run test:native:store-readiness
+          npm run test:native:android-release
+          npm run test:native:ios-release
+          npm run test:nas-stack
+          npm run test:proxy
+          npm audit --omit=dev --audit-level=high
+      # Brontekst-tests lezen componentbestanden en draaien zonder database in enkele seconden.
+      # Hier falen ze al in de feature-PR; de zware workflows op main-PR's zien ze pas later.
+      - name: Brontekst- en contractcontroles zonder database
+        run: |
+          npm run test:kompas
+          npx tsx --test tests/study-folder.test.ts tests/content-switch.test.ts
+
+  pr-images:
+    name: PR-image (${{ matrix.name }})
+    if: github.event_name == 'pull_request'
+    needs: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: jehova-app
+            dockerfile: ./Dockerfile
+          - name: jehova-proxy
+            dockerfile: ./deploy/nginx/Dockerfile
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@v4
+      - name: Alleen bouwen; geen registry-login of publicatie
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: false
+          build-args: NEXT_PUBLIC_BUILD_SHA=${{ github.sha }}
+          cache-from: type=gha,scope=development-${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=development-${{ matrix.name }}
+
+  publish:
+    name: Development-images publiceren
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop' && github.repository == 'rjgout/Versado.app'
+    needs: checks
+    permissions:
+      contents: read
+      packages: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@v4
+      # Beide builds moeten slagen vóór de eerste registry-write. Geen dubbele webbuild in checks.
+      - name: App bouwen en lokaal laden
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./Dockerfile
+          load: true
+          push: false
+          tags: versado-dev-app:${{ github.sha }}
+          build-args: NEXT_PUBLIC_BUILD_SHA=${{ github.sha }}
+          cache-from: type=gha,scope=development-jehova-app
+          cache-to: type=gha,mode=max,scope=development-jehova-app
+      - name: Proxy bouwen en lokaal laden
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./deploy/nginx/Dockerfile
+          load: true
+          push: false
+          tags: versado-dev-proxy:${{ github.sha }}
+          cache-from: type=gha,scope=development-jehova-proxy
+          cache-to: type=gha,mode=max,scope=development-jehova-proxy
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Commit-tags bewaren, daarna dev bijwerken
+        run: node scripts/ci/publish-development.mjs
+        env:
+          # Alleen lezen van de actuele branch; geen opgeslagen gitcredentials.
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

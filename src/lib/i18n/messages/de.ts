@@ -219,6 +219,22 @@ export const de: PartialMessages = {
   "active": "Aktuelle Aufnahme",
   "legacy": "Registrierungen; bestehende Kapitelaudiodateien bleiben erhalten."
 },
+  nativeAccess: {
+  "title": "Interner Gerätezugang",
+  "help": "Füge den Cloudflare-Zugang für dieses Testgerät im sicheren Systemdialog hinzu. Ersetzen oder Löschen meldet dich bei Versado ab.",
+  "missing": "Der Gerätezugang fehlt. Füge die vom Eigentümer bereitgestellten Daten hinzu.",
+  "configured": "Der Gerätezugang ist gespeichert. Die Gültigkeit wird bei jeder Anfrage geprüft.",
+  "enroll": "Zugang hinzufügen oder ersetzen",
+  "clear": "Zugang löschen",
+  "busy": "Gerätezugang wird aktualisiert…",
+  "error": "Der Gerätezugang konnte nicht verwendet werden. Prüfe die Verbindung und bitte den Eigentümer, den Zugang zu prüfen.",
+  "denied": "Der Gerätezugang wurde verweigert oder widerrufen. Bitte den Eigentümer um neue Daten.",
+  "disabled": "Dieser Build erlaubt keinen internen Gerätezugang. Erstelle die richtige interne Version.",
+  "realtime": "Echtzeitverbindungen sind in diesem internen Access-Build noch nicht verfügbar."
+},
+  nativeToday: { unavailable: "Dieses Ziel oder diese Aktion ist in dieser App-Version noch nicht verfügbar. Dein Fortschritt bleibt erhalten. Nutze dafür vorerst die Website." },
+  nativeContentFallback: { unsupported: "Dieser Server unterstützt die Inhaltsauswahl in der App noch nicht. Du kannst zu Heute zurückkehren.", signIn: "Melde dich an, um deine Inhalte auszuwählen." },
+  nativeDiagnostics: {"title": "Interne Diagnose", "open": "Interne Diagnose", "internalBadge": "Intern", "testBadge": "Testversion", "recovery": "Verbindung und Wiederherstellung"},
   nativeFoundation: {
   "welcome": "Willkommen bei Versado",
   "login": "Anmelden",
@@ -1375,6 +1391,9 @@ export const de: PartialMessages = {
     },
   },
   today: {
+    actionFailed: "Die Aktion wurde nicht bestätigt. Versuche es erneut, wenn du verbunden bist.",
+    friendAccepted: "Freundschaftsanfrage angenommen",
+    friendDeclined: "Freundschaftsanfrage abgelehnt",
     greeting: {
       morning: "Guten Morgen, {name}",
       afternoon: "Guten Tag, {name}",

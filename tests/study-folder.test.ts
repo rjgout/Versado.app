@@ -43,13 +43,14 @@ test("route: focusroute met terugbalk, geen activiteit, onderdeel van Leren, con
 });
 
 test("contentkiezer: kaart staat vóór de taalkeuze, is een gewone link en roept geen selectie aan", () => {
-  const picker = read("src/components/content/FullscreenContentPicker.tsx");
+  const picker = read("src/components/content/ContentPickerView.tsx");
   const card = picker.indexOf("data-study-folder-entry");
   assert.ok(card > picker.lastIndexOf("data-content-group"), "na de contentgroepen");
   assert.ok(card < picker.indexOf("<section data-content-language"), "vóór de taalkeuze");
   assert.ok(card > picker.indexOf("data-content-group={group}"), "na de groepen-loop");
   const block = picker.slice(card, picker.indexOf("<section data-content-language"));
-  assert.match(block, /<Link data-study-folder-link href="\/study-folder"/);
+  assert.match(block, /<AppLink data-study-folder-link href=\{links\.studyFolder\}/);
+  assert.match(read("src/components/content/FullscreenContentPicker.tsx"), /studyFolder: "\/study-folder"/);
   assert.doesNotMatch(block, /choose\(|select\(|onClick|works\./);
 });
 

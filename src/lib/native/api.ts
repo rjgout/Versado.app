@@ -5,10 +5,20 @@ import { prisma } from "@/lib/db";
 import { readingAccessWhere } from "@/lib/contentAccess";
 import { completeChapterReading, getChapterState } from "@/lib/learning/contentProgress";
 import { clientIp, failureLockSeconds, registerFailure } from "@/lib/rateLimit";
-import { hashSecret, issueNativeSession, nativeUser, NativeAuthError, rotateNativeSession } from "./sessions";
+import { hashSecret, issueNativeSession, nativeUser, nativeSessionIdentity, NativeAuthError, rotateNativeSession } from "./sessions";
 import { nativePasswordLogin, nativePasswordProof } from "./password";
 import { cancelNativeSecuritySetup, finishNativeSecuritySetup, nativeSignInResult } from "./securitySetup";
 import { nativeSetupFinishSchema } from "./contract";
+import { saveListPreferences } from "@/lib/listPreferences.server";
+import { FriendRequestError, respondFriendRequest } from "@/lib/social/friendRequests";
+import { nativeTodayHideSchema, nativeFriendResponseSchema } from "./todayActionsContract";
+import { nativeStudyImage } from "./studyMedia.server";
+import { nativeStudyMediaId } from "./studyMediaContract";
+import { getNativeTodayOverview } from "./today.server";
+import { getNativeContentState, selectNativeContent } from "./content.server";
+import { nativeContentSelectionSchema } from "./contract";
+import { ContentSelectionConflict, getContentPickerContext } from "@/lib/contentCollections";
+import { nativeShellHeader } from "./shellHeader.server";
 import { AccountPasswordError, changeAccountPassword } from "@/lib/account/password";
 import { hashPassword, verifyPassword } from "@/lib/auth";
 import { findOpenPendingRegistration, resendPendingVerification } from "@/lib/registration";
@@ -66,7 +76,7 @@ export async function nativeApi(req: NextRequest, parts: string[]): Promise<Next
   const ip = hashSecret(clientIp(req)), failureKey = `native-auth:${ip}`;
   try {
     if (mutation && req.headers.get("content-type")?.split(";")[0] !== "application/json") throw new NativeAuthError("json_required", 415);
-    if (req.method === "GET" && path === "capabilities") return json({ apiVersion: 1, apple: !!appleConfiguration(), registration: true, features: ["security-setup-v1", "account-password-v1", "password-reset-v1", "email-confirmation-v1", ...(nativeSocketEnabled() ? ["realtime-ticket-v1"] : [])] });
+    if (req.method === "GET" && path === "capabilities") return json({ apiVersion: 1, apple: !!appleConfiguration(), registration: true, features: ["study-media-v1", "today-actions-v1", "today-overview-v1", "content-picker-v1", "security-setup-v1", "account-password-v1", "password-reset-v1", "email-confirmation-v1", ...(nativeSocketEnabled() ? ["realtime-ticket-v1"] : [])] });
     if (req.method === "POST" && path === "login") {
       if (failureLockSeconds(failureKey, 30)) throw new NativeAuthError("too_many_attempts", 429);
       const input = z.object({ identifier: z.string().trim().min(1).max(320), ...credentials, supportsSecuritySetup: z.boolean().optional() }).strict().parse(await body(req));
@@ -162,6 +172,40 @@ export async function nativeApi(req: NextRequest, parts: string[]): Promise<Next
       return json(await issueSocketTicket(header.slice(7)));
     }
     const user = await authenticated(req);
+    if (req.method === "POST" && ["today-actions/hide", "today-actions/friend-response"].includes(path)) {
+      const limited = await authBudget(authBudgetKey("native-today-actions", user.id), 60, 60_000);
+      if (limited) throw new NativeAuthError(limited.status === 503 ? "security_check_unavailable" : "too_many_attempts", limited.status);
+      const identity = await nativeSessionIdentity(req.headers.get("authorization")!.slice(7));
+      const actor = { userId: identity.user.id, nativeSession: identity.binding };
+      if (path === "today-actions/hide") {
+        const input = nativeTodayHideSchema.parse(await body(req));
+        await saveListPreferences(actor, { listKey: "today-continue", hideKeys: [input.itemKey] });
+        return json({ version: 1, userId: actor.userId, outcome: { kind: "hidden", itemKey: input.itemKey } });
+      }
+      const input = nativeFriendResponseSchema.parse(await body(req));
+      const result = await respondFriendRequest(actor, input.friendshipId, input.action);
+      return json({ version: 1, userId: actor.userId, outcome: { kind: "friend-response", friendshipId: input.friendshipId, ...result } });
+    }
+    if (req.method === "GET" && parts.length === 2 && parts[0] === "study-media") {
+      if (req.nextUrl.search) throw new NativeAuthError("invalid_input", 400);
+      const mediaId = nativeStudyMediaId.parse(parts[1]);
+      const limited = await authBudget(authBudgetKey("native-study-media", user.id), 30, 60_000);
+      if (limited) throw new NativeAuthError(limited.status === 503 ? "security_check_unavailable" : "too_many_attempts", limited.status);
+      const identity = await nativeSessionIdentity(req.headers.get("authorization")!.slice(7));
+      return json(await nativeStudyImage(identity.binding, mediaId));
+    }
+    if (path === "today-overview" && req.method === "GET") {
+      const identity = await nativeSessionIdentity(req.headers.get("authorization")!.slice(7));
+      return json(await getNativeTodayOverview(identity.binding));
+    }
+    if (path === "content-context" && req.method === "GET") return json(await getNativeContentState(user));
+    if (path === "content-context" && req.method === "POST") {
+      const limited = await authBudget(authBudgetKey("content-selection", user.id), 30, 60_000);
+      if (limited) throw new NativeAuthError(limited.status === 503 ? "security_check_unavailable" : "too_many_attempts", limited.status);
+      const input = nativeContentSelectionSchema.parse(await body(req));
+      const identity = await nativeSessionIdentity(req.headers.get("authorization")!.slice(7));
+      return json(await selectNativeContent(identity.binding, input));
+    }
     if (req.method === "DELETE" && path === "apple") {
       const input = z.object(credentials).strict().parse(await body(req));
       await nativePasswordLogin(user.email, input.password, input.code, user.id);
@@ -176,21 +220,28 @@ export async function nativeApi(req: NextRequest, parts: string[]): Promise<Next
       catch (error) { if (!(error instanceof AccountPasswordError)) throw error; throw new NativeAuthError(error.code === "wrong_password" ? "wrong_credentials" : "session_changed"); }
       return json({ ok: true, reauthenticationRequired: true });
     }
-    if (req.method === "GET" && path === "me") return json({ id: user.id, handle: user.handle, uiLanguage: user.uiLanguage, onboardingRequired: !user.onboardingSeenAt, passwordLoginEnabled: user.passwordLoginEnabled, totpEnabled: user.totpEnabled, appleLinked: !!(await prisma.externalIdentity.findFirst({ where: { userId: user.id, provider: "APPLE" }, select: { id: true } })) });
+    if (req.method === "GET" && path === "me") {
+      const [identity, shellHeader] = await Promise.all([
+        prisma.externalIdentity.findFirst({ where: { userId: user.id, provider: "APPLE" }, select: { id: true } }),
+        nativeShellHeader(user),
+      ]);
+      return json({ id: user.id, handle: user.handle, uiLanguage: user.uiLanguage, onboardingRequired: !user.onboardingSeenAt, passwordLoginEnabled: user.passwordLoginEnabled, totpEnabled: user.totpEnabled, appleLinked: !!identity, shellHeader });
+    }
     if (req.method === "GET" && path === "today") {
-      // Geen impliciete bronwissel of synthetische BOM-fallback.
-      const course = !user.activeContentCollectionId && user.activeCourseId ? await prisma.course.findUnique({ where: { id: user.activeCourseId }, select: { contentCollectionId: true } }) : null;
-      const collectionId = user.activeContentCollectionId ?? course?.contentCollectionId;
+      // Dezelfde alleen-lezen bronkeuze als de webkiezer; een oude actieve
+      // cursus mag geen andere tekst onder de huidige bron laten verschijnen.
+      const context = await getContentPickerContext(user.id);
+      const collectionId = context.activeCollectionId;
       const chapter = collectionId ? await prisma.chapter.findFirst({ where: { book: { contentCollectionId: collectionId, contentCollection: readingAccessWhere(user) } }, orderBy: [{ book: { order: "asc" } }, { order: "asc" }], select: { id: true, number: true, book: { select: { name: true } } } }) : null;
-      return json({ activity: chapter ? { id: chapter.id, title: `${chapter.book.name} ${chapter.number}` } : null });
+      return json({ selectionVersion: context.selectionVersion, activity: chapter ? { id: chapter.id, title: `${chapter.book.name} ${chapter.number}` } : null });
     }
     if (parts[0] === "chapters" && parts[1] && parts[1].length <= 128) {
-      const chapter = await prisma.chapter.findFirst({ where: { id: parts[1], book: { contentCollection: readingAccessWhere(user) } }, select: { id: true, number: true, book: { select: { name: true } } } });
+      const chapter = await prisma.chapter.findFirst({ where: { id: parts[1], book: { contentCollection: readingAccessWhere(user) } }, select: { id: true, number: true, book: { select: { name: true, contentCollectionId: true } } } });
       if (!chapter) throw new NativeAuthError("content_unavailable", 404);
       if (req.method === "GET" && parts.length === 2) {
         const verses = await prisma.verse.findMany({ where: { chapterId: chapter.id }, orderBy: { number: "asc" }, take: 500, select: { number: true, text: true } });
         if (!verses.length || verses.length >= 500) throw new NativeAuthError("content_unavailable", 404);
-        return json({ id: chapter.id, title: `${chapter.book.name} ${chapter.number}`, verses, state: await getChapterState(prisma, user.id, chapter.id) });
+        return json({ contentCollectionId: chapter.book.contentCollectionId, selectionVersion: user.contentSelectionVersion, id: chapter.id, title: `${chapter.book.name} ${chapter.number}`, verses, state: await getChapterState(prisma, user.id, chapter.id) });
       }
       if (req.method === "POST" && parts.length === 3 && parts[2] === "complete") {
         z.object({}).strict().parse(await body(req));
@@ -199,6 +250,8 @@ export async function nativeApi(req: NextRequest, parts: string[]): Promise<Next
     }
     return json({ error: "endpoint_unavailable" }, 404);
   } catch (error) {
+    if (error instanceof FriendRequestError) return json({ error: error.code }, error.status);
+    if (error instanceof ContentSelectionConflict) return json({ error: "content_selection_conflict" }, 409);
     const status = error instanceof NativeAuthError ? error.status : error instanceof z.ZodError ? 400 : 500;
     if (status === 400 || status === 401) registerFailure(failureKey, 900_000);
     return json({ error: error instanceof NativeAuthError ? error.code : status === 400 ? "invalid_input" : "native_request_failed" }, status);

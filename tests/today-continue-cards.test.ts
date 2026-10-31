@@ -2,19 +2,17 @@
 // volgorde; verbergen mag voortgang nooit veranderen en is per gebruiker.
 import test, { after, before } from "node:test";
 import assert from "node:assert/strict";
-import Module from "node:module";
+import { randomUUID } from "node:crypto";
+import ContinueSection from "../src/components/today/ContinueSection";
 import { createElement as h } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { compactContinueItems, continueVisibilityKey, visibleContinueItems, type ContinueItem } from "../src/lib/today";
 import { introResumeHref, kidsResumeHref, podcastResumeHref, readingResumeHref } from "../src/lib/courseResume";
+import { AppNavigationProvider, type AppLinkProps } from "../src/components/navigation/AppNavigation";
+import { TodayInteractionsProvider } from "../src/components/today/TodayInteractions";
 import { I18nProvider } from "../src/components/I18nProvider";
 import { getT, messagesFor } from "../src/lib/i18n";
 
-const localRequire = Module.createRequire(import.meta.url);
-localRequire.cache[localRequire.resolve("next/image")] = {
-  exports: { __esModule: true, default: (props: { alt?: string }) => h("img", { alt: props.alt ?? "" }) },
-} as unknown as NodeJS.Module;
-const ContinueSection = localRequire("../src/components/today/ContinueSection").default as typeof import("../src/components/today/ContinueSection").default;
 
 const activityAt = "2026-10-08T12:00:00.000Z";
 const sample = (key: string, at = activityAt): ContinueItem => ({
@@ -88,7 +86,8 @@ test("Ga verder hergebruikt het kaartmenu zonder sleepbediening", () => {
     h(I18nProvider, {
       language: "nl",
       messages: messagesFor("nl"),
-      children: h(ContinueSection, { items: [item], language: "nl" }),
+      children: h(AppNavigationProvider, { adapter: {pathname:"/dashboard",push(){},replace(){},back(){},canGoBack:()=>false,refresh(){},Link:({href,replace,prefetch,onNavigate,...props}:AppLinkProps)=>{void replace;void prefetch;void onNavigate;return h("a",{...props,href});}},
+        children:h(TodayInteractionsProvider,{value:{Avatar:()=>null,Social:()=>null,FriendActions:()=>null,hideContinue:async()=>{throw Error("SSR voert geen mutatie uit");}},children:h(ContinueSection, { items: [item], language: "nl" })}) }),
     })
   );
   assert.match(html, /aria-label="Beheer course-a"[^>]*aria-haspopup="menu"/);
@@ -104,16 +103,21 @@ const emailA = `today-continue-a-${Date.now()}@test.invalid`;
 const emailB = `today-continue-b-${Date.now()}@test.invalid`;
 let prisma: typeof import("../src/lib/db").prisma;
 let courseId: string;
+const fixtureKey = `continue-${randomUUID()}`;
 
 before(async () => {
   if (skip) return;
   prisma = (await import("../src/lib/db")).prisma;
-  courseId = (await prisma.course.findFirstOrThrow({ where: { enabled: true }, select: { id: true } })).id;
+  await prisma.contentWork.create({ data: { key: fixtureKey, kind: "SCRIPTURE" } });
+  await prisma.contentCollection.create({ data: { id: fixtureKey, slug: fixtureKey, work: fixtureKey, name: "Synthetische voortzetbron", icon: "" } });
+  courseId = (await prisma.course.create({ data: { slug: fixtureKey, type: "FRONT_TO_BACK", name: "Synthetische voortzetcursus", contentCollectionId: fixtureKey } })).id;
 });
 
 after(async () => {
   if (skip) return;
   await prisma.user.deleteMany({ where: { email: { in: [emailA, emailB] } } });
+  await prisma.contentCollection.delete({ where: { id: fixtureKey } });
+  await prisma.contentWork.delete({ where: { key: fixtureKey } });
   await prisma.$disconnect();
 });
 

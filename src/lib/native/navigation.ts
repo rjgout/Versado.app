@@ -1,7 +1,7 @@
 /** Alleen daadwerkelijk lokaal geïmplementeerde routes worden geaccepteerd.
  * Breid deze grens samen met scherm, contract en tests uit, nooit als placeholder.
  */
-const ROUTES = [/^\/dashboard$/, /^\/profile$/, /^\/change-password$/, /^\/reset-password$/, /^\/verify-email$/, /^\/lesson\/[A-Za-z0-9_-]{1,128}$/, /^\/privacy$/, /^\/cookies$/, /^\/disclaimer$/, /^\/contact$/, /^\/login$/, /^\/register$/, /^\/forgot-password$/];
+const ROUTES = [/^\/content$/, /^\/diagnostics$/, /^\/dashboard$/, /^\/profile$/, /^\/change-password$/, /^\/reset-password$/, /^\/verify-email$/, /^\/lesson\/[A-Za-z0-9_-]{1,128}$/, /^\/privacy$/, /^\/cookies$/, /^\/disclaimer$/, /^\/contact$/, /^\/login$/, /^\/register$/, /^\/forgot-password$/];
 export function nativeRoute(raw: string): string | null {
   if (!raw.startsWith("/") || raw.startsWith("//") || /[\\\s%?#]/.test(raw)) return null;
   return ROUTES.some(pattern => pattern.test(raw)) ? raw : null;
@@ -10,7 +10,7 @@ export function nativeDeepLink(raw: string, backendOrigin: string): string | nul
   try {
     const url = new URL(raw);
     if (url.origin !== new URL(backendOrigin).origin || url.username || url.password || url.search || url.hash) return null;
-    return nativeRoute(url.pathname);
+    return url.pathname === "/diagnostics" ? null : nativeRoute(url.pathname);
   } catch { return null; }
 }
 export interface NativeRouteSnapshot { href: string; index: number; revision: number; traversal: boolean }
@@ -25,6 +25,8 @@ interface RouteWindow {
  */
 export class NativeNavigator {
   private listeners = new Set<() => void>();
+  private departure = "/dashboard";
+  contentDeparture = () => this.departure;
   private snapshot: NativeRouteSnapshot;
   constructor(private window: RouteWindow) {
     const href = nativeRoute(window.location.hash.slice(1)) ?? "/dashboard";
@@ -47,6 +49,8 @@ export class NativeNavigator {
   listen() { this.window.addEventListener("popstate", this.onPop); return () => this.window.removeEventListener("popstate", this.onPop); }
   push = (raw: string) => {
     const href = nativeRoute(raw); if (!href) throw new Error("native_route_unavailable");
+    if (href === "/content" && this.snapshot.href !== "/content") this.departure = this.snapshot.href;
+    if (["/login", "/register", "/forgot-password"].includes(href)) this.departure = "/dashboard";
     if (href === this.snapshot.href) return;
     const index = this.snapshot.index + 1;
     this.window.history.pushState({ versadoNative: 1, href, index }, "", `#${href}`);
@@ -54,6 +58,8 @@ export class NativeNavigator {
   };
   replace = (raw: string) => {
     const href = nativeRoute(raw); if (!href) throw new Error("native_route_unavailable");
+    if (href === "/content" && this.snapshot.href !== "/content") this.departure = this.snapshot.href;
+    if (["/login", "/register", "/forgot-password"].includes(href)) this.departure = "/dashboard";
     const index = this.snapshot.index;
     this.window.history.replaceState({ versadoNative: 1, href, index }, "", `#${href}`);
     this.publish(href, index, false);

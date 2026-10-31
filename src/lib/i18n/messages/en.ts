@@ -219,6 +219,22 @@ export const en: PartialMessages = {
   "active": "Active recording",
   "legacy": "Registrations; existing chapter audio is preserved."
 },
+  nativeAccess: {
+  "title": "Internal device access",
+  "help": "Add Cloudflare access for this test device in the secure system dialog. Replacing or clearing access signs you out of Versado.",
+  "missing": "Device access is missing. Add the credentials supplied by the owner.",
+  "configured": "Device access is stored. Validity is checked with every request.",
+  "enroll": "Add or replace access",
+  "clear": "Clear access",
+  "busy": "Updating device access…",
+  "error": "Device access could not be used. Check your connection and ask the owner to check access.",
+  "denied": "Device access was denied or revoked. Ask the owner for new credentials.",
+  "disabled": "This build does not allow internal device access. Build the correct internal version.",
+  "realtime": "Realtime connections are not yet available in this internal Access build."
+},
+  nativeToday: { unavailable: "This destination or action is not available in this app build yet. Your progress is preserved. Please use the website for now." },
+  nativeContentFallback: { unsupported: "This backend does not yet support the content picker in the app. You can return to Today.", signIn: "Sign in to choose your content." },
+  nativeDiagnostics: {"title": "Internal diagnostics", "open": "Internal diagnostics", "internalBadge": "Internal", "testBadge": "Test build", "recovery": "Connection and recovery"},
   nativeFoundation: {
   "welcome": "Welcome to Versado",
   "login": "Sign in",
@@ -1375,6 +1391,9 @@ export const en: PartialMessages = {
     },
   },
   today: {
+    actionFailed: "The action was not confirmed. Please try again when connected.",
+    friendAccepted: "Friend request accepted",
+    friendDeclined: "Friend request declined",
     greeting: {
       morning: "Good morning, {name}",
       afternoon: "Good afternoon, {name}",

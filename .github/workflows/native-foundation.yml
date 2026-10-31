@@ -1,9 +1,38 @@
 name: Native Foundation
 on:
   pull_request:
-    branches: [main, 'feat/native-*', 'fix/native-*']
+    branches: [main, develop, 'feat/native-*', 'fix/native-*']
     paths:
       - 'src/lib/native/**'
+      - 'src/lib/data/**'
+      - 'src/lib/today*'
+      - 'src/lib/listPreferences.server.ts'
+      - 'src/lib/social/friendRequests.ts'
+      - 'src/app/api/list-order/**'
+      - 'src/app/api/friends/**'
+      - 'src/lib/artwork.ts'
+      - 'src/lib/learning/streakReturnRules.ts'
+      - 'src/lib/hymns/sunday.ts'
+      - 'src/lib/generalConference.ts'
+      - 'src/lib/studyContent/presentation.ts'
+      - 'src/lib/studyContent/mediaAccess.ts'
+      - 'src/lib/studyContent/storage.ts'
+      - 'tests/native-study-media*'
+      - 'tests/fixtures/native-study-media.ts'
+      - 'src/components/versado/MediaArtwork.tsx'
+      - 'src/components/versado/VisualIdentityIcon.tsx'
+      - 'src/components/versado/CardMenu.tsx'
+      - 'src/components/today/**'
+      - 'src/components/kompas/KompasEntryCard*'
+      - 'src/components/study/Program*'
+      - 'src/components/study/CfmTodayCard.tsx'
+      - 'src/app/dashboard/**'
+      - 'src/lib/contentPickerContract.ts'
+      - 'src/lib/contentCollections.ts'
+      - 'src/lib/contentSwitch.ts'
+      - 'src/components/ContentSwitcher.tsx'
+      - 'src/components/content/**'
+      - 'src/components/versado/ContentIcon.tsx'
       - 'src/lib/liveQuiz.ts'
       - 'src/lib/chapterGuess.ts'
       - 'src/components/GameRoom.tsx'
@@ -37,8 +66,21 @@ on:
       - 'prisma/**'
       - 'package*.json'
       - 'scripts/native/**'
+      - 'tests/native-access*'
+      - 'tests/fixtures/native-access*'
       - 'tests/native-foundation*'
       - 'tests/native-navigation*'
+      - 'tests/native-shell*'
+      - 'tests/native-content*'
+      - 'tests/native-today*'
+      - 'tests/hymns-sunday.test.ts'
+      - 'tests/artwork.test.ts'
+      - 'tests/streak-return.test.ts'
+      - 'tests/generalConference.test.ts'
+      - 'tests/native-data*'
+      - 'tests/native-route-focus*'
+      - 'tests/native-responsive-css*'
+      - 'tailwind.config.ts'
       - 'tests/native-account*'
       - 'tests/native-socket*'
       - 'tests/native-distribution*'
@@ -74,6 +116,7 @@ jobs:
           npm run test:native
           npm run test:focus
           npm run test:profile
+          npx tsx --test tests/hymns-sunday.test.ts tests/artwork.test.ts tests/streak-return.test.ts tests/generalConference.test.ts
           npm run test:native:parity
           npm run native:parity:check
           npm run lint
@@ -89,6 +132,8 @@ jobs:
           npm install --prefix "$RUNNER_TEMP/versado-browser" playwright@1.64.0
           bash scripts/ci/install-browser.sh node "$RUNNER_TEMP/versado-browser/node_modules/playwright/cli.js"
           echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/versado-browser/node_modules/playwright" >> "$GITHUB_ENV"
+      - name: Routefocus, selectie en mobiele CSS (320/375/390/400px, 100/200%, licht/donker)
+        run: npm run test:native:focus
       - name: Migratie, sessies, Apple en lokale leesflow op geïsoleerde PostgreSQL
         run: npm run test:native:integration
       - name: Browserbewijs
@@ -97,4 +142,11 @@ jobs:
         with:
           name: native-foundation-browser
           path: /tmp/versado-native-browser
+          retention-days: 7
+      - name: Focusbewijs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-route-focus-browser
+          path: /tmp/versado-focus-browser
           retention-days: 7

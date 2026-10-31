@@ -28,7 +28,9 @@ def versadoBundleMetadataProblems = { File metadataFile ->
 
 android {
     namespace = "app.versado.app"
-    compileSdk = rootProject.ext.compileSdkVersion
+    // Alleen de app gebruikt OkHttp 5.5.1 (compile-API 37.0); min/target en Capacitor-modules blijven gelijk.
+    compileSdk = 37
+    compileSdkMinor = 0
     defaultConfig {
         applicationId "app.versado.app"
         minSdkVersion rootProject.ext.minSdkVersion
@@ -78,12 +80,15 @@ repositories {
 }
 
 dependencies {
+    implementation "com.squareup.okhttp3:okhttp:5.5.1"
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
     implementation project(':capacitor-android')
     testImplementation "junit:junit:$junitVersion"
+    // Echte JSON-parser voor JVM-transporttests; Android levert org.json zelf in de app.
+    testImplementation 'org.json:json:20250517'
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')

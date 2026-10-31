@@ -219,6 +219,22 @@ export const fr: PartialMessages = {
   "active": "Enregistrement actif",
   "legacy": "Inscriptions ; les enregistrements de chapitre existants sont conservés."
 },
+  nativeAccess: {
+  "title": "Accès interne de l’appareil",
+  "help": "Ajoutez l’accès Cloudflare de cet appareil de test dans la fenêtre système sécurisée. Le remplacer ou l’effacer vous déconnecte de Versado.",
+  "missing": "L’accès de l’appareil manque. Ajoutez les identifiants fournis par le propriétaire.",
+  "configured": "L’accès de l’appareil est enregistré. Sa validité est vérifiée à chaque requête.",
+  "enroll": "Ajouter ou remplacer l’accès",
+  "clear": "Effacer l’accès",
+  "busy": "Mise à jour de l’accès…",
+  "error": "L’accès de l’appareil n’a pas pu être utilisé. Vérifiez la connexion et demandez au propriétaire de vérifier l’accès.",
+  "denied": "L’accès de l’appareil a été refusé ou révoqué. Demandez de nouveaux identifiants au propriétaire.",
+  "disabled": "Cette version n’autorise pas l’accès interne. Compilez la bonne version interne.",
+  "realtime": "Les connexions en temps réel ne sont pas encore disponibles dans cette version Access interne."
+},
+  nativeToday: { unavailable: "Cette destination ou action n’est pas encore disponible dans cette version de l’application. Votre progression est conservée. Utilisez le site web pour le moment." },
+  nativeContentFallback: { unsupported: "Ce serveur ne prend pas encore en charge le choix du contenu dans l’application. Vous pouvez revenir à Aujourd’hui.", signIn: "Connectez-vous pour choisir votre contenu." },
+  nativeDiagnostics: {"title": "Diagnostic interne", "open": "Diagnostic interne", "internalBadge": "Interne", "testBadge": "Version de test", "recovery": "Connexion et récupération"},
   nativeFoundation: {
   "welcome": "Bienvenue sur Versado",
   "login": "Se connecter",
@@ -1375,6 +1391,9 @@ export const fr: PartialMessages = {
     },
   },
   today: {
+    actionFailed: "L’action n’a pas été confirmée. Réessayez lorsque vous êtes connecté.",
+    friendAccepted: "Demande d’amitié acceptée",
+    friendDeclined: "Demande d’amitié refusée",
     greeting: {
       morning: "Bonjour, {name}",
       afternoon: "Bon après-midi, {name}",

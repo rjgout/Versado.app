@@ -219,6 +219,22 @@ export const es: PartialMessages = {
   "active": "Grabación activa",
   "legacy": "Registros; se conserva el audio de capítulo existente."
 },
+  nativeAccess: {
+  "title": "Acceso interno del dispositivo",
+  "help": "Añade el acceso de Cloudflare de este dispositivo de prueba en el diálogo seguro del sistema. Reemplazarlo o borrarlo cierra tu sesión de Versado.",
+  "missing": "Falta el acceso del dispositivo. Añade las credenciales proporcionadas por el propietario.",
+  "configured": "El acceso está guardado. Su validez se comprueba con cada solicitud.",
+  "enroll": "Añadir o reemplazar acceso",
+  "clear": "Borrar acceso",
+  "busy": "Actualizando el acceso…",
+  "error": "No se pudo usar el acceso del dispositivo. Comprueba la conexión y pide al propietario que revise el acceso.",
+  "denied": "El acceso del dispositivo fue denegado o revocado. Pide nuevas credenciales al propietario.",
+  "disabled": "Esta compilación no permite acceso interno. Compila la versión interna correcta.",
+  "realtime": "Las conexiones en tiempo real aún no están disponibles en esta compilación interna con Access."
+},
+  nativeToday: { unavailable: "Este destino o acción aún no está disponible en esta versión de la aplicación. Tu progreso se conserva. Utiliza el sitio web por ahora." },
+  nativeContentFallback: { unsupported: "Este servidor aún no admite el selector de contenido en la app. Puedes volver a Hoy.", signIn: "Inicia sesión para elegir tu contenido." },
+  nativeDiagnostics: {"title": "Diagnóstico interno", "open": "Diagnóstico interno", "internalBadge": "Interna", "testBadge": "Versión de prueba", "recovery": "Conexión y recuperación"},
   nativeFoundation: {
   "welcome": "Bienvenido a Versado",
   "login": "Iniciar sesión",
@@ -1387,6 +1403,9 @@ export const es: PartialMessages = {
     }
   },
   "today": {
+    actionFailed: "La acción no se ha confirmado. Inténtalo de nuevo cuando tengas conexión.",
+    friendAccepted: "Solicitud de amistad aceptada",
+    friendDeclined: "Solicitud de amistad rechazada",
     "greeting": {
       "morning": "Buenos días, {name}",
       "afternoon": "Buenas tardes, {name}",

@@ -78,7 +78,7 @@ test("na een dagwisseling klopt de toestand: de verversgrens van zaterdag is het
 
 test("de kaart verandert nooit de actieve bron en staat gescheiden van de studieprogramma's in de kiezer", () => {
   const section = readFileSync(new URL("../src/components/today/TodaySection.tsx", import.meta.url), "utf8");
-  const picker = readFileSync(new URL("../src/components/content/FullscreenContentPicker.tsx", import.meta.url), "utf8");
+  const picker = readFileSync(new URL("../src/components/content/ContentPickerView.tsx", import.meta.url), "utf8");
   assert.match(section, /data-today-hymns href="\/dev\/lofzangen"/);
   assert.match(section, /!dailyText && !wordGame && !dailyQuiz && !sundayHymns/);
   assert.doesNotMatch(section, /contentCollectionId|activeContentCollectionId|liveMutation|fetch\(/);

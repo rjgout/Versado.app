@@ -145,6 +145,8 @@ const ARTWORK: Record<string, ArtworkAsset> = Object.fromEntries([
   ...Object.entries(DAILY).map(([key, asset]) => [`daily:${key}`, asset]),
 ]);
 
+export function registeredArtworkPaths(): string[] { return [...new Set(Object.values(ARTWORK).map(asset => asset.src))].sort(); }
+
 export function artworkFor(keys: ArtworkKeys): ArtworkAsset | null {
   const list = typeof keys === "string" ? [keys] : keys ?? [];
   for (const key of list) {

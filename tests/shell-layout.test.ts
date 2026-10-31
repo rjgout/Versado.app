@@ -87,7 +87,10 @@ test("vaste delen kunnen niet breder worden dan het scherm en respecteren safe a
   assert.match(css, /\[data-sticky-header\],\s*\[data-main-nav\] \{[^}]*overflow-x: clip/);
   assert.match(css, /padding-left: var\(--vs-safe-area-left\)/);
   assert.match(css, /padding-right: var\(--vs-safe-area-right\)/);
-  const layout = read("src/app/layout.tsx");
+  const rootLayout = read("src/app/layout.tsx");
+  assert.match(rootLayout, /<AppShellFrame/);
+  assert.match(rootLayout, /<AppShellHeader/);
+  const layout = read("src/components/shell/AppShellFrame.tsx") + read("src/components/shell/AppShellHeader.tsx");
   assert.match(layout, /pl-\[max\(1rem,var\(--vs-safe-area-left\)\)\]/);
   assert.match(layout, /pr-\[max\(1rem,var\(--vs-safe-area-right\)\)\]/);
   // De header heeft geen vaste hoogte en mag over meerdere regels lopen.
@@ -111,9 +114,11 @@ test("de ruimte onder de pagina volgt de gemeten onderbalk, met een standaardwaa
 });
 
 test("viewport: zoomen blijft toegestaan en tekst wordt niet vastgezet", () => {
-  const layout = read("src/app/layout.tsx");
-  assert.doesNotMatch(layout, /maximumScale|userScalable|maximum-scale|user-scalable/);
-  assert.match(layout, /viewportFit: "cover"/);
+  const rootLayout = read("src/app/layout.tsx");
+  assert.match(rootLayout, /<AppShellFrame/);
+  assert.match(rootLayout, /<AppShellHeader/);
+  assert.doesNotMatch(read("src/app/layout.tsx"), /maximumScale|userScalable|maximum-scale|user-scalable/);
+  assert.match(read("src/app/layout.tsx"), /viewportFit: "cover"/);
   assert.match(css, /text-size-adjust: 100%/);
 });
 
@@ -137,19 +142,19 @@ test("Capacitor: toetsenbord en systeembalken lopen via de centrale variabelen",
 
 // Contentkiezer, header en terugbalk (docs/LAYOUT.md, "Volgorde bovenin").
 const layoutSource = read("src/app/layout.tsx");
-const switcherSource = read("src/components/ContentSwitcher.tsx");
+const switcherSource = read("src/components/content/ContentSwitcherView.tsx");
 
 test("de contentkiezer staat in de headerrij binnen de ene vaste wrapper, vóór de terugbalk", () => {
-  const wrapperStart = layoutSource.indexOf("<StickyHeader>");
-  const wrapperEnd = layoutSource.indexOf("</StickyHeader>");
-  const header = layoutSource.indexOf("<header data-app-global-header");
-  const headerEnd = layoutSource.indexOf("</header>");
-  const switcher = layoutSource.indexOf("<ContentSwitcher");
-  const backBar = layoutSource.indexOf("<SubpageBackBar");
-  assert.ok(wrapperStart >= 0 && wrapperEnd > wrapperStart, "geen vaste wrapper gevonden");
-  // Volgorde van boven naar beneden: header (met de kiezer erin), dan de terugbalk, allemaal in dezelfde wrapper.
-  assert.ok(wrapperStart < header && header < switcher && switcher < headerEnd, "contentkiezer hoort in de header");
-  assert.ok(headerEnd < backBar && backBar < wrapperEnd, "terugbalk hoort na de header, in dezelfde wrapper");
+  const frame = read("src/components/shell/AppShellFrame.tsx");
+  const header = read("src/components/shell/AppShellHeader.tsx");
+  assert.match(frame, /<StickyHeader>\{header\}\{headerExtras\}<\/StickyHeader>/);
+  assert.match(header, /<header data-app-global-header[\s\S]*\{leading\}[\s\S]*<\/header>/);
+  // De webadapter geeft de bestaande kiezer uitsluitend aan de header en de terugbalk aan extras.
+  const headerStart = layoutSource.indexOf("header={<AppShellHeader");
+  const switcher = layoutSource.indexOf("<ContentSwitcher", headerStart);
+  const extras = layoutSource.indexOf("headerExtras=", switcher);
+  const backBar = layoutSource.indexOf("<SubpageBackBar", extras);
+  assert.ok(headerStart >= 0 && headerStart < switcher && switcher < extras && extras < backBar);
   // De kiezer krijgt nooit een eigen fixed/sticky positie: die bepaalt alleen de wrapper.
   const rootLine = switcherSource.split("\n").find((line) => line.includes('className="relative -ml-2'));
   assert.ok(rootLine, "wortel van de contentkiezer niet gevonden");
@@ -164,14 +169,15 @@ test("de standaardhoogte vóór de meting kent de safe area en de terugbalk", ()
   // Geen terugval op de oude vaste 4.5rem.
   assert.doesNotMatch(css, /--header-default: 4\.5rem/);
   // De terugbalk heeft het attribuut waar de CSS op rekent.
-  assert.match(read("src/components/SubpageBackBar.tsx"), /data-subpage-back-bar/);
+  assert.match(read("src/components/SubpageBackBar.tsx"), /<SubpageBackBarView/);
+  assert.match(read("src/components/shell/SubpageBackBarView.tsx"), /data-subpage-back-bar/);
 });
 
 test("de contentkiezer is een semantische paginalink zonder dropdown of tweede shell", () => {
-  assert.match(switcherSource, /<Link[^>]*href="\/content"/);
+  assert.match(switcherSource, /<AppLink[^>]*href="\/content"/);
   assert.match(switcherSource, /ResizeObserver/);
   assert.doesNotMatch(switcherSource, /createPortal|data-content-menu|aria-haspopup|placeMenu|menuBox/);
-  const picker = read("src/components/content/FullscreenContentPicker.tsx");
+  const picker = read("src/components/content/ContentPickerView.tsx");
   assert.doesNotMatch(picker, /className="fixed|overflow-y-auto|role="dialog"|top-14/);
   assert.match(picker, /page-fill/);
   assert.match(read("src/lib/focusMode.ts"), /content/);
@@ -181,7 +187,7 @@ test("kaartmenu en sleepkaart blijven onder de vaste navigatie", () => {
   const z = (source: string, pattern: RegExp) => Number(pattern.exec(source)?.[1]);
   const bars = z(read("src/components/StickyHeader.tsx"), /\bz-(\d+)\b/);
   const nav = z(read("src/components/BottomNav.tsx"), /\bz-(\d+)\b/);
-  const cardMenu = z(read("src/components/versado/ContentCard.tsx"), /right-2 top-2 z-(\d+)/);
+  const cardMenu = z(read("src/components/versado/CardMenu.tsx"), /right-2 top-2 z-(\d+)/);
   const drag = z(read("src/components/SortableList.tsx"), /<DragOverlay[^>]*zIndex=\{(\d+)\}/);
   assert.equal(bars, 30); assert.equal(nav, bars);
   assert.ok(cardMenu < drag && drag < bars);
@@ -198,7 +204,10 @@ test("een kort actielabel breekt niet; invoer houdt ruimte vrij voor de knop", (
 
 test("desktopnavigatie houdt labels heel en mag als groep wrappen", () => {
   const nav = read("src/components/shell/PrimaryNav.tsx");
-  const layout = read("src/app/layout.tsx");
+  const rootLayout = read("src/app/layout.tsx");
+  assert.match(rootLayout, /<AppShellFrame/);
+  assert.match(rootLayout, /<AppShellHeader/);
+  const layout = read("src/components/shell/AppShellFrame.tsx") + read("src/components/shell/AppShellHeader.tsx");
   assert.match(nav, /lg:flex flex-wrap items-center justify-center/);
   assert.match(nav, /min-h-10 shrink-0 items-center gap-2 whitespace-nowrap/);
   assert.match(layout, /min-w-\[min\(100%,18rem\)\] flex-\[1_1_18rem\] justify-center lg:flex/);
