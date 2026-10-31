@@ -13,21 +13,45 @@ AI-ontwikkelbeleid vervangen eigen controles die onafhankelijke GO niet.
 Fysieke acceptatie blijft **PENDING PHYSICAL ACCEPTANCE**.
 
 Initieel oordeel op de beoordeelde commit: **GEBLOKKEERD** door R1 hieronder.
-De reviewbevindingen en rode regressies worden vóór de herstelcode afzonderlijk
-vastgelegd. De uiteindelijke herstelhead en CI-resultaten staan in de PR.
+De reviewbevindingen en rode regressies zijn vóór de herstelcode afzonderlijk
+vastgelegd in `be43ef3056c5ac82c6e0bbf81402419f167dc0d4`. De uiteindelijke
+herstelhead en CI-resultaten staan in de PR.
 
 ## Bevindingen op de oorspronkelijke commit
 
 | ID | Ernst | Bewijs / oorzaak | Herstelstatus |
 | --- | --- | --- | --- |
-| R1 | P1 | Na een geslaagde pad-GET leidt een 503 bij achtergrondverversing tot `query.error`; `NativeLearningView` vervangt dan de hele view. Een open boekgroep en de gefocuste knop verdwijnen. Nieuwe browserproef faalt: 0 paden waar 1 bevestigd pad moest blijven. | OPEN |
-| R2 | P2 | Het cursusoverzicht gebruikt key-suffix `"list"`; een volgens contract/Prisma geldige cursus-ID `list` gebruikt dezelfde key. Een warme overzichtscache voorkomt de pad-GET en toont opnieuw het overzicht. Nieuwe browserproef met echte cursus-ID reproduceert dit. | OPEN |
-| R3 | P2 | `nativeCourses` controleert na aggregatie sessie/bron, maar niet opnieuw of de afzonderlijke cursussen nog enabled/toegankelijk zijn. Een echte lock op `CourseLesson` maakt zichtbaar dat een ondertussen uitgeschakelde cursus toch in het antwoord staat. | OPEN |
+| R1 | P1 | Na een geslaagde pad-GET leidt een 503 bij achtergrondverversing tot `query.error`; `NativeLearningView` vervangt dan de hele view. Een open boekgroep en de gefocuste knop verdwijnen. Nieuwe browserproef faalt: 0 paden waar 1 bevestigd pad moest blijven. | HERSTELD; nieuwe SQL-/browserregressies groen. |
+| R2 | P2 | Het cursusoverzicht gebruikt key-suffix `"list"`; een volgens contract/Prisma geldige cursus-ID `list` gebruikt dezelfde key. Een warme overzichtscache voorkomt de pad-GET en toont opnieuw het overzicht. Nieuwe browserproef met echte cursus-ID reproduceert dit. | HERSTELD; nieuwe SQL-/browserregressies groen. |
+| R3 | P2 | `nativeCourses` controleert na aggregatie sessie/bron, maar niet opnieuw of de afzonderlijke cursussen nog enabled/toegankelijk zijn. Een echte lock op `CourseLesson` maakt zichtbaar dat een ondertussen uitgeschakelde cursus toch in het antwoord staat. | HERSTELD; nieuwe SQL-/browserregressies groen. |
 
 Geen P0 aangetoond. R3 geeft verouderde cursusmetadata; de bestaande afzonderlijke
 pad-GET controleert de bevoegdheid opnieuw en verleent daarmee geen lees- of
 mutatierechten aan een uitgeschakelde cursus. Geen dataverlies of dubbele
 beloningen aangetoond.
+
+## Afzonderlijke gerichte reparaties
+
+- **R1:** behoud dezelfde bevestigde component en DOM bij bekende tijdelijke
+  transport-/5xx-fouten. Toon daarna een vertaalde status met handmatige retry;
+  de nieuwe melding verplaatst of focust de bestaande boekknop niet.
+  Autorisatie-, Access-weigerings-, bron- en contractfouten blijven blokkeren.
+  Er ontstaat geen offline schrijfactie of beloning.
+- **R2:** onderscheid resource `overview` van `path` en neem de cursus-ID
+  afzonderlijk op in dezelfde LiveDataStore-key. Actor, taal en bronversie
+  blijven onderdeel van de identiteit; er komt geen tweede cache.
+- **R3:** pas na aggregatie opnieuw dezelfde `cfmCourseListWhere`-rechtenfilter
+  toe op persoonlijke cursussen én catalogus, gevolgd door de bestaande
+  sessie-/contextcontrole. CFM-ankeridentiteiten blijven gelijk aan de bestaande
+  selectie. Alleen reads; geen nieuwe transactie of mutatie.
+
+De nieuwe browsercontrole verifieert ook handmatig herstel na de 503 met behoud
+van dezelfde DOM-boekgroep. Unitgevallen begrenzen expliciet welke fouten
+bevestigde data mogen behouden; een onbekende fout krijgt dit privilege niet.
+De eerste screenshot van de herstelmelding maakte een te smalle tekstkolom
+naast het lange retrylabel zichtbaar. De melding gebruikt nu een verticale
+indeling; een 320px-regressie bewaakt de beschikbare leesbreedte. Dit is een
+beperkte correctie aan de nieuwe melding, zonder wijziging van de webkaarten.
 
 ## Methode en overige codebevindingen
 
@@ -77,6 +101,32 @@ terwijl de query geblokkeerd is; databaseconstraints worden niet omzeild.
 Nieuwe regressies worden nooit geskipt of versoepeld. Lokale gerichte proeven
 vinden vóór een codepush plaats; CI blijft de volledige standaardketen draaien.
 De werkelijk behaalde resultaten worden na herstel in de PR vastgelegd.
+
+Na de gerichte reparaties lokaal uitgevoerd: TypeScript, een schone
+Next-productiebuild, native bundel, beide Capacitor-syncs en assetverificaties,
+104 native + 80 datalaagtests, 44 leespad-, 101 CFM-, 28 shell/layout- en
+6 pariteitstests; allemaal geslaagd. Prisma-validatie en de broninventaris zijn
+geldig. De volledige geïsoleerde keten behaalt 69 SQL- en 64 twee-procestests,
+zonder skips. De bestaande routefocusbrowserproef (16 combinaties, 3 fallbacks,
+8 gecombineerde flows) en mobiele CSS-test slagen. Lint: 0 fouten, 171 bestaande
+waarschuwingen; gerichte gewijzigde code lint schoon. De bestaande
+vertaalachterstand bedraagt 418 sleutels per overige taal; de nieuwe melding is
+wel in alle vijf talen vertaald. Vijf bestaande Turbopack-tracingwaarschuwingen
+veranderen de buildstatus niet. Nieuwe CI- en browserresultaten: zie PR #249;
+oude groene checks worden niet als bewijs voor een nieuwe head gebruikt.
+
+Na de laatste beperkte layoutcorrectie zijn de schone productiebuild, native
+bundel/sync/verificatie en gerichte lint opnieuw geslaagd; de 6/6 cursus-SQL-tests
+en volledige vijf-talige cursusbrowserproef zijn opnieuw groen. Er zijn 54
+web-/native-vergelijkingsschermafbeeldingen plus twee nieuwe reviewpreviews.
+De 503-proef bewaakt leesbreedte, DOM-identiteit, open boekgroep, focus en
+handmatige retry; de legale ID `list` opent aantoonbaar het eigen pad.
+
+Technisch herbeoordelingsoordeel na herstel: **goedgekeurd met aandachtspunten**
+voor de geteste B3a-1-scope. Geen bekende onbehandelde P0/P1 in de gewijzigde
+functionaliteit aangetoond. Een afzonderlijke onafhankelijke GO, groene checks
+op de definitieve head en toestemming blijven voorwaarden voor merge. Fysieke
+acceptatie blijft open; dit oordeel geeft geen releasevrijgave.
 
 ## PENDING PHYSICAL ACCEPTANCE — iPhone en Android
 

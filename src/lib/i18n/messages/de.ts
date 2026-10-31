@@ -4,6 +4,7 @@ import { kompasDe } from "./kompas/de";
 // Ontbrekende teksten vallen terug volgens fallbackChain (src/lib/languages.ts).
 export const de: PartialMessages = {
   nativeLearning: {
+    refreshFailed: "Die Aktualisierung ist vorübergehend fehlgeschlagen. Du siehst die zuletzt bestätigten Daten.",
     "readOnly": "Du kannst Kurse und Lernpfade ansehen. Hinzufügen, Ausblenden und Lektionen folgen in einer späteren App-Version. Dein Fortschritt bleibt erhalten.",
     "unsupported": "Dieser Server unterstützt die Kursübersicht noch nicht.",
     "pathUnavailable": "Dieser Lernpfad ist in dieser App-Version noch nicht verfügbar."

@@ -12855,7 +12855,7 @@
     },
     {
       "file": "src/components/native/NativeLearningView.tsx",
-      "sha256": "f8165a2b3014cc81fb47519457d2e5da37a47857bd8e406c6b71ba97d195bbcb",
+      "sha256": "28cd8be719c7639219a2573cd05f96334d054b49a7e672e1ddf471671c689df6",
       "boundary": "client",
       "imports": [
         "./NativeStudyImage",
@@ -12865,6 +12865,7 @@
         "@/components/I18nProvider",
         "@/components/ReadingCourseView",
         "@/components/navigation/AppNavigation",
+        "@/lib/data/native",
         "@/lib/data/nativeHooks",
         "@/lib/native/client",
         "@/lib/native/contract",
@@ -17595,7 +17596,7 @@
     },
     {
       "file": "src/lib/data/native.ts",
-      "sha256": "887119abe5fbda03ff00566305ce0f8a9afc978b97a156224f2c0d4f21d45424",
+      "sha256": "2e4c03f9278af649809317acb6bd46ebcdc4c9b35be16c448dc793b5a88f9fe1",
       "boundary": "context-dependent",
       "imports": [
         "./scopes",
@@ -17622,6 +17623,8 @@
       ],
       "exports": [
         "nativeContentQueryKey",
+        "nativeLearningQueryKey",
+        "nativeLearningTransientError",
         "nativeTodayQueryKey"
       ]
     },
@@ -19334,7 +19337,7 @@
     },
     {
       "file": "src/lib/i18n/messages/de.ts",
-      "sha256": "d6eaec93095d11942e846b4409493e7cc8e815af6f86f4ee39c8d80b195356e3",
+      "sha256": "51f01e1f8d20728b2458f4e074e372bbc4415e7417128673fcf06747d0d845e9",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19349,7 +19352,7 @@
     },
     {
       "file": "src/lib/i18n/messages/en.ts",
-      "sha256": "974a705b3137835d272b704806c11c5888d470e4265b765dbcaf527bfc7ec291",
+      "sha256": "49ddf91d0227b49af2121565249227efcdeba2dc79c74cdbcbf36e0e33612f2a",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19364,7 +19367,7 @@
     },
     {
       "file": "src/lib/i18n/messages/es.ts",
-      "sha256": "6aadbb77d9c557a2dfc261cfa43ac7e87741fbc8a55ed4886518788f19b46d80",
+      "sha256": "fe2f4f5cd1fe2c9d77c48ee357b09ba80f861b2ebe80bcfdd43e4a8e397662d3",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19379,7 +19382,7 @@
     },
     {
       "file": "src/lib/i18n/messages/fr.ts",
-      "sha256": "895d6698b58225bf5e40358b1d83c3bb2cfd59df28ed2aa1c3ac91485c93f765",
+      "sha256": "a1187e016b4068ca2cf4590c003ba68ceb2f2e67f465dd4b4dd1fff858064c69",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19462,7 +19465,7 @@
     },
     {
       "file": "src/lib/i18n/messages/nl.ts",
-      "sha256": "1c3c7812616d39981dd077fdceec7687c5fbd46ca482176f482e37bc8d084668",
+      "sha256": "215ef9c521e1121ee7e687c545c4b5e97a3abdaa0062e083538704bb36510b46",
       "boundary": "context-dependent",
       "imports": [
         "./kompas/nl"
@@ -21041,7 +21044,7 @@
     },
     {
       "file": "src/lib/native/courses.server.ts",
-      "sha256": "0225125cfe442c20018b48bce291bbc2d1bb4eb27c811eaaab9055e52ac187ef",
+      "sha256": "e5bf1c68e2c53df52989781e33c728e0d04b070eb971059f2d7bad226e352baa",
       "boundary": "context-dependent",
       "imports": [
         "./coursesContract",
@@ -21058,7 +21061,8 @@
         "@/lib/learning/courseList.server",
         "@/lib/listOrder",
         "@/lib/readingCourses",
-        "@/lib/readingPathData"
+        "@/lib/readingPathData",
+        "@/lib/studyContent/cfmCourses"
       ],
       "methods": [],
       "requests": [],
@@ -75573,7 +75577,7 @@
     },
     {
       "file": "src/components/native/NativeLearningView.tsx",
-      "sha256": "f8165a2b3014cc81fb47519457d2e5da37a47857bd8e406c6b71ba97d195bbcb",
+      "sha256": "28cd8be719c7639219a2573cd05f96334d054b49a7e672e1ddf471671c689df6",
       "boundary": "client",
       "imports": [
         "./NativeStudyImage",
@@ -75583,6 +75587,7 @@
         "@/components/I18nProvider",
         "@/components/ReadingCourseView",
         "@/components/navigation/AppNavigation",
+        "@/lib/data/native",
         "@/lib/data/nativeHooks",
         "@/lib/native/client",
         "@/lib/native/contract",

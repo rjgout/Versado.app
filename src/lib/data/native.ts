@@ -12,6 +12,17 @@ import { NativeClientError, type NativeSessionClient } from "@/lib/native/client
 
 import { nativeCoursesSchema, nativeCoursePathSchema, nativeCourseId } from "@/lib/native/coursesContract";
 
+/** Gescheiden resources, ook wanneer een geldige cursus-ID "list" of "overview" is. */
+export const nativeLearningQueryKey = (userId: string, language: string, context: { activeCollectionId: string | null; selectionVersion: number } | undefined, courseId?: string) =>
+  ["courses", userId, language, context?.activeCollectionId ?? null, context?.selectionVersion ?? null, courseId ? "path" : "overview", courseId ?? null] as const;
+
+/** Alleen transportstoringen / bekende serverfouten mogen bevestigde read-only
+ * data laten staan. Autorisatie, Access-weigering en gewijzigde context nooit. */
+export function nativeLearningTransientError(error: unknown): boolean {
+  return error instanceof NativeClientError && (["network_unavailable", "access_network_unavailable"].includes(error.code) ||
+    (error.code === "native_request_failed" && error.status >= 500 && error.status < 600));
+}
+
 export const nativeContentQueryKey = (userId: string | null) => ["content-context", userId] as const;
 
 export const nativeTodayQueryKey = (state: Pick<NativeTodayOverview, "userId" | "activeCollectionId" | "selectionVersion" | "language">) =>

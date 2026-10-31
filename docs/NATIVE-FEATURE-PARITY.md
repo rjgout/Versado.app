@@ -19,6 +19,9 @@ studieafbeeldingen aan via dezelfde mediatoegangsservice en Image-poort
 (`study-media-v1`); #246 is gemerged als `e3ee1bfab66d6177960539c41a54fcfb3177b982`. B3a-1 voegt nu het gedeelde cursusoverzicht en de drie schriftelijke
 leerpaden toe via `courses-overview-v1`, zonder GET-writes of lesafronding.
 Zie [NATIVE-LEARNING.md](NATIVE-LEARNING.md) voor de werkende routes en grenzen.
+De [technische B3a-1-herbeoordeling](NATIVE-LEARNING-REVIEW.md) scheidt de
+oorspronkelijke bevindingen van reparaties, bevat het B3a-2-plan en markeert de
+iPhone-/Android-controles als **PENDING PHYSICAL ACCEPTANCE**.
 CFM-weekpad, lezers/vragen, overige cursusdetails, spellen en sociale schermen
 blijven nog open; geen volledige cursus-/leespariteit geclaimd.
 Zie [implementatie, afhankelijkheden en toestelacceptatie](NATIVE-SHARED-SHELL.md).

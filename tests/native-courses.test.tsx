@@ -8,12 +8,14 @@ import { AppNavigationProvider, type AppLinkProps } from "../src/components/navi
 import CoursesView from "../src/components/CoursesView";
 import ReadingCourseView from "../src/components/ReadingCourseView";
 import ChapterListCourseView from "../src/components/ChapterListCourseView";
-import { NativeDataRuntime, nativeContentQueryKey } from "../src/lib/data/native";
+import { NativeDataRuntime, nativeContentQueryKey, nativeLearningQueryKey, nativeLearningTransientError } from "../src/lib/data/native";
 import { nativeCoursesSchema, nativeCoursePathSchema } from "../src/lib/native/coursesContract";
 import { nativePrimaryNav } from "../src/lib/native/shell";
 import { accessRouteAllowed } from "../src/lib/native/access";
 import { nativeRoute } from "../src/lib/native/navigation";
 import { nativeTodayDestination } from "../src/lib/native/todayDestinations";
+import { NativeClientError } from "../src/lib/native/client";
+import { serializeKey } from "../src/lib/data/store";
 import type { NativeSessionClient } from "../src/lib/native/client";
 import type { LiveEnvironment } from "../src/lib/data/store";
 const context={version:1 as const,userId:"A",activeCollectionId:"source-nl",selectionVersion:1,language:"nl" as const};
@@ -48,4 +50,13 @@ test("late course responses cannot cross account epoch or newer source identity"
  const pending=runtime.learning("A",context);
  runtime.store.setData(["native",runtime.getSnapshot(),...nativeContentQueryKey("A")],{userId:"A",picker:{activeCollectionId:"source-en",selectionVersion:2}});
  release(response);await assert.rejects(pending,/content_context_changed/);observer.release();runtime.reset();
+});
+
+test("overview/path keys never alias legal course IDs, actors, languages or source versions",()=>{
+ const keys=[nativeLearningQueryKey("A","nl",context),...['list','overview','course'].map(id=>nativeLearningQueryKey("A","nl",context,id)),nativeLearningQueryKey("B","nl",context),nativeLearningQueryKey("A","en",context),nativeLearningQueryKey("A","nl",{...context,selectionVersion:2})];
+ assert.equal(new Set(keys.map(serializeKey)).size,keys.length);
+});
+test("confirmed learning data survives only transient errors, never auth/Access/context denials",()=>{
+ for(const error of [new NativeClientError("network_unavailable"),new NativeClientError("access_network_unavailable"),new NativeClientError("native_request_failed",503)])assert.equal(nativeLearningTransientError(error),true);
+ for(const error of [new NativeClientError("session_expired",401),new NativeClientError("forbidden",403),new NativeClientError("content_unavailable",404),new NativeClientError("content_context_changed",409),new NativeClientError("access_denied",503),new NativeClientError("access_missing"),new NativeClientError("invalid_response",503),Error("unknown")])assert.equal(nativeLearningTransientError(error),false);
 });

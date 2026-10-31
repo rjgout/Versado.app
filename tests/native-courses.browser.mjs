@@ -112,6 +112,11 @@ try {
      await page.screenshot({path:`${out}/review-retained-path.png`,fullPage:true});
      assert.equal(await page.locator('[data-reading-path]').count(),1,'Een tijdelijke GET-fout mag het bevestigde pad niet unmounten');
      assert.equal(await toggle.getAttribute('aria-expanded'),'true');assert.equal(await toggle.evaluate(el=>el===window.__b3ReviewToggle&&el===document.activeElement),true);
+     assert.equal(await page.locator('section[role="status"]').evaluate(el=>el.querySelector('p').getBoundingClientRect().width>=el.clientWidth*0.8),true,'Op 320px moet de hersteltekst leesbreedte houden naast een lange vertaald retrylabel');
+     courseFailure=0;const recovered=page.waitForResponse(r=>r.url().endsWith(`/courses/${free.id}/path`)&&r.status()===200);
+     await page.locator('section[role="status"] button').click();await recovered;await page.waitForLoadState('networkidle');
+     assert.equal(await page.locator('section[role="status"]').count(),0);assert.equal(await toggle.getAttribute('aria-expanded'),'true');
+     assert.equal(await toggle.evaluate(el=>el===window.__b3ReviewToggle),true,'Handmatig herstel behoudt dezelfde boekgroep');
     }finally{courseFailure=0;}
    });
    // Legale contract-ID "list" mag nooit dezelfde cache-entry als het overzicht gebruiken.

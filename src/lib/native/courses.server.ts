@@ -1,3 +1,4 @@
+import { cfmCourseListWhere } from "@/lib/studyContent/cfmCourses";
 import { applyPersonalOrder } from "@/lib/listOrder";
 import { prisma } from "@/lib/db";
 import { getContentPickerContext } from "@/lib/contentCollections";
@@ -31,8 +32,11 @@ export async function nativeCourses(binding: NativeSessionBinding) {
  const value=await context(binding);
  if (!value.picker.activeCollectionId) { await recheck(binding,value); return nativeCoursesSchema.parse({...envelope(value),courses:[],catalog:[]}); }
  const [courses,catalog,order]=await Promise.all([getUserCourses(value.user),getCourseCatalog(value.user),prisma.userListOrder.findMany({where:{userId:value.user.id,listKey:"courses",hidden:false},orderBy:{order:"asc"},select:{itemKey:true}})]);
+ // Een cursus kan na de eerste selectie tijdens voortgangsaggregatie worden
+ // ingetrokken. Hergebruik de bestaande rechtenfilter; dit zijn alleen reads.
+ const eligible = new Set((await prisma.course.findMany({where:cfmCourseListWhere(value.user,value.picker.activeCollectionId),select:{id:true}})).map(course=>course.id));
  await recheck(binding,value);
- return nativeCoursesSchema.parse({...envelope(value),courses:applyPersonalOrder(courses,order.map(row=>row.itemKey)),catalog});
+ return nativeCoursesSchema.parse({...envelope(value),courses:applyPersonalOrder(courses.filter(course=>eligible.has(course.id)),order.map(row=>row.itemKey)),catalog:catalog.filter(course=>eligible.has(course.id))});
 }
 export async function nativeCoursePath(binding: NativeSessionBinding, courseId: string) {
  const value=await context(binding);

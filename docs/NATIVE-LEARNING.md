@@ -1,5 +1,10 @@
 # Native Leren — B3a-1
 
+Gerichte technische herbeoordeling, afzonderlijk vastgelegde bevindingen en
+reparaties, fysieke acceptatiechecklist en het nog niet geïmplementeerde B3a-2-plan:
+[B3a-1-review](NATIVE-LEARNING-REVIEW.md). Eigen technische controles vervangen
+geen afzonderlijke onafhankelijke review of fysieke toestelacceptatie.
+
 Basis: `develop` na de bevestigde squashmerge van #246,
 `e3ee1bfab66d6177960539c41a54fcfb3177b982`. Roadmap: #238.
 
