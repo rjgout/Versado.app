@@ -28,7 +28,10 @@ const front=createServer(async(req,res)=>{try{
   nativeCalls.push({path:url.pathname,method:req.method});
   const chunks=[];for await(const c of req)chunks.push(c);
   const response=await fetch(`${backend}${req.url}`,{method:req.method,headers:{Origin:'capacitor://localhost','X-Versado-Client':'native-v1','x-real-ip':'127.0.0.41',...(req.headers.authorization?{Authorization:req.headers.authorization}:{}),...(req.headers['content-type']?{'Content-Type':req.headers['content-type']}:{})},body:['GET','HEAD'].includes(req.method)?undefined:Buffer.concat(chunks)});
-  const body=await response.text();const finish=()=>{res.writeHead(response.status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(body);};
+  let body=await response.text();
+  // Expliciete oude-backendcompatibiliteit; native-today.browser test het ongewijzigde nieuwe capabilitycontract.
+  if(url.pathname==='/api/v1/native/capabilities'&&response.ok){const value=JSON.parse(body);value.features=value.features.filter(f=>f!=='today-overview-v1');body=JSON.stringify(value);}
+  const finish=()=>{res.writeHead(response.status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(body);};
   if(holdMe&&url.pathname==='/api/v1/native/me'){held.push(finish);}else finish();return;
  }
  if(url.pathname.startsWith('/test-keychain/')){if(req.method==='PUT'){const chunks=[];for await(const c of req)chunks.push(c);secrets.set(url.pathname,Buffer.concat(chunks).toString());}if(req.method==='DELETE')secrets.delete(url.pathname);res.setHeader('Content-Type','application/json');res.end(JSON.stringify({value:secrets.get(url.pathname)??null}));return;}

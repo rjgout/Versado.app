@@ -6391,22 +6391,15 @@
     },
     {
       "file": "src/app/dashboard/page.tsx",
-      "sha256": "b8e199bec998662c566c300ef2f85f951a6966b87d2b428d7a8f424bd458cfaf",
+      "sha256": "f40a5a9e6045e35d5c282c4d85f10aabeb29d45afa6596d2fe826b368b08feff",
       "boundary": "context-dependent",
       "imports": [
         "@/components/LiveRefresh",
         "@/components/StreakContinuation",
         "@/components/kompas/KompasEntryCard",
         "@/components/study/ProgramContextPanel",
-        "@/components/today/ContinueSection",
-        "@/components/today/DiscoverySection",
-        "@/components/today/GeneralConferenceCountdown",
-        "@/components/today/Greeting",
-        "@/components/today/OpenActions",
-        "@/components/today/SocialPreview",
-        "@/components/today/TodaySection",
+        "@/components/today/WebTodayView",
         "@/lib/email",
-        "@/lib/generalConference",
         "@/lib/hymns/sunday",
         "@/lib/session",
         "@/lib/timeZone",
@@ -9253,7 +9246,7 @@
     },
     {
       "file": "src/components/ConfirmProvider.tsx",
-      "sha256": "2a0673d39490a3bce559e12db55cb87aae422fb111773c5b84e04cce5e1c2818",
+      "sha256": "984b453c740c7424d35077b9f2ea1f6c95c50ac9e5d6515af69ccbfbbbf9458c",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -11015,21 +11008,20 @@
     },
     {
       "file": "src/components/StreakContinuation.tsx",
-      "sha256": "99a798c17f53d352630bba0cf5d4d8fa71fe4dcade3351fc5048e61c7759031d",
+      "sha256": "222e41afdef38bc8beb63052c9789b4a2ef2425d85f018190ecfbbb46145b8bc",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
         "@/components/StreakCelebrationFlow",
         "@/components/StreakEarnedBanner",
+        "@/components/today/StreakContinuationCardView",
         "@/components/versado/MascotSlot",
-        "@/components/versado/SystemIcon",
         "@/lib/celebrationGate",
         "@/lib/learning/streakReturnRules",
         "@/lib/socketClient",
         "@/lib/streakBanner",
         "@/lib/xpBroadcast",
         "lucide-react",
-        "next/link",
         "next/navigation",
         "react"
       ],
@@ -12408,17 +12400,13 @@
     },
     {
       "file": "src/components/kompas/KompasEntryCard.tsx",
-      "sha256": "f4b09b13687a538dbc022500706db904a97f5fdf948b7edc64913836411731de",
+      "sha256": "8382dbdd3c030254f31ac3791c387a84b4cec130d072441514f48c8a75c7393b",
       "boundary": "client",
       "imports": [
-        "@/components/I18nProvider",
-        "@/components/versado/VisualIdentityIcon",
-        "@/components/versado/styles",
+        "./KompasEntryCardView",
         "@/lib/data/fetchJson",
         "@/lib/data/hooks",
-        "@/lib/kompas/state",
-        "lucide-react",
-        "next/link"
+        "@/lib/kompas/state"
       ],
       "methods": [],
       "requests": [
@@ -12427,6 +12415,24 @@
       "checks": [],
       "exports": [
         "KompasEntryCard"
+      ]
+    },
+    {
+      "file": "src/components/kompas/KompasEntryCardView.tsx",
+      "sha256": "18aab1f71bbd82aa5d6e7813a54ed4c25aaacc0f724b8d1586c6139457ae2583",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
+        "@/components/versado/VisualIdentityIcon",
+        "@/components/versado/styles",
+        "lucide-react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "KompasEntryCardView"
       ]
     },
     {
@@ -12802,13 +12808,14 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "cdd3adbe120d4f2b1de90af5c4a2830a14b3304d9da3f9f40507335bdbf05665",
+      "sha256": "06c7144becdf0917dca2e1bd580e82a402c43396e42f4ac307bed813e5d8257b",
       "boundary": "client",
       "imports": [
         "./NativeContentPicker",
         "./NativeEmailConfirmation",
         "./NativePasswordReset",
         "./NativeShellHeader",
+        "./NativeTodayView",
         "@/components/I18nProvider",
         "@/components/account/AccountActionsProvider",
         "@/components/account/PasswordChangeForm",
@@ -12833,6 +12840,7 @@
         "@/lib/native/routeFocus",
         "@/lib/native/shell",
         "@/lib/native/socketClient",
+        "@/lib/native/todayContract",
         "@/lib/platform",
         "lucide-react",
         "react"
@@ -12893,7 +12901,7 @@
     },
     {
       "file": "src/components/native/NativeShellHeader.tsx",
-      "sha256": "4c15d195401a47f32d756eee4c93f3274cec1791ba9a29f7cbe2e2298a21f001",
+      "sha256": "89fdc23e575494ceb3b3c72d49334d403f2ddeeb7f9d4e68e01a3d2636011ef6",
       "boundary": "client",
       "imports": [
         "@/components/content/ContentSwitcherView",
@@ -12913,6 +12921,36 @@
       "checks": [],
       "exports": [
         "NativeShellHeader"
+      ]
+    },
+    {
+      "file": "src/components/native/NativeTodayView.tsx",
+      "sha256": "cd623a8775d358c3632b2f0aa4019f31e757bfb5554935c1e13258117db9021f",
+      "boundary": "client",
+      "imports": [
+        "@/components/ConfirmProvider",
+        "@/components/I18nProvider",
+        "@/components/kompas/KompasEntryCardView",
+        "@/components/navigation/AppNavigation",
+        "@/components/today/FriendRequestButtonsView",
+        "@/components/today/SocialView",
+        "@/components/today/StreakContinuationCardView",
+        "@/components/today/TodayInteractions",
+        "@/components/today/TodayProgramView",
+        "@/components/today/TodayView",
+        "@/components/versado/PersonalMascot",
+        "@/components/versado/UserAvatarView",
+        "@/lib/avatarTypes",
+        "@/lib/native/todayAssets",
+        "@/lib/native/todayContract",
+        "@/lib/native/todayDestinations",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NativeTodayView"
       ]
     },
     {
@@ -12942,7 +12980,7 @@
     },
     {
       "file": "src/components/navigation/AppNavigation.tsx",
-      "sha256": "7f630f3303395f9a8564aa471497d56ec6b7d1500d6a943521cf1381ae62bc97",
+      "sha256": "bb574bf98422ba0385f9c1d96e88d467158e7c17bdb1148f75502264d73f3bfb",
       "boundary": "client",
       "imports": [
         "react"
@@ -12954,7 +12992,9 @@
         "AppImage",
         "AppLink",
         "AppNavigationProvider",
-        "useAppNavigation"
+        "useAppImageSource",
+        "useAppNavigation",
+        "useAppNavigationAdapter"
       ]
     },
     {
@@ -14269,17 +14309,16 @@
     },
     {
       "file": "src/components/study/CfmTodayCard.tsx",
-      "sha256": "6d5249e7611a92f8e5cf6b2b20312d0497cb2347053b83244fd2dd040f3f6b07",
+      "sha256": "80f1001ee5d4fa59f1999cafbbd024243b62bb2fd7bc4d95ff5813a2fab1d076",
       "boundary": "client",
       "imports": [
-        "./PersonalStudyParts",
         "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
         "@/components/versado/styles",
+        "@/lib/studyContent/presentation",
         "@/lib/studyContent/weekLabels",
         "@/lib/studyContent/weekSelection",
-        "lucide-react",
-        "next/image",
-        "next/link"
+        "lucide-react"
       ],
       "methods": [],
       "requests": [],
@@ -14338,11 +14377,12 @@
     },
     {
       "file": "src/components/study/PersonalStudyParts.tsx",
-      "sha256": "ded5414101366c39b6bf5c7db33a8d5c237136c632a5c8004ed371b6ac02cd78",
+      "sha256": "44b13563894d823c9287a85d3a347dea991283496ae1ae47d90d4c8c86aa7e3f",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
         "@/components/versado/styles",
+        "@/lib/studyContent/presentation",
         "@/lib/studyContent/weekContext",
         "lucide-react",
         "next/link",
@@ -14362,16 +14402,12 @@
     },
     {
       "file": "src/components/study/ProgramContextPanel.tsx",
-      "sha256": "d606dbbf5dc55dd81de71a062d56be05d103a188cc2e7997190c35fb0dea2e19",
+      "sha256": "9785c8aa22a10b1b4571bfa93be02fe86ef6271013277c0ac21e123528f75bf3",
       "boundary": "context-dependent",
       "imports": [
-        "./CfmTodayCard",
-        "./ProgramLessonPicker",
         "@/components/LiveRefresh",
-        "@/lib/db",
-        "@/lib/studyContent/catalogue",
-        "@/lib/studyContent/cfmCourses",
-        "@/lib/studyContent/weekSelection"
+        "@/components/today/TodayProgramView",
+        "@/lib/todayProgram.server"
       ],
       "methods": [],
       "requests": [],
@@ -14382,10 +14418,11 @@
     },
     {
       "file": "src/components/study/ProgramLessonPicker.tsx",
-      "sha256": "409e37bf7c60b8ba6118bb0158274100c79853c90c90d829f165ef9bc8929cc7",
+      "sha256": "a120bc37cdbbfc7384a3bed83c5708dcfb2a536a50ff3e143989518f2220901e",
       "boundary": "client",
       "imports": [
         "./PersonalStudyParts",
+        "./ProgramSummaryView",
         "@/components/I18nProvider",
         "@/components/versado/styles",
         "@/lib/data/fetchJson",
@@ -14406,6 +14443,23 @@
       "checks": [],
       "exports": [
         "ProgramLessonPicker"
+      ]
+    },
+    {
+      "file": "src/components/study/ProgramSummaryView.tsx",
+      "sha256": "00a59131c3d91c00d5e509f8b238c24e2caa54777ee9dd31d0637242545c89b1",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
+        "@/components/versado/styles",
+        "lucide-react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "ProgramSummaryView"
       ]
     },
     {
@@ -14725,22 +14779,21 @@
     },
     {
       "file": "src/components/today/ContinueSection.tsx",
-      "sha256": "82c3b0eebff978d0877daedaff4f75391304213878d5274c4b1aefa9f6aaceda",
+      "sha256": "740eeb3358a34e9f3d1f07d9a4aee2d9dabeeb58f81afde936ff3cd8934b8c7c",
       "boundary": "client",
       "imports": [
+        "./TodayInteractions",
+        "@/components/navigation/AppNavigation",
         "@/components/today/SectionHeader",
+        "@/components/versado/CardMenu",
         "@/components/versado/Carousel",
-        "@/components/versado/ContentCard",
         "@/components/versado/MediaArtwork",
         "@/components/versado/styles",
-        "@/lib/data/mutation",
         "@/lib/i18n",
         "@/lib/languages",
-        "@/lib/listOrder",
         "@/lib/timeFormat",
         "@/lib/today",
         "lucide-react",
-        "next/link",
         "react"
       ],
       "methods": [],
@@ -14752,17 +14805,17 @@
     },
     {
       "file": "src/components/today/DiscoverySection.tsx",
-      "sha256": "83c7a6ee09855849baecd3e679adde539a67cad907e77e3c224e02a74a8b6819",
+      "sha256": "23e732bcf2d272056e4a4efed60a2f2d403bbb0dfdc09a4ad8d02697b49ca9ab",
       "boundary": "context-dependent",
       "imports": [
+        "@/components/navigation/AppNavigation",
         "@/components/today/SectionHeader",
         "@/components/versado/MediaArtwork",
         "@/components/versado/PersonalMascot",
         "@/components/versado/styles",
         "@/lib/i18n",
         "@/lib/i18n/core",
-        "@/lib/today",
-        "next/link"
+        "@/lib/today"
       ],
       "methods": [],
       "requests": [],
@@ -14773,13 +14826,11 @@
     },
     {
       "file": "src/components/today/FriendRequestButtons.tsx",
-      "sha256": "7a92593f0b8cdd6ea6a087e8085f91918ef3e115004af87462d798ee000480a0",
+      "sha256": "d23f95b48ae0fdfd5d1752140b91c4f91a63027fc943f95a200219e9a4f7c592",
       "boundary": "client",
       "imports": [
-        "@/components/I18nProvider",
-        "@/components/versado/styles",
+        "./FriendRequestButtonsView",
         "@/lib/socketClient",
-        "lucide-react",
         "next/navigation",
         "react"
       ],
@@ -14790,6 +14841,22 @@
       "checks": [],
       "exports": [
         "FriendRequestButtons"
+      ]
+    },
+    {
+      "file": "src/components/today/FriendRequestButtonsView.tsx",
+      "sha256": "37aa5c1570e5ba9fa9004eca250ab9c5e2d8718f0fa8baf8547dbf809ba81190",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/versado/styles",
+        "lucide-react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "FriendRequestButtonsView"
       ]
     },
     {
@@ -14814,7 +14881,7 @@
     },
     {
       "file": "src/components/today/Greeting.tsx",
-      "sha256": "c75231ab2b3662bf3bea315dd73b0ab6618c9e9c6c34d7b22e3225ee5489b06b",
+      "sha256": "4cc9d2fbd4c967aa97e39c91066add89fbb0163e070ee0bb03f4267610adef47",
       "boundary": "context-dependent",
       "imports": [
         "@/components/versado/PersonalMascot",
@@ -14833,11 +14900,11 @@
     },
     {
       "file": "src/components/today/OpenActions.tsx",
-      "sha256": "825d3813fa6409f148abaf57a05ef375797521f702177012c15c15a5f4c11177",
+      "sha256": "f8a970609691b21d7d8b2b7638f228f3b4bf3436d748e23ad3ac9c90447ab3f2",
       "boundary": "context-dependent",
       "imports": [
-        "@/components/UserAvatar",
-        "@/components/today/FriendRequestButtons",
+        "./TodayInteractions",
+        "@/components/navigation/AppNavigation",
         "@/components/today/SectionHeader",
         "@/components/versado/styles",
         "@/lib/i18n",
@@ -14845,8 +14912,7 @@
         "@/lib/languages",
         "@/lib/timeFormat",
         "@/lib/today",
-        "lucide-react",
-        "next/link"
+        "lucide-react"
       ],
       "methods": [],
       "requests": [],
@@ -14857,12 +14923,12 @@
     },
     {
       "file": "src/components/today/SectionHeader.tsx",
-      "sha256": "4adb6df235147e7b72cb75ead5546548232eb9912555f3c9906f0f41e05b1fe6",
+      "sha256": "cfed6c8237cb08f63d1d5b48727be3ae748b3b0789becbc545ba68d1a735ea19",
       "boundary": "context-dependent",
       "imports": [
+        "@/components/navigation/AppNavigation",
         "@/components/versado/styles",
-        "lucide-react",
-        "next/link"
+        "lucide-react"
       ],
       "methods": [],
       "requests": [],
@@ -14873,16 +14939,12 @@
     },
     {
       "file": "src/components/today/SocialLive.tsx",
-      "sha256": "cb303dd64fce2f7fe157d2642057a7095b4e133a8d89ed193b58a73253a3f5dc",
+      "sha256": "527836ed7f6c97aff7740903eea95ee63a1a56f196b3c1937e427162b95ce18b",
       "boundary": "client",
       "imports": [
-        "@/components/I18nProvider",
-        "@/components/UserAvatar",
-        "@/components/versado/styles",
+        "./SocialView",
         "@/lib/socketClient",
         "@/lib/today",
-        "lucide-react",
-        "next/link",
         "react"
       ],
       "methods": [],
@@ -14894,17 +14956,17 @@
     },
     {
       "file": "src/components/today/SocialPreview.tsx",
-      "sha256": "f0f521372d13219eba334c2988a6c419c87daf990958499fcfa091b862a47178",
+      "sha256": "d9567b2c7cbd9f2465bc5ac079f3975d292dfe46492b5f9e8891ba260f539ab5",
       "boundary": "context-dependent",
       "imports": [
+        "./TodayInteractions",
+        "@/components/navigation/AppNavigation",
         "@/components/today/SectionHeader",
-        "@/components/today/SocialLive",
         "@/components/today/TogetherBlock",
         "@/components/versado/styles",
         "@/lib/i18n",
         "@/lib/today",
-        "lucide-react",
-        "next/link"
+        "lucide-react"
       ],
       "methods": [],
       "requests": [],
@@ -14914,10 +14976,84 @@
       ]
     },
     {
+      "file": "src/components/today/SocialView.tsx",
+      "sha256": "924c284934d0bb9f835eb58e97e4ee5b3e4ec721727d6b3f0d975be504f43a48",
+      "boundary": "client",
+      "imports": [
+        "./TodayInteractions",
+        "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
+        "@/components/versado/styles",
+        "@/lib/today",
+        "lucide-react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "SocialView"
+      ]
+    },
+    {
+      "file": "src/components/today/StreakContinuationCardView.tsx",
+      "sha256": "3f411db8134ca76ecf167d5e697812494d21baf37f175a126d57f7d897a921ca",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
+        "@/components/versado/SystemIcon",
+        "@/lib/learning/streakReturnRules"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "ReturnProgress",
+        "StreakContinuationCardView"
+      ]
+    },
+    {
+      "file": "src/components/today/TodayInteractions.tsx",
+      "sha256": "8059253f8b7ee42a17f974b6955cb56276c6a22b6e765ac622b4d9bba30bad39",
+      "boundary": "client",
+      "imports": [
+        "@/components/UserAvatar",
+        "@/lib/today",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "TodayAvatar",
+        "TodayFriendActions",
+        "TodayInteractionsProvider",
+        "TodaySocial",
+        "useTodayInteractions"
+      ]
+    },
+    {
+      "file": "src/components/today/TodayProgramView.tsx",
+      "sha256": "f9c58f925106e111baeae87bb172bb9004e70643d428c8482288796809d81059",
+      "boundary": "client",
+      "imports": [
+        "@/components/study/CfmTodayCard",
+        "@/components/study/ProgramSummaryView",
+        "@/lib/todayProgram.server"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "TodayProgramView"
+      ]
+    },
+    {
       "file": "src/components/today/TodaySection.tsx",
-      "sha256": "a682df7e013785ee9cfdd608afc703cb765f262840e0d389f6d196aa750b2721",
+      "sha256": "3128dfe51f52d374fa35f88e7497c7ca3979adf04afe8d9bbd77fa102b7454f2",
       "boundary": "context-dependent",
       "imports": [
+        "@/components/navigation/AppNavigation",
         "@/components/today/SectionHeader",
         "@/components/today/WordGameCountdown",
         "@/components/versado/MediaArtwork",
@@ -14928,7 +15064,6 @@
         "@/lib/i18n/core",
         "@/lib/today",
         "lucide-react",
-        "next/link",
         "react"
       ],
       "methods": [],
@@ -14939,22 +15074,67 @@
       ]
     },
     {
+      "file": "src/components/today/TodayView.tsx",
+      "sha256": "3dee2f08551656dc77949a14c005fc61ee2abb127ff4d691241d4250f8f907ac",
+      "boundary": "client",
+      "imports": [
+        "@/components/today/ContinueSection",
+        "@/components/today/DiscoverySection",
+        "@/components/today/GeneralConferenceCountdown",
+        "@/components/today/Greeting",
+        "@/components/today/OpenActions",
+        "@/components/today/SocialPreview",
+        "@/components/today/TodaySection",
+        "@/lib/generalConference",
+        "@/lib/today",
+        "@/lib/todayView",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "TodayView"
+      ]
+    },
+    {
       "file": "src/components/today/TogetherBlock.tsx",
-      "sha256": "6b33f756e4bd2865aa5f0e35558334482325f0beecf839b1f10796dfe75a4774",
+      "sha256": "d5d020acad42d027406efb7d1085872eaf602b2fb48723f34adbf7509e06e328",
       "boundary": "context-dependent",
       "imports": [
+        "@/components/navigation/AppNavigation",
         "@/components/versado/SystemIcon",
         "@/components/versado/styles",
         "@/lib/i18n",
         "@/lib/social/together",
-        "lucide-react",
-        "next/link"
+        "lucide-react"
       ],
       "methods": [],
       "requests": [],
       "checks": [],
       "exports": [
         "TogetherBlock"
+      ]
+    },
+    {
+      "file": "src/components/today/WebTodayView.tsx",
+      "sha256": "bb6716fbd897babd395e43cbd6422eb78972ca521c2954a84f1d931c735f3c55",
+      "boundary": "client",
+      "imports": [
+        "./FriendRequestButtons",
+        "./SocialLive",
+        "./TodayInteractions",
+        "./TodayView",
+        "@/components/UserAvatar",
+        "@/lib/data/mutation",
+        "@/lib/listOrder",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "WebTodayView"
       ]
     },
     {
@@ -14989,6 +15169,22 @@
       "checks": [],
       "exports": [
         "AchievementIcon"
+      ]
+    },
+    {
+      "file": "src/components/versado/CardMenu.tsx",
+      "sha256": "e93515c5a8af0334644b04548ccba321a6b182c2645540a681580a77f6a97986",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "lucide-react",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "CardMenu"
       ]
     },
     {
@@ -15028,9 +15224,10 @@
     },
     {
       "file": "src/components/versado/ContentCard.tsx",
-      "sha256": "4fd9d42cf12d78d198054dd357a09b937ab0cfd4b8a01864e5f9935a086c01c7",
+      "sha256": "6da7c6bd6ae01dee145a98a772b7c7c1fab9ff9d6028c98691d4887b5941c141",
       "boundary": "client",
       "imports": [
+        "./CardMenu",
         "@/components/I18nProvider",
         "@/components/versado/MediaArtwork",
         "@/components/versado/styles",
@@ -15044,6 +15241,7 @@
       "checks": [],
       "exports": [
         "CardMenu",
+        "CardMenuAction",
         "CardPicker",
         "CardProgress",
         "ContentCard",
@@ -15130,12 +15328,12 @@
     },
     {
       "file": "src/components/versado/MediaArtwork.tsx",
-      "sha256": "4b2f51bb864ab4e111c6ccc139b4633820f389f4054268b912f62c3fc28f51a8",
+      "sha256": "b1dcbc284878ae50cdcf4ce8c602ecffdc6d024029355e9f3542f7b8c9ac520d",
       "boundary": "client",
       "imports": [
+        "@/components/navigation/AppNavigation",
         "@/lib/artwork",
         "lucide-react",
-        "next/image",
         "react"
       ],
       "methods": [],
@@ -15281,11 +15479,11 @@
     },
     {
       "file": "src/components/versado/VisualIdentityIcon.tsx",
-      "sha256": "a9df30a77da191858cb3e0ef251b01a682690cb7ebeb5438daba731b289bb075",
+      "sha256": "b24b85e3bd0c0036013925609b93d52312d176c80926a333beab1b29bd7e31ee",
       "boundary": "client",
       "imports": [
+        "@/components/navigation/AppNavigation",
         "@/lib/visualIdentityAssets",
-        "next/image",
         "react"
       ],
       "methods": [],
@@ -15996,7 +16194,7 @@
     },
     {
       "file": "src/lib/artwork.ts",
-      "sha256": "57b18ca8e650b9f5a68095b3cf1078b74b7b5778d1202457aa4d02ff69cc6956",
+      "sha256": "f1cb376361a06a8048195e101a9544ce7a9d4381e0243751d3e621da2c20cf99",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/chapterScenes",
@@ -16012,7 +16210,8 @@
         "chapterArtworkKeys",
         "courseArtworkKeys",
         "gameArtworkKeys",
-        "podcastArtworkKeys"
+        "podcastArtworkKeys",
+        "registeredArtworkPaths"
       ]
     },
     {
@@ -17319,13 +17518,14 @@
     },
     {
       "file": "src/lib/data/native.ts",
-      "sha256": "aee3a6c930a053a31815d8d15c4d3ad9dfa580fdcebd158144199cd03c36248e",
+      "sha256": "654632da31e296c0abe9281da5ad919db3d13e28e4c37897eebca1df6f4b8a0f",
       "boundary": "context-dependent",
       "imports": [
         "./scopes",
         "./store",
         "@/lib/native/client",
         "@/lib/native/contract",
+        "@/lib/native/todayContract",
         "socket.io-client"
       ],
       "methods": [],
@@ -17333,7 +17533,8 @@
         "chapters/${encodeURIComponent(id)}",
         "content-context",
         "me",
-        "today"
+        "today",
+        "today-overview"
       ],
       "checks": [
         "cancelTick"
@@ -19051,7 +19252,7 @@
     },
     {
       "file": "src/lib/i18n/messages/de.ts",
-      "sha256": "0972f18218a1f60785f1b8e15d4fe18b308fc70d3153f990031886d032ded559",
+      "sha256": "839010efb15d1f34ea503d42583799902a5642788dd1c9c80d6f65feafe9019d",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19066,7 +19267,7 @@
     },
     {
       "file": "src/lib/i18n/messages/en.ts",
-      "sha256": "4681259644e8e4f87cceb4b3f195e5051e72359a567ea72f32f035c41ad8c07c",
+      "sha256": "36e7ca95eef64232d769baae8c457ed26baa39ca7c91a005e742a5f3412426d0",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19081,7 +19282,7 @@
     },
     {
       "file": "src/lib/i18n/messages/es.ts",
-      "sha256": "eabc98a5ceb1f701d0a91aa03e6af2bb72f716f5a3c461ce20255293ced29751",
+      "sha256": "0ffcf8cd379d21a84786bd0a301176fd46cf363631f429a39e4225a3aa33f4b0",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19096,7 +19297,7 @@
     },
     {
       "file": "src/lib/i18n/messages/fr.ts",
-      "sha256": "1489fb7d9f46388f2eacc7c777fcf8a7dbb906ca0a23ff9e30d00776fa26f91b",
+      "sha256": "4ced0bc64c3700a71015fbe50bb09ce78d78cad3e29842c525c0d8bfa2e1c925",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19179,7 +19380,7 @@
     },
     {
       "file": "src/lib/i18n/messages/nl.ts",
-      "sha256": "0ffdc9c6ecc78586af8a005c079671fdccc2180c1510df877e5502aae4804b79",
+      "sha256": "bb303d4f6efa7aaad9b0d5dd8bb3aa6ee5da02a735a0e429cc8be0f84ef843af",
       "boundary": "context-dependent",
       "imports": [
         "./kompas/nl"
@@ -19747,7 +19948,7 @@
     },
     {
       "file": "src/lib/learning/streakReturnRules.ts",
-      "sha256": "82186de399b5ab60b7159bf8710920e6495614d18d98d716badbfb3f02c38362",
+      "sha256": "e536dce097db1fae508bf86719ce2eaeb17dd9077d60c9a63da873ef3760d24f",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/dates",
@@ -19765,6 +19966,7 @@
         "dueReturnReminder",
         "interruptionDays",
         "missedDayPlan",
+        "previewStreakContinuation",
         "returnActivitiesRequired",
         "sameReturnDay",
         "streakAnchor"
@@ -20486,7 +20688,7 @@
     },
     {
       "file": "src/lib/native/access.ts",
-      "sha256": "f8294cd48586924b1b77587c92c5cab653977371a6c4e1aea142c102a1d9884d",
+      "sha256": "cbf80eef7686e8e54582362e87a7ef9de6b1db7cd543028ead4f974015458aee",
       "boundary": "context-dependent",
       "imports": [
         "./client",
@@ -20522,7 +20724,7 @@
     },
     {
       "file": "src/lib/native/api.ts",
-      "sha256": "30ee3b84adda92ac23db8a8327ef339fb7a38e111a83df621a5b5095d4de00b4",
+      "sha256": "6a667aaf632fc2853dae6a66f4293f5dd02771135fc2620068b9158975d10458",
       "boundary": "context-dependent",
       "imports": [
         "./apple",
@@ -20535,6 +20737,7 @@
         "./shellHeader.server",
         "./socketAuth",
         "./socketTickets",
+        "./today.server",
         "@/app/api/auth/forgot-password/route",
         "@/app/api/auth/register/route",
         "@/lib/account/contracts",
@@ -20959,6 +21162,80 @@
         "issueSocketTicket",
         "redisSocketTicketStore",
         "socketTicketKey"
+      ]
+    },
+    {
+      "file": "src/lib/native/today.server.ts",
+      "sha256": "303bc7212c3784c9650ab614ceb155cdd5ce8d2aa644238d0d833d2634a8f9d6",
+      "boundary": "context-dependent",
+      "imports": [
+        "./sessions",
+        "./todayContract",
+        "@/lib/companion",
+        "@/lib/contentCollections",
+        "@/lib/db",
+        "@/lib/hymns/sunday",
+        "@/lib/kompas/state",
+        "@/lib/kompas/store",
+        "@/lib/learning/streakReturnRules",
+        "@/lib/today",
+        "@/lib/todayProgram.server"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "getNativeTodayOverview"
+      ]
+    },
+    {
+      "file": "src/lib/native/todayAssets.ts",
+      "sha256": "e9e7b6813e367db274f662e57d5408dad16be2fa05ef01120cdc6a002cbccccd",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/lib/artwork",
+        "@/lib/mascots",
+        "@/lib/visualIdentityAssets"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NATIVE_TODAY_ARTWORK",
+        "NATIVE_TODAY_ASSETS",
+        "nativeArtworkPath",
+        "nativeTodayImageSource"
+      ]
+    },
+    {
+      "file": "src/lib/native/todayContract.ts",
+      "sha256": "fe341ece16e892baf89924089a359f7bc72b64a9a16a9d67e07e40f6ce509ca3",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/components/today/TodayProgramView",
+        "@/lib/today",
+        "zod"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "nativeTodayOverviewSchema",
+        "todayDataSchema"
+      ]
+    },
+    {
+      "file": "src/lib/native/todayDestinations.ts",
+      "sha256": "6518bb6788f97f44890da5d386ecda62f054dc3eac5d33ee553db1c4b5d7685b",
+      "boundary": "context-dependent",
+      "imports": [
+        "./navigation"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "nativeTodayDestination"
       ]
     },
     {
@@ -24747,6 +25024,19 @@
       ]
     },
     {
+      "file": "src/lib/studyContent/presentation.ts",
+      "sha256": "aafd9cb729e0e5fdd373db5f159acf959f5ffdf53f7a2c58ed6facaec1300fba",
+      "boundary": "context-dependent",
+      "imports": [],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "formatWeekPeriod",
+        "lessonBase"
+      ]
+    },
+    {
       "file": "src/lib/studyContent/programPublication.ts",
       "sha256": "a223f014b18e4eb3525cca0a365967e6e8489793fc0eb5db53a7f8866fd27e2a",
       "boundary": "context-dependent",
@@ -25305,9 +25595,10 @@
     },
     {
       "file": "src/lib/today.ts",
-      "sha256": "50cec8bfc6c1dc9afe36a1c5331b9acc985ec20abe694cd8e8ea75ac7afbc596",
+      "sha256": "7af78c243012e63449da717ded56a641a29662bd2a3a2b807246d0f990704c68",
       "boundary": "context-dependent",
       "imports": [
+        "./todayView",
         "@/generated/prisma/client",
         "@/lib/artwork",
         "@/lib/chapterTerm",
@@ -25324,6 +25615,7 @@
         "@/lib/hymnAvailability",
         "@/lib/hymns/sunday",
         "@/lib/i18n",
+        "@/lib/learning/streakReturnRules",
         "@/lib/listOrder",
         "@/lib/openActions",
         "@/lib/presence",
@@ -25344,6 +25636,37 @@
         "getTodayData",
         "isTodayComplete",
         "visibleContinueItems"
+      ]
+    },
+    {
+      "file": "src/lib/todayProgram.server.ts",
+      "sha256": "b1f5284240497d845c8aad90b68773afdf7ac213588ef055594def5b61fe3fdc",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/lib/db",
+        "@/lib/studyContent/catalogue",
+        "@/lib/studyContent/cfmCourses",
+        "@/lib/studyContent/weekSelection"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "getTodayProgram"
+      ]
+    },
+    {
+      "file": "src/lib/todayView.ts",
+      "sha256": "a75cccab69b1c1cf550ac332695b0741abcdbe311c0f67615956e11a32a6220d",
+      "boundary": "context-dependent",
+      "imports": [
+        "./today"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "isTodayComplete"
       ]
     },
     {
@@ -26746,6 +27069,7 @@
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
+        "src/components/today/StreakContinuationCardView.tsx",
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
         "src/components/versado/FocusLayout.tsx",
@@ -26918,6 +27242,7 @@
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
+        "src/components/today/StreakContinuationCardView.tsx",
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
         "src/components/versado/PersonalMascot.tsx",
@@ -27912,6 +28237,7 @@
         "src/components/UserAvatar.tsx",
         "src/components/UserTag.tsx",
         "src/components/alleskenner/SoloClient.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/versado/RankMedal.tsx",
         "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/VisualIdentityIcon.tsx",
@@ -28022,6 +28348,7 @@
         "src/components/I18nProvider.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/alleskenner/SoloClient.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/versado/RankMedal.tsx",
         "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/VisualIdentityIcon.tsx"
@@ -49630,22 +49957,32 @@
         "src/app/api/auth/forgot-password/route.ts",
         "src/app/api/auth/register/route.ts",
         "src/app/api/v1/native/[...path]/route.ts",
+        "src/components/I18nProvider.tsx",
+        "src/components/navigation/AppNavigation.tsx",
+        "src/components/study/CfmTodayCard.tsx",
+        "src/components/study/ProgramSummaryView.tsx",
+        "src/components/today/TodayProgramView.tsx",
+        "src/components/versado/styles.ts",
         "src/lib/account/contracts.ts",
         "src/lib/account/emailConfirmation.ts",
         "src/lib/account/password.ts",
         "src/lib/account/passwordReset.ts",
         "src/lib/accountDeletion.ts",
         "src/lib/achievements.ts",
+        "src/lib/activeGames.ts",
         "src/lib/activityFeed.ts",
         "src/lib/alleskenner/content.ts",
         "src/lib/alleskenner/validate.ts",
         "src/lib/apiError.ts",
+        "src/lib/artwork.ts",
         "src/lib/auth.ts",
         "src/lib/authBudget.ts",
         "src/lib/authTokens.ts",
         "src/lib/baseUrl.ts",
         "src/lib/brand.ts",
+        "src/lib/chapterScenes.ts",
         "src/lib/chapterTerm.ts",
+        "src/lib/companion.ts",
         "src/lib/competitionXp.ts",
         "src/lib/contentAccess.ts",
         "src/lib/contentCollectionIds.ts",
@@ -49653,9 +49990,15 @@
         "src/lib/contentPickerContract.ts",
         "src/lib/contentRouting.ts",
         "src/lib/contentSwitch.ts",
+        "src/lib/courseContent.ts",
         "src/lib/courseIntegrity.ts",
+        "src/lib/courseResume.ts",
+        "src/lib/courseSummaries.ts",
+        "src/lib/courseText.ts",
         "src/lib/courses.ts",
         "src/lib/crypto.ts",
+        "src/lib/dailyText.ts",
+        "src/lib/dailyTextRules.ts",
         "src/lib/data/scopes.ts",
         "src/lib/dates.ts",
         "src/lib/db.ts",
@@ -49679,6 +50022,14 @@
         "src/lib/handle.ts",
         "src/lib/hymnAvailability.ts",
         "src/lib/hymns/access.ts",
+        "src/lib/hymns/library/server.ts",
+        "src/lib/hymns/notation/decode.ts",
+        "src/lib/hymns/notation/lyrics.ts",
+        "src/lib/hymns/notation/musicxml.ts",
+        "src/lib/hymns/notation/types.ts",
+        "src/lib/hymns/score/melody.ts",
+        "src/lib/hymns/sunday.ts",
+        "src/lib/hymns/types.ts",
         "src/lib/i18n/core.ts",
         "src/lib/i18n/index.ts",
         "src/lib/i18n/messages/de.ts",
@@ -49693,16 +50044,22 @@
         "src/lib/i18n/messages/nl.ts",
         "src/lib/i18n/serverTexts.ts",
         "src/lib/jigsawQuestions.ts",
+        "src/lib/kompas/registry.ts",
+        "src/lib/kompas/state.ts",
+        "src/lib/kompas/store.ts",
         "src/lib/languages.ts",
         "src/lib/leagueTiers.ts",
         "src/lib/leagues.ts",
         "src/lib/learning/contentIdentity.ts",
         "src/lib/learning/contentProgress.ts",
+        "src/lib/learning/courseProgress.ts",
         "src/lib/learning/exercisePlan.ts",
         "src/lib/learning/progressState.ts",
         "src/lib/learning/rewards.ts",
+        "src/lib/learning/routes.ts",
         "src/lib/learning/streakReturnRules.ts",
         "src/lib/learning/streakRules.ts",
+        "src/lib/listOrder.ts",
         "src/lib/mailHistory.ts",
         "src/lib/mailHistoryTypes.ts",
         "src/lib/mascots.ts",
@@ -49738,18 +50095,29 @@
         "src/lib/native/shellHeader.server.ts",
         "src/lib/native/socketAuth.ts",
         "src/lib/native/socketTickets.ts",
+        "src/lib/native/today.server.ts",
+        "src/lib/native/todayContract.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
+        "src/lib/openActions.ts",
         "src/lib/parseCookieHeader.ts",
         "src/lib/podcasts.ts",
+        "src/lib/presence.ts",
         "src/lib/push.ts",
         "src/lib/pushEndpoint.ts",
+        "src/lib/puzzle/activity.ts",
         "src/lib/puzzle/puzzleNotify.ts",
         "src/lib/rateLimit.ts",
         "src/lib/readingCourses.ts",
         "src/lib/realtime.ts",
+        "src/lib/references/bible.ts",
+        "src/lib/references/contract.ts",
         "src/lib/references/evidence.ts",
+        "src/lib/references/hymns.ts",
+        "src/lib/references/otb.ts",
+        "src/lib/references/resolver.ts",
+        "src/lib/references/standardWorks.ts",
         "src/lib/registration.ts",
         "src/lib/requestBody.ts",
         "src/lib/requestLanguage.ts",
@@ -49759,28 +50127,52 @@
         "src/lib/social/friendStreaks.ts",
         "src/lib/social/groupDays.ts",
         "src/lib/social/groupFreeze.ts",
+        "src/lib/social/groupViews.ts",
         "src/lib/social/groups.ts",
+        "src/lib/social/joinLinks.ts",
+        "src/lib/social/nudges.ts",
         "src/lib/social/rules.ts",
+        "src/lib/social/together.ts",
         "src/lib/streak.ts",
         "src/lib/streakContinuation.ts",
+        "src/lib/studyContent/catalogue.ts",
+        "src/lib/studyContent/cfm2026Manifest.ts",
+        "src/lib/studyContent/cfm2027Manifest.ts",
+        "src/lib/studyContent/cfmCourses.ts",
+        "src/lib/studyContent/cfmPersonalFixture.ts",
         "src/lib/studyContent/cfmProgramme.ts",
+        "src/lib/studyContent/cfmScripture.ts",
+        "src/lib/studyContent/cfmSources.ts",
         "src/lib/studyContent/cfmVolumes.ts",
         "src/lib/studyContent/exercisePlan.ts",
         "src/lib/studyContent/exerciseSource.ts",
+        "src/lib/studyContent/fixtureAdapter.ts",
+        "src/lib/studyContent/manifest.ts",
         "src/lib/studyContent/personalStudy.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
         "src/lib/studyContent/pilotReadingSource.ts",
         "src/lib/studyContent/pilotReadings.ts",
+        "src/lib/studyContent/policy.ts",
+        "src/lib/studyContent/presentation.ts",
         "src/lib/studyContent/readStatus.ts",
+        "src/lib/studyContent/readingPosition.ts",
         "src/lib/studyContent/readingPositionContract.ts",
+        "src/lib/studyContent/readingVisitProof.ts",
         "src/lib/studyContent/revisions.ts",
         "src/lib/studyContent/schema.ts",
         "src/lib/studyContent/stepProgress.ts",
+        "src/lib/studyContent/weekLabels.ts",
+        "src/lib/studyContent/weekSelection.ts",
         "src/lib/studyContext.ts",
         "src/lib/studyContextContract.ts",
         "src/lib/timeZone.ts",
+        "src/lib/today.ts",
+        "src/lib/todayProgram.server.ts",
+        "src/lib/todayView.ts",
         "src/lib/totp.ts",
         "src/lib/unsubscribe.ts",
+        "src/lib/wordGame.ts",
+        "src/lib/wordGameHintRules.ts",
         "src/lib/wordSearch/content.ts",
         "src/lib/wordSearch/generator.ts",
         "src/lib/xp.ts",
@@ -49789,8 +50181,17 @@
       "directModules": [
         "src/lib/native/api.ts"
       ],
-      "clientBoundaries": [],
-      "requestEvidence": [],
+      "clientBoundaries": [
+        "src/components/I18nProvider.tsx",
+        "src/components/navigation/AppNavigation.tsx",
+        "src/components/study/CfmTodayCard.tsx",
+        "src/components/study/ProgramSummaryView.tsx",
+        "src/components/today/TodayProgramView.tsx"
+      ],
+      "requestEvidence": [
+        "/api/list-order",
+        "/api/list-order?listKey=${listKey}"
+      ],
       "authEvidence": [
         "nativeApi"
       ]
@@ -51439,7 +51840,9 @@
         "src/components/StreakContinuation.tsx",
         "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
+        "src/components/today/StreakContinuationCardView.tsx",
         "src/components/versado/FocusLayout.tsx",
         "src/components/versado/MascotSlot.tsx",
         "src/components/versado/PersonalMascot.tsx",
@@ -51585,7 +51988,9 @@
         "src/components/StreakContinuation.tsx",
         "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
+        "src/components/today/StreakContinuationCardView.tsx",
         "src/components/versado/PersonalMascot.tsx",
         "src/components/versado/UserAvatarView.tsx",
         "src/lib/data/client.ts",
@@ -51639,6 +52044,7 @@
         "src/components/LeaderboardClient.tsx",
         "src/components/ScriptureAvatar.tsx",
         "src/components/UserAvatar.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/versado/DivisionEmblem.tsx",
         "src/components/versado/RankMedal.tsx",
         "src/components/versado/SystemIcon.tsx",
@@ -51722,6 +52128,7 @@
         "src/components/I18nProvider.tsx",
         "src/components/LeaderboardClient.tsx",
         "src/components/UserAvatar.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/versado/RankMedal.tsx",
         "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/VisualIdentityIcon.tsx",
@@ -51974,10 +52381,14 @@
         "src/components/CoursesClient.tsx",
         "src/components/I18nProvider.tsx",
         "src/components/LiveRefresh.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/study/CfmTodayCard.tsx",
         "src/components/study/PersonalStudyParts.tsx",
         "src/components/study/ProgramContextPanel.tsx",
         "src/components/study/ProgramLessonPicker.tsx",
+        "src/components/study/ProgramSummaryView.tsx",
+        "src/components/today/TodayProgramView.tsx",
+        "src/components/versado/CardMenu.tsx",
         "src/components/versado/ContentCard.tsx",
         "src/components/versado/MediaArtwork.tsx",
         "src/components/versado/PageIntro.tsx",
@@ -52065,6 +52476,7 @@
         "src/lib/studyContent/cfmVolumes.ts",
         "src/lib/studyContent/personalStudy.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
+        "src/lib/studyContent/presentation.ts",
         "src/lib/studyContent/readingPositionContract.ts",
         "src/lib/studyContent/revisions.ts",
         "src/lib/studyContent/schema.ts",
@@ -52075,6 +52487,7 @@
         "src/lib/studyContext.ts",
         "src/lib/studyContextContract.ts",
         "src/lib/timeZone.ts",
+        "src/lib/todayProgram.server.ts",
         "src/lib/visualIdentityAssets.ts",
         "src/lib/wordSearch/content.ts",
         "src/lib/wordSearch/generator.ts"
@@ -52093,9 +52506,13 @@
         "src/components/CoursesClient.tsx",
         "src/components/I18nProvider.tsx",
         "src/components/LiveRefresh.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/study/CfmTodayCard.tsx",
         "src/components/study/PersonalStudyParts.tsx",
         "src/components/study/ProgramLessonPicker.tsx",
+        "src/components/study/ProgramSummaryView.tsx",
+        "src/components/today/TodayProgramView.tsx",
+        "src/components/versado/CardMenu.tsx",
         "src/components/versado/ContentCard.tsx",
         "src/components/versado/MediaArtwork.tsx",
         "src/components/versado/VisualIdentityIcon.tsx",
@@ -52417,6 +52834,7 @@
         "src/lib/studyContent/personalStudy.ts",
         "src/lib/studyContent/personalStudyMode.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
+        "src/lib/studyContent/presentation.ts",
         "src/lib/studyContent/readingPositionContract.ts",
         "src/lib/studyContent/revisions.ts",
         "src/lib/studyContent/schema.ts",
@@ -52618,6 +53036,7 @@
         "src/components/LiveRefresh.tsx",
         "src/components/ReadingCourseView.tsx",
         "src/components/learning/ContentStatus.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ChapterPath.tsx",
         "src/components/reading/CoursePathHeader.tsx",
         "src/components/reading/MyStepNav.tsx",
@@ -52750,6 +53169,7 @@
         "src/lib/studyContent/personalStudyOverrides.ts",
         "src/lib/studyContent/pilotReadingSource.ts",
         "src/lib/studyContent/pilotReadings.ts",
+        "src/lib/studyContent/presentation.ts",
         "src/lib/studyContent/readStatus.ts",
         "src/lib/studyContent/readingPositionContract.ts",
         "src/lib/studyContent/revisions.ts",
@@ -52794,6 +53214,7 @@
         "src/components/LiveRefresh.tsx",
         "src/components/ReadingCourseView.tsx",
         "src/components/learning/ContentStatus.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ChapterPath.tsx",
         "src/components/reading/CoursePathHeader.tsx",
         "src/components/reading/MyStepNav.tsx",
@@ -52826,22 +53247,15 @@
     },
     {
       "file": "src/app/dashboard/page.tsx",
-      "sha256": "b8e199bec998662c566c300ef2f85f951a6966b87d2b428d7a8f424bd458cfaf",
+      "sha256": "f40a5a9e6045e35d5c282c4d85f10aabeb29d45afa6596d2fe826b368b08feff",
       "boundary": "context-dependent",
       "imports": [
         "@/components/LiveRefresh",
         "@/components/StreakContinuation",
         "@/components/kompas/KompasEntryCard",
         "@/components/study/ProgramContextPanel",
-        "@/components/today/ContinueSection",
-        "@/components/today/DiscoverySection",
-        "@/components/today/GeneralConferenceCountdown",
-        "@/components/today/Greeting",
-        "@/components/today/OpenActions",
-        "@/components/today/SocialPreview",
-        "@/components/today/TodaySection",
+        "@/components/today/WebTodayView",
         "@/lib/email",
-        "@/lib/generalConference",
         "@/lib/hymns/sunday",
         "@/lib/session",
         "@/lib/timeZone",
@@ -52869,25 +53283,33 @@
         "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/kompas/KompasEntryCard.tsx",
+        "src/components/kompas/KompasEntryCardView.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
         "src/components/study/CfmTodayCard.tsx",
-        "src/components/study/PersonalStudyParts.tsx",
         "src/components/study/ProgramContextPanel.tsx",
-        "src/components/study/ProgramLessonPicker.tsx",
+        "src/components/study/ProgramSummaryView.tsx",
         "src/components/today/ContinueSection.tsx",
         "src/components/today/DiscoverySection.tsx",
         "src/components/today/FriendRequestButtons.tsx",
+        "src/components/today/FriendRequestButtonsView.tsx",
         "src/components/today/GeneralConferenceCountdown.tsx",
         "src/components/today/Greeting.tsx",
         "src/components/today/OpenActions.tsx",
         "src/components/today/SectionHeader.tsx",
         "src/components/today/SocialLive.tsx",
         "src/components/today/SocialPreview.tsx",
+        "src/components/today/SocialView.tsx",
+        "src/components/today/StreakContinuationCardView.tsx",
+        "src/components/today/TodayInteractions.tsx",
+        "src/components/today/TodayProgramView.tsx",
         "src/components/today/TodaySection.tsx",
+        "src/components/today/TodayView.tsx",
         "src/components/today/TogetherBlock.tsx",
+        "src/components/today/WebTodayView.tsx",
         "src/components/today/WordGameCountdown.tsx",
+        "src/components/versado/CardMenu.tsx",
         "src/components/versado/Carousel.tsx",
-        "src/components/versado/ContentCard.tsx",
         "src/components/versado/MascotSlot.tsx",
         "src/components/versado/MediaArtwork.tsx",
         "src/components/versado/PersonalMascot.tsx",
@@ -52948,7 +53370,6 @@
         "src/lib/email.ts",
         "src/lib/exerciseGen.ts",
         "src/lib/focusMode.ts",
-        "src/lib/fsyPresentation.ts",
         "src/lib/gameAvailability.ts",
         "src/lib/gameAvailabilityPolicy.ts",
         "src/lib/gameCatalog.ts",
@@ -53075,6 +53496,7 @@
         "src/lib/studyContent/pilotReadingSource.ts",
         "src/lib/studyContent/pilotReadings.ts",
         "src/lib/studyContent/policy.ts",
+        "src/lib/studyContent/presentation.ts",
         "src/lib/studyContent/readStatus.ts",
         "src/lib/studyContent/readingPosition.ts",
         "src/lib/studyContent/readingPositionContract.ts",
@@ -53082,7 +53504,6 @@
         "src/lib/studyContent/revisions.ts",
         "src/lib/studyContent/schema.ts",
         "src/lib/studyContent/stepProgress.ts",
-        "src/lib/studyContent/weekContext.ts",
         "src/lib/studyContent/weekLabels.ts",
         "src/lib/studyContent/weekSelection.ts",
         "src/lib/studyContext.ts",
@@ -53091,6 +53512,8 @@
         "src/lib/timeFormat.ts",
         "src/lib/timeZone.ts",
         "src/lib/today.ts",
+        "src/lib/todayProgram.server.ts",
+        "src/lib/todayView.ts",
         "src/lib/unsubscribe.ts",
         "src/lib/visualIdentityAssets.ts",
         "src/lib/wordGame.ts",
@@ -53106,15 +53529,8 @@
         "src/components/StreakContinuation.tsx",
         "src/components/kompas/KompasEntryCard.tsx",
         "src/components/study/ProgramContextPanel.tsx",
-        "src/components/today/ContinueSection.tsx",
-        "src/components/today/DiscoverySection.tsx",
-        "src/components/today/GeneralConferenceCountdown.tsx",
-        "src/components/today/Greeting.tsx",
-        "src/components/today/OpenActions.tsx",
-        "src/components/today/SocialPreview.tsx",
-        "src/components/today/TodaySection.tsx",
+        "src/components/today/WebTodayView.tsx",
         "src/lib/email.ts",
-        "src/lib/generalConference.ts",
         "src/lib/hymns/sunday.ts",
         "src/lib/session.ts",
         "src/lib/timeZone.ts",
@@ -53128,17 +53544,25 @@
         "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/kompas/KompasEntryCard.tsx",
+        "src/components/kompas/KompasEntryCardView.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
         "src/components/study/CfmTodayCard.tsx",
-        "src/components/study/PersonalStudyParts.tsx",
-        "src/components/study/ProgramLessonPicker.tsx",
+        "src/components/study/ProgramSummaryView.tsx",
         "src/components/today/ContinueSection.tsx",
         "src/components/today/FriendRequestButtons.tsx",
+        "src/components/today/FriendRequestButtonsView.tsx",
         "src/components/today/GeneralConferenceCountdown.tsx",
         "src/components/today/SocialLive.tsx",
+        "src/components/today/SocialView.tsx",
+        "src/components/today/StreakContinuationCardView.tsx",
+        "src/components/today/TodayInteractions.tsx",
+        "src/components/today/TodayProgramView.tsx",
+        "src/components/today/TodayView.tsx",
+        "src/components/today/WebTodayView.tsx",
         "src/components/today/WordGameCountdown.tsx",
+        "src/components/versado/CardMenu.tsx",
         "src/components/versado/Carousel.tsx",
-        "src/components/versado/ContentCard.tsx",
         "src/components/versado/MediaArtwork.tsx",
         "src/components/versado/PersonalMascot.tsx",
         "src/components/versado/UserAvatarView.tsx",
@@ -53159,7 +53583,6 @@
         "/api/list-order?listKey=${listKey}",
         "/api/streak/celebration",
         "/api/streak/continuation",
-        "/api/study-context",
         "/api/users/avatars?ids=${encodeURIComponent(ids.join(\",\"))}"
       ],
       "authEvidence": [
@@ -54126,6 +54549,7 @@
         "src/components/ScriptureAvatar.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/UserTag.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/social/FriendStreaksSection.tsx",
         "src/components/social/GroupsEntryCard.tsx",
         "src/components/social/shared.tsx",
@@ -54226,6 +54650,7 @@
         "src/components/FriendsClient.tsx",
         "src/components/I18nProvider.tsx",
         "src/components/UserAvatar.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/social/FriendStreaksSection.tsx",
         "src/components/social/GroupsEntryCard.tsx",
         "src/components/social/shared.tsx",
@@ -54636,6 +55061,7 @@
         "src/lib/studyContent/pilotReadingSource.ts",
         "src/lib/studyContent/pilotReadings.ts",
         "src/lib/studyContent/policy.ts",
+        "src/lib/studyContent/presentation.ts",
         "src/lib/studyContent/readAction.ts",
         "src/lib/studyContent/readStatus.ts",
         "src/lib/studyContent/reader.ts",
@@ -55213,6 +55639,7 @@
       "dependencies": [
         "src/app/groups/leaderboard/page.tsx",
         "src/components/I18nProvider.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/social/GroupLeaderboardClient.tsx",
         "src/components/social/shared.tsx",
         "src/components/versado/RankMedal.tsx",
@@ -55235,6 +55662,7 @@
       ],
       "clientBoundaries": [
         "src/components/I18nProvider.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/social/GroupLeaderboardClient.tsx",
         "src/components/social/shared.tsx",
         "src/components/versado/RankMedal.tsx",
@@ -55349,6 +55777,7 @@
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
+        "src/components/today/StreakContinuationCardView.tsx",
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
         "src/components/versado/FocusLayout.tsx",
@@ -55532,6 +55961,7 @@
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
+        "src/components/today/StreakContinuationCardView.tsx",
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
         "src/components/versado/PersonalMascot.tsx",
@@ -56742,6 +57172,7 @@
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
+        "src/components/today/StreakContinuationCardView.tsx",
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
         "src/components/versado/FocusLayout.tsx",
@@ -56923,6 +57354,7 @@
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
+        "src/components/today/StreakContinuationCardView.tsx",
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
         "src/components/versado/PersonalMascot.tsx",
@@ -57003,6 +57435,7 @@
         "src/components/kompas/TopicCard.tsx",
         "src/components/kompas/TourButton.tsx",
         "src/components/kompas/TourOverlay.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/versado/MascotSlot.tsx",
         "src/components/versado/PersonalMascot.tsx",
         "src/components/versado/VisualIdentityIcon.tsx",
@@ -57116,6 +57549,7 @@
         "src/components/kompas/OffersOptIn.tsx",
         "src/components/kompas/TourButton.tsx",
         "src/components/kompas/TourOverlay.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/versado/PersonalMascot.tsx",
         "src/components/versado/VisualIdentityIcon.tsx",
         "src/lib/data/client.ts",
@@ -57350,6 +57784,7 @@
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
+        "src/components/today/StreakContinuationCardView.tsx",
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
         "src/components/versado/FocusLayout.tsx",
@@ -57561,6 +57996,7 @@
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
+        "src/components/today/StreakContinuationCardView.tsx",
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
         "src/components/versado/PersonalMascot.tsx",
@@ -57628,6 +58064,8 @@
         "src/components/LiveLobbyForm.tsx",
         "src/components/ScriptureAvatar.tsx",
         "src/components/UserAvatar.tsx",
+        "src/components/navigation/AppNavigation.tsx",
+        "src/components/versado/CardMenu.tsx",
         "src/components/versado/ContentCard.tsx",
         "src/components/versado/MascotSlot.tsx",
         "src/components/versado/MediaArtwork.tsx",
@@ -57717,6 +58155,8 @@
         "src/components/I18nProvider.tsx",
         "src/components/LiveLobbyForm.tsx",
         "src/components/UserAvatar.tsx",
+        "src/components/navigation/AppNavigation.tsx",
+        "src/components/versado/CardMenu.tsx",
         "src/components/versado/ContentCard.tsx",
         "src/components/versado/MediaArtwork.tsx",
         "src/components/versado/PersonalMascot.tsx",
@@ -57799,6 +58239,7 @@
         "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
         "src/components/study/StudyRoom.tsx",
+        "src/components/today/StreakContinuationCardView.tsx",
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
         "src/components/versado/FocusLayout.tsx",
@@ -57994,6 +58435,7 @@
         "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
         "src/components/study/StudyRoom.tsx",
+        "src/components/today/StreakContinuationCardView.tsx",
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
         "src/components/versado/PersonalMascot.tsx",
@@ -58118,6 +58560,7 @@
       "domain": "spelen",
       "dependencies": [
         "src/app/mysteries/page.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/versado/MediaArtwork.tsx",
         "src/components/versado/styles.ts",
         "src/lib/achievements.ts",
@@ -58229,6 +58672,7 @@
         "src/lib/session.ts"
       ],
       "clientBoundaries": [
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/versado/MediaArtwork.tsx"
       ],
       "requestEvidence": [],
@@ -58259,6 +58703,7 @@
       "dependencies": [
         "src/app/mysteries/001/page.tsx",
         "src/components/mysteries/MysteryDetailPage.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/versado/MediaArtwork.tsx",
         "src/components/versado/styles.ts",
         "src/lib/achievements.ts",
@@ -58367,6 +58812,7 @@
         "src/lib/mysteries/mystery001c.ts"
       ],
       "clientBoundaries": [
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/versado/MediaArtwork.tsx"
       ],
       "requestEvidence": [],
@@ -58394,6 +58840,7 @@
       "dependencies": [
         "src/app/mysteries/001a/page.tsx",
         "src/components/mysteries/MysteryDetailPage.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/versado/MediaArtwork.tsx",
         "src/components/versado/styles.ts",
         "src/lib/achievements.ts",
@@ -58502,6 +58949,7 @@
         "src/lib/mysteries/mystery001c.ts"
       ],
       "clientBoundaries": [
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/versado/MediaArtwork.tsx"
       ],
       "requestEvidence": [],
@@ -59054,6 +59502,7 @@
       "dependencies": [
         "src/app/mysteries/002/page.tsx",
         "src/components/mysteries/MysteryDetailPage.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/versado/MediaArtwork.tsx",
         "src/components/versado/styles.ts",
         "src/lib/achievements.ts",
@@ -59162,6 +59611,7 @@
         "src/lib/mysteries/mystery002c.ts"
       ],
       "clientBoundaries": [
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/versado/MediaArtwork.tsx"
       ],
       "requestEvidence": [],
@@ -59738,6 +60188,7 @@
       "dependencies": [
         "src/app/mysteries/003/page.tsx",
         "src/components/mysteries/MysteryDetailPage.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/versado/MediaArtwork.tsx",
         "src/components/versado/styles.ts",
         "src/lib/achievements.ts",
@@ -59846,6 +60297,7 @@
         "src/lib/mysteries/mystery003c.ts"
       ],
       "clientBoundaries": [
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/versado/MediaArtwork.tsx"
       ],
       "requestEvidence": [],
@@ -60422,6 +60874,7 @@
       "dependencies": [
         "src/app/mysteries/004/page.tsx",
         "src/components/mysteries/MysteryDetailPage.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/versado/MediaArtwork.tsx",
         "src/components/versado/styles.ts",
         "src/lib/achievements.ts",
@@ -60530,6 +60983,7 @@
         "src/lib/mysteries/mystery004c.ts"
       ],
       "clientBoundaries": [
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/versado/MediaArtwork.tsx"
       ],
       "requestEvidence": [],
@@ -61106,6 +61560,7 @@
       "dependencies": [
         "src/app/mysteries/005/page.tsx",
         "src/components/mysteries/MysteryDetailPage.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/versado/MediaArtwork.tsx",
         "src/components/versado/styles.ts",
         "src/lib/achievements.ts",
@@ -61214,6 +61669,7 @@
         "src/lib/mysteries/mystery005c.ts"
       ],
       "clientBoundaries": [
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/versado/MediaArtwork.tsx"
       ],
       "requestEvidence": [],
@@ -61790,6 +62246,7 @@
       "dependencies": [
         "src/app/mysteries/006/page.tsx",
         "src/components/mysteries/MysteryDetailPage.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/versado/MediaArtwork.tsx",
         "src/components/versado/styles.ts",
         "src/lib/achievements.ts",
@@ -61898,6 +62355,7 @@
         "src/lib/mysteries/mystery006c.ts"
       ],
       "clientBoundaries": [
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/versado/MediaArtwork.tsx"
       ],
       "requestEvidence": [],
@@ -62653,6 +63111,7 @@
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
+        "src/components/today/StreakContinuationCardView.tsx",
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
         "src/components/versado/FocusLayout.tsx",
@@ -62834,6 +63293,7 @@
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
+        "src/components/today/StreakContinuationCardView.tsx",
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
         "src/components/versado/PersonalMascot.tsx",
@@ -62912,6 +63372,7 @@
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
+        "src/components/today/StreakContinuationCardView.tsx",
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
         "src/components/versado/FocusLayout.tsx",
@@ -63081,6 +63542,7 @@
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
+        "src/components/today/StreakContinuationCardView.tsx",
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
         "src/components/versado/PersonalMascot.tsx",
@@ -63191,6 +63653,7 @@
         "src/components/account/TwoFactorCards.tsx",
         "src/components/dorp/DorpEntry.tsx",
         "src/components/kompas/KompasEntryCard.tsx",
+        "src/components/kompas/KompasEntryCardView.tsx",
         "src/components/kompas/KompasIcon.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/profile/ProfileContentViews.tsx",
@@ -63315,6 +63778,7 @@
         "src/components/account/TwoFactorCards.tsx",
         "src/components/dorp/DorpEntry.tsx",
         "src/components/kompas/KompasEntryCard.tsx",
+        "src/components/kompas/KompasEntryCardView.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/profile/ProfileContentViews.tsx",
         "src/components/profile/ProfilePage.tsx",
@@ -63534,6 +63998,7 @@
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
+        "src/components/today/StreakContinuationCardView.tsx",
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
         "src/components/versado/FocusLayout.tsx",
@@ -63736,6 +64201,7 @@
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
+        "src/components/today/StreakContinuationCardView.tsx",
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
         "src/components/versado/PersonalMascot.tsx",
@@ -64162,6 +64628,7 @@
         "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
         "src/components/study/ReferenceReturn.tsx",
+        "src/components/today/StreakContinuationCardView.tsx",
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
         "src/components/versado/FocusLayout.tsx",
@@ -64336,6 +64803,7 @@
         "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
         "src/components/study/ReferenceReturn.tsx",
+        "src/components/today/StreakContinuationCardView.tsx",
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
         "src/components/versado/PersonalMascot.tsx",
@@ -64520,6 +64988,7 @@
         "src/components/ScriptureAvatar.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/UserTag.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/snelleZendeling/Leaderboard.tsx",
         "src/components/snelleZendeling/StartClient.tsx",
         "src/components/versado/MascotSlot.tsx",
@@ -64608,6 +65077,7 @@
       "clientBoundaries": [
         "src/components/I18nProvider.tsx",
         "src/components/UserAvatar.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/snelleZendeling/Leaderboard.tsx",
         "src/components/snelleZendeling/StartClient.tsx",
         "src/components/versado/PersonalMascot.tsx",
@@ -64937,7 +65407,9 @@
         "src/components/StreakContinuation.tsx",
         "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
+        "src/components/today/StreakContinuationCardView.tsx",
         "src/components/versado/MascotSlot.tsx",
         "src/components/versado/PersonalMascot.tsx",
         "src/components/versado/StreakDayIndicator.tsx",
@@ -65082,7 +65554,9 @@
         "src/components/StreakContinuation.tsx",
         "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
+        "src/components/today/StreakContinuationCardView.tsx",
         "src/components/versado/PersonalMascot.tsx",
         "src/components/versado/UserAvatarView.tsx",
         "src/lib/data/client.ts",
@@ -65404,6 +65878,7 @@
         "src/lib/studyContent/pilotReadingSource.ts",
         "src/lib/studyContent/pilotReadings.ts",
         "src/lib/studyContent/policy.ts",
+        "src/lib/studyContent/presentation.ts",
         "src/lib/studyContent/readAction.ts",
         "src/lib/studyContent/readStatus.ts",
         "src/lib/studyContent/reader.ts",
@@ -65766,6 +66241,7 @@
         "src/lib/studyContent/pilotReadingSource.ts",
         "src/lib/studyContent/pilotReadings.ts",
         "src/lib/studyContent/policy.ts",
+        "src/lib/studyContent/presentation.ts",
         "src/lib/studyContent/readAction.ts",
         "src/lib/studyContent/readStatus.ts",
         "src/lib/studyContent/reader.ts",
@@ -65887,6 +66363,7 @@
         "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
         "src/components/study/StudyExerciseClient.tsx",
+        "src/components/today/StreakContinuationCardView.tsx",
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
         "src/components/versado/FocusLayout.tsx",
@@ -66088,6 +66565,7 @@
         "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
         "src/components/study/StudyExerciseClient.tsx",
+        "src/components/today/StreakContinuationCardView.tsx",
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/ContentIcon.tsx",
         "src/components/versado/PersonalMascot.tsx",
@@ -66777,6 +67255,7 @@
         "src/components/ScriptureAvatar.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/home/HomeContent.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/versado/MascotSlot.tsx",
         "src/components/versado/SystemIcon.tsx",
         "src/components/versado/UserAvatarView.tsx",
@@ -66851,6 +67330,7 @@
         "src/components/I18nProvider.tsx",
         "src/components/InviteAcceptButton.tsx",
         "src/components/UserAvatar.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/versado/UserAvatarView.tsx",
         "src/components/versado/VisualIdentityIcon.tsx",
         "src/lib/socketClient.ts"
@@ -67171,7 +67651,9 @@
         "src/components/UserTag.tsx",
         "src/components/WordGameClient.tsx",
         "src/components/WordGameHintPanel.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
+        "src/components/today/StreakContinuationCardView.tsx",
         "src/components/versado/FocusLayout.tsx",
         "src/components/versado/MascotSlot.tsx",
         "src/components/versado/PersonalMascot.tsx",
@@ -67334,7 +67816,9 @@
         "src/components/UserAvatar.tsx",
         "src/components/WordGameClient.tsx",
         "src/components/WordGameHintPanel.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/social/shared.tsx",
+        "src/components/today/StreakContinuationCardView.tsx",
         "src/components/versado/PersonalMascot.tsx",
         "src/components/versado/RankMedal.tsx",
         "src/components/versado/UserAvatarView.tsx",
@@ -68421,22 +68905,15 @@
     },
     {
       "file": "src/app/dashboard/page.tsx",
-      "sha256": "b8e199bec998662c566c300ef2f85f951a6966b87d2b428d7a8f424bd458cfaf",
+      "sha256": "f40a5a9e6045e35d5c282c4d85f10aabeb29d45afa6596d2fe826b368b08feff",
       "boundary": "context-dependent",
       "imports": [
         "@/components/LiveRefresh",
         "@/components/StreakContinuation",
         "@/components/kompas/KompasEntryCard",
         "@/components/study/ProgramContextPanel",
-        "@/components/today/ContinueSection",
-        "@/components/today/DiscoverySection",
-        "@/components/today/GeneralConferenceCountdown",
-        "@/components/today/Greeting",
-        "@/components/today/OpenActions",
-        "@/components/today/SocialPreview",
-        "@/components/today/TodaySection",
+        "@/components/today/WebTodayView",
         "@/lib/email",
-        "@/lib/generalConference",
         "@/lib/hymns/sunday",
         "@/lib/session",
         "@/lib/timeZone",
@@ -71255,7 +71732,7 @@
     },
     {
       "file": "src/components/ConfirmProvider.tsx",
-      "sha256": "2a0673d39490a3bce559e12db55cb87aae422fb111773c5b84e04cce5e1c2818",
+      "sha256": "984b453c740c7424d35077b9f2ea1f6c95c50ac9e5d6515af69ccbfbbbf9458c",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -73017,21 +73494,20 @@
     },
     {
       "file": "src/components/StreakContinuation.tsx",
-      "sha256": "99a798c17f53d352630bba0cf5d4d8fa71fe4dcade3351fc5048e61c7759031d",
+      "sha256": "222e41afdef38bc8beb63052c9789b4a2ef2425d85f018190ecfbbb46145b8bc",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
         "@/components/StreakCelebrationFlow",
         "@/components/StreakEarnedBanner",
+        "@/components/today/StreakContinuationCardView",
         "@/components/versado/MascotSlot",
-        "@/components/versado/SystemIcon",
         "@/lib/celebrationGate",
         "@/lib/learning/streakReturnRules",
         "@/lib/socketClient",
         "@/lib/streakBanner",
         "@/lib/xpBroadcast",
         "lucide-react",
-        "next/link",
         "next/navigation",
         "react"
       ],
@@ -74321,17 +74797,13 @@
     },
     {
       "file": "src/components/kompas/KompasEntryCard.tsx",
-      "sha256": "f4b09b13687a538dbc022500706db904a97f5fdf948b7edc64913836411731de",
+      "sha256": "8382dbdd3c030254f31ac3791c387a84b4cec130d072441514f48c8a75c7393b",
       "boundary": "client",
       "imports": [
-        "@/components/I18nProvider",
-        "@/components/versado/VisualIdentityIcon",
-        "@/components/versado/styles",
+        "./KompasEntryCardView",
         "@/lib/data/fetchJson",
         "@/lib/data/hooks",
-        "@/lib/kompas/state",
-        "lucide-react",
-        "next/link"
+        "@/lib/kompas/state"
       ],
       "methods": [],
       "requests": [
@@ -74340,6 +74812,24 @@
       "checks": [],
       "exports": [
         "KompasEntryCard"
+      ]
+    },
+    {
+      "file": "src/components/kompas/KompasEntryCardView.tsx",
+      "sha256": "18aab1f71bbd82aa5d6e7813a54ed4c25aaacc0f724b8d1586c6139457ae2583",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
+        "@/components/versado/VisualIdentityIcon",
+        "@/components/versado/styles",
+        "lucide-react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "KompasEntryCardView"
       ]
     },
     {
@@ -74715,13 +75205,14 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "cdd3adbe120d4f2b1de90af5c4a2830a14b3304d9da3f9f40507335bdbf05665",
+      "sha256": "06c7144becdf0917dca2e1bd580e82a402c43396e42f4ac307bed813e5d8257b",
       "boundary": "client",
       "imports": [
         "./NativeContentPicker",
         "./NativeEmailConfirmation",
         "./NativePasswordReset",
         "./NativeShellHeader",
+        "./NativeTodayView",
         "@/components/I18nProvider",
         "@/components/account/AccountActionsProvider",
         "@/components/account/PasswordChangeForm",
@@ -74746,6 +75237,7 @@
         "@/lib/native/routeFocus",
         "@/lib/native/shell",
         "@/lib/native/socketClient",
+        "@/lib/native/todayContract",
         "@/lib/platform",
         "lucide-react",
         "react"
@@ -74806,7 +75298,7 @@
     },
     {
       "file": "src/components/native/NativeShellHeader.tsx",
-      "sha256": "4c15d195401a47f32d756eee4c93f3274cec1791ba9a29f7cbe2e2298a21f001",
+      "sha256": "89fdc23e575494ceb3b3c72d49334d403f2ddeeb7f9d4e68e01a3d2636011ef6",
       "boundary": "client",
       "imports": [
         "@/components/content/ContentSwitcherView",
@@ -74826,6 +75318,36 @@
       "checks": [],
       "exports": [
         "NativeShellHeader"
+      ]
+    },
+    {
+      "file": "src/components/native/NativeTodayView.tsx",
+      "sha256": "cd623a8775d358c3632b2f0aa4019f31e757bfb5554935c1e13258117db9021f",
+      "boundary": "client",
+      "imports": [
+        "@/components/ConfirmProvider",
+        "@/components/I18nProvider",
+        "@/components/kompas/KompasEntryCardView",
+        "@/components/navigation/AppNavigation",
+        "@/components/today/FriendRequestButtonsView",
+        "@/components/today/SocialView",
+        "@/components/today/StreakContinuationCardView",
+        "@/components/today/TodayInteractions",
+        "@/components/today/TodayProgramView",
+        "@/components/today/TodayView",
+        "@/components/versado/PersonalMascot",
+        "@/components/versado/UserAvatarView",
+        "@/lib/avatarTypes",
+        "@/lib/native/todayAssets",
+        "@/lib/native/todayContract",
+        "@/lib/native/todayDestinations",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NativeTodayView"
       ]
     },
     {
@@ -74855,7 +75377,7 @@
     },
     {
       "file": "src/components/navigation/AppNavigation.tsx",
-      "sha256": "7f630f3303395f9a8564aa471497d56ec6b7d1500d6a943521cf1381ae62bc97",
+      "sha256": "bb574bf98422ba0385f9c1d96e88d467158e7c17bdb1148f75502264d73f3bfb",
       "boundary": "client",
       "imports": [
         "react"
@@ -74867,7 +75389,9 @@
         "AppImage",
         "AppLink",
         "AppNavigationProvider",
-        "useAppNavigation"
+        "useAppImageSource",
+        "useAppNavigation",
+        "useAppNavigationAdapter"
       ]
     },
     {
@@ -76109,17 +76633,16 @@
     },
     {
       "file": "src/components/study/CfmTodayCard.tsx",
-      "sha256": "6d5249e7611a92f8e5cf6b2b20312d0497cb2347053b83244fd2dd040f3f6b07",
+      "sha256": "80f1001ee5d4fa59f1999cafbbd024243b62bb2fd7bc4d95ff5813a2fab1d076",
       "boundary": "client",
       "imports": [
-        "./PersonalStudyParts",
         "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
         "@/components/versado/styles",
+        "@/lib/studyContent/presentation",
         "@/lib/studyContent/weekLabels",
         "@/lib/studyContent/weekSelection",
-        "lucide-react",
-        "next/image",
-        "next/link"
+        "lucide-react"
       ],
       "methods": [],
       "requests": [],
@@ -76178,11 +76701,12 @@
     },
     {
       "file": "src/components/study/PersonalStudyParts.tsx",
-      "sha256": "ded5414101366c39b6bf5c7db33a8d5c237136c632a5c8004ed371b6ac02cd78",
+      "sha256": "44b13563894d823c9287a85d3a347dea991283496ae1ae47d90d4c8c86aa7e3f",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
         "@/components/versado/styles",
+        "@/lib/studyContent/presentation",
         "@/lib/studyContent/weekContext",
         "lucide-react",
         "next/link",
@@ -76202,16 +76726,12 @@
     },
     {
       "file": "src/components/study/ProgramContextPanel.tsx",
-      "sha256": "d606dbbf5dc55dd81de71a062d56be05d103a188cc2e7997190c35fb0dea2e19",
+      "sha256": "9785c8aa22a10b1b4571bfa93be02fe86ef6271013277c0ac21e123528f75bf3",
       "boundary": "context-dependent",
       "imports": [
-        "./CfmTodayCard",
-        "./ProgramLessonPicker",
         "@/components/LiveRefresh",
-        "@/lib/db",
-        "@/lib/studyContent/catalogue",
-        "@/lib/studyContent/cfmCourses",
-        "@/lib/studyContent/weekSelection"
+        "@/components/today/TodayProgramView",
+        "@/lib/todayProgram.server"
       ],
       "methods": [],
       "requests": [],
@@ -76222,10 +76742,11 @@
     },
     {
       "file": "src/components/study/ProgramLessonPicker.tsx",
-      "sha256": "409e37bf7c60b8ba6118bb0158274100c79853c90c90d829f165ef9bc8929cc7",
+      "sha256": "a120bc37cdbbfc7384a3bed83c5708dcfb2a536a50ff3e143989518f2220901e",
       "boundary": "client",
       "imports": [
         "./PersonalStudyParts",
+        "./ProgramSummaryView",
         "@/components/I18nProvider",
         "@/components/versado/styles",
         "@/lib/data/fetchJson",
@@ -76246,6 +76767,23 @@
       "checks": [],
       "exports": [
         "ProgramLessonPicker"
+      ]
+    },
+    {
+      "file": "src/components/study/ProgramSummaryView.tsx",
+      "sha256": "00a59131c3d91c00d5e509f8b238c24e2caa54777ee9dd31d0637242545c89b1",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
+        "@/components/versado/styles",
+        "lucide-react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "ProgramSummaryView"
       ]
     },
     {
@@ -76501,22 +77039,21 @@
     },
     {
       "file": "src/components/today/ContinueSection.tsx",
-      "sha256": "82c3b0eebff978d0877daedaff4f75391304213878d5274c4b1aefa9f6aaceda",
+      "sha256": "740eeb3358a34e9f3d1f07d9a4aee2d9dabeeb58f81afde936ff3cd8934b8c7c",
       "boundary": "client",
       "imports": [
+        "./TodayInteractions",
+        "@/components/navigation/AppNavigation",
         "@/components/today/SectionHeader",
+        "@/components/versado/CardMenu",
         "@/components/versado/Carousel",
-        "@/components/versado/ContentCard",
         "@/components/versado/MediaArtwork",
         "@/components/versado/styles",
-        "@/lib/data/mutation",
         "@/lib/i18n",
         "@/lib/languages",
-        "@/lib/listOrder",
         "@/lib/timeFormat",
         "@/lib/today",
         "lucide-react",
-        "next/link",
         "react"
       ],
       "methods": [],
@@ -76528,17 +77065,17 @@
     },
     {
       "file": "src/components/today/DiscoverySection.tsx",
-      "sha256": "83c7a6ee09855849baecd3e679adde539a67cad907e77e3c224e02a74a8b6819",
+      "sha256": "23e732bcf2d272056e4a4efed60a2f2d403bbb0dfdc09a4ad8d02697b49ca9ab",
       "boundary": "context-dependent",
       "imports": [
+        "@/components/navigation/AppNavigation",
         "@/components/today/SectionHeader",
         "@/components/versado/MediaArtwork",
         "@/components/versado/PersonalMascot",
         "@/components/versado/styles",
         "@/lib/i18n",
         "@/lib/i18n/core",
-        "@/lib/today",
-        "next/link"
+        "@/lib/today"
       ],
       "methods": [],
       "requests": [],
@@ -76549,13 +77086,11 @@
     },
     {
       "file": "src/components/today/FriendRequestButtons.tsx",
-      "sha256": "7a92593f0b8cdd6ea6a087e8085f91918ef3e115004af87462d798ee000480a0",
+      "sha256": "d23f95b48ae0fdfd5d1752140b91c4f91a63027fc943f95a200219e9a4f7c592",
       "boundary": "client",
       "imports": [
-        "@/components/I18nProvider",
-        "@/components/versado/styles",
+        "./FriendRequestButtonsView",
         "@/lib/socketClient",
-        "lucide-react",
         "next/navigation",
         "react"
       ],
@@ -76566,6 +77101,22 @@
       "checks": [],
       "exports": [
         "FriendRequestButtons"
+      ]
+    },
+    {
+      "file": "src/components/today/FriendRequestButtonsView.tsx",
+      "sha256": "37aa5c1570e5ba9fa9004eca250ab9c5e2d8718f0fa8baf8547dbf809ba81190",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/versado/styles",
+        "lucide-react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "FriendRequestButtonsView"
       ]
     },
     {
@@ -76590,7 +77141,7 @@
     },
     {
       "file": "src/components/today/Greeting.tsx",
-      "sha256": "c75231ab2b3662bf3bea315dd73b0ab6618c9e9c6c34d7b22e3225ee5489b06b",
+      "sha256": "4cc9d2fbd4c967aa97e39c91066add89fbb0163e070ee0bb03f4267610adef47",
       "boundary": "context-dependent",
       "imports": [
         "@/components/versado/PersonalMascot",
@@ -76609,11 +77160,11 @@
     },
     {
       "file": "src/components/today/OpenActions.tsx",
-      "sha256": "825d3813fa6409f148abaf57a05ef375797521f702177012c15c15a5f4c11177",
+      "sha256": "f8a970609691b21d7d8b2b7638f228f3b4bf3436d748e23ad3ac9c90447ab3f2",
       "boundary": "context-dependent",
       "imports": [
-        "@/components/UserAvatar",
-        "@/components/today/FriendRequestButtons",
+        "./TodayInteractions",
+        "@/components/navigation/AppNavigation",
         "@/components/today/SectionHeader",
         "@/components/versado/styles",
         "@/lib/i18n",
@@ -76621,8 +77172,7 @@
         "@/lib/languages",
         "@/lib/timeFormat",
         "@/lib/today",
-        "lucide-react",
-        "next/link"
+        "lucide-react"
       ],
       "methods": [],
       "requests": [],
@@ -76633,12 +77183,12 @@
     },
     {
       "file": "src/components/today/SectionHeader.tsx",
-      "sha256": "4adb6df235147e7b72cb75ead5546548232eb9912555f3c9906f0f41e05b1fe6",
+      "sha256": "cfed6c8237cb08f63d1d5b48727be3ae748b3b0789becbc545ba68d1a735ea19",
       "boundary": "context-dependent",
       "imports": [
+        "@/components/navigation/AppNavigation",
         "@/components/versado/styles",
-        "lucide-react",
-        "next/link"
+        "lucide-react"
       ],
       "methods": [],
       "requests": [],
@@ -76649,16 +77199,12 @@
     },
     {
       "file": "src/components/today/SocialLive.tsx",
-      "sha256": "cb303dd64fce2f7fe157d2642057a7095b4e133a8d89ed193b58a73253a3f5dc",
+      "sha256": "527836ed7f6c97aff7740903eea95ee63a1a56f196b3c1937e427162b95ce18b",
       "boundary": "client",
       "imports": [
-        "@/components/I18nProvider",
-        "@/components/UserAvatar",
-        "@/components/versado/styles",
+        "./SocialView",
         "@/lib/socketClient",
         "@/lib/today",
-        "lucide-react",
-        "next/link",
         "react"
       ],
       "methods": [],
@@ -76670,17 +77216,17 @@
     },
     {
       "file": "src/components/today/SocialPreview.tsx",
-      "sha256": "f0f521372d13219eba334c2988a6c419c87daf990958499fcfa091b862a47178",
+      "sha256": "d9567b2c7cbd9f2465bc5ac079f3975d292dfe46492b5f9e8891ba260f539ab5",
       "boundary": "context-dependent",
       "imports": [
+        "./TodayInteractions",
+        "@/components/navigation/AppNavigation",
         "@/components/today/SectionHeader",
-        "@/components/today/SocialLive",
         "@/components/today/TogetherBlock",
         "@/components/versado/styles",
         "@/lib/i18n",
         "@/lib/today",
-        "lucide-react",
-        "next/link"
+        "lucide-react"
       ],
       "methods": [],
       "requests": [],
@@ -76690,10 +77236,84 @@
       ]
     },
     {
+      "file": "src/components/today/SocialView.tsx",
+      "sha256": "924c284934d0bb9f835eb58e97e4ee5b3e4ec721727d6b3f0d975be504f43a48",
+      "boundary": "client",
+      "imports": [
+        "./TodayInteractions",
+        "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
+        "@/components/versado/styles",
+        "@/lib/today",
+        "lucide-react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "SocialView"
+      ]
+    },
+    {
+      "file": "src/components/today/StreakContinuationCardView.tsx",
+      "sha256": "3f411db8134ca76ecf167d5e697812494d21baf37f175a126d57f7d897a921ca",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
+        "@/components/versado/SystemIcon",
+        "@/lib/learning/streakReturnRules"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "ReturnProgress",
+        "StreakContinuationCardView"
+      ]
+    },
+    {
+      "file": "src/components/today/TodayInteractions.tsx",
+      "sha256": "8059253f8b7ee42a17f974b6955cb56276c6a22b6e765ac622b4d9bba30bad39",
+      "boundary": "client",
+      "imports": [
+        "@/components/UserAvatar",
+        "@/lib/today",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "TodayAvatar",
+        "TodayFriendActions",
+        "TodayInteractionsProvider",
+        "TodaySocial",
+        "useTodayInteractions"
+      ]
+    },
+    {
+      "file": "src/components/today/TodayProgramView.tsx",
+      "sha256": "f9c58f925106e111baeae87bb172bb9004e70643d428c8482288796809d81059",
+      "boundary": "client",
+      "imports": [
+        "@/components/study/CfmTodayCard",
+        "@/components/study/ProgramSummaryView",
+        "@/lib/todayProgram.server"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "TodayProgramView"
+      ]
+    },
+    {
       "file": "src/components/today/TodaySection.tsx",
-      "sha256": "a682df7e013785ee9cfdd608afc703cb765f262840e0d389f6d196aa750b2721",
+      "sha256": "3128dfe51f52d374fa35f88e7497c7ca3979adf04afe8d9bbd77fa102b7454f2",
       "boundary": "context-dependent",
       "imports": [
+        "@/components/navigation/AppNavigation",
         "@/components/today/SectionHeader",
         "@/components/today/WordGameCountdown",
         "@/components/versado/MediaArtwork",
@@ -76704,7 +77324,6 @@
         "@/lib/i18n/core",
         "@/lib/today",
         "lucide-react",
-        "next/link",
         "react"
       ],
       "methods": [],
@@ -76715,22 +77334,67 @@
       ]
     },
     {
+      "file": "src/components/today/TodayView.tsx",
+      "sha256": "3dee2f08551656dc77949a14c005fc61ee2abb127ff4d691241d4250f8f907ac",
+      "boundary": "client",
+      "imports": [
+        "@/components/today/ContinueSection",
+        "@/components/today/DiscoverySection",
+        "@/components/today/GeneralConferenceCountdown",
+        "@/components/today/Greeting",
+        "@/components/today/OpenActions",
+        "@/components/today/SocialPreview",
+        "@/components/today/TodaySection",
+        "@/lib/generalConference",
+        "@/lib/today",
+        "@/lib/todayView",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "TodayView"
+      ]
+    },
+    {
       "file": "src/components/today/TogetherBlock.tsx",
-      "sha256": "6b33f756e4bd2865aa5f0e35558334482325f0beecf839b1f10796dfe75a4774",
+      "sha256": "d5d020acad42d027406efb7d1085872eaf602b2fb48723f34adbf7509e06e328",
       "boundary": "context-dependent",
       "imports": [
+        "@/components/navigation/AppNavigation",
         "@/components/versado/SystemIcon",
         "@/components/versado/styles",
         "@/lib/i18n",
         "@/lib/social/together",
-        "lucide-react",
-        "next/link"
+        "lucide-react"
       ],
       "methods": [],
       "requests": [],
       "checks": [],
       "exports": [
         "TogetherBlock"
+      ]
+    },
+    {
+      "file": "src/components/today/WebTodayView.tsx",
+      "sha256": "bb6716fbd897babd395e43cbd6422eb78972ca521c2954a84f1d931c735f3c55",
+      "boundary": "client",
+      "imports": [
+        "./FriendRequestButtons",
+        "./SocialLive",
+        "./TodayInteractions",
+        "./TodayView",
+        "@/components/UserAvatar",
+        "@/lib/data/mutation",
+        "@/lib/listOrder",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "WebTodayView"
       ]
     },
     {
@@ -76765,6 +77429,22 @@
       "checks": [],
       "exports": [
         "AchievementIcon"
+      ]
+    },
+    {
+      "file": "src/components/versado/CardMenu.tsx",
+      "sha256": "e93515c5a8af0334644b04548ccba321a6b182c2645540a681580a77f6a97986",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "lucide-react",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "CardMenu"
       ]
     },
     {
@@ -76804,9 +77484,10 @@
     },
     {
       "file": "src/components/versado/ContentCard.tsx",
-      "sha256": "4fd9d42cf12d78d198054dd357a09b937ab0cfd4b8a01864e5f9935a086c01c7",
+      "sha256": "6da7c6bd6ae01dee145a98a772b7c7c1fab9ff9d6028c98691d4887b5941c141",
       "boundary": "client",
       "imports": [
+        "./CardMenu",
         "@/components/I18nProvider",
         "@/components/versado/MediaArtwork",
         "@/components/versado/styles",
@@ -76820,6 +77501,7 @@
       "checks": [],
       "exports": [
         "CardMenu",
+        "CardMenuAction",
         "CardPicker",
         "CardProgress",
         "ContentCard",
@@ -76906,12 +77588,12 @@
     },
     {
       "file": "src/components/versado/MediaArtwork.tsx",
-      "sha256": "4b2f51bb864ab4e111c6ccc139b4633820f389f4054268b912f62c3fc28f51a8",
+      "sha256": "b1dcbc284878ae50cdcf4ce8c602ecffdc6d024029355e9f3542f7b8c9ac520d",
       "boundary": "client",
       "imports": [
+        "@/components/navigation/AppNavigation",
         "@/lib/artwork",
         "lucide-react",
-        "next/image",
         "react"
       ],
       "methods": [],
@@ -77057,11 +77739,11 @@
     },
     {
       "file": "src/components/versado/VisualIdentityIcon.tsx",
-      "sha256": "a9df30a77da191858cb3e0ef251b01a682690cb7ebeb5438daba731b289bb075",
+      "sha256": "b24b85e3bd0c0036013925609b93d52312d176c80926a333beab1b29bd7e31ee",
       "boundary": "client",
       "imports": [
+        "@/components/navigation/AppNavigation",
         "@/lib/visualIdentityAssets",
-        "next/image",
         "react"
       ],
       "methods": [],
@@ -77395,6 +78077,10 @@
     "tests/native-socket.integration.test.ts",
     "tests/native-socket.test.ts",
     "tests/native-store-readiness.test.mjs",
+    "tests/native-today-view.test.tsx",
+    "tests/native-today.browser.mjs",
+    "tests/native-today.integration.test.ts",
+    "tests/native-today.test.ts",
     "tests/navigation-departure.test.ts",
     "tests/navigation.test.ts",
     "tests/nl-terminology.test.ts",

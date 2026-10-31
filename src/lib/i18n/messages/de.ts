@@ -232,6 +232,7 @@ export const de: PartialMessages = {
   "disabled": "Dieser Build erlaubt keinen internen Gerätezugang. Erstelle die richtige interne Version.",
   "realtime": "Echtzeitverbindungen sind in diesem internen Access-Build noch nicht verfügbar."
 },
+  nativeToday: { unavailable: "Dieses Ziel oder diese Aktion ist in dieser App-Version noch nicht verfügbar. Dein Fortschritt bleibt erhalten. Nutze dafür vorerst die Website." },
   nativeContentFallback: { unsupported: "Dieser Server unterstützt die Inhaltsauswahl in der App noch nicht. Du kannst zu Heute zurückkehren.", signIn: "Melde dich an, um deine Inhalte auszuwählen." },
   nativeDiagnostics: {"title": "Interne Diagnose", "open": "Interne Diagnose", "internalBadge": "Intern", "testBadge": "Testversion", "recovery": "Verbindung und Wiederherstellung"},
   nativeFoundation: {

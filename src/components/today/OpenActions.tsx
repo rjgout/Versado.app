@@ -1,11 +1,10 @@
-import Link from "next/link";
+import { AppLink as Link } from "@/components/navigation/AppNavigation";
 import { ArrowRight, Gamepad2 } from "lucide-react";
 import { getT } from "@/lib/i18n";
 import { getLanguage } from "@/lib/languages";
 import { relativeTime } from "@/lib/timeFormat";
-import UserAvatar from "@/components/UserAvatar";
+import { TodayAvatar as UserAvatar, TodayFriendActions as FriendRequestButtons } from "./TodayInteractions";
 import SectionHeader from "@/components/today/SectionHeader";
-import FriendRequestButtons from "@/components/today/FriendRequestButtons";
 import { primaryButton, surfaceCard } from "@/components/versado/styles";
 import type { OpenAction } from "@/lib/today";
 import type { MessageKey } from "@/lib/i18n/core";

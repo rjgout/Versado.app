@@ -1,19 +1,23 @@
 # Native functiepariteit — Versado
 
-## Actuele multiplatformopdracht — shell en contentkiezer op develop
+## Actuele multiplatformopdracht — shell, contentkiezer en B2a Vandaag op develop
 
 De opdracht in [#238](https://github.com/rjgout/Versado.app/issues/238) is leidend:
 volledige bestaande web/PWA-, iOS/iPadOS- en Android-functionaliteit, inclusief native push.
 De eerste implementatie deelt de echte shellpresentatie. B1 deelt nu ook de echte
 brontrigger en contentkiezerkaarten via expliciete platformadapters (zie
 [NATIVE-CONTENT-PICKER.md](NATIVE-CONTENT-PICKER.md)); fysieke acceptatie van B1
-blijft nodig. Volledige cursusnavigatie, Vandaag, spellen en sociale schermen zijn hiermee nog niet geleverd.
+blijft nodig. B2a deelt nu ook de bestaande volledige Vandaag-presentatie via
+het read-only `today-overview-v1`-contract en dezelfde `getTodayData`-service;
+zie [NATIVE-TODAY.md](NATIVE-TODAY.md). Ontbrekende acties/bestemmingen
+krijgen een expliciete melding. Volledige cursusnavigatie, native Vandaag-mutaties,
+private studiemedia, spellen en sociale schermen zijn hiermee nog niet geleverd.
 Zie [implementatie, afhankelijkheden en toestelacceptatie](NATIVE-SHARED-SHELL.md).
 De eigenaar bevestigde de eerdere Foundation-iPhonetest bij #233 en de gedeelde
 shell uit #239 op een fysieke iPhone; de nieuwe contentkiezer vereist opnieuw fysieke acceptatie. Geen releasevrijgave of platformuitzondering.
 
 
-Gecontroleerde ontwikkelbasis: `origin/main` op `e76bc9f7c04b7b9e6faffb97c255184e0c5fb018`. Inventarisatie op 21 oktober 2026. Roadmap: [issue #163](https://github.com/rjgout/Versado.app/issues/163). Dit is implementatievoorbereiding en technische verificatie, geen onafhankelijke acceptatie-audit.
+Historische inventarisbasis: `origin/main` op `e76bc9f7c04b7b9e6faffb97c255184e0c5fb018`. Inventarisatie op 21 oktober 2026. Roadmap: [issue #163](https://github.com/rjgout/Versado.app/issues/163). Dit is implementatievoorbereiding en technische verificatie, geen onafhankelijke acceptatie-audit.
 
 ## Audio V2 — ontwikkelstatus
 
@@ -41,7 +45,7 @@ functionele oplevering. Zie [fase-A-verslag](CFM-LEESVRAGEN-FASE-A.md) en de
 
 Iedere bestaande functie moet bruikbaar zijn op web/PWA, lokaal gebundeld iOS/iPadOS en Android. Er zijn **geen goedgekeurde web-only uitzonderingen**. Remote-preview, een link naar de website, een lege route of een route in deze inventaris is geen native equivalent. `CAPACITOR_BUILD_PROFILE=release` blijft geblokkeerd.
 
-De bestaande lokale entry is `src/components/native/entry.tsx`; `NativeNavigationProvider` koppelt de gedeelde navigatiepoort aan lokale hashgeschiedenis. De routegrens bevat uitsluitend bestaande lokale schermen; dit is nog geen volledige routerdekking. De beperkte proef ondersteunt login/registratie/resetaanvraag, een Vandaag-leeskaart, tekst van een hoofdstuk, bewust afronden en Apple-koppeling. Zij levert geen volledige pariteit van de bijbehorende webpagina's. Er is geen native gereedstatus op basis van alleen deze inventaris of Chromium toegekend.
+De bestaande lokale entry is `src/components/native/entry.tsx`; `NativeNavigationProvider` koppelt de gedeelde navigatiepoort aan lokale hashgeschiedenis. De routegrens bevat uitsluitend bestaande lokale schermen; dit is nog geen volledige routerdekking. Zonder `today-overview-v1` behoudt de beperkte proef login/registratie/resetaanvraag, één Vandaag-leeskaart, hoofdstuktekst, bewust afronden en Apple-koppeling. Met de capability gebruikt B2a dezelfde TodayView als web en een read-only serveroverzicht; ontbrekende mutaties, media en doelroutes blijven expliciet open. Zij levert geen volledige pariteit van de bijbehorende webpagina's. Er is geen native gereedstatus op basis van alleen deze inventaris of Chromium toegekend.
 
 De actuele broninventaris staat hieronder; de bijlage [native-feature-parity.inventory.json](native-feature-parity.inventory.json) bevat alle gevonden bestanden met inhoudshashes, importafhankelijkheden, requestpaden en bestaande testbestanden. De historische aantallen in PLATFORMEN beschrijven een oudere uitgangssituatie en gelden niet als actuele dekking.
 
@@ -64,8 +68,10 @@ deze wijziging claimt geen volledige native oplevering.
 De contentgebonden dagtekst gebruikt gedeelde serverselectie voor Vandaag en de
 scheduler, met `User.dailyTextSource` (standaard CFM) als additieve profielinstelling.
 De bronkeuze verandert geen sessies, kanalen of voortgang. De webprofielkeuze en
-serverselectie worden geïsoleerd getest; lokale native profielinstellingen/Vandaag
-en echte push-/mailontvangst op iOS en Android zijn hiermee niet gevalideerd. De
+serverselectie worden geïsoleerd getest. B2a toont dezelfde dagtekst van de
+actieve uitgave in Vandaag; de leesbestemming wacht op B3. Lokale native
+profielinstellingen voor deze voorkeur en echte push-/mailontvangst op iOS
+en Android zijn hiermee niet gevalideerd. De
 bestaande ontbrekende native dekking blijft open; geen web-only uitzondering of
 volledige native oplevering geclaimd.
 
@@ -85,7 +91,7 @@ Alle tien gevraagde aspecten zijn opgenomen: webfunctie/route, backend, native b
 
 Functie en webroutes | Backend / gedeeld domein | Native bestemming | Authenticatie/autorisatie | Opslag/sync | Offline/fouten | Platformen | Testdekking | Status | Blokkade
 --- | --- | --- | --- | --- | --- | --- | --- | --- | ---
-Vandaag, acties, dagelijkse doelen, beloningen, CFM, kaartvoorkeuren (`/dashboard`, `/acties`, `/xp`, `/streak`, `/shop`) | `today.ts`, courseSummaries, activeGames, dailyTargets, list-order; bestaande actor-/beloningsservices | Dezelfde routes en bestaande kaarten | A; eigen account, bronrechten, serverbepaalde beloning | S; voorkeuren en voortgang server-side | O; geen offline XP/reeks | P | Foundation-tests bewijzen uitsluitend één leeskaart; Today-/CFM-/kaarttests zijn webbewijs | Gedeeltelijke leesproef; volledige Vandaag ontbreekt | Volledige Today-contracten, gedeelde shell/data-adapters en apparaattests
+Vandaag, acties, dagelijkse doelen, beloningen, CFM, kaartvoorkeuren (`/dashboard`, `/acties`, `/xp`, `/streak`, `/shop`) | `today.ts`, courseSummaries, activeGames, dailyTargets, list-order; bestaande actor-/beloningsservices | Dezelfde routes en bestaande kaarten | A; eigen account, bronrechten, serverbepaalde beloning | S; voorkeuren en voortgang server-side | O; geen offline XP/reeks | P | Gedeelde TodayView + versioned read-only overview; exacte resultaten in B2a-PR | B2a gedeelde kaartpresentatie; mutaties, private media en doelroutes nog onvolledig; fysieke acceptatie open | B2-vervolg mutatie-/mediapoorten; B3–B5 doelroutes en apparaattests
 Contentkiezer, bron en taal (`/content`) | contentCollections/contentSwitch/contentRouting; `/api/content-context` | `/content` met dezelfde veilige wissel | A; beschikbare editie/collectie, geen UI-only beveiliging | S; activeContentCollectionId/contentLanguage, bestaande koers behouden | O; onbeschikbare wissel slaat niets op | P | content-switch, native-content integratie/browser, native-data en Access | Gedeelde kiezer en exact sessiebeveiligd selectiecontract; fysieke acceptatie B1 open | Overige activiteitbestemmingen en volledige realtime onder Access ontbreken; contextpoll 15s + maximaal één klokseconde/netwerkduur
 Cursusbeheer en leerpaden (`/courses/**`) | courses, courseProgress, readingCourses, cfmCourses; subscribe/unsubscribe en list-order | Zelfde cursus-/pad-URL's met gedeelde kaarten | A; ingeschreven/zichtbare cursus, geen implicitiete activatie bij toevoegen | S; bestaande UserCourseProgress, geen duplicaten; CFM-identiteit per collectie | O; schrijfuitval zichtbaar; geen automatische dubbele inschrijving | P | cards, course-sync/identity, reading-path, CFM-integratie | Ontbreekt | Native catalogus-/cursuscontracten en platformonafhankelijke componentimports
 Lezen en oefenen (`/lesson/**`, `/scripture/**`, `/reading-lesson/**`, `/practice`) | contentProgress, learning, oefeningen/antwoordvalidatie, referenties; hoofdstuk/audio-API's | Zelfde lees-/lesroutes met gedeelde lezer en completion-flow | A; contentAccess, eigen voortgang, servercorrectheid | S; bestaande leesposities/markeringen/XP; replaybescherming | O; tekstproef start lokaal maar haalt tekst online; geen offline beloningen | P; audio lifecycle, grote tekst | Foundation hoofdstuk/complete; learning-, reader-, exercise-, audio-/referentietests op web | Alleen beperkte hoofdstuktekst en gelezen-actie gedeeltelijk | Volledige lezer, audio, oefeningen, annotaties, hervatten en native contracten
@@ -302,7 +308,7 @@ De onafhankelijke review volgt door ChatGPT. #176 en #178 blijven ongemerged.
 <!-- BEGIN NATIVE PARITY INVENTORY -->
 ## Volledige broninventaris (gegenereerd)
 
-Gevonden: **143 pagina's**, **244 fysieke routehandlers**, **443 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
+Gevonden: **143 pagina's**, **244 fysieke routehandlers**, **454 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
 
 De JSON-bijlage bevat per route alle transitief bereikbare lokale modules, clientgrenzen en statische requestpaden. Dat is een afhankelijkheidsinventaris, geen autorisatiebewijs; voorwaarden per HTTP-methode blijven apart te controleren. Een Client Component kan via een gedeelde helper nog een serverafhankelijkheid hebben. Een module zonder eigen `use client` is contextafhankelijk, niet automatisch browsergeschikt.
 
@@ -342,7 +348,7 @@ Route | Bron / rendergrens | Domeinbeleid | Native scherm / status | Data- en au
 `/courses/[courseId]/archief` | [src/app/courses/[courseId]/archief/page.tsx](../src/app/courses/[courseId]/archief/page.tsx); Server Component-entry | leren | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/contentCollections.ts; src/lib/courseContent.ts; src/lib/courseText.ts; src/lib/db.ts; src/lib/email.ts; src/lib/readingCourses.ts; src/lib/session.ts; src/lib/studyContent/catalogue.ts; src/lib/studyContent/cfmProgramme.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/courses/[courseId]/chapter/[chapterId]` | [src/app/courses/[courseId]/chapter/[chapterId]/page.tsx](../src/app/courses/[courseId]/chapter/[chapterId]/page.tsx); Server Component-entry | leren | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/chapterTerm.ts; src/lib/contentAccess.ts; src/lib/db.ts; src/lib/i18n/index.ts; src/lib/learning/contentProgress.ts; src/lib/readingLessons.ts; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/courses/[courseId]/pad` | [src/app/courses/[courseId]/pad/page.tsx](../src/app/courses/[courseId]/pad/page.tsx); Server Component-entry | leren | Zelfde doel-URL; ontbreekt in lokale router | canStartStudy; getCurrentUser; src/lib/chapterPathData.ts; src/lib/chapterTerm.ts; src/lib/contentCollections.ts; src/lib/courseContent.ts; src/lib/courseText.ts; src/lib/db.ts; src/lib/email.ts; src/lib/i18n/index.ts; src/lib/readingCourses.ts; src/lib/readingPathData.ts; src/lib/session.ts; src/lib/study/startAvailability.ts; src/lib/studyContent/catalogue.ts; src/lib/studyContent/weekSelection.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
-`/dashboard` | [src/app/dashboard/page.tsx](../src/app/dashboard/page.tsx); Server Component-entry | overig-vandaag | Lokale route; Foundation gedeeltelijk, geen volledige functiepariteit | getCurrentUser; src/lib/email.ts; src/lib/generalConference.ts; src/lib/hymns/sunday.ts; src/lib/session.ts; src/lib/timeZone.ts; src/lib/today.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
+`/dashboard` | [src/app/dashboard/page.tsx](../src/app/dashboard/page.tsx); Server Component-entry | overig-vandaag | Lokale route; Foundation gedeeltelijk, geen volledige functiepariteit | getCurrentUser; src/lib/email.ts; src/lib/hymns/sunday.ts; src/lib/session.ts; src/lib/timeZone.ts; src/lib/today.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/dev/lofzangen` | [src/app/dev/lofzangen/page.tsx](../src/app/dev/lofzangen/page.tsx); Server Component-entry | media-hulpmiddelen | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; getHymnsAccess; src/lib/hymnAvailability.ts; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/dev/versado-dorp` | [src/app/dev/versado-dorp/page.tsx](../src/app/dev/versado-dorp/page.tsx); Server Component-entry | dorp | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/dorp/access.ts; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/disclaimer` | [src/app/disclaimer/page.tsx](../src/app/disclaimer/page.tsx); Server Component-entry | hulp-juridisch | Lokale gedeelde inhoud; apparaatbewijs open | Zie bron en rootlayout; nog expliciet beoordelen | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
@@ -1018,6 +1024,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/hymns-poc/TechnicalPanel.tsx](../src/components/hymns-poc/TechnicalPanel.tsx) | use client | TechnicalPanel
 [src/components/kompas/ContextOffer.tsx](../src/components/kompas/ContextOffer.tsx) | use client | ContextOffer
 [src/components/kompas/KompasEntryCard.tsx](../src/components/kompas/KompasEntryCard.tsx) | use client | KompasEntryCard
+[src/components/kompas/KompasEntryCardView.tsx](../src/components/kompas/KompasEntryCardView.tsx) | use client | KompasEntryCardView
 [src/components/kompas/KompasIcon.tsx](../src/components/kompas/KompasIcon.tsx) | contextafhankelijk / server-entry waar page/layout | KompasIcon, TopicIcon
 [src/components/kompas/KompasProvider.tsx](../src/components/kompas/KompasProvider.tsx) | use client | KOMPAS_TOUR_PARAM, KompasProvider, useKompas
 [src/components/kompas/MarkViewed.tsx](../src/components/kompas/MarkViewed.tsx) | use client | MarkViewed
@@ -1041,8 +1048,9 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/native/NativeNavigationProvider.tsx](../src/components/native/NativeNavigationProvider.tsx) | use client | NativeNavigationProvider
 [src/components/native/NativePasswordReset.tsx](../src/components/native/NativePasswordReset.tsx) | use client | NativePasswordReset
 [src/components/native/NativeShellHeader.tsx](../src/components/native/NativeShellHeader.tsx) | use client | NativeShellHeader
+[src/components/native/NativeTodayView.tsx](../src/components/native/NativeTodayView.tsx) | use client | NativeTodayView
 [src/components/native/entry.tsx](../src/components/native/entry.tsx) | contextafhankelijk / server-entry waar page/layout | default/locale declaratie; zie bron
-[src/components/navigation/AppNavigation.tsx](../src/components/navigation/AppNavigation.tsx) | use client | AppImage, AppLink, AppNavigationProvider, useAppNavigation
+[src/components/navigation/AppNavigation.tsx](../src/components/navigation/AppNavigation.tsx) | use client | AppImage, AppLink, AppNavigationProvider, useAppImageSource, useAppNavigation, useAppNavigationAdapter
 [src/components/navigation/NextNavigationProvider.tsx](../src/components/navigation/NextNavigationProvider.tsx) | use client | NextNavigationProvider
 [src/components/profile/ProfileContentViews.tsx](../src/components/profile/ProfileContentViews.tsx) | use client | AchievementsView, CompetitionView
 [src/components/profile/ProfilePage.tsx](../src/components/profile/ProfilePage.tsx) | use client | ProfilePage
@@ -1104,6 +1112,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/study/PersonalStudyParts.tsx](../src/components/study/PersonalStudyParts.tsx) | use client | HeaderMenu, StepDots, WeekNav, formatWeekPeriod, lessonBase, menuItem
 [src/components/study/ProgramContextPanel.tsx](../src/components/study/ProgramContextPanel.tsx) | contextafhankelijk / server-entry waar page/layout | ProgramContextPanel
 [src/components/study/ProgramLessonPicker.tsx](../src/components/study/ProgramLessonPicker.tsx) | use client | ProgramLessonPicker
+[src/components/study/ProgramSummaryView.tsx](../src/components/study/ProgramSummaryView.tsx) | use client | ProgramSummaryView
 [src/components/study/ReferenceLink.tsx](../src/components/study/ReferenceLink.tsx) | use client | BlockedReferencesContext, ReferenceActionsContext, ReferenceLink
 [src/components/study/ReferencePreview.tsx](../src/components/study/ReferencePreview.tsx) | use client | ReferencePreview
 [src/components/study/ReferenceReturn.tsx](../src/components/study/ReferenceReturn.tsx) | use client | ReferenceReturn
@@ -1117,19 +1126,27 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/today/ContinueSection.tsx](../src/components/today/ContinueSection.tsx) | use client | ContinueSection
 [src/components/today/DiscoverySection.tsx](../src/components/today/DiscoverySection.tsx) | contextafhankelijk / server-entry waar page/layout | DiscoverySection
 [src/components/today/FriendRequestButtons.tsx](../src/components/today/FriendRequestButtons.tsx) | use client | FriendRequestButtons
+[src/components/today/FriendRequestButtonsView.tsx](../src/components/today/FriendRequestButtonsView.tsx) | use client | FriendRequestButtonsView
 [src/components/today/GeneralConferenceCountdown.tsx](../src/components/today/GeneralConferenceCountdown.tsx) | use client | GeneralConferenceCountdown
 [src/components/today/Greeting.tsx](../src/components/today/Greeting.tsx) | contextafhankelijk / server-entry waar page/layout | Greeting
 [src/components/today/OpenActions.tsx](../src/components/today/OpenActions.tsx) | contextafhankelijk / server-entry waar page/layout | OpenActions
 [src/components/today/SectionHeader.tsx](../src/components/today/SectionHeader.tsx) | contextafhankelijk / server-entry waar page/layout | SectionHeader
 [src/components/today/SocialLive.tsx](../src/components/today/SocialLive.tsx) | use client | SocialLive
 [src/components/today/SocialPreview.tsx](../src/components/today/SocialPreview.tsx) | contextafhankelijk / server-entry waar page/layout | SocialPreview
+[src/components/today/SocialView.tsx](../src/components/today/SocialView.tsx) | use client | SocialView
+[src/components/today/StreakContinuationCardView.tsx](../src/components/today/StreakContinuationCardView.tsx) | use client | ReturnProgress, StreakContinuationCardView
+[src/components/today/TodayInteractions.tsx](../src/components/today/TodayInteractions.tsx) | use client | TodayAvatar, TodayFriendActions, TodayInteractionsProvider, TodaySocial, useTodayInteractions
+[src/components/today/TodayProgramView.tsx](../src/components/today/TodayProgramView.tsx) | use client | TodayProgramView
 [src/components/today/TodaySection.tsx](../src/components/today/TodaySection.tsx) | contextafhankelijk / server-entry waar page/layout | TodaySection
+[src/components/today/TodayView.tsx](../src/components/today/TodayView.tsx) | use client | TodayView
 [src/components/today/TogetherBlock.tsx](../src/components/today/TogetherBlock.tsx) | contextafhankelijk / server-entry waar page/layout | TogetherBlock
+[src/components/today/WebTodayView.tsx](../src/components/today/WebTodayView.tsx) | use client | WebTodayView
 [src/components/today/WordGameCountdown.tsx](../src/components/today/WordGameCountdown.tsx) | use client | WordGameCountdown
 [src/components/versado/AchievementIcon.tsx](../src/components/versado/AchievementIcon.tsx) | use client | AchievementIcon
+[src/components/versado/CardMenu.tsx](../src/components/versado/CardMenu.tsx) | use client | CardMenu
 [src/components/versado/Carousel.tsx](../src/components/versado/Carousel.tsx) | use client | Carousel
 [src/components/versado/CompanionPicker.tsx](../src/components/versado/CompanionPicker.tsx) | use client | CompanionPicker, companionName
-[src/components/versado/ContentCard.tsx](../src/components/versado/ContentCard.tsx) | use client | CardMenu, CardPicker, CardProgress, ContentCard, StatusChip, cardActions
+[src/components/versado/ContentCard.tsx](../src/components/versado/ContentCard.tsx) | use client | CardMenu, CardMenuAction, CardPicker, CardProgress, ContentCard, StatusChip, cardActions
 [src/components/versado/ContentIcon.tsx](../src/components/versado/ContentIcon.tsx) | use client | ContentIcon
 [src/components/versado/DivisionEmblem.tsx](../src/components/versado/DivisionEmblem.tsx) | contextafhankelijk / server-entry waar page/layout | DivisionEmblem
 [src/components/versado/FocusLayout.tsx](../src/components/versado/FocusLayout.tsx) | contextafhankelijk / server-entry waar page/layout | FocusLayout

@@ -129,3 +129,9 @@ test("contentcontext krijgt uitsluitend de exacte GET/POST-poort in TypeScript, 
     assert.doesNotMatch(source, /path\.startsWith\("content-context/);
   }
 });
+
+ test("Vandaag-overzicht heeft uitsluitend een exacte read-only Access-poort", () => {
+ assert.equal(accessRouteAllowed("today-overview", "GET"), true);
+ for(const method of ["POST","PUT","DELETE","HEAD"]) assert.equal(accessRouteAllowed("today-overview", method), false);
+ for(const path of ["today-overview/","today-overview?userId=A","today-overview/complete","../today-overview","today-overview\n"]) assert.equal(accessRouteAllowed(path,"GET"), false);
+ });

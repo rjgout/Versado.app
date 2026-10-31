@@ -4,6 +4,7 @@ import { dayKey } from "@/lib/dates";
 import { userTimeZone, zonedParts } from "@/lib/timeZone";
 import { getHymnsAccess } from "@/lib/hymnAvailability";
 import { sundayHymnsVisible } from "@/lib/hymns/sunday";
+import { previewStreakContinuation } from "@/lib/learning/streakReturnRules";
 import { getStreakContinuation } from "@/lib/streakContinuation";
 import { getTextOfTheDay, type DailyText } from "@/lib/dailyText";
 import { wordGamePeriod } from "@/lib/wordGame";
@@ -99,14 +100,7 @@ export interface TodayData {
   discover: DiscoverItem[];
 }
 
-/** Alleen afgerond als alle expliciete dagelijkse verplichtingen klaar zijn. */
-export function isTodayComplete(data: Pick<TodayData, "streak" | "actions" | "actionTotal" | "wordGame" | "dailyQuiz">): boolean {
-  return (
-    data.streak.studiedToday &&
-    data.actionTotal === 0 &&
-    [data.wordGame, data.dailyQuiz].every((game) => game === null || game.status === "done")
-  );
-}
+export { isTodayComplete } from "./todayView";
 
 const MAX_CONTINUE = 3;
 const MAX_DISCOVER = 6;
@@ -128,31 +122,36 @@ export function compactContinueItems(items: ContinueItem[], hiddenKeys: Readonly
     .slice(0, MAX_CONTINUE);
 }
 
-function partOfDay(timeZone: string): TodayData["partOfDay"] {
-  const hour = zonedParts(new Date(), timeZone).hour;
+function partOfDay(timeZone: string, now: Date): TodayData["partOfDay"] {
+  const hour = zonedParts(now, timeZone).hour;
   if (hour < 6) return "night";
   if (hour < 12) return "morning";
   if (hour < 18) return "afternoon";
   return "evening";
 }
 
-export async function getTodayData(user: User): Promise<TodayData> {
-  const continuation = await getStreakContinuation(user.id);
+export async function getTodayData(user: User, options: { readOnly?: boolean; now?: Date } = {}): Promise<TodayData> {
+  const now = options.now ?? new Date();
+  const continuation = options.readOnly ? previewStreakContinuation(user, now) : await getStreakContinuation(user.id, now);
   const t = getT(user.uiLanguage);
   const character = companionToMascot(user.companion);
   // De dagelijkse Alleskenner is voor iedereen dezelfde, met één vaste
   // daggrens (UTC); de persoonlijke dag (reeks, begroeting) volgt hieronder
   // de tijdzone van de gebruiker.
-  const today = dayKey();
+  const today = dayKey(now);
   const timeZone = userTimeZone(user);
   // Zondagsingang is een activiteit, geen contentselectie: controleer dezelfde servergate als de Lofzangen-pagina zelf.
   // Op andere dagen is geen extra databasequery nodig.
-  const sundayHymns = await sundayHymnsVisible(new Date(), timeZone, () => getHymnsAccess(user));
+  const sundayHymns = await sundayHymnsVisible(now, timeZone, () => getHymnsAccess(user));
   // Het woord van de dag wisselt om 18:00 in de tijdzone van de gebruiker
   // (met servertijd), los van de gewone kalenderdag hieronder.
-  const wordPeriod = wordGamePeriod(new Date(), timeZone);
+  const wordPeriod = wordGamePeriod(now, timeZone);
   const wordGameDay = wordPeriod.dayKey;
   const contentContext = await getContentContext(user.id);
+  // Het legacy active-label blijft non-null voor oude clients, maar verleent geen contentrechten.
+  const activeCollectionId = contentContext.collections.some(collection => collection.id === contentContext.active.id) ? contentContext.active.id : null;
+  const activeCollectionWhere = { in: activeCollectionId ? [activeCollectionId] : [] };
+
 
   const [
     openActionsData,
@@ -169,11 +168,11 @@ export async function getTodayData(user: User): Promise<TodayData> {
     continueOrder,
   ] = await Promise.all([
     getOpenActions(user),
-    getSubscribedCourseSummaries(user, contentContext.active.id, t),
+    activeCollectionId ? getSubscribedCourseSummaries(user, activeCollectionId, t) : Promise.resolve([]),
     // De kleine leeslessen houden hun plek bij als les, niet als hoofdstuk.
     // Alleen de actieve contentcollectie kan op Vandaag worden hervat.
     prisma.userCourseProgress.findMany({
-      where: { userId: user.id, subscribed: true, currentLessonId: { not: null }, course: { contentCollectionId: contentContext.active.id } },
+      where: { userId: user.id, subscribed: true, currentLessonId: { not: null }, course: { contentCollectionId: activeCollectionWhere } },
       select: {
         courseId: true,
         currentLesson: { select: { id: true, startVerse: true, endVerse: true, chapter: { select: { number: true, book: { select: { name: true, key: true } } } } } },
@@ -183,7 +182,7 @@ export async function getTodayData(user: User): Promise<TodayData> {
       where: {
         userId: user.id,
         positionSeconds: { gt: 0 },
-        episode: { podcast: { courses: { some: { contentCollectionId: contentContext.active.id, type: "PODCAST", enabled: true } } } },
+        episode: { podcast: { courses: { some: { contentCollectionId: activeCollectionWhere, type: "PODCAST", enabled: true } } } },
       },
       orderBy: { updatedAt: "desc" },
       take: 12,
@@ -201,7 +200,7 @@ export async function getTodayData(user: User): Promise<TodayData> {
             podcast: {
               select: {
                 name: true,
-                courses: { where: { contentCollectionId: contentContext.active.id, type: "PODCAST", enabled: true }, select: { id: true } },
+                courses: { where: { contentCollectionId: activeCollectionWhere, type: "PODCAST", enabled: true }, select: { id: true } },
               },
             },
           },
@@ -209,8 +208,8 @@ export async function getTodayData(user: User): Promise<TodayData> {
       },
     }),
     // Vandaag volgt de actieve content, onafhankelijk van de bronkeuze voor push/mail.
-    getTextOfTheDay({ actor: user, collectionId: contentContext.active.id,
-      language: contentContext.active.language, timeZone: user.timeZone }),
+    activeCollectionId ? getTextOfTheDay({ actor: user, date: now, collectionId: activeCollectionId,
+      language: contentContext.active.language, timeZone: user.timeZone }) : Promise.resolve(null),
     getGameSettings(),
     prisma.wordGame.findFirst({ where: { userId: user.id, dayKey: wordGameDay }, select: { status: true } }),
     prisma.alleskennerSoloRun.findFirst({ where: { userId: user.id, mode: "DAILY", dayKey: today }, select: { status: true } }),
@@ -223,7 +222,7 @@ export async function getTodayData(user: User): Promise<TodayData> {
       },
     }),
     prisma.course.findMany({
-      where: { enabled: true, contentCollectionId: contentContext.active.id, userProgress: { none: { userId: user.id, subscribed: true } } },
+      where: { enabled: true, contentCollectionId: activeCollectionWhere, userProgress: { none: { userId: user.id, subscribed: true } } },
       orderBy: { order: "asc" },
       take: 4,
       include: { _count: { select: { chapters: true } }, book: { select: { slug: true } }, contentCollection: { select: { work: true } } },
@@ -381,7 +380,7 @@ export async function getTodayData(user: User): Promise<TodayData> {
   const [statusMap, together] = await Promise.all([
     getFriendStatusMap(friends.map((f) => f.id), user.shareOnlineStatus),
     // Een fout in Samen mag Vandaag nooit blokkeren.
-    getTogetherSummary(user.id, user.timeZone).catch((e) => {
+    getTogetherSummary(user.id, user.timeZone, now).catch((e) => {
       console.error("Samen op Vandaag:", e);
       return null;
     }),
@@ -433,7 +432,7 @@ export async function getTodayData(user: User): Promise<TodayData> {
   return {
     firstName: user.handle,
     timeZone,
-    partOfDay: partOfDay(timeZone),
+    partOfDay: partOfDay(timeZone, now),
     streak: { current: continuation.currentStreak, studiedToday: continuation.studiedToday, interrupted: continuation.status === "INTERRUPTED" },
     actions: compactActions.actions,
     actionTotal: compactActions.total,

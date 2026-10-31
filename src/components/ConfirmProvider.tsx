@@ -22,6 +22,8 @@ export interface ConfirmOptions {
   destructive?: boolean;
   /** Top-layer/focus voor de nieuwe beheerpublicatieflow; oude aanroepen behouden hun UI. */
   native?: boolean;
+  /** Informatieve melding met één sluitknop; geen bevestigde mutatie. */
+  notice?: boolean;
 }
 
 interface PendingConfirmation extends ConfirmOptions {
@@ -189,6 +191,7 @@ function NativeConfirmation({
         </p>
       </div>
       <div className="mt-4 flex shrink-0 flex-col gap-3">
+        {!pending.notice && <>
         <button
           type="button"
           className="btn-secondary min-h-12 w-full !px-2 !tracking-normal [word-break:normal] [overflow-wrap:normal]"
@@ -196,6 +199,7 @@ function NativeConfirmation({
         >
           {t("common.cancel")}
         </button>
+        </>}
         <button
           type="button"
           className="btn-primary min-h-12 w-full !px-2 !tracking-normal [word-break:normal] [overflow-wrap:normal]"

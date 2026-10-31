@@ -38,6 +38,9 @@ public class NativeAccessTransportTest {
         assertFalse(NativeAccessTransport.routeAllowed("me", "DELETE"));
     }
     @Test public void contentContextIsExactAndBounded() {
+        assertTrue(NativeAccessTransport.routeAllowed("today-overview", "GET"));
+        for (String method : new String[]{"POST", "PUT", "DELETE", "HEAD"}) assertFalse(NativeAccessTransport.routeAllowed("today-overview", method));
+        for (String path : new String[]{"today-overview/", "today-overview?user=A", "today-overview/complete"}) assertFalse(NativeAccessTransport.routeAllowed(path, "GET"));
         for (String method : new String[]{"GET", "POST"}) assertTrue(NativeAccessTransport.routeAllowed("content-context", method));
         for (String method : new String[]{"PUT", "PATCH", "DELETE", "HEAD"}) assertFalse(NativeAccessTransport.routeAllowed("content-context", method));
         for (String path : new String[]{"content-context/", "content-context/preview", "content-context?preview=1", "../content-context", "content-context%2f"}) {

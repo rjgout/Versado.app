@@ -7,6 +7,8 @@ import { createElement as h } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { compactContinueItems, continueVisibilityKey, visibleContinueItems, type ContinueItem } from "../src/lib/today";
 import { introResumeHref, kidsResumeHref, podcastResumeHref, readingResumeHref } from "../src/lib/courseResume";
+import { AppNavigationProvider, type AppLinkProps } from "../src/components/navigation/AppNavigation";
+import { TodayInteractionsProvider } from "../src/components/today/TodayInteractions";
 import { I18nProvider } from "../src/components/I18nProvider";
 import { getT, messagesFor } from "../src/lib/i18n";
 
@@ -88,7 +90,8 @@ test("Ga verder hergebruikt het kaartmenu zonder sleepbediening", () => {
     h(I18nProvider, {
       language: "nl",
       messages: messagesFor("nl"),
-      children: h(ContinueSection, { items: [item], language: "nl" }),
+      children: h(AppNavigationProvider, { adapter: {pathname:"/dashboard",push(){},replace(){},back(){},canGoBack:()=>false,refresh(){},Link:({href,replace,prefetch,onNavigate,...props}:AppLinkProps)=>{void replace;void prefetch;void onNavigate;return h("a",{...props,href});}},
+        children:h(TodayInteractionsProvider,{value:{Avatar:()=>null,Social:()=>null,FriendActions:()=>null,hideContinue:async()=>{throw Error("SSR voert geen mutatie uit");}},children:h(ContinueSection, { items: [item], language: "nl" })}) }),
     })
   );
   assert.match(html, /aria-label="Beheer course-a"[^>]*aria-haspopup="menu"/);

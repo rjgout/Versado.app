@@ -187,7 +187,7 @@ test("kaartmenu en sleepkaart blijven onder de vaste navigatie", () => {
   const z = (source: string, pattern: RegExp) => Number(pattern.exec(source)?.[1]);
   const bars = z(read("src/components/StickyHeader.tsx"), /\bz-(\d+)\b/);
   const nav = z(read("src/components/BottomNav.tsx"), /\bz-(\d+)\b/);
-  const cardMenu = z(read("src/components/versado/ContentCard.tsx"), /right-2 top-2 z-(\d+)/);
+  const cardMenu = z(read("src/components/versado/CardMenu.tsx"), /right-2 top-2 z-(\d+)/);
   const drag = z(read("src/components/SortableList.tsx"), /<DragOverlay[^>]*zIndex=\{(\d+)\}/);
   assert.equal(bars, 30); assert.equal(nav, bars);
   assert.ok(cardMenu < drag && drag < bars);

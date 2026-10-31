@@ -43,6 +43,9 @@ private final class FakeAccessProtocol: URLProtocol {
             require(!NativeAccessPolicy.routeAllowed(path, "GET"), "unsafe route enabled")
         }
         require(NativeAccessPolicy.routeAllowed("chapters/synthetic-1/complete", "POST"), "chapter completion rejected")
+        require(NativeAccessPolicy.routeAllowed("today-overview", "GET"), "today overview rejected")
+        for method in ["POST", "PUT", "DELETE", "HEAD"] { require(!NativeAccessPolicy.routeAllowed("today-overview", method), "today overview write enabled") }
+        for path in ["today-overview/", "today-overview?user=A", "today-overview/complete"] { require(!NativeAccessPolicy.routeAllowed(path, "GET"), "broad today route enabled") }
         for method in ["GET", "POST"] { require(NativeAccessPolicy.routeAllowed("content-context", method), "content context rejected") }
         for method in ["PUT", "PATCH", "DELETE", "HEAD"] { require(!NativeAccessPolicy.routeAllowed("content-context", method), "extra content verb allowed") }
         for path in ["content-context/", "content-context/preview", "content-context?preview=1", "../content-context", "content-context%2f"] {

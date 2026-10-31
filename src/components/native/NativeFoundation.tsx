@@ -16,6 +16,8 @@ import ContactContent from "@/components/legal/ContactContent";
 import CookiesContent from "@/components/legal/CookiesContent";
 import AppShellFrame from "@/components/shell/AppShellFrame";
 import SubpageBackBarView from "@/components/shell/SubpageBackBarView";
+import NativeTodayView from "./NativeTodayView";
+import { type NativeTodayOverview } from "@/lib/native/todayContract";
 import NativeContentPicker from "./NativeContentPicker";
 import { SettingsSection } from "@/components/profile/settings";
 import NativeShellHeader from "./NativeShellHeader";
@@ -67,7 +69,16 @@ function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBan
     const today = await dataRuntime.today();
     if (content && today.selectionVersion !== content.picker.selectionVersion) throw new NativeClientError("content_context_changed", 409);
     return today;
-  }, { scopes: ["today", "content"], enabled: contentEnabled && !!content && navigation.pathname === "/dashboard" });
+  }, { scopes: ["today", "content"], enabled: contentEnabled && !!content && !features.includes("today-overview-v1") && navigation.pathname === "/dashboard" });
+
+  const overviewEnabled = !!user && features.includes("today-overview-v1") && !setup && !recoveryCodes;
+  const overviewQuery = useNativeLiveQuery<NativeTodayOverview>(["today-overview", user?.id ?? null, contentStamp, user?.uiLanguage ?? null], () => dataRuntime.todayOverview(user!.id, content!.picker), {
+    scopes: ["today", "content", "progress", "xp", "streak", "courses", "studyContext", "studyContent", "friends", "groups", "kompas"],
+    enabled: overviewEnabled && !!content && navigation.pathname === "/dashboard", staleTime: 60_000, pollMs: 60_000,
+    validUntil: (data, fetchedAt) => fetchedAt + Math.max(1000, Date.parse(data.expiresAt) - data.serverNow),
+  });
+  const overview = overviewEnabled && overviewQuery.data?.userId === user?.id && overviewQuery.data.selectionVersion === content?.picker.selectionVersion ? overviewQuery.data : undefined;
+  const overviewReady = navigation.pathname === "/dashboard" && !!overview;
 
   const chapterQuery = useNativeLiveQuery<Chapter>(["chapter", user?.id ?? null, chapterId, contentStamp], async () => {
     const response = await dataRuntime.chapter(chapterId!);
@@ -80,11 +91,12 @@ function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBan
   const saved = chapter?.state.read === "READ";
   const [identifier, setIdentifier] = useState(""), [password, setPassword] = useState(""), [code, setCode] = useState(""), [handle, setHandle] = useState("");
   const [error, setError] = useState(""), [notice, setNotice] = useState(false), [busy, setBusy] = useState(false), [offline, setOffline] = useState(false), [apple, setApple] = useState(false);
-  const launchHandled = useRef(false);
+  const launchHandled = useRef(false), fullTodayBackend = useRef(false);
   const sequence = useRef(0), current = useRef({ busy, navigation, setup, recoveryCodes });
   useEffect(() => { current.current = { busy, navigation, setup, recoveryCodes }; }, [busy, navigation, setup, recoveryCodes]);
-  useEffect(() => { if (user?.uiLanguage) onLanguage?.(user.uiLanguage); }, [user?.uiLanguage, onLanguage]);
-  useEffect(() => focusNativeRouteHeading(), [chapter?.id, navigation.pathname, user?.id, setup?.step, recoveryCodes, pickerAvailable]);
+  const accountLanguage = navigation.pathname === "/dashboard" ? overview?.language ?? user?.uiLanguage : user?.uiLanguage;
+  useEffect(() => { if (accountLanguage) onLanguage?.(accountLanguage); }, [accountLanguage, onLanguage]);
+  useEffect(() => focusNativeRouteHeading(), [chapter?.id, navigation.pathname, user?.id, setup?.step, recoveryCodes, pickerAvailable, overviewReady]);
   const report = useCallback((err: unknown) => {
     const key = err instanceof NativeClientError ? err.code : "request_failed";
     if (key.startsWith("access_")) {
@@ -99,7 +111,7 @@ function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBan
   }, [t, dataRuntime]);
   const accountActions = useMemo(() => nativeAccountActions(client, () => report(new NativeClientError("session_expired", 401))), [client, report]);
   const load = useCallback(async () => {
-    const [me, today] = await Promise.all([dataRuntime.account(), dataRuntime.today()]);
+    const [me, today] = await Promise.all([dataRuntime.account(), fullTodayBackend.current ? Promise.resolve({ activity: null }) : dataRuntime.today()]);
     return { me, today };
   }, [dataRuntime]);
   const bootstrap = useCallback(async () => {
@@ -107,6 +119,7 @@ function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBan
     try {
       const capabilities = nativeCapabilitiesSchema.parse(await client.publicRequest("capabilities"));
       if (id !== sequence.current) return;
+      fullTodayBackend.current = capabilities.features.includes("today-overview-v1");
       setApple(capabilities.apple && isIOSApp()); setFeatures(capabilities.features);
       if (await client.restore()) {
         const data = await load(); if (id !== sequence.current) return; setUser(data.me); setActivity(data.today.activity);
@@ -127,6 +140,12 @@ function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBan
     const invalidate = () => { sequence.current++; };
     let disposed = false, cleanup: (() => void) | undefined;
     void startNativeFoundationRuntime({ onResume: online, onBack: () => {
+      const dialog = document.querySelector<HTMLDialogElement>("dialog[open]");
+      if (dialog) {
+        const event = new Event("cancel", { cancelable: true }); dialog.dispatchEvent(event);
+        if (!event.defaultPrevented) dialog.close();
+        return true;
+      }
       const nav = current.current.navigation;
       if (current.current.setup && !["/privacy", "/cookies", "/disclaimer", "/contact"].includes(nav.pathname)) {
         void client.logout(() => { setSetup(null); setCode(""); nav.replace("/login"); }).catch(report); return true;
@@ -155,17 +174,17 @@ function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBan
     if (diagnostics && !canDiagnose) navigation.replace(user ? "/profile" : "/login");
   }, [diagnostics, canDiagnose, navigation, user]);
   useEffect(() => {
-    if (todayQuery.error instanceof NativeClientError && todayQuery.error.code === "content_context_changed") void refreshContent();
-  }, [todayQuery.error, refreshContent]);
+    if ([todayQuery.error, overviewQuery.error].some(error => error instanceof NativeClientError && error.code === "content_context_changed")) void refreshContent();
+  }, [todayQuery.error, overviewQuery.error, refreshContent]);
   useEffect(() => {
     let current = true;
-    const failure = contentQuery.error ?? (navigation.pathname === "/dashboard" ? todayQuery.error : null);
+    const failure = contentQuery.error ?? (navigation.pathname === "/dashboard" ? overviewEnabled ? overviewQuery.error : todayQuery.error : null);
     void Promise.resolve().then(() => {
       const securityFailure = failure instanceof NativeClientError && (failure.status === 401 || failure.code.startsWith("access_"));
-      if (current && failure && (!pickerPage || securityFailure) && !(failure instanceof NativeClientError && failure.code === "content_context_changed")) report(failure);
+      if (current && failure && (!pickerPage || securityFailure) && !(overviewEnabled && failure === overviewQuery.error && !securityFailure) && !(failure instanceof NativeClientError && failure.code === "content_context_changed")) report(failure);
     });
     return () => { current = false; };
-  }, [contentQuery.error, todayQuery.error, pickerPage, navigation.pathname, report]);
+  }, [contentQuery.error, todayQuery.error, overviewQuery.error, overviewEnabled, pickerPage, navigation.pathname, report]);
   const accountId = user?.id;
   const realtime = features.includes("realtime-ticket-v1") && client.realtimeSupported;
   useEffect(() => {
@@ -285,7 +304,14 @@ function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBan
       <div className="flex flex-wrap gap-3">{(["login", "register", "forgot"] as const).filter(v => v !== mode).map(value => <button className={button} disabled={busy} key={value} onClick={() => { navigation.push(value === "forgot" ? "/forgot-password" : `/${value}`); setError(""); setNotice(false); }}>{t(`nativeFoundation.${value}`)}</button>)}</div>
       {appleLoginAvailable && <p className="text-sm">{t("nativeFoundation.appleResetHelp")}</p>}
       {!termsUrl && <p className="text-sm">{t("nativeFoundation.termsUnavailable")}</p>}
-    </> : <>
+    </> : overviewEnabled && navigation.pathname === "/dashboard" ? overview ? <>
+      {!!overviewQuery.error && <section role="alert" className="rounded-2xl border border-vs-line p-4"><p>{t("nativeFoundation.error")}</p><button type="button" className={button} onClick={() => { void overviewQuery.refetch(); }}>{t("nativeFoundation.retry")}</button></section>}
+      {user.onboardingRequired && <p>{t("nativeFoundation.onboardingNote")}</p>}
+      <NativeTodayView key={`${user.id}:${dataRuntime.getSnapshot()}:${contentStamp}`} state={overview}/></> : <section aria-busy={overviewQuery.isFetching}>
+      <h1 tabIndex={-1} className="text-2xl font-extrabold">{t("nativeFoundation.today")}</h1>
+      <p role="status">{t(overviewQuery.error ? "nativeFoundation.error" : "nativeFoundation.loading")}</p>
+      {!!overviewQuery.error && <button type="button" className={button} onClick={() => { void overviewQuery.refetch(); }}>{t("nativeFoundation.retry")}</button>}
+    </section> : <>
       <h1 tabIndex={-1} className="text-2xl font-extrabold">{passwordPage ? t("profile.changePassword") : profile ? t("nativeFoundation.account") : (chapterId ? chapter?.title ?? t("pages.lesson") : `${t("nativeFoundation.today")}, ${user.handle}`)}</h1>
       {passwordPage ? <PasswordChangeForm forced={false} requiresSecondFactor={user.totpEnabled} onChanged={async () => {
         await client.logout(() => { setUser(null); dataRuntime.reset(); setRecoveryCodes(null); navigation.replace("/login"); }).catch(report);

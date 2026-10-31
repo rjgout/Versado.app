@@ -1,16 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { AppLink as Link } from "@/components/navigation/AppNavigation";
 import { ArrowRight, EyeOff } from "lucide-react";
 import { getT } from "@/lib/i18n";
 import { getLanguage } from "@/lib/languages";
 import { clockDuration, relativeTime } from "@/lib/timeFormat";
-import { hideListItem } from "@/lib/listOrder";
-import { liveMutation } from "@/lib/data/mutation";
+import { useTodayInteractions } from "./TodayInteractions";
 import Carousel from "@/components/versado/Carousel";
 import MediaArtwork from "@/components/versado/MediaArtwork";
-import { CardMenu } from "@/components/versado/ContentCard";
+import { CardMenu } from "@/components/versado/CardMenu";
 import SectionHeader from "@/components/today/SectionHeader";
 import { interactiveCard } from "@/components/versado/styles";
 import type { ContinueItem } from "@/lib/today";
@@ -72,7 +71,7 @@ function ContinueCard({ item, language, hiding, onHide }: { item: ContinueItem; 
             </p>
           </div>
         )}
-        <div className="mt-auto flex items-center justify-between gap-2 pt-1">
+        <div className="mt-auto flex flex-wrap items-center justify-between gap-2 pt-1">
           <span className="text-xs text-vs-fg-3">{relativeTime(item.at, locale)}</span>
           <span className="inline-flex items-center gap-1 text-sm font-bold text-vs-accent">
             {t("today.cta.resume")}
@@ -86,6 +85,7 @@ function ContinueCard({ item, language, hiding, onHide }: { item: ContinueItem; 
 
 function ContinueSectionContent({ initialItems, language }: { initialItems: ContinueItem[]; language: string }) {
   const t = getT(language);
+  const { hideContinue } = useTodayInteractions();
   const [items, setItems] = useState(initialItems);
   const [hidingKey, setHidingKey] = useState<string | null>(null);
 
@@ -93,10 +93,8 @@ function ContinueSectionContent({ initialItems, language }: { initialItems: Cont
     if (hidingKey) return;
     setHidingKey(item.visibilityKey);
     try {
-      await liveMutation(() => hideListItem("today-continue", item.visibilityKey), {
-        invalidates: ["today"],
-        onSuccess: () => setItems((current) => current.filter((candidate) => candidate.key !== item.key)),
-      });
+      await hideContinue(item);
+      setItems((current) => current.filter((candidate) => candidate.key !== item.key));
     } catch {
       // De kaart blijft staan als de persoonlijke voorkeur niet kon opslaan.
     } finally {
