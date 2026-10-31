@@ -45,6 +45,12 @@ jobs:
           npm run test:nas-stack
           npm run test:proxy
           npm audit --omit=dev --audit-level=high
+      # Brontekst-tests lezen componentbestanden en draaien zonder database in enkele seconden.
+      # Hier falen ze al in de feature-PR; de zware workflows op main-PR's zien ze pas later.
+      - name: Brontekst- en contractcontroles zonder database
+        run: |
+          npm run test:kompas
+          npx tsx --test tests/study-folder.test.ts tests/content-switch.test.ts
 
   pr-images:
     name: PR-image (${{ matrix.name }})
