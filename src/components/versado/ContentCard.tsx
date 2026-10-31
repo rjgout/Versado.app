@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useState, type ReactNode } from "react";
-import Link from "next/link";
+import { AppLink as Link } from "@/components/navigation/AppNavigation";
 import { CardMenu, type CardMenuAction } from "./CardMenu";
 export { CardMenu, type CardMenuAction } from "./CardMenu";
 import { ArrowDown, ArrowUp, EyeOff, Info, Plus, X } from "lucide-react";

@@ -7,19 +7,13 @@
 import test, { after, before } from "node:test";
 import assert from "node:assert/strict";
 import { createElement as h } from "react";
-import { renderToStaticMarkup } from "react-dom/server";
+import { AppNavigationProvider, type AppLinkProps } from "../src/components/navigation/AppNavigation";
+import { renderToStaticMarkup as reactRender } from "react-dom/server";
 import { applyPersonalOrder, saveListOrder } from "../src/lib/listOrder";
-import Module from "node:module";
+import { ContentCard, cardActions } from "../src/components/versado/ContentCard";
 import { I18nProvider } from "../src/components/I18nProvider";
 import { getT, messagesFor } from "../src/lib/i18n";
 
-// next/image werkt alleen binnen Next; voor deze HTML-test volstaat een <img>.
-const localRequire = Module.createRequire(import.meta.url);
-localRequire.cache[localRequire.resolve("next/image")] = {
-  exports: { __esModule: true, default: (props: { alt?: string }) => h("img", { alt: props.alt ?? "" }) },
-} as unknown as NodeJS.Module;
-// Pas na het vervangen laden (een gewone import wordt vooraan uitgevoerd).
-const { ContentCard, cardActions } = localRequire("../src/components/versado/ContentCard") as typeof import("../src/components/versado/ContentCard");
 
 test("persoonlijke volgorde: opgeslagen eerst, onbekende achteraan in hun eigen volgorde", () => {
   const items = ["a", "b", "c", "d"].map((id) => ({ id }));
@@ -27,6 +21,10 @@ test("persoonlijke volgorde: opgeslagen eerst, onbekende achteraan in hun eigen 
   assert.deepEqual(applyPersonalOrder(items, []).map((i) => i.id), ["a", "b", "c", "d"]);
 });
 
+function renderToStaticMarkup(node: React.ReactNode) {
+ const Link = ({replace,prefetch,onNavigate,...props}:AppLinkProps) => { void replace;void prefetch;void onNavigate;return h("a",props); };
+ return reactRender(h(AppNavigationProvider,{adapter:{pathname:"/courses",Link,push(){},replace(){},back(){},refresh(){},canGoBack:()=>false},children:node}));
+}
 function render(props: Partial<Parameters<typeof ContentCard>[0]>) {
   return renderToStaticMarkup(
     h(I18nProvider, {
@@ -129,7 +127,7 @@ test("de toevoegkaart gebruikt de gedeelde kaartstijl en een groot aantikbaar vl
   assert.doesNotMatch(closed, /border-dashed/);
   assert.match(closed, /addHint/);
   // Leren en Spelen gebruiken hetzelfde onderdeel met een uitleg in alle talen.
-  assert.match(readFileSync("src/components/CoursesClient.tsx", "utf8"), /addHint=\{t\("courses\.addCourseHint"\)\}/);
+  assert.match(readFileSync("src/components/CoursesView.tsx", "utf8"), /addHint=\{t\("courses\.addCourseHint"\)\}/);
   assert.match(readFileSync("src/components/LiveLobbyForm.tsx", "utf8"), /addHint=\{t\("gamesHub\.addGameHint"\)\}/);
   for (const lang of ["nl", "en", "de", "fr", "es"]) {
     const messages = readFileSync(`src/lib/i18n/messages/${lang}.ts`, "utf8");

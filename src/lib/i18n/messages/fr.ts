@@ -3,6 +3,11 @@ import { kompasFr } from "./kompas/fr";
 
 // Ontbrekende teksten vallen terug volgens fallbackChain (src/lib/languages.ts).
 export const fr: PartialMessages = {
+  nativeLearning: {
+    "readOnly": "Vous pouvez consulter les cours et les parcours. Ajouter, masquer et suivre des leçons sera possible dans une prochaine version. Votre progression est conservée.",
+    "unsupported": "Ce serveur ne prend pas encore en charge la liste des cours.",
+    "pathUnavailable": "Ce parcours n’est pas encore disponible dans cette version de l’application."
+},
   mailLog: {
     "title": "E-mails envoyés",
     "intro": "Historique depuis l’activation ; conservation pendant 90 jours maximum. Les nouveaux envois apparaissent automatiquement.",

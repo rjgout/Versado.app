@@ -5,6 +5,11 @@
 import { kompasNl } from "./kompas/nl";
 
 export const nl = {
+  nativeLearning: {
+    "readOnly": "Je kunt cursussen en leerpaden bekijken. Toevoegen, verbergen en lessen volgen komen in een volgende appversie. Je voortgang blijft behouden.",
+    "unsupported": "Deze server ondersteunt het cursusoverzicht nog niet.",
+    "pathUnavailable": "Dit leerpad is in deze appversie nog niet beschikbaar."
+},
   mailLog: {
     "title": "Verzonden e-mails",
     "intro": "Verzendhistorie vanaf ingebruikname; maximaal 90 dagen. Nieuwe verzendingen verschijnen automatisch.",

@@ -6,7 +6,7 @@ import { useNativeData, useNativeLiveQuery } from "@/lib/data/nativeHooks";
 import { studyMediaIdFromSource } from "@/lib/native/studyMediaContract";
 import type { NativeTodayOverview } from "@/lib/native/todayContract";
 const Context = createContext<Pick<NativeTodayOverview, "userId" | "activeCollectionId" | "selectionVersion"> | null>(null);
-export function NativeStudyMediaProvider({ state, children }: { state: NativeTodayOverview; children: ReactNode }) { return <Context.Provider value={state}>{children}</Context.Provider>; }
+export function NativeStudyMediaProvider({ state, children }: { state: Pick<NativeTodayOverview, "userId" | "activeCollectionId" | "selectionVersion">; children: ReactNode }) { return <Context.Provider value={state}>{children}</Context.Provider>; }
 function ProtectedImage({ mediaId, ...props }: AppImageProps & { mediaId: string }) {
   const runtime = useNativeData(), state = useContext(Context);
   const [failedChecksum, setFailedChecksum] = useState<string | null>(null);

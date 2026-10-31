@@ -2636,19 +2636,12 @@
     },
     {
       "file": "src/app/api/courses/catalog/route.ts",
-      "sha256": "d43d78e1e5dd63725b404c167798948126c306926caa76af972394b1a8a13f9d",
+      "sha256": "f49e16d74518cec45d6c6d5857d145df14cf0150a7e7b5517e58b6b2d80816ec",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
-        "@/lib/artwork",
-        "@/lib/chapterTerm",
-        "@/lib/contentCollections",
-        "@/lib/courseContent",
-        "@/lib/courseText",
-        "@/lib/db",
-        "@/lib/i18n",
+        "@/lib/learning/courseCatalog.server",
         "@/lib/session",
-        "@/lib/studyContent/cfmCourses",
         "next/server"
       ],
       "methods": [
@@ -2664,23 +2657,12 @@
     },
     {
       "file": "src/app/api/courses/route.ts",
-      "sha256": "a0953edb182a3cdf81c2e04e1906307535640f0b2f0ebd3034145e53009d2715",
+      "sha256": "96164655820501471d849b466c373e170f729e9b203042d431a6f8953bac3607",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
-        "@/lib/artwork",
-        "@/lib/chapterTerm",
-        "@/lib/contentCollections",
-        "@/lib/courseContent",
-        "@/lib/courseResume",
-        "@/lib/courseText",
-        "@/lib/db",
-        "@/lib/i18n",
-        "@/lib/learning/courseProgress",
-        "@/lib/readingCourses",
+        "@/lib/learning/courseList.server",
         "@/lib/session",
-        "@/lib/studyContent/cfmCourses",
-        "@/lib/studyContent/courseSummary",
         "next/server"
       ],
       "methods": [
@@ -9309,22 +9291,16 @@
     },
     {
       "file": "src/components/CoursesClient.tsx",
-      "sha256": "5e9412140382dc1bfd440f0d66d62592763413d60cd75a6b597031113f9c3d49",
+      "sha256": "a3c44a7b84ab254b131c022bf55c8c8a987b689187aeb2c791cac170daeedc01",
       "boundary": "client",
       "imports": [
+        "./CoursesView",
         "@/components/I18nProvider",
-        "@/components/versado/ContentCard",
-        "@/components/versado/VisualIdentityIcon",
         "@/components/versado/useCardListSave",
         "@/lib/data/fetchJson",
         "@/lib/data/hooks",
         "@/lib/data/mutation",
-        "@/lib/i18n/core",
         "@/lib/listOrder",
-        "@/lib/studyContent/weekLabels",
-        "@/lib/studyContent/weekSelection",
-        "lucide-react",
-        "next/link",
         "react"
       ],
       "methods": [],
@@ -9337,6 +9313,27 @@
       "checks": [],
       "exports": [
         "CoursesClient"
+      ]
+    },
+    {
+      "file": "src/components/CoursesView.tsx",
+      "sha256": "824bdf47aaa49dcff37efbf0bad7dd1a85e60183f8a7f09a75b53ed6c70d6d44",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
+        "@/components/versado/ContentCard",
+        "@/components/versado/VisualIdentityIcon",
+        "@/lib/i18n/core",
+        "@/lib/studyContent/weekLabels",
+        "@/lib/studyContent/weekSelection",
+        "lucide-react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "CoursesView"
       ]
     },
     {
@@ -12568,12 +12565,12 @@
     },
     {
       "file": "src/components/learning/ContentStatus.tsx",
-      "sha256": "a1b4bbf16b9c930176a91ed19d935afd656852c5cf9b5d0dac3b33e17312cfdf",
+      "sha256": "fe2bed3e1b2375b2515ed152f47f05c4d708e91d19c13cdf6b8116502e5bdf81",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
         "lucide-react",
-        "next/link",
         "react"
       ],
       "methods": [],
@@ -12805,11 +12802,12 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "4b68d68ee0c3f57a814d8d48c69745635f5b3d28dd0927459039fa0d1ca0edee",
+      "sha256": "c1284a2ce5e6d5b6161deac67267e3b1a77b649c83742a53fb70fc39bd97e506",
       "boundary": "client",
       "imports": [
         "./NativeContentPicker",
         "./NativeEmailConfirmation",
+        "./NativeLearningView",
         "./NativePasswordReset",
         "./NativeShellHeader",
         "./NativeTodayView",
@@ -12856,13 +12854,43 @@
       ]
     },
     {
+      "file": "src/components/native/NativeLearningView.tsx",
+      "sha256": "f8165a2b3014cc81fb47519457d2e5da37a47857bd8e406c6b71ba97d195bbcb",
+      "boundary": "client",
+      "imports": [
+        "./NativeStudyImage",
+        "@/components/ChapterListCourseView",
+        "@/components/ConfirmProvider",
+        "@/components/CoursesView",
+        "@/components/I18nProvider",
+        "@/components/ReadingCourseView",
+        "@/components/navigation/AppNavigation",
+        "@/lib/data/nativeHooks",
+        "@/lib/native/client",
+        "@/lib/native/contract",
+        "@/lib/native/navigation",
+        "@/lib/native/routeFocus",
+        "@/lib/native/studyMediaContract",
+        "@/lib/native/todayAssets",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NativeLearningView"
+      ]
+    },
+    {
       "file": "src/components/native/NativeNavigationProvider.tsx",
-      "sha256": "a24102315044482afe6da61eb4eb118e9bfd3ce28e74b3063764240542622e2b",
+      "sha256": "8be6c84d7e59c1a882ae6e9d416009b5f048dc1f2635767659e7be1b7c4d3d18",
       "boundary": "client",
       "imports": [
         "@/components/navigation/AppNavigation",
         "@/lib/native/navigation",
+        "@/lib/navigationEntry",
         "@/lib/platform",
+        "@/lib/scrollRestore",
         "react"
       ],
       "methods": [],
@@ -12898,7 +12926,7 @@
     },
     {
       "file": "src/components/native/NativeShellHeader.tsx",
-      "sha256": "89fdc23e575494ceb3b3c72d49334d403f2ddeeb7f9d4e68e01a3d2636011ef6",
+      "sha256": "c0e28f4f6804cce0922f50e9945db253baf4050e5b9601d5f0340612bcfed8ad",
       "boundary": "client",
       "imports": [
         "@/components/content/ContentSwitcherView",
@@ -12922,7 +12950,7 @@
     },
     {
       "file": "src/components/native/NativeStudyImage.tsx",
-      "sha256": "8749155ac95261e6fbec5aa5e08d2ad1054e214dd614ab96d7af0547b291e68b",
+      "sha256": "e96616b39c4a8f77a21e43ea1602bb7d8d86dfb1442e348b40250ba2a5f8ed8a",
       "boundary": "client",
       "imports": [
         "@/components/navigation/AppNavigation",
@@ -12942,7 +12970,7 @@
     },
     {
       "file": "src/components/native/NativeTodayView.tsx",
-      "sha256": "cb729c3b1d3e5e3ea9b0a4beeadfbafda465dadc337f9f715ee3b07d024dafae",
+      "sha256": "f56127afe2a28549a92a36e591c9e116fa8385a3318477b0d94e3e8f10713170",
       "boundary": "client",
       "imports": [
         "./NativeStudyImage",
@@ -13448,18 +13476,18 @@
     },
     {
       "file": "src/components/reading/ChapterPath.tsx",
-      "sha256": "40af42ec996ad8cca95355b5d714a1940699202e990d195e79d7401d0c03f910",
+      "sha256": "356bd632bc53abd42b6268bf0ce15b82af7cc51859d17503fb572aa00ce315ad",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
         "@/components/learning/ContentStatus",
+        "@/components/navigation/AppNavigation",
         "@/components/reading/MyStepNav",
         "@/components/reading/pathParts",
         "@/components/versado/styles",
         "@/lib/artwork",
         "@/lib/readingCourses",
         "lucide-react",
-        "next/link",
         "react"
       ],
       "methods": [],
@@ -13471,7 +13499,7 @@
     },
     {
       "file": "src/components/reading/CoursePathHeader.tsx",
-      "sha256": "5b2332e5244230fff14035c8fa840a698966edaf2415028d6cd3c50142c57317",
+      "sha256": "f4d856f7e2c8be6ade793cb1092da18b3ea1653fc586b705c6165fe181edcb87",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -13487,12 +13515,12 @@
     },
     {
       "file": "src/components/reading/MyStepNav.tsx",
-      "sha256": "98d0c57e4a180f5c6e5d0fb7713a618e020908dea9ae8ed29918d5aebdefd74a",
+      "sha256": "e49b10c99cffa60189043458a3ebc66a4f42abf0b5f498097e6a032b5c74e074",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
         "@/components/versado/styles",
-        "@/lib/navigationHistory",
+        "@/lib/navigationEntry",
         "@/lib/readingPath",
         "@/lib/scrollRestore",
         "lucide-react",
@@ -13508,17 +13536,17 @@
     },
     {
       "file": "src/components/reading/ReadingPath.tsx",
-      "sha256": "26e931be2df9a735668e2bf1504461a02c5948b2009be0bbd59697222f52ce1d",
+      "sha256": "06e793ce7b8071ad074a23c474df45c4685b7c3f758426323e3d80edd9973275",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
         "@/components/reading/MyStepNav",
         "@/components/reading/pathParts",
         "@/components/versado/styles",
         "@/lib/artwork",
         "@/lib/readingPath",
         "lucide-react",
-        "next/link",
         "react"
       ],
       "methods": [],
@@ -13530,16 +13558,15 @@
     },
     {
       "file": "src/components/reading/pathParts.tsx",
-      "sha256": "890d6896f429f2097a748cd5c867e2cca389da173a05cff6dab69aef433798b1",
+      "sha256": "f59f5b1ddffc0adc4eda5e93731f8fee51e8afd20cf459e9b27a5162aba41963",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
         "@/components/versado/MediaArtwork",
         "@/components/versado/styles",
         "@/lib/artwork",
-        "lucide-react",
-        "next/image",
-        "next/link"
+        "lucide-react"
       ],
       "methods": [],
       "requests": [],
@@ -15258,16 +15285,16 @@
     },
     {
       "file": "src/components/versado/ContentCard.tsx",
-      "sha256": "6da7c6bd6ae01dee145a98a772b7c7c1fab9ff9d6028c98691d4887b5941c141",
+      "sha256": "00619b4112fda086f3f93a4c86e6a5277648b6a4626d4472a5ba78ce30e3697e",
       "boundary": "client",
       "imports": [
         "./CardMenu",
         "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
         "@/components/versado/MediaArtwork",
         "@/components/versado/styles",
         "@/lib/artwork",
         "lucide-react",
-        "next/link",
         "react"
       ],
       "methods": [],
@@ -16844,7 +16871,7 @@
     },
     {
       "file": "src/lib/chapterPathData.ts",
-      "sha256": "8a7bab12c55413c0ba49e027a98369c80674e366ea5cdbb9f5c168d1dcbcf352",
+      "sha256": "046bd8214d56dd809379f78bc286f621e0663dc94ef85ce5a1527806606b75d5",
       "boundary": "context-dependent",
       "imports": [
         "@/generated/prisma/client",
@@ -17568,13 +17595,14 @@
     },
     {
       "file": "src/lib/data/native.ts",
-      "sha256": "2e61e1d049ecbe81550e60281418c42b95730cbd869ee013cf9dfe871908c656",
+      "sha256": "887119abe5fbda03ff00566305ce0f8a9afc978b97a156224f2c0d4f21d45424",
       "boundary": "context-dependent",
       "imports": [
         "./scopes",
         "./store",
         "@/lib/native/client",
         "@/lib/native/contract",
+        "@/lib/native/coursesContract",
         "@/lib/native/studyMediaContract",
         "@/lib/native/todayActionsContract",
         "@/lib/native/todayContract",
@@ -19306,7 +19334,7 @@
     },
     {
       "file": "src/lib/i18n/messages/de.ts",
-      "sha256": "a92ceff354e97e5f199c8b2adce384ed205f124bb69d7921aa86b89e3e4d18e8",
+      "sha256": "d6eaec93095d11942e846b4409493e7cc8e815af6f86f4ee39c8d80b195356e3",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19321,7 +19349,7 @@
     },
     {
       "file": "src/lib/i18n/messages/en.ts",
-      "sha256": "73c0af6a0dbe3e78fc0c7ac9b2891e7631f1bed67cbcd56dc59a76476d2f1c8f",
+      "sha256": "974a705b3137835d272b704806c11c5888d470e4265b765dbcaf527bfc7ec291",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19336,7 +19364,7 @@
     },
     {
       "file": "src/lib/i18n/messages/es.ts",
-      "sha256": "2dbd153e9d28b41b90382b76576647757550da3d0e1b3263bb202a09a3af967e",
+      "sha256": "6aadbb77d9c557a2dfc261cfa43ac7e87741fbc8a55ed4886518788f19b46d80",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19351,7 +19379,7 @@
     },
     {
       "file": "src/lib/i18n/messages/fr.ts",
-      "sha256": "0677134968ebaae77b54a447ddd411116c2c94abaa3e2957879668f0bc87ab33",
+      "sha256": "895d6698b58225bf5e40358b1d83c3bb2cfd59df28ed2aa1c3ac91485c93f765",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19434,7 +19462,7 @@
     },
     {
       "file": "src/lib/i18n/messages/nl.ts",
-      "sha256": "6a00c3a4688f1366c136a942352fd84e3b2404e74a2900cc06a0159b6cf93378",
+      "sha256": "1c3c7812616d39981dd077fdceec7687c5fbd46ca482176f482e37bc8d084668",
       "boundary": "context-dependent",
       "imports": [
         "./kompas/nl"
@@ -19873,6 +19901,54 @@
         "resumeStudyExerciseSession",
         "submitExerciseSession",
         "submitStudyExerciseSession"
+      ]
+    },
+    {
+      "file": "src/lib/learning/courseCatalog.server.ts",
+      "sha256": "be42f3310f5ac9d6d64def8032911e560a15576e579e9e070554ea7b122888ae",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/generated/prisma/client",
+        "@/lib/artwork",
+        "@/lib/chapterTerm",
+        "@/lib/contentCollections",
+        "@/lib/courseContent",
+        "@/lib/courseText",
+        "@/lib/db",
+        "@/lib/i18n",
+        "@/lib/studyContent/cfmCourses"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "getCourseCatalog"
+      ]
+    },
+    {
+      "file": "src/lib/learning/courseList.server.ts",
+      "sha256": "4238ec8ee268dbbb84da031fcfc76c7337e194e47b6d57cce8ca81374acd63f0",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/generated/prisma/client",
+        "@/lib/artwork",
+        "@/lib/chapterTerm",
+        "@/lib/contentCollections",
+        "@/lib/courseContent",
+        "@/lib/courseResume",
+        "@/lib/courseText",
+        "@/lib/db",
+        "@/lib/i18n",
+        "@/lib/learning/courseProgress",
+        "@/lib/readingCourses",
+        "@/lib/studyContent/cfmCourses",
+        "@/lib/studyContent/courseSummary"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "getUserCourses"
       ]
     },
     {
@@ -20761,7 +20837,7 @@
     },
     {
       "file": "src/lib/native/access.ts",
-      "sha256": "eb45b580666d5d61ddaab98e1a6e31175f97589a6ab8809413eb91e61301be89",
+      "sha256": "3e0bafed1abb2d27f57a54e8cceb3a7522f35cf0a769e54f17b8732c77712d96",
       "boundary": "context-dependent",
       "imports": [
         "./client",
@@ -20797,12 +20873,14 @@
     },
     {
       "file": "src/lib/native/api.ts",
-      "sha256": "85844b5b522ffbe955faecc515fc6a7fc68c901d1b035041d66434ed8ba0d418",
+      "sha256": "48d3b6afffbeedfd07da69caf3f395e2d007b6b07c9dbe3ff9dabaf97245f7de",
       "boundary": "context-dependent",
       "imports": [
         "./apple",
         "./content.server",
         "./contract",
+        "./courses.server",
+        "./coursesContract",
         "./origin",
         "./password",
         "./securitySetup",
@@ -20962,6 +21040,52 @@
       ]
     },
     {
+      "file": "src/lib/native/courses.server.ts",
+      "sha256": "0225125cfe442c20018b48bce291bbc2d1bb4eb27c811eaaab9055e52ac187ef",
+      "boundary": "context-dependent",
+      "imports": [
+        "./coursesContract",
+        "./sessions",
+        "@/lib/chapterPathData",
+        "@/lib/chapterTerm",
+        "@/lib/contentAccess",
+        "@/lib/contentCollections",
+        "@/lib/courseContent",
+        "@/lib/courseText",
+        "@/lib/db",
+        "@/lib/i18n",
+        "@/lib/learning/courseCatalog.server",
+        "@/lib/learning/courseList.server",
+        "@/lib/listOrder",
+        "@/lib/readingCourses",
+        "@/lib/readingPathData"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "nativeCoursePath",
+        "nativeCourses"
+      ]
+    },
+    {
+      "file": "src/lib/native/coursesContract.ts",
+      "sha256": "d14d464c9c2a5bade89d6c940c674c5e0a08821fc865a852545c672cf72ad161",
+      "boundary": "context-dependent",
+      "imports": [
+        "zod"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "courseCardSchema",
+        "nativeCourseId",
+        "nativeCoursePathSchema",
+        "nativeCoursesSchema"
+      ]
+    },
+    {
       "file": "src/lib/native/emailConfirmation.ts",
       "sha256": "2f469dccc7daded414a17210fe794e62edcdd4f283e63a39cd28e20830ea548f",
       "boundary": "context-dependent",
@@ -20981,7 +21105,7 @@
     },
     {
       "file": "src/lib/native/navigation.ts",
-      "sha256": "87ce37680d06f061a3e6e2f1bd82ebc8d099569594a02ae0900e2d6d69a06b6d",
+      "sha256": "329c7befaa315082cc48cfecc8acf7e5b67e121ad8bf068c5aa43533cad8f775",
       "boundary": "context-dependent",
       "imports": [],
       "methods": [],
@@ -21125,7 +21249,7 @@
     },
     {
       "file": "src/lib/native/shell.ts",
-      "sha256": "bc43a8b585ace643fe5aa2eeb42e4132592792fea0284a542f4ea21945b84370",
+      "sha256": "5e287f3567fc6af0d466103efb418f1291048602b9ebcb45d44c02a0778112fe",
       "boundary": "context-dependent",
       "imports": [
         "./navigation",
@@ -21136,7 +21260,8 @@
       "checks": [],
       "exports": [
         "NATIVE_PRIMARY_NAV",
-        "nativeAppleLoginUIAvailable"
+        "nativeAppleLoginUIAvailable",
+        "nativePrimaryNav"
       ]
     },
     {
@@ -21356,7 +21481,7 @@
     },
     {
       "file": "src/lib/native/todayDestinations.ts",
-      "sha256": "6518bb6788f97f44890da5d386ecda62f054dc3eac5d33ee553db1c4b5d7685b",
+      "sha256": "863a9a27fed11249f883c527790107c09969a8d69960a83d6ac9c99e106310f6",
       "boundary": "context-dependent",
       "imports": [
         "./navigation"
@@ -21388,10 +21513,23 @@
       ]
     },
     {
+      "file": "src/lib/navigationEntry.ts",
+      "sha256": "fb73b9fe3809922f87c1ce75277f58c6b6eedda86c9df40c8afd3a32bc74e96f",
+      "boundary": "context-dependent",
+      "imports": [],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "currentEntryKey"
+      ]
+    },
+    {
       "file": "src/lib/navigationHistory.ts",
-      "sha256": "ebfa8b1c15496c2b2a3702ca727415ce0f6652c158d2b30011503f22aa76033f",
+      "sha256": "407abd483d9adc5d0b1c95b3ea2fff2244ec55c54bafdf4dda8fddc82316deaa",
       "boundary": "client",
       "imports": [
+        "./navigationEntry",
         "@/lib/contentPickerContract",
         "next/navigation",
         "react"
@@ -22623,7 +22761,7 @@
     },
     {
       "file": "src/lib/readingPathData.ts",
-      "sha256": "e6c5001da27978f479910dc83bebe0d12324781d96230912d45f406a3da940f1",
+      "sha256": "2c84946009040428ee0f464a7da364eeedadb50c7098caf9018cebdaea2e93d1",
       "boundary": "context-dependent",
       "imports": [
         "@/generated/prisma/client",
@@ -36543,23 +36681,12 @@
     },
     {
       "file": "src/app/api/courses/route.ts",
-      "sha256": "a0953edb182a3cdf81c2e04e1906307535640f0b2f0ebd3034145e53009d2715",
+      "sha256": "96164655820501471d849b466c373e170f729e9b203042d431a6f8953bac3607",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
-        "@/lib/artwork",
-        "@/lib/chapterTerm",
-        "@/lib/contentCollections",
-        "@/lib/courseContent",
-        "@/lib/courseResume",
-        "@/lib/courseText",
-        "@/lib/db",
-        "@/lib/i18n",
-        "@/lib/learning/courseProgress",
-        "@/lib/readingCourses",
+        "@/lib/learning/courseList.server",
         "@/lib/session",
-        "@/lib/studyContent/cfmCourses",
-        "@/lib/studyContent/courseSummary",
         "next/server"
       ],
       "methods": [
@@ -36631,6 +36758,7 @@
         "src/lib/leagues.ts",
         "src/lib/learning/contentIdentity.ts",
         "src/lib/learning/contentProgress.ts",
+        "src/lib/learning/courseList.server.ts",
         "src/lib/learning/courseProgress.ts",
         "src/lib/learning/exercisePlan.ts",
         "src/lib/learning/progressState.ts",
@@ -36703,19 +36831,8 @@
       ],
       "directModules": [
         "src/lib/apiError.ts",
-        "src/lib/artwork.ts",
-        "src/lib/chapterTerm.ts",
-        "src/lib/contentCollections.ts",
-        "src/lib/courseContent.ts",
-        "src/lib/courseResume.ts",
-        "src/lib/courseText.ts",
-        "src/lib/db.ts",
-        "src/lib/i18n/index.ts",
-        "src/lib/learning/courseProgress.ts",
-        "src/lib/readingCourses.ts",
-        "src/lib/session.ts",
-        "src/lib/studyContent/cfmCourses.ts",
-        "src/lib/studyContent/courseSummary.ts"
+        "src/lib/learning/courseList.server.ts",
+        "src/lib/session.ts"
       ],
       "clientBoundaries": [],
       "requestEvidence": [],
@@ -36900,19 +37017,12 @@
     },
     {
       "file": "src/app/api/courses/catalog/route.ts",
-      "sha256": "d43d78e1e5dd63725b404c167798948126c306926caa76af972394b1a8a13f9d",
+      "sha256": "f49e16d74518cec45d6c6d5857d145df14cf0150a7e7b5517e58b6b2d80816ec",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
-        "@/lib/artwork",
-        "@/lib/chapterTerm",
-        "@/lib/contentCollections",
-        "@/lib/courseContent",
-        "@/lib/courseText",
-        "@/lib/db",
-        "@/lib/i18n",
+        "@/lib/learning/courseCatalog.server",
         "@/lib/session",
-        "@/lib/studyContent/cfmCourses",
         "next/server"
       ],
       "methods": [
@@ -36971,6 +37081,7 @@
         "src/lib/i18n/serverTexts.ts",
         "src/lib/jigsawQuestions.ts",
         "src/lib/languages.ts",
+        "src/lib/learning/courseCatalog.server.ts",
         "src/lib/learning/exercisePlan.ts",
         "src/lib/mascots.ts",
         "src/lib/mysteries/game.ts",
@@ -37013,15 +37124,8 @@
       ],
       "directModules": [
         "src/lib/apiError.ts",
-        "src/lib/artwork.ts",
-        "src/lib/chapterTerm.ts",
-        "src/lib/contentCollections.ts",
-        "src/lib/courseContent.ts",
-        "src/lib/courseText.ts",
-        "src/lib/db.ts",
-        "src/lib/i18n/index.ts",
-        "src/lib/session.ts",
-        "src/lib/studyContent/cfmCourses.ts"
+        "src/lib/learning/courseCatalog.server.ts",
+        "src/lib/session.ts"
       ],
       "clientBoundaries": [],
       "requestEvidence": [],
@@ -50137,6 +50241,7 @@
         "src/lib/authTokens.ts",
         "src/lib/baseUrl.ts",
         "src/lib/brand.ts",
+        "src/lib/chapterPathData.ts",
         "src/lib/chapterScenes.ts",
         "src/lib/chapterTerm.ts",
         "src/lib/companion.ts",
@@ -50209,9 +50314,12 @@
         "src/lib/leagues.ts",
         "src/lib/learning/contentIdentity.ts",
         "src/lib/learning/contentProgress.ts",
+        "src/lib/learning/courseCatalog.server.ts",
+        "src/lib/learning/courseList.server.ts",
         "src/lib/learning/courseProgress.ts",
         "src/lib/learning/exercisePlan.ts",
         "src/lib/learning/progressState.ts",
+        "src/lib/learning/readingTime.ts",
         "src/lib/learning/rewards.ts",
         "src/lib/learning/routes.ts",
         "src/lib/learning/streakReturnRules.ts",
@@ -50245,6 +50353,8 @@
         "src/lib/native/apple.ts",
         "src/lib/native/content.server.ts",
         "src/lib/native/contract.ts",
+        "src/lib/native/courses.server.ts",
+        "src/lib/native/coursesContract.ts",
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/password.ts",
@@ -50271,6 +50381,9 @@
         "src/lib/puzzle/puzzleNotify.ts",
         "src/lib/rateLimit.ts",
         "src/lib/readingCourses.ts",
+        "src/lib/readingLessons.ts",
+        "src/lib/readingPath.ts",
+        "src/lib/readingPathData.ts",
         "src/lib/realtime.ts",
         "src/lib/references/bible.ts",
         "src/lib/references/contract.ts",
@@ -50310,6 +50423,7 @@
         "src/lib/studyContent/cfmScripture.ts",
         "src/lib/studyContent/cfmSources.ts",
         "src/lib/studyContent/cfmVolumes.ts",
+        "src/lib/studyContent/courseSummary.ts",
         "src/lib/studyContent/download.ts",
         "src/lib/studyContent/exercisePlan.ts",
         "src/lib/studyContent/exerciseSource.ts",
@@ -52446,6 +52560,7 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/navigationEntry.ts",
         "src/lib/navigationHistory.ts",
         "src/lib/realtime.ts",
         "src/lib/session.ts",
@@ -52551,6 +52666,7 @@
       "dependencies": [
         "src/app/courses/page.tsx",
         "src/components/CoursesClient.tsx",
+        "src/components/CoursesView.tsx",
         "src/components/I18nProvider.tsx",
         "src/components/LiveRefresh.tsx",
         "src/components/navigation/AppNavigation.tsx",
@@ -52676,6 +52792,7 @@
       ],
       "clientBoundaries": [
         "src/components/CoursesClient.tsx",
+        "src/components/CoursesView.tsx",
         "src/components/I18nProvider.tsx",
         "src/components/LiveRefresh.tsx",
         "src/components/navigation/AppNavigation.tsx",
@@ -53076,6 +53193,7 @@
         "src/components/I18nProvider.tsx",
         "src/components/ReadingChapterView.tsx",
         "src/components/learning/ContentStatus.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/lib/achievements.ts",
         "src/lib/activityFeed.ts",
         "src/lib/auth.ts",
@@ -53156,7 +53274,8 @@
       "clientBoundaries": [
         "src/components/I18nProvider.tsx",
         "src/components/ReadingChapterView.tsx",
-        "src/components/learning/ContentStatus.tsx"
+        "src/components/learning/ContentStatus.tsx",
+        "src/components/navigation/AppNavigation.tsx"
       ],
       "requestEvidence": [],
       "authEvidence": [
@@ -53309,7 +53428,7 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
-        "src/lib/navigationHistory.ts",
+        "src/lib/navigationEntry.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
@@ -53402,7 +53521,6 @@
         "src/lib/data/mutation.ts",
         "src/lib/data/queryHooks.ts",
         "src/lib/data/topics.ts",
-        "src/lib/navigationHistory.ts",
         "src/lib/socketClient.ts",
         "src/lib/studyContent/personalStudyModeClient.ts"
       ],
@@ -53966,6 +54084,7 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/navigationEntry.ts",
         "src/lib/navigationHistory.ts",
         "src/lib/realtime.ts",
         "src/lib/session.ts",
@@ -54139,6 +54258,7 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/navigationEntry.ts",
         "src/lib/navigationHistory.ts",
         "src/lib/realtime.ts",
         "src/lib/session.ts",
@@ -54286,6 +54406,7 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/navigationEntry.ts",
         "src/lib/navigationHistory.ts",
         "src/lib/realtime.ts",
         "src/lib/session.ts",
@@ -54434,6 +54555,7 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/navigationEntry.ts",
         "src/lib/navigationHistory.ts",
         "src/lib/realtime.ts",
         "src/lib/session.ts",
@@ -54986,6 +55108,7 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/navigationEntry.ts",
         "src/lib/navigationHistory.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
@@ -55196,6 +55319,7 @@
         "src/lib/native/client.ts",
         "src/lib/native/contract.ts",
         "src/lib/native/navigation.ts",
+        "src/lib/navigationEntry.ts",
         "src/lib/navigationHistory.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
@@ -66012,6 +66136,7 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/navigationEntry.ts",
         "src/lib/navigationHistory.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
@@ -66375,6 +66500,7 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/navigationEntry.ts",
         "src/lib/navigationHistory.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
@@ -71972,22 +72098,16 @@
     },
     {
       "file": "src/components/CoursesClient.tsx",
-      "sha256": "5e9412140382dc1bfd440f0d66d62592763413d60cd75a6b597031113f9c3d49",
+      "sha256": "a3c44a7b84ab254b131c022bf55c8c8a987b689187aeb2c791cac170daeedc01",
       "boundary": "client",
       "imports": [
+        "./CoursesView",
         "@/components/I18nProvider",
-        "@/components/versado/ContentCard",
-        "@/components/versado/VisualIdentityIcon",
         "@/components/versado/useCardListSave",
         "@/lib/data/fetchJson",
         "@/lib/data/hooks",
         "@/lib/data/mutation",
-        "@/lib/i18n/core",
         "@/lib/listOrder",
-        "@/lib/studyContent/weekLabels",
-        "@/lib/studyContent/weekSelection",
-        "lucide-react",
-        "next/link",
         "react"
       ],
       "methods": [],
@@ -72000,6 +72120,27 @@
       "checks": [],
       "exports": [
         "CoursesClient"
+      ]
+    },
+    {
+      "file": "src/components/CoursesView.tsx",
+      "sha256": "824bdf47aaa49dcff37efbf0bad7dd1a85e60183f8a7f09a75b53ed6c70d6d44",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
+        "@/components/versado/ContentCard",
+        "@/components/versado/VisualIdentityIcon",
+        "@/lib/i18n/core",
+        "@/lib/studyContent/weekLabels",
+        "@/lib/studyContent/weekSelection",
+        "lucide-react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "CoursesView"
       ]
     },
     {
@@ -75142,12 +75283,12 @@
     },
     {
       "file": "src/components/learning/ContentStatus.tsx",
-      "sha256": "a1b4bbf16b9c930176a91ed19d935afd656852c5cf9b5d0dac3b33e17312cfdf",
+      "sha256": "fe2bed3e1b2375b2515ed152f47f05c4d708e91d19c13cdf6b8116502e5bdf81",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
         "lucide-react",
-        "next/link",
         "react"
       ],
       "methods": [],
@@ -75379,11 +75520,12 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "4b68d68ee0c3f57a814d8d48c69745635f5b3d28dd0927459039fa0d1ca0edee",
+      "sha256": "c1284a2ce5e6d5b6161deac67267e3b1a77b649c83742a53fb70fc39bd97e506",
       "boundary": "client",
       "imports": [
         "./NativeContentPicker",
         "./NativeEmailConfirmation",
+        "./NativeLearningView",
         "./NativePasswordReset",
         "./NativeShellHeader",
         "./NativeTodayView",
@@ -75430,13 +75572,43 @@
       ]
     },
     {
+      "file": "src/components/native/NativeLearningView.tsx",
+      "sha256": "f8165a2b3014cc81fb47519457d2e5da37a47857bd8e406c6b71ba97d195bbcb",
+      "boundary": "client",
+      "imports": [
+        "./NativeStudyImage",
+        "@/components/ChapterListCourseView",
+        "@/components/ConfirmProvider",
+        "@/components/CoursesView",
+        "@/components/I18nProvider",
+        "@/components/ReadingCourseView",
+        "@/components/navigation/AppNavigation",
+        "@/lib/data/nativeHooks",
+        "@/lib/native/client",
+        "@/lib/native/contract",
+        "@/lib/native/navigation",
+        "@/lib/native/routeFocus",
+        "@/lib/native/studyMediaContract",
+        "@/lib/native/todayAssets",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NativeLearningView"
+      ]
+    },
+    {
       "file": "src/components/native/NativeNavigationProvider.tsx",
-      "sha256": "a24102315044482afe6da61eb4eb118e9bfd3ce28e74b3063764240542622e2b",
+      "sha256": "8be6c84d7e59c1a882ae6e9d416009b5f048dc1f2635767659e7be1b7c4d3d18",
       "boundary": "client",
       "imports": [
         "@/components/navigation/AppNavigation",
         "@/lib/native/navigation",
+        "@/lib/navigationEntry",
         "@/lib/platform",
+        "@/lib/scrollRestore",
         "react"
       ],
       "methods": [],
@@ -75472,7 +75644,7 @@
     },
     {
       "file": "src/components/native/NativeShellHeader.tsx",
-      "sha256": "89fdc23e575494ceb3b3c72d49334d403f2ddeeb7f9d4e68e01a3d2636011ef6",
+      "sha256": "c0e28f4f6804cce0922f50e9945db253baf4050e5b9601d5f0340612bcfed8ad",
       "boundary": "client",
       "imports": [
         "@/components/content/ContentSwitcherView",
@@ -75496,7 +75668,7 @@
     },
     {
       "file": "src/components/native/NativeStudyImage.tsx",
-      "sha256": "8749155ac95261e6fbec5aa5e08d2ad1054e214dd614ab96d7af0547b291e68b",
+      "sha256": "e96616b39c4a8f77a21e43ea1602bb7d8d86dfb1442e348b40250ba2a5f8ed8a",
       "boundary": "client",
       "imports": [
         "@/components/navigation/AppNavigation",
@@ -75516,7 +75688,7 @@
     },
     {
       "file": "src/components/native/NativeTodayView.tsx",
-      "sha256": "cb729c3b1d3e5e3ea9b0a4beeadfbafda465dadc337f9f715ee3b07d024dafae",
+      "sha256": "f56127afe2a28549a92a36e591c9e116fa8385a3318477b0d94e3e8f10713170",
       "boundary": "client",
       "imports": [
         "./NativeStudyImage",
@@ -75994,18 +76166,18 @@
     },
     {
       "file": "src/components/reading/ChapterPath.tsx",
-      "sha256": "40af42ec996ad8cca95355b5d714a1940699202e990d195e79d7401d0c03f910",
+      "sha256": "356bd632bc53abd42b6268bf0ce15b82af7cc51859d17503fb572aa00ce315ad",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
         "@/components/learning/ContentStatus",
+        "@/components/navigation/AppNavigation",
         "@/components/reading/MyStepNav",
         "@/components/reading/pathParts",
         "@/components/versado/styles",
         "@/lib/artwork",
         "@/lib/readingCourses",
         "lucide-react",
-        "next/link",
         "react"
       ],
       "methods": [],
@@ -76017,7 +76189,7 @@
     },
     {
       "file": "src/components/reading/CoursePathHeader.tsx",
-      "sha256": "5b2332e5244230fff14035c8fa840a698966edaf2415028d6cd3c50142c57317",
+      "sha256": "f4d856f7e2c8be6ade793cb1092da18b3ea1653fc586b705c6165fe181edcb87",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -76033,12 +76205,12 @@
     },
     {
       "file": "src/components/reading/MyStepNav.tsx",
-      "sha256": "98d0c57e4a180f5c6e5d0fb7713a618e020908dea9ae8ed29918d5aebdefd74a",
+      "sha256": "e49b10c99cffa60189043458a3ebc66a4f42abf0b5f498097e6a032b5c74e074",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
         "@/components/versado/styles",
-        "@/lib/navigationHistory",
+        "@/lib/navigationEntry",
         "@/lib/readingPath",
         "@/lib/scrollRestore",
         "lucide-react",
@@ -76054,17 +76226,17 @@
     },
     {
       "file": "src/components/reading/ReadingPath.tsx",
-      "sha256": "26e931be2df9a735668e2bf1504461a02c5948b2009be0bbd59697222f52ce1d",
+      "sha256": "06e793ce7b8071ad074a23c474df45c4685b7c3f758426323e3d80edd9973275",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
         "@/components/reading/MyStepNav",
         "@/components/reading/pathParts",
         "@/components/versado/styles",
         "@/lib/artwork",
         "@/lib/readingPath",
         "lucide-react",
-        "next/link",
         "react"
       ],
       "methods": [],
@@ -76076,16 +76248,15 @@
     },
     {
       "file": "src/components/reading/pathParts.tsx",
-      "sha256": "890d6896f429f2097a748cd5c867e2cca389da173a05cff6dab69aef433798b1",
+      "sha256": "f59f5b1ddffc0adc4eda5e93731f8fee51e8afd20cf459e9b27a5162aba41963",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
         "@/components/versado/MediaArtwork",
         "@/components/versado/styles",
         "@/lib/artwork",
-        "lucide-react",
-        "next/image",
-        "next/link"
+        "lucide-react"
       ],
       "methods": [],
       "requests": [],
@@ -77695,16 +77866,16 @@
     },
     {
       "file": "src/components/versado/ContentCard.tsx",
-      "sha256": "6da7c6bd6ae01dee145a98a772b7c7c1fab9ff9d6028c98691d4887b5941c141",
+      "sha256": "00619b4112fda086f3f93a4c86e6a5277648b6a4626d4472a5ba78ce30e3697e",
       "boundary": "client",
       "imports": [
         "./CardMenu",
         "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
         "@/components/versado/MediaArtwork",
         "@/components/versado/styles",
         "@/lib/artwork",
         "lucide-react",
-        "next/link",
         "react"
       ],
       "methods": [],
@@ -78270,6 +78441,9 @@
     "tests/native-android-release.test.mjs",
     "tests/native-content.browser.mjs",
     "tests/native-content.integration.test.ts",
+    "tests/native-courses.browser.mjs",
+    "tests/native-courses.integration.test.ts",
+    "tests/native-courses.test.tsx",
     "tests/native-data.browser.mjs",
     "tests/native-data.test.ts",
     "tests/native-distribution.test.ts",

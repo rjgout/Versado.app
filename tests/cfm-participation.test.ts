@@ -15,7 +15,7 @@ test("CFM toont nergens een totaalpercentage, weektelling of voltooiingsmelding"
   const view = read("src/components/study/CfmCourseView.tsx");
   const week = read("src/components/study/CfmWeekPath.tsx");
   const summary = read("src/lib/studyContent/courseSummary.ts");
-  const route = read("src/app/api/courses/route.ts");
+  const route = read("src/lib/learning/courseList.server.ts");
   const today = read("src/components/study/CfmTodayCard.tsx");
   assert.doesNotMatch(view, /CoursePathHeader|progressCount|allDone|completed/);
   assert.doesNotMatch(week, /role="progressbar"|progress=\{|percent/, "geen voortgangsbalk in het weekpad");
@@ -26,7 +26,7 @@ test("CFM toont nergens een totaalpercentage, weektelling of voltooiingsmelding"
   assert.match(cfmBranch, /totalChapters: 0,/);
   assert.match(cfmBranch, /completedCount: 0,/);
   assert.doesNotMatch(cfmBranch, /totalWeeks|completedWeeks/);
-  const courses = read("src/components/CoursesClient.tsx");
+  const courses = read("src/components/CoursesView.tsx");
   assert.match(courses, /course\.totalChapters > 0 \? <CardProgress/);
   assert.match(courses, /const complete = course\.totalChapters > 0 && /);
 });
@@ -36,7 +36,7 @@ test("gewone leescursussen behouden hun voortgangsweergave", () => {
   const header = read("src/components/reading/CoursePathHeader.tsx");
   assert.match(header, /role="progressbar"/);
   assert.match(header, /courseView\.allDone/);
-  const route = read("src/app/api/courses/route.ts");
+  const route = read("src/lib/learning/courseList.server.ts");
   assert.match(route, /getCourseChapterProgress\(prisma, user\.id, course/, "gewone cursussen rekenen hun voortgang nog uit");
 });
 
@@ -54,7 +54,7 @@ test("de zes stappen houden hun eigen, subtiele status per week", () => {
 });
 
 test("Vandaag: één primaire en één secundaire actie, dezelfde weekregel, geen hardcoded les", () => {
-  const panel = read("src/components/study/ProgramContextPanel.tsx");
+  const panel = read("src/lib/todayProgram.server.ts");
   assert.match(panel, /resolveWeekSelection\(weeks/);
   assert.match(panel, /cfmCoursePathHref\(prisma,data\.collectionId,'STEPS'\)/);
   const card = read("src/components/study/CfmTodayCard.tsx");
@@ -99,5 +99,5 @@ test("labels: alleen de kalenderweek heet 'Deze week'; gekozen en bestudeerd zij
   }
   assert.equal((nl as unknown as { cfmStudy: Record<string, string> }).cfmStudy.currentWeek, "Deze week");
   // De cursuskaart in Leren, het weekpad en Vandaag gebruiken dezelfde labelfunctie.
-  for (const file of ["src/components/CoursesClient.tsx", "src/components/study/CfmWeekPath.tsx", "src/components/study/CfmTodayCard.tsx"]) assert.match(read(file), /weekLabelKey/);
+  for (const file of ["src/components/CoursesView.tsx", "src/components/study/CfmWeekPath.tsx", "src/components/study/CfmTodayCard.tsx"]) assert.match(read(file), /weekLabelKey/);
 });

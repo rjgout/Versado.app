@@ -1,6 +1,6 @@
 # Native functiepariteit — Versado
 
-## Actuele multiplatformopdracht — shell, contentkiezer en Vandaag-acties op develop
+## Actuele multiplatformopdracht — shell, contentkiezer, Vandaag en eerste leerpaden op develop
 
 De opdracht in [#238](https://github.com/rjgout/Versado.app/issues/238) is leidend:
 volledige bestaande web/PWA-, iOS/iPadOS- en Android-functionaliteit, inclusief native push.
@@ -16,8 +16,11 @@ verwerkt. #245 is op develop gesquashmergd als
 `8a3a97cddfc192c656634d5a2fc80d175910aa51`. B2b-2 (#246) bevat vanaf die basis
 uitsluitend de mediatoevoegingen en sluit beveiligde gepubliceerde
 studieafbeeldingen aan via dezelfde mediatoegangsservice en Image-poort
-(`study-media-v1`). Volledige cursusnavigatie, spellen en sociale schermen zijn
-hiermee nog niet geleverd.
+(`study-media-v1`); #246 is gemerged als `e3ee1bfab66d6177960539c41a54fcfb3177b982`. B3a-1 voegt nu het gedeelde cursusoverzicht en de drie schriftelijke
+leerpaden toe via `courses-overview-v1`, zonder GET-writes of lesafronding.
+Zie [NATIVE-LEARNING.md](NATIVE-LEARNING.md) voor de werkende routes en grenzen.
+CFM-weekpad, lezers/vragen, overige cursusdetails, spellen en sociale schermen
+blijven nog open; geen volledige cursus-/leespariteit geclaimd.
 Zie [implementatie, afhankelijkheden en toestelacceptatie](NATIVE-SHARED-SHELL.md).
 De eigenaar bevestigde de eerdere Foundation-iPhonetest bij #233 en de gedeelde
 shell uit #239 op een fysieke iPhone; de nieuwe contentkiezer vereist opnieuw fysieke acceptatie. Geen releasevrijgave of platformuitzondering.
@@ -314,7 +317,7 @@ De onafhankelijke review volgt door ChatGPT. #176 en #178 blijven ongemerged.
 <!-- BEGIN NATIVE PARITY INVENTORY -->
 ## Volledige broninventaris (gegenereerd)
 
-Gevonden: **143 pagina's**, **244 fysieke routehandlers**, **456 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
+Gevonden: **143 pagina's**, **244 fysieke routehandlers**, **458 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
 
 De JSON-bijlage bevat per route alle transitief bereikbare lokale modules, clientgrenzen en statische requestpaden. Dat is een afhankelijkheidsinventaris, geen autorisatiebewijs; voorwaarden per HTTP-methode blijven apart te controleren. Een Client Component kan via een gedeelde helper nog een serverafhankelijkheid hebben. Een module zonder eigen `use client` is contextafhankelijk, niet automatisch browsergeschikt.
 
@@ -896,6 +899,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/ContinueAfterVerify.tsx](../src/components/ContinueAfterVerify.tsx) | use client | ContinueAfterVerify
 [src/components/CourseBackTarget.tsx](../src/components/CourseBackTarget.tsx) | use client | CourseBackTarget
 [src/components/CoursesClient.tsx](../src/components/CoursesClient.tsx) | use client | CoursesClient
+[src/components/CoursesView.tsx](../src/components/CoursesView.tsx) | use client | CoursesView
 [src/components/DictionaryClient.tsx](../src/components/DictionaryClient.tsx) | use client | DictionaryClient, dictionaryWordHref
 [src/components/DivisionScroller.tsx](../src/components/DivisionScroller.tsx) | use client | DivisionScroller
 [src/components/EdgeSwipeGuard.tsx](../src/components/EdgeSwipeGuard.tsx) | use client | EdgeSwipeGuard
@@ -1051,6 +1055,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/native/NativeContentPicker.tsx](../src/components/native/NativeContentPicker.tsx) | use client | NativeContentPicker
 [src/components/native/NativeEmailConfirmation.tsx](../src/components/native/NativeEmailConfirmation.tsx) | use client | NativeEmailConfirmation
 [src/components/native/NativeFoundation.tsx](../src/components/native/NativeFoundation.tsx) | use client | NativeFoundation
+[src/components/native/NativeLearningView.tsx](../src/components/native/NativeLearningView.tsx) | use client | NativeLearningView
 [src/components/native/NativeNavigationProvider.tsx](../src/components/native/NativeNavigationProvider.tsx) | use client | NativeNavigationProvider
 [src/components/native/NativePasswordReset.tsx](../src/components/native/NativePasswordReset.tsx) | use client | NativePasswordReset
 [src/components/native/NativeShellHeader.tsx](../src/components/native/NativeShellHeader.tsx) | use client | NativeShellHeader

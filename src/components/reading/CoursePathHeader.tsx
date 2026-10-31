@@ -32,7 +32,7 @@ export default function CoursePathHeader({
   return (
     <div className="flex flex-col gap-3 sm:gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="vs-wrap text-2xl font-extrabold text-vs-fg">{courseName}</h1>
+        <h1 tabIndex={-1} className="vs-wrap text-2xl font-extrabold text-vs-fg">{courseName}</h1>
         {studyAction}
       </div>
 

@@ -17,11 +17,11 @@ function browser(hash = "", state: unknown = null) {
 
 test("de lokale routegrens accepteert alleen bestaande schermen zonder URL-geheimen", () => {
   for (const route of ["/dashboard", "/profile", "/privacy", "/cookies", "/login", "/register", "/forgot-password", "/lesson/chapter_1-test"]) assert.equal(nativeRoute(route), route);
-  for (const route of ["/courses", "/adminbackend", "https://evil.invalid/privacy", "//evil.invalid/privacy", "/privacy?token=secret", "/privacy#secret", "/lesson/a%2fb", "/lesson/../privacy", "/privacy\\", "/privacy ", "/lesson/", "/lesson/" + "a".repeat(129)]) assert.equal(nativeRoute(route), null, route);
+  for (const route of ["/courses/../pad", "/adminbackend", "https://evil.invalid/privacy", "//evil.invalid/privacy", "/privacy?token=secret", "/privacy#secret", "/lesson/a%2fb", "/lesson/../privacy", "/privacy\\", "/privacy ", "/lesson/", "/lesson/" + "a".repeat(129)]) assert.equal(nativeRoute(route), null, route);
 });
 test("deeplinks behouden de exacte backend-origin en laten geen querytokens of credentials door", () => {
   assert.equal(nativeDeepLink("https://versado.app/lesson/chapter-1", "https://versado.app"), "/lesson/chapter-1");
-  for (const url of ["https://versado.app.evil.invalid/privacy", "http://versado.app/privacy", "https://user:secret@versado.app/privacy", "https://versado.app:444/privacy", "https://versado.app/privacy?token=x", "https://versado.app/privacy#token", "capacitor://localhost/privacy", "https://versado.app/courses"]) assert.equal(nativeDeepLink(url, "https://versado.app"), null, url);
+  for (const url of ["https://versado.app.evil.invalid/privacy", "http://versado.app/privacy", "https://user:secret@versado.app/privacy", "https://versado.app:444/privacy", "https://versado.app/privacy?token=x", "https://versado.app/privacy#token", "capacitor://localhost/privacy", "https://versado.app/courses?token=secret"]) assert.equal(nativeDeepLink(url, "https://versado.app"), null, url);
 });
 test("push, replace en systeemterug delen dezelfde lokale geschiedenis", () => {
   const window = browser(), router = new NativeNavigator(window), stop = router.listen();

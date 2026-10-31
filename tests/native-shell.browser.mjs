@@ -64,7 +64,7 @@ try{
   await nativeHeader.locator('img').evaluateAll(images=>Promise.all(images.map(image=>image.decode())));
   assert.ok(badgeText.length>=2);for(const text of badgeText)assert.ok((await webHeader.textContent()).includes(text));
   assert.equal(await nativeHeader.locator('a[href="#/xp"], a[href="#/streak"], a[href="#/competition"]').count(),0);
-  assert.equal(await page.locator('[data-main-nav] a').count(),1);assert.equal(await webPage.locator('[data-main-nav] a').count(),4);
+  assert.equal(await page.locator('[data-main-nav] a').count(),2);assert.equal(await webPage.locator('[data-main-nav] a').count(),4);
   for(const [width,height,scale,scheme]of [[390,844,1,'light'],[320,844,2,'dark'],[1024,1366,1,'light'],[1366,1024,1,'dark']]){
    for(const [kind,p]of [['native',page],['web',webPage]]){
     await p.setViewportSize({width,height});await p.emulateMedia({colorScheme:scheme});

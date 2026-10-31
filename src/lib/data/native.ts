@@ -10,6 +10,8 @@ import { DATA_EVENT_SOCKET_NAME, SOCKET_EVENT_TO_DATA_EVENT, dataEventsForSocket
 import { nativeAccountSchema, nativeTodaySchema, nativeChapterSchema, nativeContentStateSchema, nativeContentResultSchema, nativeContentSelectionSchema, type NativeContentState, type NativeContentSelection } from "@/lib/native/contract";
 import { NativeClientError, type NativeSessionClient } from "@/lib/native/client";
 
+import { nativeCoursesSchema, nativeCoursePathSchema, nativeCourseId } from "@/lib/native/coursesContract";
+
 export const nativeContentQueryKey = (userId: string | null) => ["content-context", userId] as const;
 
 export const nativeTodayQueryKey = (state: Pick<NativeTodayOverview, "userId" | "activeCollectionId" | "selectionVersion" | "language">) =>
@@ -25,6 +27,16 @@ export class NativeDataRuntime {
   subscribe = (listener: () => void) => { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; };
   reset = () => { this.epoch++; this.store.reset(); for (const listener of this.listeners) listener(); };
   async account() { return nativeAccountSchema.parse(await this.client.api("me")); }
+  async learning(userId: string, expected: { activeCollectionId: string | null; selectionVersion: number }, courseId?: string) {
+    const epoch = this.epoch;
+    const path = courseId ? `courses/${nativeCourseId.parse(courseId)}/path` : "courses";
+    const response = await this.client.api(path);
+    const result = courseId ? nativeCoursePathSchema.parse(response) : nativeCoursesSchema.parse(response);
+    if (epoch !== this.epoch || result.userId !== userId) throw new NativeClientError("session_changed",409);
+    const latest = this.store.getSnapshot<NativeContentState>(serializeKey(["native",epoch,...nativeContentQueryKey(userId)])).data?.picker ?? expected;
+    if (result.activeCollectionId !== latest.activeCollectionId || result.selectionVersion !== latest.selectionVersion || (courseId && (!("courseId" in result) || result.courseId !== courseId))) throw new NativeClientError("content_context_changed",409);
+    return result;
+  }
   async today() { return nativeTodaySchema.parse(await this.client.api("today")); }
   async todayOverview(userId: string, context: { activeCollectionId: string | null; selectionVersion: number }) {
     const epoch = this.epoch;

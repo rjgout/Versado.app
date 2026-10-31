@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { AppNavigationProvider, useAppNavigation, type AppLinkProps } from "@/components/navigation/AppNavigation";
+import { currentEntryKey } from "@/lib/navigationEntry";
+import { beginScrollEntry, noteScrollInteraction, registerScrollRestorer } from "@/lib/scrollRestore";
 import { NativeNavigator, nativeRoute } from "@/lib/native/navigation";
 import { openExternalUrl } from "@/lib/platform";
 
@@ -34,6 +36,14 @@ export default function NativeNavigationProvider({ children }: { children: React
   }, [router]);
   const snapshot = useSyncExternalStore(subscribe, router.getSnapshot);
   useEffect(() => router.listen(), [router]);
+  useLayoutEffect(() => {
+    beginScrollEntry(currentEntryKey(), snapshot.traversal);
+    let frame = 0;
+    const unregister = registerScrollRestorer(target => { cancelAnimationFrame(frame); frame = requestAnimationFrame(() => { const top = target(); if (top !== null) window.scrollTo({top,behavior:"instant"}); }); });
+    const interact = () => { cancelAnimationFrame(frame); noteScrollInteraction(); };
+    for (const name of ["pointerdown","keydown","wheel","touchstart"]) window.addEventListener(name,interact,{passive:true});
+    return () => { unregister(); cancelAnimationFrame(frame); for (const name of ["pointerdown","keydown","wheel","touchstart"]) window.removeEventListener(name,interact); };
+  }, [snapshot]);
   useLayoutEffect(() => {
     const media = window.matchMedia("(prefers-color-scheme: dark)");
     const apply = () => document.documentElement.classList.toggle("dark", media.matches);

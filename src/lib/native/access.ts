@@ -15,7 +15,7 @@ export function nativeAccessError(error: unknown): NativeClientError {
   return new NativeClientError(errors.has(code) ? code : "access_unavailable"); // Geen native foutdetails of 401 naar de sessierotatie lekken.
 }
 export function accessRouteAllowed(path: string, method: string): boolean {
-  if (method === "GET") return ["capabilities", "me", "today", "today-overview", "content-context"].includes(path) || /^(?:chapters|study-media)\/[A-Za-z0-9_-]{1,128}$/.test(path);
+  if (method === "GET") return ["capabilities", "me", "today", "today-overview", "content-context", "courses"].includes(path) || /^courses\/[A-Za-z0-9_-]{1,128}\/path$/.test(path) || /^(?:chapters|study-media)\/[A-Za-z0-9_-]{1,128}$/.test(path);
   if (method === "POST") return ["today-actions/hide", "today-actions/friend-response", "content-context", "login", "register", "forgot-password", "reset-password", "verify-email", "refresh", "logout", "security-setup/complete", "security-setup/cancel", "apple/challenge", "apple/complete", "account/password"].includes(path) || /^chapters\/[A-Za-z0-9_-]{1,128}\/complete$/.test(path);
   return method === "DELETE" && ["apple", "account"].includes(path); // WP4-accountendpoint blijft afzonderlijk werk.
 }
