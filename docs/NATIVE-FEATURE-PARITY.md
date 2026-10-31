@@ -1,6 +1,6 @@
 # Native functiepariteit — Versado
 
-## Actuele multiplatformopdracht — shell, contentkiezer en B2a Vandaag op develop
+## Actuele multiplatformopdracht — shell, contentkiezer en Vandaag-acties op develop
 
 De opdracht in [#238](https://github.com/rjgout/Versado.app/issues/238) is leidend:
 volledige bestaande web/PWA-, iOS/iPadOS- en Android-functionaliteit, inclusief native push.
@@ -10,8 +10,10 @@ brontrigger en contentkiezerkaarten via expliciete platformadapters (zie
 blijft nodig. B2a deelt nu ook de bestaande volledige Vandaag-presentatie via
 het read-only `today-overview-v1`-contract en dezelfde `getTodayData`-service;
 zie [NATIVE-TODAY.md](NATIVE-TODAY.md). Ontbrekende acties/bestemmingen
-krijgen een expliciete melding. Volledige cursusnavigatie, native Vandaag-mutaties,
-private studiemedia, spellen en sociale schermen zijn hiermee nog niet geleverd.
+krijgen een expliciete melding. B2b-1 sluit verbergen en inkomende vriendenreacties
+via dezelfde serveropslag/services aan; uitsluitend bevestigde uitkomsten worden
+verwerkt. Volledige cursusnavigatie, private studiemedia (B2b-2), spellen en
+sociale schermen zijn hiermee nog niet geleverd.
 Zie [implementatie, afhankelijkheden en toestelacceptatie](NATIVE-SHARED-SHELL.md).
 De eigenaar bevestigde de eerdere Foundation-iPhonetest bij #233 en de gedeelde
 shell uit #239 op een fysieke iPhone; de nieuwe contentkiezer vereist opnieuw fysieke acceptatie. Geen releasevrijgave of platformuitzondering.
@@ -45,7 +47,7 @@ functionele oplevering. Zie [fase-A-verslag](CFM-LEESVRAGEN-FASE-A.md) en de
 
 Iedere bestaande functie moet bruikbaar zijn op web/PWA, lokaal gebundeld iOS/iPadOS en Android. Er zijn **geen goedgekeurde web-only uitzonderingen**. Remote-preview, een link naar de website, een lege route of een route in deze inventaris is geen native equivalent. `CAPACITOR_BUILD_PROFILE=release` blijft geblokkeerd.
 
-De bestaande lokale entry is `src/components/native/entry.tsx`; `NativeNavigationProvider` koppelt de gedeelde navigatiepoort aan lokale hashgeschiedenis. De routegrens bevat uitsluitend bestaande lokale schermen; dit is nog geen volledige routerdekking. Zonder `today-overview-v1` behoudt de beperkte proef login/registratie/resetaanvraag, één Vandaag-leeskaart, hoofdstuktekst, bewust afronden en Apple-koppeling. Met de capability gebruikt B2a dezelfde TodayView als web en een read-only serveroverzicht; ontbrekende mutaties, media en doelroutes blijven expliciet open. Zij levert geen volledige pariteit van de bijbehorende webpagina's. Er is geen native gereedstatus op basis van alleen deze inventaris of Chromium toegekend.
+De bestaande lokale entry is `src/components/native/entry.tsx`; `NativeNavigationProvider` koppelt de gedeelde navigatiepoort aan lokale hashgeschiedenis. De routegrens bevat uitsluitend bestaande lokale schermen; dit is nog geen volledige routerdekking. Zonder `today-overview-v1` behoudt de beperkte proef login/registratie/resetaanvraag, één Vandaag-leeskaart, hoofdstuktekst, bewust afronden en Apple-koppeling. Met de capability gebruikt B2a dezelfde TodayView als web en een read-only serveroverzicht; B2b-1 voegt bevestigde hide/vriendenacties toe; private media en overige doelroutes blijven expliciet open. Zij levert geen volledige pariteit van de bijbehorende webpagina's. Er is geen native gereedstatus op basis van alleen deze inventaris of Chromium toegekend.
 
 De actuele broninventaris staat hieronder; de bijlage [native-feature-parity.inventory.json](native-feature-parity.inventory.json) bevat alle gevonden bestanden met inhoudshashes, importafhankelijkheden, requestpaden en bestaande testbestanden. De historische aantallen in PLATFORMEN beschrijven een oudere uitgangssituatie en gelden niet als actuele dekking.
 
@@ -308,7 +310,7 @@ De onafhankelijke review volgt door ChatGPT. #176 en #178 blijven ongemerged.
 <!-- BEGIN NATIVE PARITY INVENTORY -->
 ## Volledige broninventaris (gegenereerd)
 
-Gevonden: **143 pagina's**, **244 fysieke routehandlers**, **454 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
+Gevonden: **143 pagina's**, **244 fysieke routehandlers**, **455 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
 
 De JSON-bijlage bevat per route alle transitief bereikbare lokale modules, clientgrenzen en statische requestpaden. Dat is een afhankelijkheidsinventaris, geen autorisatiebewijs; voorwaarden per HTTP-methode blijven apart te controleren. Een Client Component kan via een gedeelde helper nog een serverafhankelijkheid hebben. Een module zonder eigen `use client` is contextafhankelijk, niet automatisch browsergeschikt.
 
@@ -1127,6 +1129,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/today/DiscoverySection.tsx](../src/components/today/DiscoverySection.tsx) | contextafhankelijk / server-entry waar page/layout | DiscoverySection
 [src/components/today/FriendRequestButtons.tsx](../src/components/today/FriendRequestButtons.tsx) | use client | FriendRequestButtons
 [src/components/today/FriendRequestButtonsView.tsx](../src/components/today/FriendRequestButtonsView.tsx) | use client | FriendRequestButtonsView
+[src/components/today/FriendRequestControl.tsx](../src/components/today/FriendRequestControl.tsx) | use client | FriendRequestControl
 [src/components/today/GeneralConferenceCountdown.tsx](../src/components/today/GeneralConferenceCountdown.tsx) | use client | GeneralConferenceCountdown
 [src/components/today/Greeting.tsx](../src/components/today/Greeting.tsx) | contextafhankelijk / server-entry waar page/layout | Greeting
 [src/components/today/OpenActions.tsx](../src/components/today/OpenActions.tsx) | contextafhankelijk / server-entry waar page/layout | OpenActions

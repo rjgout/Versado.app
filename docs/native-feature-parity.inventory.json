@@ -2988,14 +2988,12 @@
     },
     {
       "file": "src/app/api/friends/[friendshipId]/accept/route.ts",
-      "sha256": "c2b92c109809bc625e154706e199b6242ece1555fe64b9ffea0c1e6d1c0ce817",
+      "sha256": "eb8880ca96c3540dd450702ab912a08e9f38ff794cff44bd4fddd6881d5c1827",
       "boundary": "context-dependent",
       "imports": [
-        "@/lib/achievements",
         "@/lib/apiError",
-        "@/lib/db",
-        "@/lib/realtime",
         "@/lib/session",
+        "@/lib/social/friendRequests",
         "next/server"
       ],
       "methods": [
@@ -3011,13 +3009,12 @@
     },
     {
       "file": "src/app/api/friends/[friendshipId]/decline/route.ts",
-      "sha256": "e46862b21ed14ae8c100c1dd0d2d3b439ff70cb9c77b259ca31207e2abfde5ea",
+      "sha256": "aede8994a7cc2e55c62d26f416a1f45389b2f411616f65e0a984014c6ce5915a",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
-        "@/lib/db",
-        "@/lib/realtime",
         "@/lib/session",
+        "@/lib/social/friendRequests",
         "next/server"
       ],
       "methods": [
@@ -3817,14 +3814,14 @@
     },
     {
       "file": "src/app/api/list-order/route.ts",
-      "sha256": "88bb956f9ab7b8afed83fdda181d3b900c9dac9242170f90ac45541b94b36657",
+      "sha256": "5c3def9f6a4cd5b874379d10e6d73ced6b5914a1bc3ac286378985abd41a2997",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
         "@/lib/db",
+        "@/lib/listPreferences.server",
         "@/lib/session",
-        "next/server",
-        "zod"
+        "next/server"
       ],
       "methods": [
         "GET",
@@ -12808,7 +12805,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "06c7144becdf0917dca2e1bd580e82a402c43396e42f4ac307bed813e5d8257b",
+      "sha256": "159d9719154356329d626a1f2bee5996872a9b65065ab5d10fb21d974bf179e2",
       "boundary": "client",
       "imports": [
         "./NativeContentPicker",
@@ -12925,14 +12922,14 @@
     },
     {
       "file": "src/components/native/NativeTodayView.tsx",
-      "sha256": "cd623a8775d358c3632b2f0aa4019f31e757bfb5554935c1e13258117db9021f",
+      "sha256": "ba7118c9972cae5294c82bd939a785191245026ec1a4c3768ac06be8b847fd48",
       "boundary": "client",
       "imports": [
         "@/components/ConfirmProvider",
         "@/components/I18nProvider",
         "@/components/kompas/KompasEntryCardView",
         "@/components/navigation/AppNavigation",
-        "@/components/today/FriendRequestButtonsView",
+        "@/components/today/FriendRequestControl",
         "@/components/today/SocialView",
         "@/components/today/StreakContinuationCardView",
         "@/components/today/TodayInteractions",
@@ -14779,7 +14776,7 @@
     },
     {
       "file": "src/components/today/ContinueSection.tsx",
-      "sha256": "740eeb3358a34e9f3d1f07d9a4aee2d9dabeeb58f81afde936ff3cd8934b8c7c",
+      "sha256": "eb5469b2c55e7a4d1afc9250edf58fb57236370a629c2a6a60018c966f0dc405",
       "boundary": "client",
       "imports": [
         "./TodayInteractions",
@@ -14826,13 +14823,12 @@
     },
     {
       "file": "src/components/today/FriendRequestButtons.tsx",
-      "sha256": "d23f95b48ae0fdfd5d1752140b91c4f91a63027fc943f95a200219e9a4f7c592",
+      "sha256": "b19c4b1d2b944d5c8f5ac31a629ab2a3039968725cd24fed9e6b889853a7d36d",
       "boundary": "client",
       "imports": [
-        "./FriendRequestButtonsView",
-        "@/lib/socketClient",
-        "next/navigation",
-        "react"
+        "./FriendRequestControl",
+        "@/lib/data/mutation",
+        "next/navigation"
       ],
       "methods": [],
       "requests": [
@@ -14845,7 +14841,7 @@
     },
     {
       "file": "src/components/today/FriendRequestButtonsView.tsx",
-      "sha256": "37aa5c1570e5ba9fa9004eca250ab9c5e2d8718f0fa8baf8547dbf809ba81190",
+      "sha256": "d508093d473855c177acca72513be95a3f2bce4b667013a10c2bb9999f2d09c3",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -14857,6 +14853,21 @@
       "checks": [],
       "exports": [
         "FriendRequestButtonsView"
+      ]
+    },
+    {
+      "file": "src/components/today/FriendRequestControl.tsx",
+      "sha256": "304b1ba261016d10135a655c48cebfca2cc13fd56f3ac998323ca4ed8541a2cf",
+      "boundary": "client",
+      "imports": [
+        "./FriendRequestButtonsView",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "FriendRequestControl"
       ]
     },
     {
@@ -14900,7 +14911,7 @@
     },
     {
       "file": "src/components/today/OpenActions.tsx",
-      "sha256": "f8a970609691b21d7d8b2b7638f228f3b4bf3436d748e23ad3ac9c90447ab3f2",
+      "sha256": "d3fd4807b24b3746f6900be30a837ce2716422dfd8c623c85abde7c160e7bb16",
       "boundary": "context-dependent",
       "imports": [
         "./TodayInteractions",
@@ -15014,7 +15025,7 @@
     },
     {
       "file": "src/components/today/TodayInteractions.tsx",
-      "sha256": "8059253f8b7ee42a17f974b6955cb56276c6a22b6e765ac622b4d9bba30bad39",
+      "sha256": "0b9b80db857ba717dca11173a304f4443e385a0ad1b07ed59424c96cd9539c95",
       "boundary": "client",
       "imports": [
         "@/components/UserAvatar",
@@ -15556,6 +15567,22 @@
       "checks": [],
       "exports": [
         "confirmAccountEmail"
+      ]
+    },
+    {
+      "file": "src/lib/account/mutation.ts",
+      "sha256": "e5ff49c90b8ce1a33087bf6945b740782defcab58f97483100571b8f5d3ebb61",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/generated/prisma/client",
+        "@/lib/db",
+        "@/lib/native/sessions"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "commitAccountMutation"
       ]
     },
     {
@@ -17518,13 +17545,14 @@
     },
     {
       "file": "src/lib/data/native.ts",
-      "sha256": "654632da31e296c0abe9281da5ad919db3d13e28e4c37897eebca1df6f4b8a0f",
+      "sha256": "6da2f1599d1f8572ed5fbbe90b298f1091809a0bd4a3a1ac2d9b3bb55cebc944",
       "boundary": "context-dependent",
       "imports": [
         "./scopes",
         "./store",
         "@/lib/native/client",
         "@/lib/native/contract",
+        "@/lib/native/todayActionsContract",
         "@/lib/native/todayContract",
         "socket.io-client"
       ],
@@ -17540,7 +17568,8 @@
         "cancelTick"
       ],
       "exports": [
-        "nativeContentQueryKey"
+        "nativeContentQueryKey",
+        "nativeTodayQueryKey"
       ]
     },
     {
@@ -19252,7 +19281,7 @@
     },
     {
       "file": "src/lib/i18n/messages/de.ts",
-      "sha256": "839010efb15d1f34ea503d42583799902a5642788dd1c9c80d6f65feafe9019d",
+      "sha256": "a92ceff354e97e5f199c8b2adce384ed205f124bb69d7921aa86b89e3e4d18e8",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19267,7 +19296,7 @@
     },
     {
       "file": "src/lib/i18n/messages/en.ts",
-      "sha256": "36e7ca95eef64232d769baae8c457ed26baa39ca7c91a005e742a5f3412426d0",
+      "sha256": "73c0af6a0dbe3e78fc0c7ac9b2891e7631f1bed67cbcd56dc59a76476d2f1c8f",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19282,7 +19311,7 @@
     },
     {
       "file": "src/lib/i18n/messages/es.ts",
-      "sha256": "0ffcf8cd379d21a84786bd0a301176fd46cf363631f429a39e4225a3aa33f4b0",
+      "sha256": "2dbd153e9d28b41b90382b76576647757550da3d0e1b3263bb202a09a3af967e",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19297,7 +19326,7 @@
     },
     {
       "file": "src/lib/i18n/messages/fr.ts",
-      "sha256": "4ced0bc64c3700a71015fbe50bb09ce78d78cad3e29842c525c0d8bfa2e1c925",
+      "sha256": "0677134968ebaae77b54a447ddd411116c2c94abaa3e2957879668f0bc87ab33",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19380,7 +19409,7 @@
     },
     {
       "file": "src/lib/i18n/messages/nl.ts",
-      "sha256": "bb303d4f6efa7aaad9b0d5dd8bb3aa6ee5da02a735a0e429cc8be0f84ef843af",
+      "sha256": "6a00c3a4688f1366c136a942352fd84e3b2404e74a2900cc06a0159b6cf93378",
       "boundary": "context-dependent",
       "imports": [
         "./kompas/nl"
@@ -20006,6 +20035,25 @@
         "fetchListState",
         "hideListItem",
         "saveListOrder"
+      ]
+    },
+    {
+      "file": "src/lib/listPreferences.server.ts",
+      "sha256": "dec7f1924a4b0dd8ff9f91e8edf6883fc9fba7079bf1b1154ff2fa3f7c88f165",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/lib/account/mutation",
+        "@/lib/data/scopes",
+        "@/lib/realtime",
+        "zod"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "listKeySchema",
+        "listPreferenceSchema",
+        "saveListPreferences"
       ]
     },
     {
@@ -20688,7 +20736,7 @@
     },
     {
       "file": "src/lib/native/access.ts",
-      "sha256": "cbf80eef7686e8e54582362e87a7ef9de6b1db7cd543028ead4f974015458aee",
+      "sha256": "47d74addcbdbf1ea5b8ccf2d37b9f4cedd72dc83259ed25e8e6eb3104ceeff3b",
       "boundary": "context-dependent",
       "imports": [
         "./client",
@@ -20724,7 +20772,7 @@
     },
     {
       "file": "src/lib/native/api.ts",
-      "sha256": "6a667aaf632fc2853dae6a66f4293f5dd02771135fc2620068b9158975d10458",
+      "sha256": "a2c11a800bc42e204b7ed5b49a1ded57c9fea9be6ba71108e0616ea497c57c5e",
       "boundary": "context-dependent",
       "imports": [
         "./apple",
@@ -20738,6 +20786,7 @@
         "./socketAuth",
         "./socketTickets",
         "./today.server",
+        "./todayActionsContract",
         "@/app/api/auth/forgot-password/route",
         "@/app/api/auth/register/route",
         "@/lib/account/contracts",
@@ -20754,9 +20803,11 @@
         "@/lib/email",
         "@/lib/handle",
         "@/lib/learning/contentProgress",
+        "@/lib/listPreferences.server",
         "@/lib/rateLimit",
         "@/lib/realtime",
         "@/lib/registration",
+        "@/lib/social/friendRequests",
         "next/server",
         "zod"
       ],
@@ -20824,7 +20875,7 @@
     },
     {
       "file": "src/lib/native/client.ts",
-      "sha256": "86ddfb7dd36d9e6494e96f06510e2ed6d625effa9e48d81524fe221300bcbeea",
+      "sha256": "2b5b4a76eccfa5f4374b3d3df0e6cf1053c6ce31d4a847dcf676041a92e1c92b",
       "boundary": "context-dependent",
       "imports": [
         "./contract",
@@ -21186,6 +21237,22 @@
       "checks": [],
       "exports": [
         "getNativeTodayOverview"
+      ]
+    },
+    {
+      "file": "src/lib/native/todayActionsContract.ts",
+      "sha256": "1e154745a40c3fd627a0583d8f8a55ae1726f69c871558f1e0a01d10d2089cf7",
+      "boundary": "context-dependent",
+      "imports": [
+        "zod"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "nativeFriendResponseSchema",
+        "nativeTodayActionResultSchema",
+        "nativeTodayHideSchema"
       ]
     },
     {
@@ -23749,6 +23816,23 @@
         "memberDayStates",
         "personSelect",
         "recordSocialEvent"
+      ]
+    },
+    {
+      "file": "src/lib/social/friendRequests.ts",
+      "sha256": "e697c829675c0757415295ce4a53adec767bbd72edfa7a7008bb5e0c8ad6b3d1",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/lib/account/mutation",
+        "@/lib/achievements",
+        "@/lib/db",
+        "@/lib/realtime"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "respondFriendRequest"
       ]
     },
     {
@@ -38169,14 +38253,12 @@
     },
     {
       "file": "src/app/api/friends/[friendshipId]/accept/route.ts",
-      "sha256": "c2b92c109809bc625e154706e199b6242ece1555fe64b9ffea0c1e6d1c0ce817",
+      "sha256": "eb8880ca96c3540dd450702ab912a08e9f38ff794cff44bd4fddd6881d5c1827",
       "boundary": "context-dependent",
       "imports": [
-        "@/lib/achievements",
         "@/lib/apiError",
-        "@/lib/db",
-        "@/lib/realtime",
         "@/lib/session",
+        "@/lib/social/friendRequests",
         "next/server"
       ],
       "methods": [
@@ -38194,6 +38276,7 @@
       "domain": "sociaal",
       "dependencies": [
         "src/app/api/friends/[friendshipId]/accept/route.ts",
+        "src/lib/account/mutation.ts",
         "src/lib/achievements.ts",
         "src/lib/activityFeed.ts",
         "src/lib/apiError.ts",
@@ -38214,16 +38297,16 @@
         "src/lib/i18n/messages/nl.ts",
         "src/lib/i18n/serverTexts.ts",
         "src/lib/languages.ts",
+        "src/lib/native/sessions.ts",
         "src/lib/realtime.ts",
         "src/lib/requestLanguage.ts",
-        "src/lib/session.ts"
+        "src/lib/session.ts",
+        "src/lib/social/friendRequests.ts"
       ],
       "directModules": [
-        "src/lib/achievements.ts",
         "src/lib/apiError.ts",
-        "src/lib/db.ts",
-        "src/lib/realtime.ts",
-        "src/lib/session.ts"
+        "src/lib/session.ts",
+        "src/lib/social/friendRequests.ts"
       ],
       "clientBoundaries": [],
       "requestEvidence": [],
@@ -38233,13 +38316,12 @@
     },
     {
       "file": "src/app/api/friends/[friendshipId]/decline/route.ts",
-      "sha256": "e46862b21ed14ae8c100c1dd0d2d3b439ff70cb9c77b259ca31207e2abfde5ea",
+      "sha256": "aede8994a7cc2e55c62d26f416a1f45389b2f411616f65e0a984014c6ce5915a",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
-        "@/lib/db",
-        "@/lib/realtime",
         "@/lib/session",
+        "@/lib/social/friendRequests",
         "next/server"
       ],
       "methods": [
@@ -38257,6 +38339,9 @@
       "domain": "sociaal",
       "dependencies": [
         "src/app/api/friends/[friendshipId]/decline/route.ts",
+        "src/lib/account/mutation.ts",
+        "src/lib/achievements.ts",
+        "src/lib/activityFeed.ts",
         "src/lib/apiError.ts",
         "src/lib/auth.ts",
         "src/lib/data/scopes.ts",
@@ -38275,15 +38360,16 @@
         "src/lib/i18n/messages/nl.ts",
         "src/lib/i18n/serverTexts.ts",
         "src/lib/languages.ts",
+        "src/lib/native/sessions.ts",
         "src/lib/realtime.ts",
         "src/lib/requestLanguage.ts",
-        "src/lib/session.ts"
+        "src/lib/session.ts",
+        "src/lib/social/friendRequests.ts"
       ],
       "directModules": [
         "src/lib/apiError.ts",
-        "src/lib/db.ts",
-        "src/lib/realtime.ts",
-        "src/lib/session.ts"
+        "src/lib/session.ts",
+        "src/lib/social/friendRequests.ts"
       ],
       "clientBoundaries": [],
       "requestEvidence": [],
@@ -40885,14 +40971,14 @@
     },
     {
       "file": "src/app/api/list-order/route.ts",
-      "sha256": "88bb956f9ab7b8afed83fdda181d3b900c9dac9242170f90ac45541b94b36657",
+      "sha256": "5c3def9f6a4cd5b874379d10e6d73ced6b5914a1bc3ac286378985abd41a2997",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
         "@/lib/db",
+        "@/lib/listPreferences.server",
         "@/lib/session",
-        "next/server",
-        "zod"
+        "next/server"
       ],
       "methods": [
         "GET",
@@ -40911,8 +40997,10 @@
       "domain": "overig-vandaag",
       "dependencies": [
         "src/app/api/list-order/route.ts",
+        "src/lib/account/mutation.ts",
         "src/lib/apiError.ts",
         "src/lib/auth.ts",
+        "src/lib/data/scopes.ts",
         "src/lib/db.ts",
         "src/lib/i18n/core.ts",
         "src/lib/i18n/index.ts",
@@ -40928,12 +41016,16 @@
         "src/lib/i18n/messages/nl.ts",
         "src/lib/i18n/serverTexts.ts",
         "src/lib/languages.ts",
+        "src/lib/listPreferences.server.ts",
+        "src/lib/native/sessions.ts",
+        "src/lib/realtime.ts",
         "src/lib/requestLanguage.ts",
         "src/lib/session.ts"
       ],
       "directModules": [
         "src/lib/apiError.ts",
         "src/lib/db.ts",
+        "src/lib/listPreferences.server.ts",
         "src/lib/session.ts"
       ],
       "clientBoundaries": [],
@@ -49965,6 +50057,7 @@
         "src/components/versado/styles.ts",
         "src/lib/account/contracts.ts",
         "src/lib/account/emailConfirmation.ts",
+        "src/lib/account/mutation.ts",
         "src/lib/account/password.ts",
         "src/lib/account/passwordReset.ts",
         "src/lib/accountDeletion.ts",
@@ -50060,6 +50153,7 @@
         "src/lib/learning/streakReturnRules.ts",
         "src/lib/learning/streakRules.ts",
         "src/lib/listOrder.ts",
+        "src/lib/listPreferences.server.ts",
         "src/lib/mailHistory.ts",
         "src/lib/mailHistoryTypes.ts",
         "src/lib/mascots.ts",
@@ -50096,6 +50190,7 @@
         "src/lib/native/socketAuth.ts",
         "src/lib/native/socketTickets.ts",
         "src/lib/native/today.server.ts",
+        "src/lib/native/todayActionsContract.ts",
         "src/lib/native/todayContract.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
@@ -50124,6 +50219,7 @@
         "src/lib/returnTo.ts",
         "src/lib/session.ts",
         "src/lib/social/common.ts",
+        "src/lib/social/friendRequests.ts",
         "src/lib/social/friendStreaks.ts",
         "src/lib/social/groupDays.ts",
         "src/lib/social/groupFreeze.ts",
@@ -53293,6 +53389,7 @@
         "src/components/today/DiscoverySection.tsx",
         "src/components/today/FriendRequestButtons.tsx",
         "src/components/today/FriendRequestButtonsView.tsx",
+        "src/components/today/FriendRequestControl.tsx",
         "src/components/today/GeneralConferenceCountdown.tsx",
         "src/components/today/Greeting.tsx",
         "src/components/today/OpenActions.tsx",
@@ -53552,6 +53649,7 @@
         "src/components/today/ContinueSection.tsx",
         "src/components/today/FriendRequestButtons.tsx",
         "src/components/today/FriendRequestButtonsView.tsx",
+        "src/components/today/FriendRequestControl.tsx",
         "src/components/today/GeneralConferenceCountdown.tsx",
         "src/components/today/SocialLive.tsx",
         "src/components/today/SocialView.tsx",
@@ -75205,7 +75303,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "06c7144becdf0917dca2e1bd580e82a402c43396e42f4ac307bed813e5d8257b",
+      "sha256": "159d9719154356329d626a1f2bee5996872a9b65065ab5d10fb21d974bf179e2",
       "boundary": "client",
       "imports": [
         "./NativeContentPicker",
@@ -75322,14 +75420,14 @@
     },
     {
       "file": "src/components/native/NativeTodayView.tsx",
-      "sha256": "cd623a8775d358c3632b2f0aa4019f31e757bfb5554935c1e13258117db9021f",
+      "sha256": "ba7118c9972cae5294c82bd939a785191245026ec1a4c3768ac06be8b847fd48",
       "boundary": "client",
       "imports": [
         "@/components/ConfirmProvider",
         "@/components/I18nProvider",
         "@/components/kompas/KompasEntryCardView",
         "@/components/navigation/AppNavigation",
-        "@/components/today/FriendRequestButtonsView",
+        "@/components/today/FriendRequestControl",
         "@/components/today/SocialView",
         "@/components/today/StreakContinuationCardView",
         "@/components/today/TodayInteractions",
@@ -77039,7 +77137,7 @@
     },
     {
       "file": "src/components/today/ContinueSection.tsx",
-      "sha256": "740eeb3358a34e9f3d1f07d9a4aee2d9dabeeb58f81afde936ff3cd8934b8c7c",
+      "sha256": "eb5469b2c55e7a4d1afc9250edf58fb57236370a629c2a6a60018c966f0dc405",
       "boundary": "client",
       "imports": [
         "./TodayInteractions",
@@ -77086,13 +77184,12 @@
     },
     {
       "file": "src/components/today/FriendRequestButtons.tsx",
-      "sha256": "d23f95b48ae0fdfd5d1752140b91c4f91a63027fc943f95a200219e9a4f7c592",
+      "sha256": "b19c4b1d2b944d5c8f5ac31a629ab2a3039968725cd24fed9e6b889853a7d36d",
       "boundary": "client",
       "imports": [
-        "./FriendRequestButtonsView",
-        "@/lib/socketClient",
-        "next/navigation",
-        "react"
+        "./FriendRequestControl",
+        "@/lib/data/mutation",
+        "next/navigation"
       ],
       "methods": [],
       "requests": [
@@ -77105,7 +77202,7 @@
     },
     {
       "file": "src/components/today/FriendRequestButtonsView.tsx",
-      "sha256": "37aa5c1570e5ba9fa9004eca250ab9c5e2d8718f0fa8baf8547dbf809ba81190",
+      "sha256": "d508093d473855c177acca72513be95a3f2bce4b667013a10c2bb9999f2d09c3",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -77117,6 +77214,21 @@
       "checks": [],
       "exports": [
         "FriendRequestButtonsView"
+      ]
+    },
+    {
+      "file": "src/components/today/FriendRequestControl.tsx",
+      "sha256": "304b1ba261016d10135a655c48cebfca2cc13fd56f3ac998323ca4ed8541a2cf",
+      "boundary": "client",
+      "imports": [
+        "./FriendRequestButtonsView",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "FriendRequestControl"
       ]
     },
     {
@@ -77160,7 +77272,7 @@
     },
     {
       "file": "src/components/today/OpenActions.tsx",
-      "sha256": "f8a970609691b21d7d8b2b7638f228f3b4bf3436d748e23ad3ac9c90447ab3f2",
+      "sha256": "d3fd4807b24b3746f6900be30a837ce2716422dfd8c623c85abde7c160e7bb16",
       "boundary": "context-dependent",
       "imports": [
         "./TodayInteractions",
@@ -77274,7 +77386,7 @@
     },
     {
       "file": "src/components/today/TodayInteractions.tsx",
-      "sha256": "8059253f8b7ee42a17f974b6955cb56276c6a22b6e765ac622b4d9bba30bad39",
+      "sha256": "0b9b80db857ba717dca11173a304f4443e385a0ad1b07ed59424c96cd9539c95",
       "boundary": "client",
       "imports": [
         "@/components/UserAvatar",
@@ -78077,6 +78189,9 @@
     "tests/native-socket.integration.test.ts",
     "tests/native-socket.test.ts",
     "tests/native-store-readiness.test.mjs",
+    "tests/native-today-actions.browser.mjs",
+    "tests/native-today-actions.integration.test.ts",
+    "tests/native-today-actions.test.ts",
     "tests/native-today-view.test.tsx",
     "tests/native-today.browser.mjs",
     "tests/native-today.integration.test.ts",

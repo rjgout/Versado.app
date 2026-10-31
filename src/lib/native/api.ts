@@ -9,6 +9,9 @@ import { hashSecret, issueNativeSession, nativeUser, nativeSessionIdentity, Nati
 import { nativePasswordLogin, nativePasswordProof } from "./password";
 import { cancelNativeSecuritySetup, finishNativeSecuritySetup, nativeSignInResult } from "./securitySetup";
 import { nativeSetupFinishSchema } from "./contract";
+import { saveListPreferences } from "@/lib/listPreferences.server";
+import { FriendRequestError, respondFriendRequest } from "@/lib/social/friendRequests";
+import { nativeTodayHideSchema, nativeFriendResponseSchema } from "./todayActionsContract";
 import { getNativeTodayOverview } from "./today.server";
 import { getNativeContentState, selectNativeContent } from "./content.server";
 import { nativeContentSelectionSchema } from "./contract";
@@ -71,7 +74,7 @@ export async function nativeApi(req: NextRequest, parts: string[]): Promise<Next
   const ip = hashSecret(clientIp(req)), failureKey = `native-auth:${ip}`;
   try {
     if (mutation && req.headers.get("content-type")?.split(";")[0] !== "application/json") throw new NativeAuthError("json_required", 415);
-    if (req.method === "GET" && path === "capabilities") return json({ apiVersion: 1, apple: !!appleConfiguration(), registration: true, features: ["today-overview-v1", "content-picker-v1", "security-setup-v1", "account-password-v1", "password-reset-v1", "email-confirmation-v1", ...(nativeSocketEnabled() ? ["realtime-ticket-v1"] : [])] });
+    if (req.method === "GET" && path === "capabilities") return json({ apiVersion: 1, apple: !!appleConfiguration(), registration: true, features: ["today-actions-v1", "today-overview-v1", "content-picker-v1", "security-setup-v1", "account-password-v1", "password-reset-v1", "email-confirmation-v1", ...(nativeSocketEnabled() ? ["realtime-ticket-v1"] : [])] });
     if (req.method === "POST" && path === "login") {
       if (failureLockSeconds(failureKey, 30)) throw new NativeAuthError("too_many_attempts", 429);
       const input = z.object({ identifier: z.string().trim().min(1).max(320), ...credentials, supportsSecuritySetup: z.boolean().optional() }).strict().parse(await body(req));
@@ -167,6 +170,20 @@ export async function nativeApi(req: NextRequest, parts: string[]): Promise<Next
       return json(await issueSocketTicket(header.slice(7)));
     }
     const user = await authenticated(req);
+    if (req.method === "POST" && ["today-actions/hide", "today-actions/friend-response"].includes(path)) {
+      const limited = await authBudget(authBudgetKey("native-today-actions", user.id), 60, 60_000);
+      if (limited) throw new NativeAuthError(limited.status === 503 ? "security_check_unavailable" : "too_many_attempts", limited.status);
+      const identity = await nativeSessionIdentity(req.headers.get("authorization")!.slice(7));
+      const actor = { userId: identity.user.id, nativeSession: identity.binding };
+      if (path === "today-actions/hide") {
+        const input = nativeTodayHideSchema.parse(await body(req));
+        await saveListPreferences(actor, { listKey: "today-continue", hideKeys: [input.itemKey] });
+        return json({ version: 1, userId: actor.userId, outcome: { kind: "hidden", itemKey: input.itemKey } });
+      }
+      const input = nativeFriendResponseSchema.parse(await body(req));
+      const result = await respondFriendRequest(actor, input.friendshipId, input.action);
+      return json({ version: 1, userId: actor.userId, outcome: { kind: "friend-response", friendshipId: input.friendshipId, ...result } });
+    }
     if (path === "today-overview" && req.method === "GET") {
       const identity = await nativeSessionIdentity(req.headers.get("authorization")!.slice(7));
       return json(await getNativeTodayOverview(identity.binding));
@@ -223,6 +240,7 @@ export async function nativeApi(req: NextRequest, parts: string[]): Promise<Next
     }
     return json({ error: "endpoint_unavailable" }, 404);
   } catch (error) {
+    if (error instanceof FriendRequestError) return json({ error: error.code }, error.status);
     if (error instanceof ContentSelectionConflict) return json({ error: "content_selection_conflict" }, 409);
     const status = error instanceof NativeAuthError ? error.status : error instanceof z.ZodError ? 400 : 500;
     if (status === 400 || status === 401) registerFailure(failureKey, 900_000);

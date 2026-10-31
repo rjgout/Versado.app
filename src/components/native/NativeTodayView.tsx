@@ -10,17 +10,22 @@ import TodayView from "@/components/today/TodayView";
 import SocialView from "@/components/today/SocialView";
 import TodayProgramView from "@/components/today/TodayProgramView";
 import StreakContinuationCardView from "@/components/today/StreakContinuationCardView";
-import FriendRequestButtonsView from "@/components/today/FriendRequestButtonsView";
+import FriendRequestControl from "@/components/today/FriendRequestControl";
 import KompasEntryCardView from "@/components/kompas/KompasEntryCardView";
-import { TodayInteractionsProvider, type TodayInteractions } from "@/components/today/TodayInteractions";
+import { TodayInteractionsProvider, type TodayInteractions, useTodayInteractions } from "@/components/today/TodayInteractions";
 import { nativeTodayDestination } from "@/lib/native/todayDestinations";
 import { nativeTodayImageSource } from "@/lib/native/todayAssets";
 import type { NativeTodayOverview } from "@/lib/native/todayContract";
 
-export default function NativeTodayView({ state }: { state: NativeTodayOverview }) {
-  return <ConfirmProvider><NativeTodayContent state={state}/></ConfirmProvider>;
+type Actions = { hideContinue: TodayInteractions["hideContinue"]; respondFriend: NonNullable<TodayInteractions["respondFriend"]> };
+function NativeFriendActions({ friendshipId, name }: { friendshipId: string; name: string }) {
+  const { respondFriend } = useTodayInteractions();
+  return <FriendRequestControl name={name} respond={action => respondFriend!(friendshipId, action)}/>;
 }
-function NativeTodayContent({ state }: { state: NativeTodayOverview }) {
+export default function NativeTodayView({ state, actions }: { state: NativeTodayOverview; actions?: Actions }) {
+  return <ConfirmProvider><NativeTodayContent state={state} actions={actions}/></ConfirmProvider>;
+}
+function NativeTodayContent({ state, actions }: { state: NativeTodayOverview; actions?: Actions }) {
   const navigation = useAppNavigationAdapter(), t = useT();
   const confirm = useConfirm();
   const notify = useCallback(() => { void confirm(t("nativeToday.unavailable"), { native: true, notice: true, title: t("nav.today"), confirmLabel: t("common.close") }); }, [confirm, t]);
@@ -37,9 +42,10 @@ function NativeTodayContent({ state }: { state: NativeTodayOverview }) {
   const interactions = useMemo<TodayInteractions>(() => ({
     Avatar: ({ avatarEmoji, ...props }) => { void avatarEmoji; return <UserAvatarView {...props} appearance={state.avatars[props.id] ?? EMPTY_AVATAR_APPEARANCE}/>; },
     Social: SocialView,
-    FriendActions: ({ name }) => <FriendRequestButtonsView name={name} busy={false} respond={() => notify()}/>,
-    hideContinue: async () => { notify(); throw new Error("native_action_unavailable"); },
-  }), [state.avatars, notify]);
+    FriendActions: NativeFriendActions,
+    respondFriend: actions?.respondFriend ?? (async () => { notify(); throw new Error("native_action_unavailable"); }),
+    hideContinue: actions?.hideContinue ?? (async () => { notify(); throw new Error("native_action_unavailable"); }),
+  }), [state.avatars, notify, actions]);
   return <CompanionProvider character={state.companion}><TodayInteractionsProvider value={interactions}>
     <p id="native-today-destinations" className="sr-only">{t("nativeToday.unavailable")}</p>
     <AppNavigationProvider adapter={adapter}><TodayView data={state.data} language={state.language} serverNow={state.serverNow} countdownEnabled={state.countdownEnabled}

@@ -16,7 +16,7 @@ export function nativeAccessError(error: unknown): NativeClientError {
 }
 export function accessRouteAllowed(path: string, method: string): boolean {
   if (method === "GET") return ["capabilities", "me", "today", "today-overview", "content-context"].includes(path) || /^chapters\/[A-Za-z0-9_-]{1,128}$/.test(path);
-  if (method === "POST") return ["content-context", "login", "register", "forgot-password", "reset-password", "verify-email", "refresh", "logout", "security-setup/complete", "security-setup/cancel", "apple/challenge", "apple/complete", "account/password"].includes(path) || /^chapters\/[A-Za-z0-9_-]{1,128}\/complete$/.test(path);
+  if (method === "POST") return ["today-actions/hide", "today-actions/friend-response", "content-context", "login", "register", "forgot-password", "reset-password", "verify-email", "refresh", "logout", "security-setup/complete", "security-setup/cancel", "apple/challenge", "apple/complete", "account/password"].includes(path) || /^chapters\/[A-Za-z0-9_-]{1,128}\/complete$/.test(path);
   return method === "DELETE" && ["apple", "account"].includes(path); // WP4-accountendpoint blijft afzonderlijk werk.
 }
 /** Alleen pad/body/Bearer gaan naar native. Geen servicecredential komt uit de bridge terug. */

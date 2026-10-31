@@ -1,23 +1,16 @@
 "use client";
-import FriendRequestButtonsView from "./FriendRequestButtonsView";
-
-import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { getSocket } from "@/lib/socketClient";
-
-// Zelfde endpoints en seintje als de vriendenpagina (FriendsClient): na
-// accepteren krijgt de ander het via "friendship_changed" meteen te zien.
-export default function FriendRequestButtons({ friendshipId, otherUserId, name }: { friendshipId: string; otherUserId: string; name: string }) {
+import { liveMutation } from "@/lib/data/mutation";
+import FriendRequestControl from "./FriendRequestControl";
+export default function FriendRequestButtons({ friendshipId, name }: { friendshipId: string; otherUserId: string; name: string }) {
   const router = useRouter();
-  const [busy, setBusy] = useState(false);
-
   async function respond(action: "accept" | "decline") {
-    setBusy(true);
-    const res = await fetch(`/api/friends/${friendshipId}/${action}`, { method: "POST" }).catch(() => null);
-    if (res?.ok && action === "accept") getSocket().emit("friendship_changed", { otherUserId });
+    await liveMutation(async () => {
+      const response = await fetch(`/api/friends/${friendshipId}/${action}`, { method: "POST" });
+      if (!response.ok) throw new Error("friend_response_failed");
+    }, { invalidates: "friendsChanged" });
+    // Server emit verzorgt beide gebruikers; geen dubbele client-socketmelding.
     router.refresh();
-    setBusy(false);
   }
-
-  return <FriendRequestButtonsView name={name} busy={busy} respond={action => { void respond(action); }}/>;
+  return <FriendRequestControl name={name} respond={respond}/>;
 }

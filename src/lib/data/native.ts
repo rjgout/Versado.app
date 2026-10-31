@@ -1,17 +1,23 @@
 // Native adapter van dezelfde LiveDataStore als web. Geen cookiesocket,
 // web-API-fallback, opslag of tweede voortgangs-/beloningssysteem.
+import { nativeTodayActionResultSchema } from "@/lib/native/todayActionsContract";
+import type { NativeTodayOverview } from "@/lib/native/todayContract";
 import { nativeTodayOverviewSchema } from "@/lib/native/todayContract";
 import type { Socket } from "socket.io-client";
-import { LiveDataStore, serializeKey, type LiveEnvironment } from "./store";
+import { LiveDataStore, serializeKey, type LiveEnvironment, type QueryKey } from "./store";
 import { DATA_EVENT_SOCKET_NAME, SOCKET_EVENT_TO_DATA_EVENT, dataEventsForSocketEvent, isDataEvent, type DataEvent, type DataScope } from "./scopes";
 import { nativeAccountSchema, nativeTodaySchema, nativeChapterSchema, nativeContentStateSchema, nativeContentResultSchema, nativeContentSelectionSchema, type NativeContentState, type NativeContentSelection } from "@/lib/native/contract";
 import { NativeClientError, type NativeSessionClient } from "@/lib/native/client";
 
 export const nativeContentQueryKey = (userId: string | null) => ["content-context", userId] as const;
 
+export const nativeTodayQueryKey = (state: Pick<NativeTodayOverview, "userId" | "activeCollectionId" | "selectionVersion" | "language">) =>
+  ["today-overview", state.userId, `${state.activeCollectionId}:${state.selectionVersion}`, state.language] as const;
+
 export class NativeDataRuntime {
   readonly store: LiveDataStore;
   private epoch = 0;
+  private pendingTodayActions = new Set<string>();
   private listeners = new Set<() => void>();
   constructor(readonly client: NativeSessionClient, private readonly environment: LiveEnvironment) { this.store = new LiveDataStore(environment); }
   getSnapshot = () => this.epoch;
@@ -27,6 +33,44 @@ export class NativeDataRuntime {
     const expected = current?.picker ?? context;
     if (result.activeCollectionId !== expected.activeCollectionId || result.selectionVersion !== expected.selectionVersion) throw new NativeClientError("content_context_changed", 409);
     return result;
+  }
+  /** Alleen in-flight uitsluiting, geen offline wachtrij of voortgangscache.
+   * De port legt de epoch bij render vast; een oude klik kan nooit als B schrijven.
+   */
+  todayActions(state: NativeTodayOverview, queryKey: QueryKey = nativeTodayQueryKey(state)) {
+    const epoch = this.epoch;
+    const run = async (path: "hide" | "friend-response", input: { itemKey: string } | { friendshipId: string; action: "accept" | "decline" }) => {
+      if (epoch !== this.epoch) throw new NativeClientError("session_changed", 409);
+      if (!this.environment.isOnline()) throw new NativeClientError("network_unavailable");
+      const identity = `${epoch}:${"itemKey" in input ? input.itemKey : input.friendshipId}`;
+      if (this.pendingTodayActions.has(identity)) throw new NativeClientError("action_in_progress", 409);
+      this.pendingTodayActions.add(identity);
+      try {
+        const result = nativeTodayActionResultSchema.parse(await this.client.actionOnce(`today-actions/${path}`, input));
+        if (epoch !== this.epoch || result.userId !== state.userId) throw new NativeClientError("session_changed", 409);
+        const outcome = result.outcome;
+        if ("itemKey" in input ? outcome.kind !== "hidden" || outcome.itemKey !== input.itemKey
+          : outcome.kind !== "friend-response" || outcome.friendshipId !== input.friendshipId || outcome.status !== (input.action === "accept" ? "accepted" : "declined")) throw new NativeClientError("invalid_response");
+        // Alleen bevestigde resultaten projecteren in dezelfde store. writeVersion
+        // blokkeert oudere GETs, ook als de volgende herlaadactie mislukt.
+        this.store.setData<NativeTodayOverview>(["native", epoch, ...queryKey], previous => {
+          if (!previous || previous.userId !== result.userId) return previous;
+          if (outcome.kind === "hidden") return { ...previous, data: { ...previous.data, continueItems: previous.data.continueItems.filter(item => item.visibilityKey !== outcome.itemKey) } };
+          const actions = previous.data.actions.filter(action => action.kind !== "friend-request" || action.actionId !== outcome.friendshipId);
+          return { ...previous, data: { ...previous.data, actions, actionTotal: Math.max(0, previous.data.actionTotal - (previous.data.actions.length - actions.length)) } };
+        });
+        this.store.invalidate(outcome.kind === "hidden" ? ["today"] : "friendsChanged");
+      } catch (error) {
+        // Een elders verwerkt/verwijderd verzoek is geen nieuwe succesvolle actie.
+        // Alleen lezen verversen, nooit een write herhalen of een uitslag verzinnen.
+        if (epoch === this.epoch && error instanceof NativeClientError && [404, 409].includes(error.status)) this.store.invalidate(["today", "friends"]);
+        throw error;
+      } finally { this.pendingTodayActions.delete(identity); }
+    };
+    return {
+      hideContinue: (item: { visibilityKey: string }) => run("hide", { itemKey: item.visibilityKey }),
+      respondFriend: (friendshipId: string, action: "accept" | "decline") => run("friend-response", { friendshipId, action }),
+    };
   }
   async contentContext(userId: string) {
     const epoch = this.epoch;

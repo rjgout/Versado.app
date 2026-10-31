@@ -215,7 +215,12 @@ export class NativeSessionClient {
     this.refreshQueue = slot;
     return slot.promise;
   }
-  async api<T>(path: string, body?: unknown, method?: string): Promise<T> {
+  /** B2b writes are sent once. A 401 never refreshes/resends this write:
+   * the user must explicitly restore the session and inspect server state. */
+  async actionOnce<T>(path: string, body: unknown): Promise<T> {
+    return this.api<T>(path, body, "POST", false);
+  }
+  async api<T>(path: string, body?: unknown, method?: string, retryExpired = true): Promise<T> {
     const generation = this.generation;
     if (this.authenticating !== null) throw new NativeClientError("authentication_in_progress", 409);
     if (!this.access) await this.refresh();
@@ -227,6 +232,7 @@ export class NativeSessionClient {
     } catch (error) {
       this.assertGeneration(generation);
       if (!(error instanceof NativeClientError) || error.status !== 401 || error.code !== "session_expired") throw error;
+      if (!retryExpired) throw error;
       await this.refresh(); this.assertGeneration(generation);
       const data = await this.request<T>(path, body, this.access ?? undefined, method);
       this.assertGeneration(generation); return data;

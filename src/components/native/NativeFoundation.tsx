@@ -29,7 +29,7 @@ import { nativeAccountActions } from "@/lib/native/account";
 import { NativeSocketConnection } from "@/lib/native/socketClient";
 import NativeEmailConfirmation from "./NativeEmailConfirmation";
 import NativePasswordReset from "./NativePasswordReset";
-import { nativeContentQueryKey } from "@/lib/data/native";
+import { nativeContentQueryKey, nativeTodayQueryKey } from "@/lib/data/native";
 import { NativeDataProvider, useNativeData, useNativeLiveQuery } from "@/lib/data/nativeHooks";
 import { nativeDeepLink, nativePasswordResetLink, nativeEmailConfirmationLink } from "@/lib/native/navigation";
 import { focusNativeRouteHeading } from "@/lib/native/routeFocus";
@@ -72,7 +72,8 @@ function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBan
   }, { scopes: ["today", "content"], enabled: contentEnabled && !!content && !features.includes("today-overview-v1") && navigation.pathname === "/dashboard" });
 
   const overviewEnabled = !!user && features.includes("today-overview-v1") && !setup && !recoveryCodes;
-  const overviewQuery = useNativeLiveQuery<NativeTodayOverview>(["today-overview", user?.id ?? null, contentStamp, user?.uiLanguage ?? null], () => dataRuntime.todayOverview(user!.id, content!.picker), {
+  const overviewKey = user && content ? nativeTodayQueryKey({ userId: user.id, activeCollectionId: content.picker.activeCollectionId, selectionVersion: content.picker.selectionVersion, language: user.uiLanguage as NativeTodayOverview["language"] }) : ["today-overview", null];
+  const overviewQuery = useNativeLiveQuery<NativeTodayOverview>(overviewKey, () => dataRuntime.todayOverview(user!.id, content!.picker), {
     scopes: ["today", "content", "progress", "xp", "streak", "courses", "studyContext", "studyContent", "friends", "groups", "kompas"],
     enabled: overviewEnabled && !!content && navigation.pathname === "/dashboard", staleTime: 60_000, pollMs: 60_000,
     validUntil: (data, fetchedAt) => fetchedAt + Math.max(1000, Date.parse(data.expiresAt) - data.serverNow),
@@ -307,7 +308,11 @@ function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBan
     </> : overviewEnabled && navigation.pathname === "/dashboard" ? overview ? <>
       {!!overviewQuery.error && <section role="alert" className="rounded-2xl border border-vs-line p-4"><p>{t("nativeFoundation.error")}</p><button type="button" className={button} onClick={() => { void overviewQuery.refetch(); }}>{t("nativeFoundation.retry")}</button></section>}
       {user.onboardingRequired && <p>{t("nativeFoundation.onboardingNote")}</p>}
-      <NativeTodayView key={`${user.id}:${dataRuntime.getSnapshot()}:${contentStamp}`} state={overview}/></> : <section aria-busy={overviewQuery.isFetching}>
+      <NativeTodayView key={`${user.id}:${dataRuntime.getSnapshot()}:${contentStamp}`} state={overview} actions={features.includes("today-actions-v1") ? (() => {
+        const actions = dataRuntime.todayActions(overview, overviewKey);
+        const perform = async (run: () => Promise<void>) => { try { await run(); } catch (error) { if (error instanceof NativeClientError && (error.status === 401 || error.code.startsWith("access_"))) report(error); throw error; } };
+        return { hideContinue: item => perform(() => actions.hideContinue(item)), respondFriend: (id, action) => perform(() => actions.respondFriend(id, action)) };
+      })() : undefined}/></> : <section aria-busy={overviewQuery.isFetching}>
       <h1 tabIndex={-1} className="text-2xl font-extrabold">{t("nativeFoundation.today")}</h1>
       <p role="status">{t(overviewQuery.error ? "nativeFoundation.error" : "nativeFoundation.loading")}</p>
       {!!overviewQuery.error && <button type="button" className={button} onClick={() => { void overviewQuery.refetch(); }}>{t("nativeFoundation.retry")}</button>}
