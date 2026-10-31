@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import * as profiles from "../scripts/native/profiles.cjs";
 import { NativeClientError, NativeSessionClient, type SecureSessionStore } from "../src/lib/native/client";
 import { NativeSocketConnection } from "../src/lib/native/socketClient";
-import { INTERNAL_ACCESS_ORIGIN, nativeAccessTransport, type NativeAccessBridge } from "../src/lib/native/access";
+import { INTERNAL_ACCESS_ORIGIN, accessRouteAllowed, nativeAccessTransport, type NativeAccessBridge } from "../src/lib/native/access";
 
 const buildEnv = (values: Record<string, string> = {}): NodeJS.ProcessEnv => ({ NODE_ENV: "test", ...values });
 const base = `${INTERNAL_ACCESS_ORIGIN}/api/v1/native/`;
@@ -112,4 +112,20 @@ test("de bestaande AbortSignal-timeout wacht niet op een vertraagde native respo
   const request = transport(base + "capabilities", { signal: controller.signal });
   controller.abort(); await assert.rejects(request, /access_network_unavailable/);
   complete({ status: 200, body: "{}" }); // Een late native callback herstelt de afgebroken aanvraag niet.
+});
+
+
+test("contentcontext krijgt uitsluitend de exacte GET/POST-poort in TypeScript, Swift en Java", () => {
+  assert.equal(accessRouteAllowed("content-context", "GET"), true);
+  assert.equal(accessRouteAllowed("content-context", "POST"), true);
+  for (const verb of ["PUT", "PATCH", "DELETE", "HEAD"]) assert.equal(accessRouteAllowed("content-context", verb), false);
+  for (const path of ["content-context/", "content-context/preview", "content-context?preview=1", "../content-context", "content-context%2f", "realtime/ticket", "admin/content-context"]) {
+    for (const verb of ["GET", "POST"]) assert.equal(accessRouteAllowed(path, verb), false);
+  }
+  for (const path of ["ios/App/App/NativeAccessTransport.swift", "android/app/src/main/java/app/versado/app/NativeAccessTransport.java"]) {
+    const source = readFileSync(path, "utf8");
+    assert.match(source, /"GET"[^\n]*content-context/);
+    assert.match(source, /"POST"[^\n]*content-context/);
+    assert.doesNotMatch(source, /path\.startsWith\("content-context/);
+  }
 });

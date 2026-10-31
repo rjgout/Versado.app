@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { contentPickerContextSchema, contentSelectionSchema } from "@/lib/contentPickerContract";
+import { nativeRoute } from "./navigation";
 import { TIER_ORDER } from "@/lib/leagueTiers";
 export const nativeTokensSchema = z.object({ accessToken: z.string().min(1).max(2048), refreshToken: z.string().min(1).max(128), expiresIn: z.literal(300) });
 export const nativeSetupSchema = z.object({ securitySetup: z.object({
@@ -23,7 +25,21 @@ export const nativeShellHeaderSchema = z.object({
 });
 export type NativeShellHeader = z.infer<typeof nativeShellHeaderSchema>;
 export const nativeAccountSchema = z.object({ id: z.string(), handle: z.string(), uiLanguage: z.string(), onboardingRequired: z.boolean(), appleLinked: z.boolean(), passwordLoginEnabled: z.boolean(), totpEnabled: z.boolean().default(false), shellHeader: nativeShellHeaderSchema.optional() });
-export const nativeTodaySchema = z.object({ activity: z.object({ id: z.string(), title: z.string() }).nullable() });
-export const nativeChapterSchema = z.object({ id: z.string(), title: z.string(), verses: z.array(z.object({ number: z.number().int().positive(), text: z.string() })).max(499), state: z.object({ read: z.enum(["UNREAD", "READING", "READ"]) }).passthrough() });
+export const nativeTodaySchema = z.object({ selectionVersion: z.number().int().nonnegative().optional(), activity: z.object({ id: z.string(), title: z.string() }).nullable() });
+export const nativeChapterSchema = z.object({ contentCollectionId: z.string().optional(), selectionVersion: z.number().int().nonnegative().optional(), id: z.string(), title: z.string(), verses: z.array(z.object({ number: z.number().int().positive(), text: z.string() })).max(499), state: z.object({ read: z.enum(["UNREAD", "READING", "READ"]) }).passthrough() });
 export type NativeAccount = z.infer<typeof nativeAccountSchema>;
 export type NativeChapter = z.infer<typeof nativeChapterSchema>;
+
+/** Alleen de bestaande selectie, met actor en teller voor account-/ABA-isolatie. */
+export const nativeContentStateSchema = z.object({
+  version: z.literal(1), userId: z.string().min(1), switcherEnabled: z.boolean(),
+  picker: contentPickerContextSchema.extend({ selectionVersion: z.number().int().nonnegative() }),
+});
+export type NativeContentState = z.infer<typeof nativeContentStateSchema>;
+export const nativeContentSelectionSchema = z.object({
+  contentCollectionId: z.string().min(1).max(256), expectedSelection: contentSelectionSchema,
+  expectedSelectionVersion: z.number().int().nonnegative(),
+  location: z.string().max(256).refine(value => nativeRoute(value) !== null && value !== "/content" && !["/login", "/register", "/forgot-password"].includes(value)),
+}).strict();
+export type NativeContentSelection = z.infer<typeof nativeContentSelectionSchema>;
+export const nativeContentResultSchema = z.object({ state: nativeContentStateSchema, destination: z.string().refine(value => nativeRoute(value) !== null), changed: z.boolean() });

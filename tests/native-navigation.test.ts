@@ -69,3 +69,14 @@ test("bevestigingslinks blijven strikt gescheiden van resetlinks en lokale URL-o
   for (const raw of [`https://evil.invalid/verify-email?token=${token}`, `${url}&next=/adminbackend`, `${url}&token=${token}`, `${url}#secret`, `${base}/verify-email?token=invalid`]) assert.equal(nativeEmailConfirmationLink(raw, base), null);
   const window = browser(), router = new NativeNavigator(window);router.push("/verify-email");assert.equal(window.location.hash, "#/verify-email");assert.ok(!JSON.stringify(window.entries).includes(token));
 });
+
+test("contentkiezer onthoudt alleen de lokale vertrekroute en wist die bij afmelden; diagnostiek is geen externe deeplink", () => {
+  const window = browser("#/lesson/chapter-a"), router = new NativeNavigator(window);
+  router.push("/content"); assert.equal(router.contentDeparture(), "/lesson/chapter-a");
+  router.replace("/lesson/chapter-b"); router.push("/content"); assert.equal(router.contentDeparture(), "/lesson/chapter-b");
+  router.replace("/login"); assert.equal(router.contentDeparture(), "/dashboard");
+  assert.equal(nativeRoute("/diagnostics"), "/diagnostics");
+  assert.equal(nativeDeepLink("https://dev.versado.app/diagnostics", "https://dev.versado.app"), null);
+  assert.equal(nativeDeepLink("https://dev.versado.app/content", "https://dev.versado.app"), "/content");
+  assert.ok(window.entries.every(entry => !JSON.stringify(entry.state).includes("chapter-a") || entry.hash === "#/lesson/chapter-a"));
+});

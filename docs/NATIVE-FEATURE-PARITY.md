@@ -1,14 +1,16 @@
 # Native functiepariteit — Versado
 
-## Actuele multiplatformopdracht — fase A op develop
+## Actuele multiplatformopdracht — shell en contentkiezer op develop
 
 De opdracht in [#238](https://github.com/rjgout/Versado.app/issues/238) is leidend:
 volledige bestaande web/PWA-, iOS/iPadOS- en Android-functionaliteit, inclusief native push.
-De eerste implementatie deelt de echte shellpresentatie; volledige contentkiezer,
-cursusnavigatie, Vandaag, spellen en sociale schermen zijn hiermee nog niet geleverd.
+De eerste implementatie deelt de echte shellpresentatie. B1 deelt nu ook de echte
+brontrigger en contentkiezerkaarten via expliciete platformadapters (zie
+[NATIVE-CONTENT-PICKER.md](NATIVE-CONTENT-PICKER.md)); fysieke acceptatie van B1
+blijft nodig. Volledige cursusnavigatie, Vandaag, spellen en sociale schermen zijn hiermee nog niet geleverd.
 Zie [implementatie, afhankelijkheden en toestelacceptatie](NATIVE-SHARED-SHELL.md).
-De eigenaar bevestigde de eerdere Foundation-iPhonetest bij #233; de nieuwe fase A
-vereist opnieuw fysieke acceptatie. Geen releasevrijgave of platformuitzondering.
+De eigenaar bevestigde de eerdere Foundation-iPhonetest bij #233 en de gedeelde
+shell uit #239 op een fysieke iPhone; de nieuwe contentkiezer vereist opnieuw fysieke acceptatie. Geen releasevrijgave of platformuitzondering.
 
 
 Gecontroleerde ontwikkelbasis: `origin/main` op `e76bc9f7c04b7b9e6faffb97c255184e0c5fb018`. Inventarisatie op 21 oktober 2026. Roadmap: [issue #163](https://github.com/rjgout/Versado.app/issues/163). Dit is implementatievoorbereiding en technische verificatie, geen onafhankelijke acceptatie-audit.
@@ -84,7 +86,7 @@ Alle tien gevraagde aspecten zijn opgenomen: webfunctie/route, backend, native b
 Functie en webroutes | Backend / gedeeld domein | Native bestemming | Authenticatie/autorisatie | Opslag/sync | Offline/fouten | Platformen | Testdekking | Status | Blokkade
 --- | --- | --- | --- | --- | --- | --- | --- | --- | ---
 Vandaag, acties, dagelijkse doelen, beloningen, CFM, kaartvoorkeuren (`/dashboard`, `/acties`, `/xp`, `/streak`, `/shop`) | `today.ts`, courseSummaries, activeGames, dailyTargets, list-order; bestaande actor-/beloningsservices | Dezelfde routes en bestaande kaarten | A; eigen account, bronrechten, serverbepaalde beloning | S; voorkeuren en voortgang server-side | O; geen offline XP/reeks | P | Foundation-tests bewijzen uitsluitend één leeskaart; Today-/CFM-/kaarttests zijn webbewijs | Gedeeltelijke leesproef; volledige Vandaag ontbreekt | Volledige Today-contracten, gedeelde shell/data-adapters en apparaattests
-Contentkiezer, bron en taal (`/content`) | contentCollections/contentSwitch/contentRouting; `/api/content-context` | `/content` met dezelfde veilige wissel | A; beschikbare editie/collectie, geen UI-only beveiliging | S; activeContentCollectionId/contentLanguage, bestaande koers behouden | O; onbeschikbare wissel slaat niets op | P | content-switch, content-picker browser, availability/socket | Ontbreekt | Native contextcontract, gecentraliseerde invalidatie en alle route-equivalenten
+Contentkiezer, bron en taal (`/content`) | contentCollections/contentSwitch/contentRouting; `/api/content-context` | `/content` met dezelfde veilige wissel | A; beschikbare editie/collectie, geen UI-only beveiliging | S; activeContentCollectionId/contentLanguage, bestaande koers behouden | O; onbeschikbare wissel slaat niets op | P | content-switch, native-content integratie/browser, native-data en Access | Gedeelde kiezer en exact sessiebeveiligd selectiecontract; fysieke acceptatie B1 open | Overige activiteitbestemmingen en volledige realtime onder Access ontbreken; contextpoll 15s + maximaal één klokseconde/netwerkduur
 Cursusbeheer en leerpaden (`/courses/**`) | courses, courseProgress, readingCourses, cfmCourses; subscribe/unsubscribe en list-order | Zelfde cursus-/pad-URL's met gedeelde kaarten | A; ingeschreven/zichtbare cursus, geen implicitiete activatie bij toevoegen | S; bestaande UserCourseProgress, geen duplicaten; CFM-identiteit per collectie | O; schrijfuitval zichtbaar; geen automatische dubbele inschrijving | P | cards, course-sync/identity, reading-path, CFM-integratie | Ontbreekt | Native catalogus-/cursuscontracten en platformonafhankelijke componentimports
 Lezen en oefenen (`/lesson/**`, `/scripture/**`, `/reading-lesson/**`, `/practice`) | contentProgress, learning, oefeningen/antwoordvalidatie, referenties; hoofdstuk/audio-API's | Zelfde lees-/lesroutes met gedeelde lezer en completion-flow | A; contentAccess, eigen voortgang, servercorrectheid | S; bestaande leesposities/markeringen/XP; replaybescherming | O; tekstproef start lokaal maar haalt tekst online; geen offline beloningen | P; audio lifecycle, grote tekst | Foundation hoofdstuk/complete; learning-, reader-, exercise-, audio-/referentietests op web | Alleen beperkte hoofdstuktekst en gelezen-actie gedeeltelijk | Volledige lezer, audio, oefeningen, annotaties, hervatten en native contracten
 CFM, FSY en studiemap (`/study-lesson/**`, `/fsy/**`, `/study-folder`, `/bookmarks`) | studiecatalogus/publicaties/revisies, StudyAnnotations, StudyStepProgress, studyOrigin | Zelfde routes, herkomst en zes stappen | A; publicatie-/collectiegrens, eigendom van annotaties | S; gedeelde annotaties, geen tweede systeem; stappen geven geen XP/READ | O; geen schrijfwachtrij zonder conflictcontract | P; selecteren/annoteren, keyboard en terug | study-/annotation-/CFM-tests en browserflows | Ontbreekt | Versiecontracten voor revisies/annotaties/lezen en gedeelde route-/data-laag
@@ -300,7 +302,7 @@ De onafhankelijke review volgt door ChatGPT. #176 en #178 blijven ongemerged.
 <!-- BEGIN NATIVE PARITY INVENTORY -->
 ## Volledige broninventaris (gegenereerd)
 
-Gevonden: **143 pagina's**, **244 fysieke routehandlers**, **440 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
+Gevonden: **143 pagina's**, **244 fysieke routehandlers**, **443 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
 
 De JSON-bijlage bevat per route alle transitief bereikbare lokale modules, clientgrenzen en statische requestpaden. Dat is een afhankelijkheidsinventaris, geen autorisatiebewijs; voorwaarden per HTTP-methode blijven apart te controleren. Een Client Component kan via een gedeelde helper nog een serverafhankelijkheid hebben. Een module zonder eigen `use client` is contextafhankelijk, niet automatisch browsergeschikt.
 
@@ -999,6 +1001,8 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/annotations/AnnotationRecovery.tsx](../src/components/annotations/AnnotationRecovery.tsx) | use client | AnnotationRecovery
 [src/components/annotations/MarkSwatch.tsx](../src/components/annotations/MarkSwatch.tsx) | contextafhankelijk / server-entry waar page/layout | MarkSwatch
 [src/components/annotations/StudyAnnotations.tsx](../src/components/annotations/StudyAnnotations.tsx) | use client | StudyAnnotations
+[src/components/content/ContentPickerView.tsx](../src/components/content/ContentPickerView.tsx) | use client | ContentPickerView
+[src/components/content/ContentSwitcherView.tsx](../src/components/content/ContentSwitcherView.tsx) | use client | ContentSwitcherView
 [src/components/content/FullscreenContentPicker.tsx](../src/components/content/FullscreenContentPicker.tsx) | use client | FullscreenContentPicker
 [src/components/dorp/DorpEntry.tsx](../src/components/dorp/DorpEntry.tsx) | use client | DorpEntry
 [src/components/dorp/DorpPrototypeClient.tsx](../src/components/dorp/DorpPrototypeClient.tsx) | use client | DorpCanvas, DorpPrototypeClient
@@ -1031,13 +1035,14 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/mysteries/MysteryPlayPage.tsx](../src/components/mysteries/MysteryPlayPage.tsx) | contextafhankelijk / server-entry waar page/layout | MysteryPlayPage
 [src/components/native/NativeAccessPanel.tsx](../src/components/native/NativeAccessPanel.tsx) | use client | NativeAccessPanel
 [src/components/native/NativeBuildBanner.tsx](../src/components/native/NativeBuildBanner.tsx) | use client | NativeBuildBanner
+[src/components/native/NativeContentPicker.tsx](../src/components/native/NativeContentPicker.tsx) | use client | NativeContentPicker
 [src/components/native/NativeEmailConfirmation.tsx](../src/components/native/NativeEmailConfirmation.tsx) | use client | NativeEmailConfirmation
 [src/components/native/NativeFoundation.tsx](../src/components/native/NativeFoundation.tsx) | use client | NativeFoundation
 [src/components/native/NativeNavigationProvider.tsx](../src/components/native/NativeNavigationProvider.tsx) | use client | NativeNavigationProvider
 [src/components/native/NativePasswordReset.tsx](../src/components/native/NativePasswordReset.tsx) | use client | NativePasswordReset
 [src/components/native/NativeShellHeader.tsx](../src/components/native/NativeShellHeader.tsx) | use client | NativeShellHeader
 [src/components/native/entry.tsx](../src/components/native/entry.tsx) | contextafhankelijk / server-entry waar page/layout | default/locale declaratie; zie bron
-[src/components/navigation/AppNavigation.tsx](../src/components/navigation/AppNavigation.tsx) | use client | AppLink, AppNavigationProvider, useAppNavigation
+[src/components/navigation/AppNavigation.tsx](../src/components/navigation/AppNavigation.tsx) | use client | AppImage, AppLink, AppNavigationProvider, useAppNavigation
 [src/components/navigation/NextNavigationProvider.tsx](../src/components/navigation/NextNavigationProvider.tsx) | use client | NextNavigationProvider
 [src/components/profile/ProfileContentViews.tsx](../src/components/profile/ProfileContentViews.tsx) | use client | AchievementsView, CompetitionView
 [src/components/profile/ProfilePage.tsx](../src/components/profile/ProfilePage.tsx) | use client | ProfilePage

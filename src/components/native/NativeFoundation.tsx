@@ -7,7 +7,7 @@ import MascotSlot from "@/components/versado/MascotSlot";
 import { useT, useUiLanguage } from "@/components/I18nProvider";
 import { primaryButton, secondaryButton } from "@/components/versado/styles";
 import { isNativeApp, dismissNativeKeyboard, isIOSApp, lightHaptic, nativeAppleAuthorization, openExternalUrl, startNativeFoundationRuntime } from "@/lib/platform";
-import { nativeCapabilitiesSchema, nativeChapterSchema, type NativeAccount, type NativeChapter, type NativeSecuritySetup } from "@/lib/native/contract";
+import { nativeCapabilitiesSchema, nativeChapterSchema, type NativeAccount, type NativeChapter, type NativeSecuritySetup, type NativeContentState } from "@/lib/native/contract";
 import { NativeClientError, type NativeSessionClient, type NativeSignInOutcome } from "@/lib/native/client";
 import { AppLink, useAppNavigation } from "@/components/navigation/AppNavigation";
 import PrivacyContent from "@/components/legal/PrivacyContent";
@@ -16,6 +16,8 @@ import ContactContent from "@/components/legal/ContactContent";
 import CookiesContent from "@/components/legal/CookiesContent";
 import AppShellFrame from "@/components/shell/AppShellFrame";
 import SubpageBackBarView from "@/components/shell/SubpageBackBarView";
+import NativeContentPicker from "./NativeContentPicker";
+import { SettingsSection } from "@/components/profile/settings";
 import NativeShellHeader from "./NativeShellHeader";
 import { NATIVE_PRIMARY_NAV, nativeAppleLoginUIAvailable } from "@/lib/native/shell";
 import PasswordChangeForm from "@/components/account/PasswordChangeForm";
@@ -25,18 +27,22 @@ import { nativeAccountActions } from "@/lib/native/account";
 import { NativeSocketConnection } from "@/lib/native/socketClient";
 import NativeEmailConfirmation from "./NativeEmailConfirmation";
 import NativePasswordReset from "./NativePasswordReset";
+import { nativeContentQueryKey } from "@/lib/data/native";
 import { NativeDataProvider, useNativeData, useNativeLiveQuery } from "@/lib/data/nativeHooks";
 import { nativeDeepLink, nativePasswordResetLink, nativeEmailConfirmationLink } from "@/lib/native/navigation";
 import { focusNativeRouteHeading } from "@/lib/native/routeFocus";
 
 type Account = NativeAccount;
 type Chapter = NativeChapter;
-type FoundationProps = { client: NativeSessionClient; termsUrl?: string | null; onLanguage?: (language: string) => void; buildBanner?: ReactNode; internalAccess?: ReactNode };
+type FoundationProps = { client: NativeSessionClient; termsUrl?: string | null; onLanguage?: (language: string) => void; buildBanner?: ReactNode; buildIndicator?: ReactNode; internalTools?: boolean; internalAccess?: ReactNode };
 export default function NativeFoundation(props: FoundationProps) {
   return <NativeDataProvider client={props.client}><NativeFoundationContent {...props} /></NativeDataProvider>;
 }
-function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBanner = null, internalAccess = null }: FoundationProps) {
+function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBanner = null, buildIndicator = null, internalTools = false, internalAccess = null }: FoundationProps) {
   const t = useT(), uiLanguage = useUiLanguage(), navigation = useAppNavigation();
+  const diagnostics = navigation.pathname === "/diagnostics";
+  const pickerPage = navigation.pathname === "/content";
+  const canDiagnose = internalTools || internalAccess !== null;
   const profile = navigation.pathname === "/profile";
   const resetPage = navigation.pathname === "/reset-password";
   const confirmationPage = navigation.pathname === "/verify-email";
@@ -49,8 +55,26 @@ function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBan
   const [user, setUser] = useState<Account | null>(null), [activity, setActivity] = useState<{ id: string; title: string } | null>(null);
   const dataRuntime = useNativeData();
   const [reloadKey, setReloadKey] = useState(0);
-  const chapterQuery = useNativeLiveQuery<Chapter>(["chapter", user?.id ?? null, chapterId], () => dataRuntime.chapter(chapterId!), {
-    scopes: ["content", "progress"], contentScoped: true, enabled: !!chapterId && !!user,
+  const contentEnabled = !!user && features.includes("content-picker-v1") && !setup && !recoveryCodes;
+  const pickerAvailable = pickerPage && contentEnabled;
+  const contentQuery = useNativeLiveQuery<NativeContentState>(nativeContentQueryKey(user?.id ?? null), () => dataRuntime.contentContext(user!.id), {
+    scopes: ["content", "studyContext"], enabled: contentEnabled, staleTime: 15_000, pollMs: 15_000,
+  });
+  const refreshContent = contentQuery.refetch;
+  const content = contentEnabled && contentQuery.data?.userId === user?.id ? contentQuery.data : undefined;
+  const contentStamp = content ? `${content.picker.activeCollectionId}:${content.picker.selectionVersion}` : null;
+  const todayQuery = useNativeLiveQuery(["today", user?.id ?? null, contentStamp], async () => {
+    const today = await dataRuntime.today();
+    if (content && today.selectionVersion !== content.picker.selectionVersion) throw new NativeClientError("content_context_changed", 409);
+    return today;
+  }, { scopes: ["today", "content"], enabled: contentEnabled && !!content && navigation.pathname === "/dashboard" });
+
+  const chapterQuery = useNativeLiveQuery<Chapter>(["chapter", user?.id ?? null, chapterId, contentStamp], async () => {
+    const response = await dataRuntime.chapter(chapterId!);
+    if (content && (response.contentCollectionId !== content.picker.activeCollectionId || response.selectionVersion !== content.picker.selectionVersion)) throw new NativeClientError("content_context_changed", 409);
+    return response;
+  }, {
+    scopes: ["content", "progress"], contentScoped: true, enabled: !!chapterId && !!user && (!contentEnabled || !!content),
   });
   const chapter = user && chapterQuery.data?.id === chapterId ? chapterQuery.data : null;
   const saved = chapter?.state.read === "READ";
@@ -60,7 +84,7 @@ function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBan
   const sequence = useRef(0), current = useRef({ busy, navigation, setup, recoveryCodes });
   useEffect(() => { current.current = { busy, navigation, setup, recoveryCodes }; }, [busy, navigation, setup, recoveryCodes]);
   useEffect(() => { if (user?.uiLanguage) onLanguage?.(user.uiLanguage); }, [user?.uiLanguage, onLanguage]);
-  useEffect(() => focusNativeRouteHeading(), [chapter?.id, navigation.pathname, user?.id, setup?.step, recoveryCodes]);
+  useEffect(() => focusNativeRouteHeading(), [chapter?.id, navigation.pathname, user?.id, setup?.step, recoveryCodes, pickerAvailable]);
   const report = useCallback((err: unknown) => {
     const key = err instanceof NativeClientError ? err.code : "request_failed";
     if (key.startsWith("access_")) {
@@ -127,6 +151,21 @@ function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBan
     } }).then(stop => { if (disposed) stop(); else cleanup = stop; }).catch(() => {});
     return () => { disposed = true; invalidate(); cleanup?.(); window.removeEventListener("online", online); window.removeEventListener("offline", offline); };
   }, [bootstrap, client, report]);
+  useEffect(() => {
+    if (diagnostics && !canDiagnose) navigation.replace(user ? "/profile" : "/login");
+  }, [diagnostics, canDiagnose, navigation, user]);
+  useEffect(() => {
+    if (todayQuery.error instanceof NativeClientError && todayQuery.error.code === "content_context_changed") void refreshContent();
+  }, [todayQuery.error, refreshContent]);
+  useEffect(() => {
+    let current = true;
+    const failure = contentQuery.error ?? (navigation.pathname === "/dashboard" ? todayQuery.error : null);
+    void Promise.resolve().then(() => {
+      const securityFailure = failure instanceof NativeClientError && (failure.status === 401 || failure.code.startsWith("access_"));
+      if (current && failure && (!pickerPage || securityFailure) && !(failure instanceof NativeClientError && failure.code === "content_context_changed")) report(failure);
+    });
+    return () => { current = false; };
+  }, [contentQuery.error, todayQuery.error, pickerPage, navigation.pathname, report]);
   const accountId = user?.id;
   const realtime = features.includes("realtime-ticket-v1") && client.realtimeSupported;
   useEffect(() => {
@@ -140,9 +179,13 @@ function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBan
   }, [accountId, realtime, reloadKey, client, report, dataRuntime]);
   useEffect(() => {
     let current = true;
-    void Promise.resolve().then(() => { if (current && chapterQuery.error) report(chapterQuery.error); });
+    void Promise.resolve().then(() => {
+      if (!current || !chapterQuery.error) return;
+      if (chapterQuery.error instanceof NativeClientError && chapterQuery.error.code === "content_context_changed") { navigation.replace("/dashboard");return; }
+      report(chapterQuery.error);
+    });
     return () => { current = false; };
-  }, [chapterQuery.error, report]);
+  }, [chapterQuery.error, report, navigation]);
   async function action(run: (isCurrent: () => boolean) => Promise<void>) {
     if (busy) return;
     const id = ++sequence.current; setBusy(true); setError(""); setNotice(false);
@@ -184,20 +227,30 @@ function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBan
   }
   const button = `${secondaryButton} min-h-12 whitespace-normal`;
   const appleLoginAvailable = isIOSApp() && nativeAppleLoginUIAvailable(apple, features);
-  const detail = legal || profile || passwordPage || resetPage || confirmationPage || !!chapterId;
+  const detail = diagnostics || pickerPage || legal || profile || passwordPage || resetPage || confirmationPage || !!chapterId;
   const shellAccount = user && !setup && !recoveryCodes ? user : null;
   return <AccountActionsProvider actions={accountActions}><AppShellFrame
-    header={<NativeShellHeader account={shellAccount} onError={report} />}
-    headerExtras={detail && <SubpageBackBarView title={profile ? t("nav.profile") : chapterId ? chapter?.title ?? t("pages.lesson") : t("common.back")} onBack={() => navigation.back()} />}
+    header={<NativeShellHeader account={shellAccount} onError={report} content={content} buildIndicator={buildIndicator} />}
+    headerExtras={detail && <SubpageBackBarView title={diagnostics ? t("nativeDiagnostics.title") : pickerPage ? t("contentSwitcher.picker.title") : profile ? t("nav.profile") : chapterId ? chapter?.title ?? t("pages.lesson") : t("common.back")} onBack={() => navigation.back()} />}
     showNavigation={!!shellAccount} destinations={NATIVE_PRIMARY_NAV}
     mainClassName="native-foundation flex min-h-dvh w-full flex-col gap-5 bg-vs-bg text-vs-fg"
   >
-    {buildBanner}
-    {internalAccess}
     {offline && <p role="status" className="flex gap-2 rounded-xl bg-vs-surface p-3"><WifiOff className="h-5 w-5 shrink-0" />{t("nativeFoundation.offline")}</p>}
     {error && <p role="alert" className="rounded-xl border border-vs-line bg-vs-surface p-3">{error}</p>}
     {(busy || (!!chapterId && !!user && chapterQuery.isLoading)) && <p role="status">{t("nativeFoundation.loading")}</p>}
-    {legal ? navigation.pathname === "/privacy" ? <PrivacyContent /> : navigation.pathname === "/disclaimer" ? <DisclaimerContent /> : navigation.pathname === "/contact" ? <ContactContent /> : <CookiesContent /> : resetPage ? <NativePasswordReset key={mailRequest.id} client={client} initialToken={mailRequest.route === navigation.pathname ? mailRequest.token : null} onTokenCleared={() => setMailRequest(value => ({ ...value, token: null }))} onContinue={() => void action(() => client.logout(() => { setUser(null); dataRuntime.reset(); setSetup(null); setRecoveryCodes(null); navigation.replace("/login"); }))} /> : confirmationPage ? <NativeEmailConfirmation key={mailRequest.id} client={client} initialToken={mailRequest.route === navigation.pathname ? mailRequest.token : null} onTokenCleared={() => setMailRequest(value => ({ ...value, token: null }))} onContinue={() => void action(() => client.logout(() => { setUser(null); dataRuntime.reset(); setSetup(null); setRecoveryCodes(null); navigation.replace("/login"); }))} /> : recoveryCodes ? <>
+    {diagnostics && canDiagnose ? <>
+      <h1 tabIndex={-1} className="text-2xl font-extrabold">{t("nativeDiagnostics.title")}</h1>
+      {buildBanner}{internalAccess}
+      <SettingsSection title={t("nativeDiagnostics.recovery")}>
+        <button className={button} onClick={() => void bootstrap()} disabled={busy || !!setup || !!recoveryCodes}>{t("nativeFoundation.retry")}</button>
+        <button className={button} onClick={() => void dismissNativeKeyboard()}>{t("nativeFoundation.keyboardDone")}</button>
+      </SettingsSection>
+    </> : pickerPage && !setup && !recoveryCodes ? user && contentEnabled ? <NativeContentPicker key={user.id} userId={user.id} state={content} error={!!contentQuery.error}
+      onRetry={() => { void refreshContent(); }} onCommitted={value => { contentQuery.setData(value); }} /> : <section data-native-content-unavailable className="flex flex-col gap-4">
+      <h1 tabIndex={-1} className="text-3xl font-extrabold">{t("contentSwitcher.picker.title")}</h1>
+      <p role="status">{t(busy ? "nativeFoundation.loading" : user ? "nativeContentFallback.unsupported" : "nativeContentFallback.signIn")}</p>
+      <AppLink className={button} href={user ? "/dashboard" : "/login"}>{t(user ? "nav.today" : "nativeFoundation.login")}</AppLink>
+    </section> : legal ? navigation.pathname === "/privacy" ? <PrivacyContent /> : navigation.pathname === "/disclaimer" ? <DisclaimerContent /> : navigation.pathname === "/contact" ? <ContactContent /> : <CookiesContent /> : resetPage ? <NativePasswordReset key={mailRequest.id} client={client} initialToken={mailRequest.route === navigation.pathname ? mailRequest.token : null} onTokenCleared={() => setMailRequest(value => ({ ...value, token: null }))} onContinue={() => void action(() => client.logout(() => { setUser(null); dataRuntime.reset(); setSetup(null); setRecoveryCodes(null); navigation.replace("/login"); }))} /> : confirmationPage ? <NativeEmailConfirmation key={mailRequest.id} client={client} initialToken={mailRequest.route === navigation.pathname ? mailRequest.token : null} onTokenCleared={() => setMailRequest(value => ({ ...value, token: null }))} onContinue={() => void action(() => client.logout(() => { setUser(null); dataRuntime.reset(); setSetup(null); setRecoveryCodes(null); navigation.replace("/login"); }))} /> : recoveryCodes ? <>
       <h1 tabIndex={-1} className="text-2xl font-extrabold">{t("profile.twoFactor")}</h1>
       <RecoveryCodesCard recoveryCodes={recoveryCodes} onSaved={() => setRecoveryCodes(null)} />
     </> : setup ? <>
@@ -263,15 +316,16 @@ function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBan
         })}>{t(saved ? "nativeFoundation.completeSaved" : "nativeFoundation.complete")}</button>
       </> : null : <>
         {user.onboardingRequired && <p>{t("nativeFoundation.onboardingNote")}</p>}
-        {activity ? <button className={`${primaryButton} min-h-12 whitespace-normal`} disabled={busy} onClick={() => navigation.push(`/lesson/${encodeURIComponent(activity.id)}`)}>{activity.title} — {t("nativeFoundation.continue")}</button> : <p>{t("nativeFoundation.empty")}</p>}
+        {(contentEnabled ? todayQuery.data?.activity : activity) ? <button className={`${primaryButton} min-h-12 whitespace-normal`} disabled={busy} onClick={() => navigation.push(`/lesson/${encodeURIComponent((contentEnabled ? todayQuery.data!.activity : activity)!.id)}`)}>{(contentEnabled ? todayQuery.data!.activity : activity)!.title} — {t("nativeFoundation.continue")}</button> : <p>{t("nativeFoundation.empty")}</p>}
       </>}
     </>}
-    <footer className="mt-auto flex flex-wrap gap-3 pt-6">
+    {(profile && user || !user && !setup && !recoveryCodes) && <SettingsSection title={profile ? t("nativeFoundation.account") : undefined}>
       {user && <button type="button" disabled={busy} className={button} onClick={() => { setPassword(""); setCode(""); void action(() => client.logout(() => { setUser(null); dataRuntime.reset(); setSetup(null); setRecoveryCodes(null); setIdentifier(""); navigation.replace("/login"); })); }}><LogOut className="h-4 w-4" />{t("nativeFoundation.logout")}</button>}
-      <button className={button} onClick={() => void bootstrap()} disabled={busy || !!setup || !!recoveryCodes}>{t("nativeFoundation.retry")}</button>
-      <button className={button} onClick={() => void dismissNativeKeyboard()}>{t("nativeFoundation.keyboardDone")}</button>
+      {canDiagnose && <AppLink className={button} href="/diagnostics">{t("nativeDiagnostics.open")}</AppLink>}
       <AppLink className={button} href="/privacy">{t("nativeFoundation.privacy")}</AppLink>
       {termsUrl && <button className={button} onClick={() => void openExternalUrl(termsUrl)}>{t("nativeFoundation.terms")}</button>}
-    </footer>
+    </SettingsSection>}
+    {(error || offline) && canDiagnose && user && !profile && !diagnostics && !setup && !recoveryCodes && <AppLink className={button} href="/diagnostics">{t("nativeDiagnostics.open")}</AppLink>}
+    {(error || offline) && !diagnostics && !setup && !recoveryCodes && <button className={button} disabled={busy} onClick={() => void bootstrap()}>{t("nativeFoundation.retry")}</button>}
   </AppShellFrame></AccountActionsProvider>;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { AppImage } from "@/components/navigation/AppNavigation";
 import { createElement, useState } from "react";
 import { contentIcon, contentIconSources } from "@/lib/contentMetadata";
 
@@ -24,7 +24,7 @@ export default function ContentIcon({ collection, className, size = 28 }: { coll
   if (!src) return createElement(contentIcon(collection), { className, "aria-hidden": true });
 
   return (
-    <Image
+    <AppImage
       key={src}
       src={src}
       alt=""

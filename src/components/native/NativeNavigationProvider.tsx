@@ -5,7 +5,8 @@ import { AppNavigationProvider, useAppNavigation, type AppLinkProps } from "@/co
 import { NativeNavigator, nativeRoute } from "@/lib/native/navigation";
 import { openExternalUrl } from "@/lib/platform";
 
-function NativeLink({ href, replace, onClick, ...props }: AppLinkProps) {
+function NativeLink({ href, replace, onClick, onNavigate, prefetch, ...props }: AppLinkProps) {
+  void prefetch;
   const navigation = useAppNavigation(), internal = nativeRoute(href);
   let external = false;
   try { external = new URL(href).protocol === "https:"; } catch {}
@@ -13,7 +14,7 @@ function NativeLink({ href, replace, onClick, ...props }: AppLinkProps) {
     onClick?.(event); if (event.defaultPrevented) return;
     if (external) { event.preventDefault(); void openExternalUrl(href); return; }
     if (!internal || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || props.target === "_blank" || props.download) return;
-    event.preventDefault(); if (replace) navigation.replace(internal); else navigation.push(internal);
+    event.preventDefault(); let cancelled = false; onNavigate?.({ preventDefault: () => { cancelled = true; } }); if (cancelled) return; if (replace) navigation.replace(internal); else navigation.push(internal);
   }} />;
 }
 
@@ -70,6 +71,6 @@ export default function NativeNavigationProvider({ children }: { children: React
       window.removeEventListener("touchstart", stop); window.removeEventListener("wheel", stop); window.removeEventListener("keydown", stop); window.removeEventListener("pointerdown", stop);
     };
   }, [snapshot]);
-  const adapter = useMemo(() => ({ pathname: snapshot.href, push: router.push, replace: router.replace, back: router.back, canGoBack: router.canGoBack, refresh: router.refresh, Link: NativeLink }), [router, snapshot]);
+  const adapter = useMemo(() => ({ pathname: snapshot.href, contentDeparture: router.contentDeparture, push: router.push, replace: router.replace, back: router.back, canGoBack: router.canGoBack, refresh: router.refresh, Link: NativeLink }), [router, snapshot]);
   return <AppNavigationProvider adapter={adapter}>{children}</AppNavigationProvider>;
 }

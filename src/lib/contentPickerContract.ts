@@ -18,6 +18,19 @@ export interface ContentPickerContext {
   works: PickerWork[];
 }
 
+/** Gedeeld wirecontract; clientvalidatie verleent nooit extra bronrechten. */
+export const contentCollectionViewSchema = z.object({
+  id: z.string().min(1).max(256), slug: z.string().max(256), name: z.string().max(512), icon: z.string().max(256), order: z.number().int(),
+  visibleToUsers: z.boolean(), work: z.string().max(256).nullable(), editionKey: z.string().max(256), language: z.string().max(16),
+  sourceName: z.string().nullable(), sourceUrl: z.string().nullable(), licenseName: z.string().nullable(), licenseUrl: z.string().nullable(),
+}) satisfies z.ZodType<ContentCollectionView>;
+export const contentPickerContextSchema = z.object({
+  hymnsAvailable: z.boolean().optional(), selection: contentSelectionSchema, selectionVersion: z.number().int().nonnegative().optional(),
+  activeCollectionId: z.string().max(256).nullable(), works: z.array(z.object({ key: z.string().max(256), kind: z.enum(["SCRIPTURE", "STUDY_PROGRAM", "OTHER"]),
+    editions: z.array(contentCollectionViewSchema.extend({ selectable: z.boolean(), previewHref: z.string().nullable() })),
+  })),
+}) satisfies z.ZodType<ContentPickerContext>;
+
 export function validPickerEdition(edition: Pick<ContentCollectionView, "work" | "editionKey" | "language">): boolean {
   return Boolean(edition.work?.trim() && edition.editionKey.trim() && isLanguageCode(edition.language));
 }
