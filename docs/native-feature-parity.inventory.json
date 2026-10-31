@@ -12805,7 +12805,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "159d9719154356329d626a1f2bee5996872a9b65065ab5d10fb21d974bf179e2",
+      "sha256": "4b68d68ee0c3f57a814d8d48c69745635f5b3d28dd0927459039fa0d1ca0edee",
       "boundary": "client",
       "imports": [
         "./NativeContentPicker",
@@ -12921,10 +12921,31 @@
       ]
     },
     {
-      "file": "src/components/native/NativeTodayView.tsx",
-      "sha256": "ba7118c9972cae5294c82bd939a785191245026ec1a4c3768ac06be8b847fd48",
+      "file": "src/components/native/NativeStudyImage.tsx",
+      "sha256": "8749155ac95261e6fbec5aa5e08d2ad1054e214dd614ab96d7af0547b291e68b",
       "boundary": "client",
       "imports": [
+        "@/components/navigation/AppNavigation",
+        "@/lib/data/nativeHooks",
+        "@/lib/native/studyMediaContract",
+        "@/lib/native/todayContract",
+        "lucide-react",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NativeStudyImage",
+        "NativeStudyMediaProvider"
+      ]
+    },
+    {
+      "file": "src/components/native/NativeTodayView.tsx",
+      "sha256": "cb729c3b1d3e5e3ea9b0a4beeadfbafda465dadc337f9f715ee3b07d024dafae",
+      "boundary": "client",
+      "imports": [
+        "./NativeStudyImage",
         "@/components/ConfirmProvider",
         "@/components/I18nProvider",
         "@/components/kompas/KompasEntryCardView",
@@ -12938,6 +12959,7 @@
         "@/components/versado/PersonalMascot",
         "@/components/versado/UserAvatarView",
         "@/lib/avatarTypes",
+        "@/lib/native/studyMediaContract",
         "@/lib/native/todayAssets",
         "@/lib/native/todayContract",
         "@/lib/native/todayDestinations",
@@ -12977,7 +12999,7 @@
     },
     {
       "file": "src/components/navigation/AppNavigation.tsx",
-      "sha256": "bb574bf98422ba0385f9c1d96e88d467158e7c17bdb1148f75502264d73f3bfb",
+      "sha256": "02f2281a4ca4059133020ec8dfdf81affe9791f35c2cb12a9c745e1b7f41648c",
       "boundary": "client",
       "imports": [
         "react"
@@ -12989,6 +13011,7 @@
         "AppImage",
         "AppLink",
         "AppNavigationProvider",
+        "LocalAppImage",
         "useAppImageSource",
         "useAppNavigation",
         "useAppNavigationAdapter"
@@ -17545,13 +17568,14 @@
     },
     {
       "file": "src/lib/data/native.ts",
-      "sha256": "6da2f1599d1f8572ed5fbbe90b298f1091809a0bd4a3a1ac2d9b3bb55cebc944",
+      "sha256": "2e61e1d049ecbe81550e60281418c42b95730cbd869ee013cf9dfe871908c656",
       "boundary": "context-dependent",
       "imports": [
         "./scopes",
         "./store",
         "@/lib/native/client",
         "@/lib/native/contract",
+        "@/lib/native/studyMediaContract",
         "@/lib/native/todayActionsContract",
         "@/lib/native/todayContract",
         "socket.io-client"
@@ -17561,6 +17585,7 @@
         "chapters/${encodeURIComponent(id)}",
         "content-context",
         "me",
+        "study-media/${id}",
         "today",
         "today-overview"
       ],
@@ -20736,7 +20761,7 @@
     },
     {
       "file": "src/lib/native/access.ts",
-      "sha256": "47d74addcbdbf1ea5b8ccf2d37b9f4cedd72dc83259ed25e8e6eb3104ceeff3b",
+      "sha256": "eb45b580666d5d61ddaab98e1a6e31175f97589a6ab8809413eb91e61301be89",
       "boundary": "context-dependent",
       "imports": [
         "./client",
@@ -20772,7 +20797,7 @@
     },
     {
       "file": "src/lib/native/api.ts",
-      "sha256": "a2c11a800bc42e204b7ed5b49a1ded57c9fea9be6ba71108e0616ea497c57c5e",
+      "sha256": "85844b5b522ffbe955faecc515fc6a7fc68c901d1b035041d66434ed8ba0d418",
       "boundary": "context-dependent",
       "imports": [
         "./apple",
@@ -20785,6 +20810,8 @@
         "./shellHeader.server",
         "./socketAuth",
         "./socketTickets",
+        "./studyMedia.server",
+        "./studyMediaContract",
         "./today.server",
         "./todayActionsContract",
         "@/app/api/auth/forgot-password/route",
@@ -21213,6 +21240,42 @@
         "issueSocketTicket",
         "redisSocketTicketStore",
         "socketTicketKey"
+      ]
+    },
+    {
+      "file": "src/lib/native/studyMedia.server.ts",
+      "sha256": "be5a79aae2e1da40589ca52d5cc4176348fc6791eeb87031eabdaa1a8d64fca4",
+      "boundary": "context-dependent",
+      "imports": [
+        "./sessions",
+        "./studyMediaContract",
+        "@/lib/studyContent/mediaAccess",
+        "node:crypto",
+        "sharp"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "nativeStudyImage"
+      ]
+    },
+    {
+      "file": "src/lib/native/studyMediaContract.ts",
+      "sha256": "3aef189189bd7fb32e5b4708779b7a4c081bda3794af51ee728e35b4bbbd642f",
+      "boundary": "context-dependent",
+      "imports": [
+        "zod"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NATIVE_STUDY_IMAGE_MAX_BYTES",
+        "nativeStudyDataUrl",
+        "nativeStudyImageSchema",
+        "nativeStudyMediaId",
+        "studyMediaIdFromSource"
       ]
     },
     {
@@ -24925,7 +24988,7 @@
     },
     {
       "file": "src/lib/studyContent/mediaAccess.ts",
-      "sha256": "4ba1880e176cb9abb0e495aa382ca1a6b8ba1f71b4bd886b50e779c85034bf3f",
+      "sha256": "5007401ba9558712cd6edd30829e6a30fa3a09ba1dfd3260205ebb3e7611f624",
       "boundary": "context-dependent",
       "imports": [
         "./fixtureAdapter",
@@ -24940,6 +25003,7 @@
       "requests": [],
       "checks": [],
       "exports": [
+        "authorizeStudyMedia",
         "authorizedStudyMedia"
       ]
     },
@@ -50189,6 +50253,8 @@
         "src/lib/native/shellHeader.server.ts",
         "src/lib/native/socketAuth.ts",
         "src/lib/native/socketTickets.ts",
+        "src/lib/native/studyMedia.server.ts",
+        "src/lib/native/studyMediaContract.ts",
         "src/lib/native/today.server.ts",
         "src/lib/native/todayActionsContract.ts",
         "src/lib/native/todayContract.ts",
@@ -50232,24 +50298,33 @@
         "src/lib/streak.ts",
         "src/lib/streakContinuation.ts",
         "src/lib/studyContent/catalogue.ts",
+        "src/lib/studyContent/cfm2026Adapter.ts",
+        "src/lib/studyContent/cfm2026Import.ts",
         "src/lib/studyContent/cfm2026Manifest.ts",
         "src/lib/studyContent/cfm2027Manifest.ts",
         "src/lib/studyContent/cfmCourses.ts",
         "src/lib/studyContent/cfmPersonalFixture.ts",
         "src/lib/studyContent/cfmProgramme.ts",
+        "src/lib/studyContent/cfmReferencePolicy.ts",
+        "src/lib/studyContent/cfmReview.ts",
         "src/lib/studyContent/cfmScripture.ts",
         "src/lib/studyContent/cfmSources.ts",
         "src/lib/studyContent/cfmVolumes.ts",
+        "src/lib/studyContent/download.ts",
         "src/lib/studyContent/exercisePlan.ts",
         "src/lib/studyContent/exerciseSource.ts",
         "src/lib/studyContent/fixtureAdapter.ts",
+        "src/lib/studyContent/fsyConversion.ts",
+        "src/lib/studyContent/imports.ts",
         "src/lib/studyContent/manifest.ts",
+        "src/lib/studyContent/mediaAccess.ts",
         "src/lib/studyContent/personalStudy.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
         "src/lib/studyContent/pilotReadingSource.ts",
         "src/lib/studyContent/pilotReadings.ts",
         "src/lib/studyContent/policy.ts",
         "src/lib/studyContent/presentation.ts",
+        "src/lib/studyContent/publication.ts",
         "src/lib/studyContent/readStatus.ts",
         "src/lib/studyContent/readingPosition.ts",
         "src/lib/studyContent/readingPositionContract.ts",
@@ -50257,6 +50332,7 @@
         "src/lib/studyContent/revisions.ts",
         "src/lib/studyContent/schema.ts",
         "src/lib/studyContent/stepProgress.ts",
+        "src/lib/studyContent/storage.ts",
         "src/lib/studyContent/weekLabels.ts",
         "src/lib/studyContent/weekSelection.ts",
         "src/lib/studyContext.ts",
@@ -75303,7 +75379,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "159d9719154356329d626a1f2bee5996872a9b65065ab5d10fb21d974bf179e2",
+      "sha256": "4b68d68ee0c3f57a814d8d48c69745635f5b3d28dd0927459039fa0d1ca0edee",
       "boundary": "client",
       "imports": [
         "./NativeContentPicker",
@@ -75419,10 +75495,31 @@
       ]
     },
     {
-      "file": "src/components/native/NativeTodayView.tsx",
-      "sha256": "ba7118c9972cae5294c82bd939a785191245026ec1a4c3768ac06be8b847fd48",
+      "file": "src/components/native/NativeStudyImage.tsx",
+      "sha256": "8749155ac95261e6fbec5aa5e08d2ad1054e214dd614ab96d7af0547b291e68b",
       "boundary": "client",
       "imports": [
+        "@/components/navigation/AppNavigation",
+        "@/lib/data/nativeHooks",
+        "@/lib/native/studyMediaContract",
+        "@/lib/native/todayContract",
+        "lucide-react",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NativeStudyImage",
+        "NativeStudyMediaProvider"
+      ]
+    },
+    {
+      "file": "src/components/native/NativeTodayView.tsx",
+      "sha256": "cb729c3b1d3e5e3ea9b0a4beeadfbafda465dadc337f9f715ee3b07d024dafae",
+      "boundary": "client",
+      "imports": [
+        "./NativeStudyImage",
         "@/components/ConfirmProvider",
         "@/components/I18nProvider",
         "@/components/kompas/KompasEntryCardView",
@@ -75436,6 +75533,7 @@
         "@/components/versado/PersonalMascot",
         "@/components/versado/UserAvatarView",
         "@/lib/avatarTypes",
+        "@/lib/native/studyMediaContract",
         "@/lib/native/todayAssets",
         "@/lib/native/todayContract",
         "@/lib/native/todayDestinations",
@@ -75475,7 +75573,7 @@
     },
     {
       "file": "src/components/navigation/AppNavigation.tsx",
-      "sha256": "bb574bf98422ba0385f9c1d96e88d467158e7c17bdb1148f75502264d73f3bfb",
+      "sha256": "02f2281a4ca4059133020ec8dfdf81affe9791f35c2cb12a9c745e1b7f41648c",
       "boundary": "client",
       "imports": [
         "react"
@@ -75487,6 +75585,7 @@
         "AppImage",
         "AppLink",
         "AppNavigationProvider",
+        "LocalAppImage",
         "useAppImageSource",
         "useAppNavigation",
         "useAppNavigationAdapter"
@@ -78189,6 +78288,9 @@
     "tests/native-socket.integration.test.ts",
     "tests/native-socket.test.ts",
     "tests/native-store-readiness.test.mjs",
+    "tests/native-study-media.browser.mjs",
+    "tests/native-study-media.integration.test.ts",
+    "tests/native-study-media.test.ts",
     "tests/native-today-actions.browser.mjs",
     "tests/native-today-actions.integration.test.ts",
     "tests/native-today-actions.test.ts",

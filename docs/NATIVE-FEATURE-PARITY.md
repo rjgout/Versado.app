@@ -12,8 +12,12 @@ het read-only `today-overview-v1`-contract en dezelfde `getTodayData`-service;
 zie [NATIVE-TODAY.md](NATIVE-TODAY.md). Ontbrekende acties/bestemmingen
 krijgen een expliciete melding. B2b-1 sluit verbergen en inkomende vriendenreacties
 via dezelfde serveropslag/services aan; uitsluitend bevestigde uitkomsten worden
-verwerkt. Volledige cursusnavigatie, private studiemedia (B2b-2), spellen en
-sociale schermen zijn hiermee nog niet geleverd.
+verwerkt. #245 is op develop gesquashmergd als
+`8a3a97cddfc192c656634d5a2fc80d175910aa51`. B2b-2 (#246) bevat vanaf die basis
+uitsluitend de mediatoevoegingen en sluit beveiligde gepubliceerde
+studieafbeeldingen aan via dezelfde mediatoegangsservice en Image-poort
+(`study-media-v1`). Volledige cursusnavigatie, spellen en sociale schermen zijn
+hiermee nog niet geleverd.
 Zie [implementatie, afhankelijkheden en toestelacceptatie](NATIVE-SHARED-SHELL.md).
 De eigenaar bevestigde de eerdere Foundation-iPhonetest bij #233 en de gedeelde
 shell uit #239 op een fysieke iPhone; de nieuwe contentkiezer vereist opnieuw fysieke acceptatie. Geen releasevrijgave of platformuitzondering.
@@ -47,7 +51,7 @@ functionele oplevering. Zie [fase-A-verslag](CFM-LEESVRAGEN-FASE-A.md) en de
 
 Iedere bestaande functie moet bruikbaar zijn op web/PWA, lokaal gebundeld iOS/iPadOS en Android. Er zijn **geen goedgekeurde web-only uitzonderingen**. Remote-preview, een link naar de website, een lege route of een route in deze inventaris is geen native equivalent. `CAPACITOR_BUILD_PROFILE=release` blijft geblokkeerd.
 
-De bestaande lokale entry is `src/components/native/entry.tsx`; `NativeNavigationProvider` koppelt de gedeelde navigatiepoort aan lokale hashgeschiedenis. De routegrens bevat uitsluitend bestaande lokale schermen; dit is nog geen volledige routerdekking. Zonder `today-overview-v1` behoudt de beperkte proef login/registratie/resetaanvraag, één Vandaag-leeskaart, hoofdstuktekst, bewust afronden en Apple-koppeling. Met de capability gebruikt B2a dezelfde TodayView als web en een read-only serveroverzicht; B2b-1 voegt bevestigde hide/vriendenacties toe; private media en overige doelroutes blijven expliciet open. Zij levert geen volledige pariteit van de bijbehorende webpagina's. Er is geen native gereedstatus op basis van alleen deze inventaris of Chromium toegekend.
+De bestaande lokale entry is `src/components/native/entry.tsx`; `NativeNavigationProvider` koppelt de gedeelde navigatiepoort aan lokale hashgeschiedenis. De routegrens bevat uitsluitend bestaande lokale schermen; dit is nog geen volledige routerdekking. Zonder `today-overview-v1` behoudt de beperkte proef login/registratie/resetaanvraag, één Vandaag-leeskaart, hoofdstuktekst, bewust afronden en Apple-koppeling. Met de capability gebruikt B2a dezelfde TodayView als web en een read-only serveroverzicht; B2b-1 voegt bevestigde hide/vriendenacties toe; B2b-2 voegt beveiligde gepubliceerde studieafbeeldingen toe. Overige doelroutes blijven expliciet open. Zij levert geen volledige pariteit van de bijbehorende webpagina's. Er is geen native gereedstatus op basis van alleen deze inventaris of Chromium toegekend.
 
 De actuele broninventaris staat hieronder; de bijlage [native-feature-parity.inventory.json](native-feature-parity.inventory.json) bevat alle gevonden bestanden met inhoudshashes, importafhankelijkheden, requestpaden en bestaande testbestanden. De historische aantallen in PLATFORMEN beschrijven een oudere uitgangssituatie en gelden niet als actuele dekking.
 
@@ -93,7 +97,7 @@ Alle tien gevraagde aspecten zijn opgenomen: webfunctie/route, backend, native b
 
 Functie en webroutes | Backend / gedeeld domein | Native bestemming | Authenticatie/autorisatie | Opslag/sync | Offline/fouten | Platformen | Testdekking | Status | Blokkade
 --- | --- | --- | --- | --- | --- | --- | --- | --- | ---
-Vandaag, acties, dagelijkse doelen, beloningen, CFM, kaartvoorkeuren (`/dashboard`, `/acties`, `/xp`, `/streak`, `/shop`) | `today.ts`, courseSummaries, activeGames, dailyTargets, list-order; bestaande actor-/beloningsservices | Dezelfde routes en bestaande kaarten | A; eigen account, bronrechten, serverbepaalde beloning | S; voorkeuren en voortgang server-side | O; geen offline XP/reeks | P | Gedeelde TodayView + versioned read-only overview; exacte resultaten in B2a-PR | B2a gedeelde kaartpresentatie; mutaties, private media en doelroutes nog onvolledig; fysieke acceptatie open | B2-vervolg mutatie-/mediapoorten; B3–B5 doelroutes en apparaattests
+Vandaag, acties, dagelijkse doelen, beloningen, CFM, kaartvoorkeuren (`/dashboard`, `/acties`, `/xp`, `/streak`, `/shop`) | `today.ts`, courseSummaries, activeGames, dailyTargets, list-order; bestaande actor-/beloningsservices | Dezelfde routes en bestaande kaarten | A; eigen account, bronrechten, serverbepaalde beloning | S; voorkeuren en voortgang server-side | O; geen offline XP/reeks | P | Gedeelde TodayView + versioned read-only overview; exacte resultaten in B2a-PR | B2a presentatie; B2b-1 bevestigde acties; B2b-2 beveiligde studiemedia; doelroutes en fysieke acceptatie open | B2-vervolg mutatie-/mediapoorten; B3–B5 doelroutes en apparaattests
 Contentkiezer, bron en taal (`/content`) | contentCollections/contentSwitch/contentRouting; `/api/content-context` | `/content` met dezelfde veilige wissel | A; beschikbare editie/collectie, geen UI-only beveiliging | S; activeContentCollectionId/contentLanguage, bestaande koers behouden | O; onbeschikbare wissel slaat niets op | P | content-switch, native-content integratie/browser, native-data en Access | Gedeelde kiezer en exact sessiebeveiligd selectiecontract; fysieke acceptatie B1 open | Overige activiteitbestemmingen en volledige realtime onder Access ontbreken; contextpoll 15s + maximaal één klokseconde/netwerkduur
 Cursusbeheer en leerpaden (`/courses/**`) | courses, courseProgress, readingCourses, cfmCourses; subscribe/unsubscribe en list-order | Zelfde cursus-/pad-URL's met gedeelde kaarten | A; ingeschreven/zichtbare cursus, geen implicitiete activatie bij toevoegen | S; bestaande UserCourseProgress, geen duplicaten; CFM-identiteit per collectie | O; schrijfuitval zichtbaar; geen automatische dubbele inschrijving | P | cards, course-sync/identity, reading-path, CFM-integratie | Ontbreekt | Native catalogus-/cursuscontracten en platformonafhankelijke componentimports
 Lezen en oefenen (`/lesson/**`, `/scripture/**`, `/reading-lesson/**`, `/practice`) | contentProgress, learning, oefeningen/antwoordvalidatie, referenties; hoofdstuk/audio-API's | Zelfde lees-/lesroutes met gedeelde lezer en completion-flow | A; contentAccess, eigen voortgang, servercorrectheid | S; bestaande leesposities/markeringen/XP; replaybescherming | O; tekstproef start lokaal maar haalt tekst online; geen offline beloningen | P; audio lifecycle, grote tekst | Foundation hoofdstuk/complete; learning-, reader-, exercise-, audio-/referentietests op web | Alleen beperkte hoofdstuktekst en gelezen-actie gedeeltelijk | Volledige lezer, audio, oefeningen, annotaties, hervatten en native contracten
@@ -310,7 +314,7 @@ De onafhankelijke review volgt door ChatGPT. #176 en #178 blijven ongemerged.
 <!-- BEGIN NATIVE PARITY INVENTORY -->
 ## Volledige broninventaris (gegenereerd)
 
-Gevonden: **143 pagina's**, **244 fysieke routehandlers**, **455 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
+Gevonden: **143 pagina's**, **244 fysieke routehandlers**, **456 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
 
 De JSON-bijlage bevat per route alle transitief bereikbare lokale modules, clientgrenzen en statische requestpaden. Dat is een afhankelijkheidsinventaris, geen autorisatiebewijs; voorwaarden per HTTP-methode blijven apart te controleren. Een Client Component kan via een gedeelde helper nog een serverafhankelijkheid hebben. Een module zonder eigen `use client` is contextafhankelijk, niet automatisch browsergeschikt.
 
@@ -1050,9 +1054,10 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/native/NativeNavigationProvider.tsx](../src/components/native/NativeNavigationProvider.tsx) | use client | NativeNavigationProvider
 [src/components/native/NativePasswordReset.tsx](../src/components/native/NativePasswordReset.tsx) | use client | NativePasswordReset
 [src/components/native/NativeShellHeader.tsx](../src/components/native/NativeShellHeader.tsx) | use client | NativeShellHeader
+[src/components/native/NativeStudyImage.tsx](../src/components/native/NativeStudyImage.tsx) | use client | NativeStudyImage, NativeStudyMediaProvider
 [src/components/native/NativeTodayView.tsx](../src/components/native/NativeTodayView.tsx) | use client | NativeTodayView
 [src/components/native/entry.tsx](../src/components/native/entry.tsx) | contextafhankelijk / server-entry waar page/layout | default/locale declaratie; zie bron
-[src/components/navigation/AppNavigation.tsx](../src/components/navigation/AppNavigation.tsx) | use client | AppImage, AppLink, AppNavigationProvider, useAppImageSource, useAppNavigation, useAppNavigationAdapter
+[src/components/navigation/AppNavigation.tsx](../src/components/navigation/AppNavigation.tsx) | use client | AppImage, AppLink, AppNavigationProvider, LocalAppImage, useAppImageSource, useAppNavigation, useAppNavigationAdapter
 [src/components/navigation/NextNavigationProvider.tsx](../src/components/navigation/NextNavigationProvider.tsx) | use client | NextNavigationProvider
 [src/components/profile/ProfileContentViews.tsx](../src/components/profile/ProfileContentViews.tsx) | use client | AchievementsView, CompetitionView
 [src/components/profile/ProfilePage.tsx](../src/components/profile/ProfilePage.tsx) | use client | ProfilePage

@@ -45,6 +45,11 @@ export function useAppImageSource(src: string | undefined): string | null {
 export function AppImage({ fill, priority, unoptimized, ...props }: AppImageProps) {
   const adapter = useContext(Context);
   if (adapter?.Image) { const Image = adapter.Image; return <Image {...props} fill={fill} priority={priority} unoptimized={unoptimized} alt={props.alt} />; }
+  return <LocalAppImage {...props} fill={fill} priority={priority} unoptimized={unoptimized}/>;
+}
+/** Dezelfde bestaande lokale renderer, ook voor gecontroleerde beelddata. */
+export function LocalAppImage({ fill, priority, unoptimized, ...props }: AppImageProps) {
+  void unoptimized;
   // eslint-disable-next-line @next/next/no-img-element -- Lokale Capacitor-assets en providerloze previews.
   return <img {...props} loading={priority ? "eager" : props.loading} style={fill ? { position: "absolute", inset: 0, width: "100%", height: "100%", ...props.style } : props.style} alt={props.alt ?? ""} />;
 }
