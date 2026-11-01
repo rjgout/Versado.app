@@ -10,6 +10,7 @@ import { DATA_EVENT_SOCKET_NAME, SOCKET_EVENT_TO_DATA_EVENT, dataEventsForSocket
 import { nativeAccountSchema, nativeTodaySchema, nativeChapterSchema, nativeContentStateSchema, nativeContentResultSchema, nativeContentSelectionSchema, type NativeContentState, type NativeContentSelection } from "@/lib/native/contract";
 import { NativeClientError, type NativeSessionClient } from "@/lib/native/client";
 
+import { nativeStudyCourseSchema, nativeStudyStepsSchema } from "@/lib/native/studyCoursesContract";
 import { nativeCoursesSchema, nativeCoursePathSchema, nativeCourseId } from "@/lib/native/coursesContract";
 
 /** Gescheiden resources, ook wanneer een geldige cursus-ID "list" of "overview" is. */
@@ -47,6 +48,24 @@ export class NativeDataRuntime {
     const latest = this.store.getSnapshot<NativeContentState>(serializeKey(["native",epoch,...nativeContentQueryKey(userId)])).data?.picker ?? expected;
     if (result.activeCollectionId !== latest.activeCollectionId || result.selectionVersion !== latest.selectionVersion || (courseId && (!("courseId" in result) || result.courseId !== courseId))) throw new NativeClientError("content_context_changed",409);
     return result;
+  }
+  private studyResponse<T extends {userId:string;activeCollectionId:string|null;selectionVersion:number;language:string}>(value:T,epoch:number,userId:string,language:string,expected:{activeCollectionId:string|null;selectionVersion:number}) {
+    if(epoch!==this.epoch || value.userId!==userId)throw new NativeClientError("session_changed",409);
+    const latest=this.store.getSnapshot<NativeContentState>(serializeKey(["native",epoch,...nativeContentQueryKey(userId)])).data?.picker??expected;
+    if(value.activeCollectionId!==latest.activeCollectionId || value.selectionVersion!==latest.selectionVersion || value.language!==language)throw new NativeClientError("content_context_changed",409);
+    return value;
+  }
+  async studyCourse(userId:string,language:string,expected:{activeCollectionId:string|null;selectionVersion:number},courseId:string,scope:"weeks"|"archive") {
+    const epoch=this.epoch;
+    const value=nativeStudyCourseSchema.parse(await this.client.api(`courses/${nativeCourseId.parse(courseId)}/${scope}`));
+    if(value.courseId!==courseId || value.scope!==scope)throw new NativeClientError("content_context_changed",409);
+    return this.studyResponse(value,epoch,userId,language,expected);
+  }
+  async studySteps(userId:string,language:string,expected:{activeCollectionId:string|null;selectionVersion:number},courseId:string,editionId:string,revisionId:string) {
+    const epoch=this.epoch;
+    const value=nativeStudyStepsSchema.parse(await this.client.api(`courses/${nativeCourseId.parse(courseId)}/weeks/${nativeCourseId.parse(editionId)}/steps`));
+    if(value.courseId!==courseId || value.editionId!==editionId || value.revisionId!==revisionId)throw new NativeClientError("content_context_changed",409);
+    return this.studyResponse(value,epoch,userId,language,expected);
   }
   async today() { return nativeTodaySchema.parse(await this.client.api("today")); }
   async todayOverview(userId: string, context: { activeCollectionId: string | null; selectionVersion: number }) {

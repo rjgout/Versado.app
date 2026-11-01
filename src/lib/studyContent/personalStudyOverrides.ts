@@ -1,7 +1,7 @@
 import { z } from "zod";
 import cfmNewTestament2027 from "../../../data/study-content/cfm-2027-nl/personal-study-overrides.json";
 import cfmOldTestament2026 from "../../../data/study-content/cfm-2026-nl/personal-study-overrides.json";
-import { LEGACY_PERSONAL_STUDY, planPersonalStudy, validatePersonalPlan, type PersonalStudyOverrides, type PersonalStudyPlan } from "./personalStudy";
+import { PERSONAL_STUDY_VERSION, LEGACY_PERSONAL_STUDY, planPersonalStudy, validatePersonalPlan, type PersonalStudyOverrides, type PersonalStudyPlan } from "./personalStudy";
 import type { ReaderDocument } from "./readingPositionContract";
 
 export const CFM_2027_PERSONAL_VERSION = 3;
@@ -35,9 +35,11 @@ export function isPersonalStudyWork(workKey: string) {
 export function loadPersonalStudyOverrides(workKey: string, sourceKey: string): PersonalStudyOverrides {
   return REGISTRY[workKey]?.[sourceKey] ?? {};
 }
+export function personalStudyPlanVersion(workKey: string) { return workKey === "cfm-new-testament-2027" ? CFM_2027_PERSONAL_VERSION : PERSONAL_STUDY_VERSION; }
+
 export function personalStudyFor(lesson: { workKey: string; sourceKey: string; body: ReaderDocument }): PersonalStudyPlan {
   if (!isPersonalStudyWork(lesson.workKey)) return { supported: false, reason: "Dit programma heeft geen persoonlijke studieroute." };
-  return planPersonalStudy(lesson.body, loadPersonalStudyOverrides(lesson.workKey, lesson.sourceKey), lesson.workKey === "cfm-new-testament-2027" ? { version: CFM_2027_PERSONAL_VERSION } : {});
+  return planPersonalStudy(lesson.body, loadPersonalStudyOverrides(lesson.workKey, lesson.sourceKey), { version: personalStudyPlanVersion(lesson.workKey) });
 }
 
 /** De zevenstappenindeling van versie 1, uitsluitend om bestaande stapvoortgang inhoudelijk te kunnen dekken. */

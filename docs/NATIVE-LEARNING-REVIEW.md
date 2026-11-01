@@ -145,7 +145,7 @@ Een compile-, simulator- of Chromium-resultaat vult deze tabel niet in.
 | VoiceOver/TalkBack en extern toetsenbord: koppen, boekknoppen, slots en melding. | Betekenisvolle namen/status, zichtbare tabfocus en logische terugfocus. | Stil slot, dubbele actie, focusval, focus buiten dialoog. |
 | Kies een nog niet ondersteunde lesactie. | Uitleg; geen afronding, XP, reeks of automatische schrijfretry. | Volledig hoofdstuk afgerond, beloning, verborgen wachtrij. |
 
-## B3a-2 — concreet implementatieplan, nog niet geïmplementeerd
+## B3a-2 — oorspronkelijk implementatieplan bij de B3a-1-review
 
 1. **Bronnen behouden.** Hergebruik `CfmCourseView`, `CfmWeekPath`,
    `CfmArchiveView`, `MyStepNav` en de bestaande leespaddelen. Webbronnen zijn
@@ -199,4 +199,4 @@ Een compile-, simulator- of Chromium-resultaat vult deze tabel niet in.
    legacydekking zonder writes, revisie-intrekking tijdens laden, account/bron,
    Access, zes stappen zonder totaalscore, web/native layout en beide builds.
 
-Geen B3a-2-code, CFM-importgegevens of inhoud binnen deze PR aanpassen.
+Historische grens van PR #249: daarin geen B3a-2-code, CFM-importgegevens of inhoud aanpassen. De daaropvolgende B3a-2-implementatie staat afzonderlijk beschreven in [NATIVE-CFM-COURSES.md](NATIVE-CFM-COURSES.md); dit verandert het eerdere onafhankelijke reviewoordeel niet.

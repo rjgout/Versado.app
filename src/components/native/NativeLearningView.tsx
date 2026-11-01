@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useMemo, useRef } from "react";
 import { focusNativeRouteHeading } from "@/lib/native/routeFocus";
+import NativeCfmCourseView from "./NativeCfmCourseView";
+import { isStudyCourseType } from "@/lib/readingCourses";
 import CoursesView from "@/components/CoursesView";
 import ReadingCourseView from "@/components/ReadingCourseView";
 import ChapterListCourseView from "@/components/ChapterListCourseView";
@@ -16,16 +18,21 @@ import { NativeClientError } from "@/lib/native/client";
 import NativeStudyImage, { NativeStudyMediaProvider } from "./NativeStudyImage";
 import { studyMediaIdFromSource } from "@/lib/native/studyMediaContract";
 
-export default function NativeLearningView(props: { userId: string; language: string; content?: NativeContentState; enabled: boolean; mediaEnabled: boolean; onError: (error: unknown) => void }) {
+export default function NativeLearningView(props: { userId: string; language: string; content?: NativeContentState; enabled: boolean; studyEnabled?: boolean; mediaEnabled: boolean; onError: (error: unknown) => void }) {
  return <ConfirmProvider><Learning {...props}/></ConfirmProvider>;
 }
-function Learning({ userId, language, content, enabled, mediaEnabled, onError }: Parameters<typeof NativeLearningView>[0]) {
+function Learning({ userId, language, content, enabled, studyEnabled = false, mediaEnabled, onError }: Parameters<typeof NativeLearningView>[0]) {
  const navigation=useAppNavigationAdapter(),runtime=useNativeData(),t=useT(),confirm=useConfirm();
- const courseId=/^\/courses\/([A-Za-z0-9_-]{1,128})(?:\/pad)?$/.exec(navigation.pathname)?.[1];
+ const courseId=/^\/courses\/([A-Za-z0-9_-]{1,128})(?:\/(?:pad|archief))?$/.exec(navigation.pathname)?.[1];
+ const catalogQuery=useNativeLiveQuery(nativeLearningQueryKey(userId,language,content?.picker),()=>runtime.learning(userId,content!.picker),{enabled:studyEnabled&&enabled&&!!courseId&&!!content,scopes:["courses","content","progress","studyContent"],staleTime:60000});
+ const catalog=catalogQuery.data && "courses" in catalogQuery.data ? [...catalogQuery.data.courses,...catalogQuery.data.catalog] : [];
+ const isStudy=!!courseId && studyEnabled && catalog.some(course=>course.id===courseId&&isStudyCourseType(course.type));
+ const archiveRoute=navigation.pathname.endsWith("/archief");
+ const resolving=!!courseId&&studyEnabled&&!catalogQuery.data;
  const query=useNativeLiveQuery(nativeLearningQueryKey(userId,language,content?.picker,courseId),async()=>{const result=await runtime.learning(userId,content!.picker,courseId);if(result.language!==language)throw new NativeClientError("content_context_changed",409);return result;},{
-   enabled:enabled && !!content,scopes:["courses","progress","content","studyContext","studyContent","studySteps"],staleTime:60_000,pollMs:60_000,
+   enabled:enabled && !!content && !isStudy && !resolving && !archiveRoute,scopes:["courses","progress","content","studyContext","studyContent","studySteps"],staleTime:60_000,pollMs:60_000,
  });
- useEffect(()=>{if(query.error instanceof NativeClientError && (query.error.status===401 || query.error.code.startsWith("access_") || query.error.code==="content_context_changed"))onError(query.error);},[query.error,onError]);
+ useEffect(()=>{const error=catalogQuery.error??query.error;if(error instanceof NativeClientError && (error.status===401 || error.code.startsWith("access_") || error.code==="content_context_changed"))onError(error);},[query.error,catalogQuery.error,onError]);
  const adapter=useMemo(()=>{
   function LearningLink({href,...props}:AppLinkProps){
    if(nativeRoute(href) && /^\/courses(?:\/|$)/.test(href)){const Link=navigation.Link;return <Link {...props} href={href}/>;}
@@ -36,16 +43,18 @@ function Learning({ userId, language, content, enabled, mediaEnabled, onError }:
   return {...navigation,Link:LearningLink,...(mediaEnabled?{Image:NativeStudyImage}:{}),imageSource:(src:string)=>mediaEnabled&&studyMediaIdFromSource(src)?src:nativeTodayImageSource(src)};
  },[navigation,mediaEnabled,confirm,t]);
  const data=query.data;
+ const failure=catalogQuery.error??query.error;
  const transientFailure = nativeLearningTransientError(query.error);
  const focusedIdentity=useRef("");
- const focusIdentity=data ? `${userId}:${data.selectionVersion}:${navigation.pathname}` : "";
+ const focusIdentity=data && !isStudy ? `${userId}:${data.selectionVersion}:${navigation.pathname}` : "";
  useEffect(()=>{
   if(!focusIdentity || focusedIdentity.current===focusIdentity)return;
   focusedIdentity.current=focusIdentity;
   return focusNativeRouteHeading();
  },[focusIdentity]);
- useEffect(()=>{if(data && "courseId" in data && !navigation.pathname.endsWith("/pad"))navigation.replace(`/courses/${data.courseId}/pad`);},[data,navigation]);
- if(!enabled || !content || !data || (query.error && !transientFailure) || ("chapters" in data && data.chapters.length===0))return <section aria-busy={query.isFetching}><h1 tabIndex={-1} className="text-2xl font-extrabold">{t("pages.courses")}</h1><p role="status">{t(!enabled?"nativeLearning.unsupported":query.error instanceof NativeClientError && query.error.status === 404 ? "nativeLearning.pathUnavailable" : data && "chapters" in data && data.chapters.length===0 ? "nativeLearning.pathUnavailable" : query.error?"nativeFoundation.error":"nativeFoundation.loading")}</p>{enabled&&<button className="btn-secondary" onClick={()=>{void query.refetch();}}>{t("nativeFoundation.retry")}</button>}<button className="btn-secondary" onClick={()=>navigation.back("/dashboard")}>{t("common.back")}</button></section>;
+ useEffect(()=>{if(!isStudy && !archiveRoute && data && "courseId" in data && !navigation.pathname.endsWith("/pad"))navigation.replace(`/courses/${data.courseId}/pad`);},[data,navigation,isStudy,archiveRoute]);
+ if(isStudy && content && (!catalogQuery.error || nativeLearningTransientError(catalogQuery.error)))return <AppNavigationProvider adapter={adapter}><NativeCfmCourseView userId={userId} language={language} content={content} courseId={courseId!} onError={onError}/></AppNavigationProvider>;
+ if((archiveRoute&&!isStudy) || resolving || (catalogQuery.error && !nativeLearningTransientError(catalogQuery.error)) || !enabled || !content || !data || (query.error && !transientFailure) || ("chapters" in data && data.chapters.length===0))return <section aria-busy={query.isFetching}><h1 tabIndex={-1} className="text-2xl font-extrabold">{t("pages.courses")}</h1><p role="status">{t(!enabled?"nativeLearning.unsupported":archiveRoute&&!isStudy?"nativeLearning.pathUnavailable":failure instanceof NativeClientError && failure.status === 404 ? "nativeLearning.pathUnavailable" : data && "chapters" in data && data.chapters.length===0 ? "nativeLearning.pathUnavailable" : failure?"nativeFoundation.error":"nativeFoundation.loading")}</p>{enabled&&(!archiveRoute||resolving)&&<button className="btn-secondary" onClick={()=>{void (resolving||catalogQuery.error?catalogQuery.refetch():query.refetch());}}>{t("nativeFoundation.retry")}</button>}<button className="btn-secondary" onClick={()=>navigation.back("/dashboard")}>{t("common.back")}</button></section>;
  return <NativeStudyMediaProvider state={data}><AppNavigationProvider adapter={adapter}>
  {"courses" in data ? <><p role="note" className="mx-auto w-full max-w-5xl text-sm text-vs-fg-2">{t("nativeLearning.readOnly")}</p><CoursesView courses={data.courses} catalog={data.catalog}/></> : data.kind==="steps" ? <ReadingCourseView key={`${userId}:${data.courseId}:${data.selectionVersion}`} courseName={data.courseName} unitPlural={data.unitPlural} today={data.todayId?{id:data.todayId}:null} chapters={data.chapters}/> : <ChapterListCourseView key={`${userId}:${data.courseId}:${data.selectionVersion}`} {...data}/>}
  {!!query.error && transientFailure && <section role="status" className="mx-auto flex w-full max-w-5xl flex-col items-start gap-3 rounded-xl border border-vs-line bg-vs-surface p-3"><p className="w-full text-sm">{t("nativeLearning.refreshFailed")}</p><button type="button" className="btn-secondary" disabled={query.isFetching} onClick={()=>{void query.refetch();}}>{t("nativeFoundation.retry")}</button></section>}

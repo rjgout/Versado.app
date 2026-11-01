@@ -21,9 +21,13 @@ leerpaden toe via `courses-overview-v1`, zonder GET-writes of lesafronding.
 Zie [NATIVE-LEARNING.md](NATIVE-LEARNING.md) voor de werkende routes en grenzen.
 De [technische B3a-1-herbeoordeling](NATIVE-LEARNING-REVIEW.md) scheidt de
 oorspronkelijke bevindingen van reparaties, bevat het B3a-2-plan en markeert de
-iPhone-/Android-controles als **PENDING PHYSICAL ACCEPTANCE**.
-CFM-weekpad, lezers/vragen, overige cursusdetails, spellen en sociale schermen
-blijven nog open; geen volledige cursus-/leespariteit geclaimd.
+oorspronkelijke iPhone-/Android-controles als **PENDING PHYSICAL ACCEPTANCE**.
+De eigenaar bevestigde inmiddels B3a-1 op iPhone: drie schriftelijke paden,
+boekgroepen, voortgang en de veilige melding voor niet-ondersteunde acties.
+B3a-2 deelt nu ook het CFM-weekpad, zes read-only stappen en het archief via
+`study-course-overview-v1`; zie [NATIVE-CFM-COURSES.md](NATIVE-CFM-COURSES.md).
+Fysieke CFM- en Android-acceptatie blijven open. Lezers/vragen, overige
+cursusdetails, spellen en sociale schermen blijven nog open; geen volledige cursus-/leespariteit geclaimd.
 Zie [implementatie, afhankelijkheden en toestelacceptatie](NATIVE-SHARED-SHELL.md).
 De eigenaar bevestigde de eerdere Foundation-iPhonetest bij #233 en de gedeelde
 shell uit #239 op een fysieke iPhone; de nieuwe contentkiezer vereist opnieuw fysieke acceptatie. Geen releasevrijgave of platformuitzondering.
@@ -105,7 +109,7 @@ Functie en webroutes | Backend / gedeeld domein | Native bestemming | Authentica
 --- | --- | --- | --- | --- | --- | --- | --- | --- | ---
 Vandaag, acties, dagelijkse doelen, beloningen, CFM, kaartvoorkeuren (`/dashboard`, `/acties`, `/xp`, `/streak`, `/shop`) | `today.ts`, courseSummaries, activeGames, dailyTargets, list-order; bestaande actor-/beloningsservices | Dezelfde routes en bestaande kaarten | A; eigen account, bronrechten, serverbepaalde beloning | S; voorkeuren en voortgang server-side | O; geen offline XP/reeks | P | Gedeelde TodayView + versioned read-only overview; exacte resultaten in B2a-PR | B2a presentatie; B2b-1 bevestigde acties; B2b-2 beveiligde studiemedia; doelroutes en fysieke acceptatie open | B2-vervolg mutatie-/mediapoorten; B3–B5 doelroutes en apparaattests
 Contentkiezer, bron en taal (`/content`) | contentCollections/contentSwitch/contentRouting; `/api/content-context` | `/content` met dezelfde veilige wissel | A; beschikbare editie/collectie, geen UI-only beveiliging | S; activeContentCollectionId/contentLanguage, bestaande koers behouden | O; onbeschikbare wissel slaat niets op | P | content-switch, native-content integratie/browser, native-data en Access | Gedeelde kiezer en exact sessiebeveiligd selectiecontract; fysieke acceptatie B1 open | Overige activiteitbestemmingen en volledige realtime onder Access ontbreken; contextpoll 15s + maximaal één klokseconde/netwerkduur
-Cursusbeheer en leerpaden (`/courses/**`) | courses, courseProgress, readingCourses, cfmCourses; subscribe/unsubscribe en list-order | Zelfde cursus-/pad-URL's met gedeelde kaarten | A; ingeschreven/zichtbare cursus, geen implicitiete activatie bij toevoegen | S; bestaande UserCourseProgress, geen duplicaten; CFM-identiteit per collectie | O; schrijfuitval zichtbaar; geen automatische dubbele inschrijving | P | cards, course-sync/identity, reading-path, CFM-integratie | Ontbreekt | Native catalogus-/cursuscontracten en platformonafhankelijke componentimports
+Cursusbeheer en leerpaden (`/courses/**`) | courses, courseProgress, readingCourses, cfmCourses; subscribe/unsubscribe en list-order | Zelfde cursus-/pad-URL's met gedeelde kaarten | A; ingeschreven/zichtbare cursus, geen implicitiete activatie bij toevoegen | S; bestaande UserCourseProgress, geen duplicaten; CFM-identiteit per collectie | O; schrijfuitval zichtbaar; geen automatische dubbele inschrijving | P | cards, course-sync/identity, reading-path, CFM-integratie, native-study-courses SQL/browser | Gedeeld overzicht, drie schriftelijke paden; B3a-2 CFM-weken/archief/zes read-only stappen | Cursusbeheer, lezers, vragen en fysieke CFM-/Android-acceptatie open
 Lezen en oefenen (`/lesson/**`, `/scripture/**`, `/reading-lesson/**`, `/practice`) | contentProgress, learning, oefeningen/antwoordvalidatie, referenties; hoofdstuk/audio-API's | Zelfde lees-/lesroutes met gedeelde lezer en completion-flow | A; contentAccess, eigen voortgang, servercorrectheid | S; bestaande leesposities/markeringen/XP; replaybescherming | O; tekstproef start lokaal maar haalt tekst online; geen offline beloningen | P; audio lifecycle, grote tekst | Foundation hoofdstuk/complete; learning-, reader-, exercise-, audio-/referentietests op web | Alleen beperkte hoofdstuktekst en gelezen-actie gedeeltelijk | Volledige lezer, audio, oefeningen, annotaties, hervatten en native contracten
 CFM, FSY en studiemap (`/study-lesson/**`, `/fsy/**`, `/study-folder`, `/bookmarks`) | studiecatalogus/publicaties/revisies, StudyAnnotations, StudyStepProgress, studyOrigin | Zelfde routes, herkomst en zes stappen | A; publicatie-/collectiegrens, eigendom van annotaties | S; gedeelde annotaties, geen tweede systeem; stappen geven geen XP/READ | O; geen schrijfwachtrij zonder conflictcontract | P; selecteren/annoteren, keyboard en terug | study-/annotation-/CFM-tests en browserflows | Ontbreekt | Versiecontracten voor revisies/annotaties/lezen en gedeelde route-/data-laag
 Introductie, kinderverhalen en podcasts (`/intro/**`, `/kids/**`, `/podcast/**`) | bestaande intro/kids/episode-/cursusservices, eigen audio-/afbeeldingsrechten | Zelfde routes en modes | A; cursus-/bronrechten | S; bestaande voltooiings- en oefenrecords | O; grote media niet impliciet meebundelen; fout/herstart zichtbaar | P; beeld, audio, lifecycle | lesson-flow, kids, podcast/audio-/cursustests | Ontbreekt | Native les-/media-/oefencontracten; toegestane mediatoken-/streamstrategie
@@ -320,7 +324,7 @@ De onafhankelijke review volgt door ChatGPT. #176 en #178 blijven ongemerged.
 <!-- BEGIN NATIVE PARITY INVENTORY -->
 ## Volledige broninventaris (gegenereerd)
 
-Gevonden: **143 pagina's**, **244 fysieke routehandlers**, **458 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
+Gevonden: **143 pagina's**, **244 fysieke routehandlers**, **462 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
 
 De JSON-bijlage bevat per route alle transitief bereikbare lokale modules, clientgrenzen en statische requestpaden. Dat is een afhankelijkheidsinventaris, geen autorisatiebewijs; voorwaarden per HTTP-methode blijven apart te controleren. Een Client Component kan via een gedeelde helper nog een serverafhankelijkheid hebben. Een module zonder eigen `use client` is contextafhankelijk, niet automatisch browsergeschikt.
 
@@ -1055,6 +1059,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/mysteries/MysteryPlayPage.tsx](../src/components/mysteries/MysteryPlayPage.tsx) | contextafhankelijk / server-entry waar page/layout | MysteryPlayPage
 [src/components/native/NativeAccessPanel.tsx](../src/components/native/NativeAccessPanel.tsx) | use client | NativeAccessPanel
 [src/components/native/NativeBuildBanner.tsx](../src/components/native/NativeBuildBanner.tsx) | use client | NativeBuildBanner
+[src/components/native/NativeCfmCourseView.tsx](../src/components/native/NativeCfmCourseView.tsx) | use client | NativeCfmCourseView
 [src/components/native/NativeContentPicker.tsx](../src/components/native/NativeContentPicker.tsx) | use client | NativeContentPicker
 [src/components/native/NativeEmailConfirmation.tsx](../src/components/native/NativeEmailConfirmation.tsx) | use client | NativeEmailConfirmation
 [src/components/native/NativeFoundation.tsx](../src/components/native/NativeFoundation.tsx) | use client | NativeFoundation
@@ -1122,7 +1127,8 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/study/CfmArchiveView.tsx](../src/components/study/CfmArchiveView.tsx) | use client | CfmArchiveView
 [src/components/study/CfmCourseView.tsx](../src/components/study/CfmCourseView.tsx) | use client | CfmCourseView
 [src/components/study/CfmTodayCard.tsx](../src/components/study/CfmTodayCard.tsx) | use client | CfmTodayCard
-[src/components/study/CfmWeekPath.tsx](../src/components/study/CfmWeekPath.tsx) | use client | CfmWeekPath
+[src/components/study/CfmWeekPath.tsx](../src/components/study/CfmWeekPath.tsx) | use client | CfmWeekPath, WeekStepCards
+[src/components/study/CfmWeekStepsView.tsx](../src/components/study/CfmWeekStepsView.tsx) | use client | WeekStepCards
 [src/components/study/ImageViewer.tsx](../src/components/study/ImageViewer.tsx) | use client | ImageViewer
 [src/components/study/PersonalStudyParts.tsx](../src/components/study/PersonalStudyParts.tsx) | use client | HeaderMenu, StepDots, WeekNav, formatWeekPeriod, lessonBase, menuItem
 [src/components/study/ProgramContextPanel.tsx](../src/components/study/ProgramContextPanel.tsx) | contextafhankelijk / server-entry waar page/layout | ProgramContextPanel
@@ -1138,6 +1144,8 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/study/StudyRoom.tsx](../src/components/study/StudyRoom.tsx) | use client | StudyRoom
 [src/components/study/StudyTogetherButton.tsx](../src/components/study/StudyTogetherButton.tsx) | use client | StudyTogetherButton
 [src/components/study/StudyVideo.tsx](../src/components/study/StudyVideo.tsx) | use client | StudyVideo
+[src/components/study/WebCfmCourseView.tsx](../src/components/study/WebCfmCourseView.tsx) | use client | WebCfmCourseView
+[src/components/study/WebWeekSteps.tsx](../src/components/study/WebWeekSteps.tsx) | use client | WebWeekSteps
 [src/components/today/ContinueSection.tsx](../src/components/today/ContinueSection.tsx) | use client | ContinueSection
 [src/components/today/DiscoverySection.tsx](../src/components/today/DiscoverySection.tsx) | contextafhankelijk / server-entry waar page/layout | DiscoverySection
 [src/components/today/FriendRequestButtons.tsx](../src/components/today/FriendRequestButtons.tsx) | use client | FriendRequestButtons

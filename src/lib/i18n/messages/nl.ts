@@ -6,6 +6,7 @@ import { kompasNl } from "./kompas/nl";
 
 export const nl = {
   nativeLearning: {
+    catalogueTruncated: "Niet alle studieweken passen in dit overzicht. Er worden maximaal 600 lessen getoond.",
     refreshFailed: "Verversen is tijdelijk niet gelukt. Je ziet de laatst bevestigde gegevens.",
     "readOnly": "Je kunt cursussen en leerpaden bekijken. Toevoegen, verbergen en lessen volgen komen in een volgende appversie. Je voortgang blijft behouden.",
     "unsupported": "Deze server ondersteunt het cursusoverzicht nog niet.",

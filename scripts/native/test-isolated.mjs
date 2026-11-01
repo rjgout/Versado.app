@@ -80,7 +80,10 @@ try{
  }finally{await client.end();}
  server=spawn('node',['scripts/content-architecture/test-server.mjs'],{env,stdio:'inherit',detached:true});
  let healthy=false;for(let i=0;i<100;i++){try{if((await fetch(`${base}/api/health`)).ok){healthy=true;break;}}catch{}if(server.exitCode!==null)throw Error('Testserver gestopt');await delay(500);}if(!healthy)throw Error('Productiebuild niet bereikbaar');
- if(process.argv.includes('--courses-only')) {
+ if(process.argv.includes('--study-courses-only')) {
+  await run('npx',['tsx','--test','tests/native-study-courses.integration.test.ts'],env);
+  if(!process.argv.includes('--no-browser')) await run('npx',['tsx','tests/native-study-courses.browser.mjs'],env);
+ } else if(process.argv.includes('--courses-only')) {
   // Gerichte lokale ontwikkelcontrole; CI blijft de volledige standaardketen gebruiken.
   await run('npx',['tsx','--test','tests/native-courses.integration.test.ts'],env);
   if(!process.argv.includes('--no-browser')) await run('npx',['tsx','tests/native-courses.browser.mjs'],env);
@@ -89,7 +92,7 @@ try{
   await run('npx',['tsx','--test','--test-concurrency=1','tests/native-today.integration.test.ts','tests/today-continue-cards.test.ts','tests/native-study-media.integration.test.ts','tests/native-courses.integration.test.ts'],env);
   if(!process.argv.includes('--no-browser')){await run('npx',['tsx','tests/native-today.browser.mjs'],env);await run('npx',['tsx','tests/native-today-actions.browser.mjs'],env);await run('npx',['tsx','tests/native-study-media.browser.mjs'],env);await run('npx',['tsx','tests/native-courses.browser.mjs'],env);}
  } else {
- await run('npx',['tsx','--test','--test-concurrency=1','tests/native-foundation.integration.test.ts','tests/native-shell.integration.test.ts','tests/native-account.integration.test.ts','tests/registration.integration.test.ts','tests/native-access.integration.test.ts','tests/content-switch.integration.test.ts','tests/native-today.integration.test.ts','tests/today-continue-cards.test.ts','tests/native-study-media.integration.test.ts','tests/native-courses.integration.test.ts'],env);
+ await run('npx',['tsx','--test','--test-concurrency=1','tests/native-foundation.integration.test.ts','tests/native-shell.integration.test.ts','tests/native-account.integration.test.ts','tests/registration.integration.test.ts','tests/native-access.integration.test.ts','tests/content-switch.integration.test.ts','tests/native-today.integration.test.ts','tests/today-continue-cards.test.ts','tests/native-study-media.integration.test.ts','tests/native-courses.integration.test.ts','tests/native-study-courses.integration.test.ts'],env);
  // Twee onafhankelijke processen, dezelfde bestaande database/Redis-adapter.
  const available=()=>new Promise(resolve=>{const listener=createServer();listener.listen(0,'127.0.0.1',()=>{const chosen=listener.address().port;listener.close(()=>resolve(chosen));});});
  const socketA=`http://127.0.0.1:${await available()}`;let socketB;do{socketB=`http://127.0.0.1:${await available()}`;}while(socketB===socketA);
@@ -101,7 +104,7 @@ try{
  let socketFailure;
  try{await run('npx',['tsx','--test','--test-concurrency=1','tests/native-socket.integration.test.ts','tests/native-content.integration.test.ts','tests/native-today-actions.integration.test.ts'],socketEnv);}catch(error){socketFailure=error;}
  for(const child of socketServers){try{process.kill(-child.pid,'SIGTERM');}catch{}}
- if(!process.argv.includes('--no-browser')){await run('npx',['tsx','tests/native-foundation.browser.mjs'],env);await run('npx',['tsx','tests/native-access.browser.mjs'],env);await run('npx',['tsx','tests/native-data.browser.mjs'],env);await run('npx',['tsx','tests/native-shell.browser.mjs'],env);await run('npx',['tsx','tests/native-content.browser.mjs'],env);await run('npx',['tsx','tests/native-foundation-apple.browser.mjs'],env);await run('npx',['tsx','tests/native-today.browser.mjs'],env);await run('npx',['tsx','tests/native-today-actions.browser.mjs'],env);await run('npx',['tsx','tests/native-study-media.browser.mjs'],env);await run('npx',['tsx','tests/native-courses.browser.mjs'],env);}
+ if(!process.argv.includes('--no-browser')){await run('npx',['tsx','tests/native-foundation.browser.mjs'],env);await run('npx',['tsx','tests/native-access.browser.mjs'],env);await run('npx',['tsx','tests/native-data.browser.mjs'],env);await run('npx',['tsx','tests/native-shell.browser.mjs'],env);await run('npx',['tsx','tests/native-content.browser.mjs'],env);await run('npx',['tsx','tests/native-foundation-apple.browser.mjs'],env);await run('npx',['tsx','tests/native-today.browser.mjs'],env);await run('npx',['tsx','tests/native-today-actions.browser.mjs'],env);await run('npx',['tsx','tests/native-study-media.browser.mjs'],env);await run('npx',['tsx','tests/native-courses.browser.mjs'],env);await run('npx',['tsx','tests/native-study-courses.browser.mjs'],env);}
  if(socketFailure)throw socketFailure; // Browserbewijs verzamelen wist nooit een falende beveiligingstest.
  }
 }finally{

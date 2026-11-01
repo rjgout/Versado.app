@@ -41,7 +41,7 @@ test("gewone leescursussen behouden hun voortgangsweergave", () => {
 });
 
 test("de zes stappen houden hun eigen, subtiele status per week", () => {
-  const week = read("src/components/study/CfmWeekPath.tsx");
+  const week = read("src/components/study/CfmWeekPath.tsx") + read("src/components/study/CfmWeekStepsView.tsx");
   assert.match(week, /data-step-status=\{status\}/);
   assert.match(week, /function StepDots/);
   assert.match(week, /cfmStudy\.statusNotStarted/);
