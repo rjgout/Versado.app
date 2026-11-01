@@ -4,6 +4,7 @@ import { kompasEs } from "./kompas/es";
 // Spaanse app-teksten; ontbrekende teksten vallen terug volgens fallbackChain.
 export const es: PartialMessages = {
   nativeLearning: {
+    catalogueTruncated: "Esta lista está incompleta. Se muestran como máximo 600 lecciones.",
     refreshFailed: "No se ha podido actualizar temporalmente. Se muestran los últimos datos confirmados.",
     "readOnly": "Puedes consultar cursos e itinerarios. Añadir, ocultar y seguir lecciones estará disponible en una próxima versión. Tu progreso se conserva.",
     "unsupported": "Este servidor aún no admite la lista de cursos.",

@@ -76,7 +76,9 @@ test("de archiefingang staat vóór de eerste weekkaart; Spelen bevat geen studi
   const { createElement } = await import("react");
   const { renderToStaticMarkup } = await import("react-dom/server");
   const { default: CfmCourseView } = await import("../src/components/study/CfmCourseView");
-  const html = renderToStaticMarkup(createElement(CfmCourseView, { courseName: "Kom dan en volg Mij", mode: "STEPS", weeks: [{ id: "fixture-week", lessonId: "l", collectionId: "c", lessonKey: "k", title: "Eerste les", startsOn: "2027-01-04", endsOnExclusive: "2027-01-11", read: false, stepsDone: 0, imageMediaId: null }], activeWeekId: null, resumeReason: null, sessionKey: "fixture", contexts: {}, archiveHref: "/archief" }));
+  const { AppNavigationProvider } = await import("../src/components/navigation/AppNavigation");
+  const Link = ({replace,prefetch,onNavigate,...props}: import("../src/components/navigation/AppNavigation").AppLinkProps) => {void replace;void prefetch;void onNavigate;return createElement("a",props);};
+  const html = renderToStaticMarkup(createElement(AppNavigationProvider, {adapter:{pathname:"/courses",Link,push(){},replace(){},back(){},refresh(){},canGoBack:()=>false},children:createElement(CfmCourseView, { courseName: "Kom dan en volg Mij", mode: "STEPS", weeks: [{ id: "fixture-week", lessonId: "l", collectionId: "c", lessonKey: "k", title: "Eerste les", startsOn: "2027-01-04", endsOnExclusive: "2027-01-11", read: false, stepsDone: 0, imageMediaId: null }], activeWeekId: null, resumeReason: null, sessionKey: "fixture", archiveHref: "/archief" })}));
   assert.ok(html.includes("data-cfm-archive-link"));
   assert.ok(html.includes("data-cfm-week-path"));
   assert.ok(html.indexOf("data-cfm-archive-link") < html.indexOf("data-cfm-week-path"));

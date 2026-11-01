@@ -17,14 +17,14 @@ const output = resolve(process.env.CFM_OVERLAY_OUTPUT ?? "/tmp/cfm-overlay-resul
 mkdirSync(output, { recursive: true });
 const component = "src/components/study/CfmWeekPath.tsx";
 const baseline = execFileSync("git", ["show", `b28db54b:${component}`], { encoding: "utf8" });
-const fixture = `import React from 'react'; import {createRoot} from 'react-dom/client'; import CfmWeekPath from '${resolve(component)}';
+const fixture = `import React from 'react'; import {createRoot} from 'react-dom/client'; import CfmWeekPath from '${resolve(component)}'; import {WebWeekSteps} from '${resolve('src/components/study/WebWeekSteps.tsx')}'; import {AppNavigationProvider} from '${resolve('src/components/navigation/AppNavigation.tsx')}'; const Link=({replace,prefetch,onNavigate,...p})=><a {...p}/>;
 const common={collectionId:'fixture',lessonId:'lesson',lessonKey:'fixture',read:false,stepsDone:2,startsOn:'2026-10-19',endsOnExclusive:'2026-10-26',imageMediaId:'official'};
-createRoot(document.getElementById('root')).render(<CfmWeekPath weeks={[
+createRoot(document.getElementById('root')).render(<AppNavigationProvider adapter={{pathname:'/courses',Link,push(){},replace(){},back(){},refresh(){},canGoBack:()=>false}}><CfmWeekPath StepContent={WebWeekSteps} weeks={[
 {...common,id:'current',title:location.search.includes('long')?'Psalmen 102–103; 110; 116–119; 127–128; 135–139; 146–150: een lange Nederlandse lestitel':'Jeremia 1–3; 7; 16–18; 20',...(location.search.includes('long')?{startsOn:'2026-12-28',endsOnExclusive:'2027-01-04'}:{})},
 {...common,id:'other',title:'Jeremia 1–3; 7; 16–18; 20',read:true,stepsDone:6},
 {...common,id:'closed',title:'Mattheüs 2; Lukas 2',stepsDone:0,startsOn:'2026-12-28',endsOnExclusive:'2027-01-04'},
 {...common,id:'missing',title:'Een lange Nederlandse lestitel over geloof, hoop en de voorbereiding op het nieuwe kalenderjaar',imageMediaId:null,startsOn:'2026-12-28',endsOnExclusive:'2027-01-04'}
-]} mode={location.search.includes("free")?"FREE":"STEPS"} activeWeekId="current" sessionKey="fixture"/>);`;
+]} mode={location.search.includes("free")?"FREE":"STEPS"} activeWeekId="current" sessionKey="fixture"/></AppNavigationProvider>);`;
 async function bundle(name, old = false) {
   await build({ stdin: { contents: fixture, loader: "tsx", resolveDir: process.cwd() }, bundle: true, outfile: join(temporary, name), jsx: "automatic", define: { "process.env.NODE_ENV": '"production"' }, plugins: [{ name: "fixtures", setup(b) {
     if (old) b.onLoad({ filter: /CfmWeekPath\.tsx$/ }, () => ({ contents: baseline, loader: "tsx", resolveDir: resolve("src/components/study") }));

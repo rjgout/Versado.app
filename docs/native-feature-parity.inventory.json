@@ -6227,7 +6227,7 @@
     },
     {
       "file": "src/app/courses/[courseId]/archief/page.tsx",
-      "sha256": "5ba61b958ab9883f9be7633aa659256c7d3d0f698305b063869a67bacd407bdf",
+      "sha256": "1229e035998e8a599c0a261530f52f2a611b6e6eec96fdb7963c65b4a6c33d07",
       "boundary": "context-dependent",
       "imports": [
         "@/components/LiveRefresh",
@@ -6278,14 +6278,14 @@
     },
     {
       "file": "src/app/courses/[courseId]/pad/page.tsx",
-      "sha256": "7a6b690c4b846046794e5b80d1cf40e54ea8e61cccdff0be09571975f4de95d6",
+      "sha256": "24f94c29d800c00d7fbf28417cb69d640e1de7c4d0f5691895d1476d7a4a4fb0",
       "boundary": "context-dependent",
       "imports": [
         "@/components/ChapterListCourseView",
         "@/components/LiveRefresh",
         "@/components/ReadingCourseView",
-        "@/components/study/CfmCourseView",
         "@/components/study/StudyTogetherButton",
+        "@/components/study/WebCfmCourseView",
         "@/lib/chapterPathData",
         "@/lib/chapterTerm",
         "@/lib/contentCollections",
@@ -12760,6 +12760,32 @@
       ]
     },
     {
+      "file": "src/components/native/NativeCfmCourseView.tsx",
+      "sha256": "e35a33bda7a58879659ffd9e0a8c2b7757bb910b51a0a76da2c0bf6ee38d2979",
+      "boundary": "client",
+      "imports": [
+        "./NativeStudyImage",
+        "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
+        "@/components/study/CfmArchiveView",
+        "@/components/study/CfmCourseView",
+        "@/components/study/CfmWeekPath",
+        "@/lib/data/native",
+        "@/lib/data/nativeHooks",
+        "@/lib/native/client",
+        "@/lib/native/contract",
+        "@/lib/native/routeFocus",
+        "@/lib/timeZone",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NativeCfmCourseView"
+      ]
+    },
+    {
       "file": "src/components/native/NativeContentPicker.tsx",
       "sha256": "215efceade348da0bb2fc6efcf216aa995d6b001701e75868f1dab76901f9e86",
       "boundary": "client",
@@ -12802,7 +12828,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "c1284a2ce5e6d5b6161deac67267e3b1a77b649c83742a53fb70fc39bd97e506",
+      "sha256": "f7050325da4b3564bd9e970452b0697775e64d97cb9ec3d54b679bc4f7e8542c",
       "boundary": "client",
       "imports": [
         "./NativeContentPicker",
@@ -12855,9 +12881,10 @@
     },
     {
       "file": "src/components/native/NativeLearningView.tsx",
-      "sha256": "28cd8be719c7639219a2573cd05f96334d054b49a7e672e1ddf471671c689df6",
+      "sha256": "068886f5fe0c8e5a33f6e7da84a9ecfeaa0d8cc27cbd82e833e702b86f396d41",
       "boundary": "client",
       "imports": [
+        "./NativeCfmCourseView",
         "./NativeStudyImage",
         "@/components/ChapterListCourseView",
         "@/components/ConfirmProvider",
@@ -12873,6 +12900,7 @@
         "@/lib/native/routeFocus",
         "@/lib/native/studyMediaContract",
         "@/lib/native/todayAssets",
+        "@/lib/readingCourses",
         "react"
       ],
       "methods": [],
@@ -14311,16 +14339,16 @@
     },
     {
       "file": "src/components/study/CfmArchiveView.tsx",
-      "sha256": "2886b092c36392e7954b8b6b7e7c249a7f5db57429b5bcd2dd577d61505f12f7",
+      "sha256": "758882359ba1b1aefe9e653a074ad8dcd1de840309ea87ef0242431e0e2efa53",
       "boundary": "client",
       "imports": [
-        "./PersonalStudyParts",
         "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
         "@/components/versado/styles",
         "@/lib/studyContent/cfmProgramme",
         "@/lib/studyContent/cfmVolumes",
         "@/lib/studyContent/personalStudyMode",
-        "next/link"
+        "@/lib/studyContent/presentation"
       ],
       "methods": [],
       "requests": [],
@@ -14331,25 +14359,22 @@
     },
     {
       "file": "src/components/study/CfmCourseView.tsx",
-      "sha256": "7996460133d192f9f5ffaf1fea68665345cce2672fa7bd0b1015b243dafe311a",
+      "sha256": "ac0c4fd09ebc00db59ac3a74d08780d632ba80ab00c6c04447e7052f542351bd",
       "boundary": "client",
       "imports": [
         "./CfmWeekPath",
         "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
         "@/components/reading/MyStepNav",
         "@/components/versado/styles",
-        "@/lib/data/mutation",
         "@/lib/studyContent/personalStudyMode",
-        "@/lib/studyContent/personalStudyModeClient",
         "@/lib/studyContent/weekLabels",
         "@/lib/studyContent/weekSelection",
         "lucide-react",
-        "next/link"
+        "react"
       ],
       "methods": [],
-      "requests": [
-        "/api/study-context"
-      ],
+      "requests": [],
       "checks": [],
       "exports": [
         "CfmCourseView"
@@ -14377,32 +14402,48 @@
     },
     {
       "file": "src/components/study/CfmWeekPath.tsx",
-      "sha256": "99e4bc2b76f667dac671020c9293e805747baef88abf33f078926b4670e3e4a6",
+      "sha256": "2346c841c38bef0fa85c8adae4ffa3d328d56c41ac781cfc95842793516c2780",
       "boundary": "client",
       "imports": [
-        "./PersonalStudyParts",
+        "./CfmWeekStepsView",
         "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
         "@/components/reading/pathParts",
         "@/components/versado/styles",
-        "@/lib/data/fetchJson",
-        "@/lib/data/hooks",
-        "@/lib/studyContent/personalStudy",
+        "@/lib/studyContent/personalStudyConstants",
         "@/lib/studyContent/personalStudyMode",
+        "@/lib/studyContent/presentation",
         "@/lib/studyContent/stepProgress",
         "@/lib/studyContent/weekLabels",
         "@/lib/studyContent/weekSelection",
         "lucide-react",
-        "next/image",
-        "next/link",
         "react"
       ],
       "methods": [],
-      "requests": [
-        "/api/study-steps?lessonEditionId=${encodeURIComponent(week.id)}"
-      ],
+      "requests": [],
       "checks": [],
       "exports": [
-        "CfmWeekPath"
+        "CfmWeekPath",
+        "WeekStepCards"
+      ]
+    },
+    {
+      "file": "src/components/study/CfmWeekStepsView.tsx",
+      "sha256": "cf38a90f9ebc059d8b2f8cd69da70fcb1b2f5d893d90ca61f57e072cbafb7643",
+      "boundary": "client",
+      "imports": [
+        "./CfmWeekPath",
+        "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
+        "@/components/versado/styles",
+        "@/lib/studyContent/presentation",
+        "lucide-react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "WeekStepCards"
       ]
     },
     {
@@ -14785,6 +14826,45 @@
       "checks": [],
       "exports": [
         "StudyVideo"
+      ]
+    },
+    {
+      "file": "src/components/study/WebCfmCourseView.tsx",
+      "sha256": "ec1f0d1bd3909f628e0bd9df39af1c227a8c7ece091bc1db528e5b71864c578f",
+      "boundary": "client",
+      "imports": [
+        "./CfmCourseView",
+        "./WebWeekSteps",
+        "@/lib/data/mutation",
+        "@/lib/studyContent/personalStudyModeClient"
+      ],
+      "methods": [],
+      "requests": [
+        "/api/study-context"
+      ],
+      "checks": [],
+      "exports": [
+        "WebCfmCourseView"
+      ]
+    },
+    {
+      "file": "src/components/study/WebWeekSteps.tsx",
+      "sha256": "e787fb76fcfeb571d022d3860cc5752f402d58153d18c4c64f85920858891eb4",
+      "boundary": "client",
+      "imports": [
+        "./CfmWeekPath",
+        "./CfmWeekStepsView",
+        "@/components/I18nProvider",
+        "@/lib/data/fetchJson",
+        "@/lib/data/hooks"
+      ],
+      "methods": [],
+      "requests": [
+        "/api/study-steps?lessonEditionId=${encodeURIComponent(week.id)}"
+      ],
+      "checks": [],
+      "exports": [
+        "WebWeekSteps"
       ]
     },
     {
@@ -17596,7 +17676,7 @@
     },
     {
       "file": "src/lib/data/native.ts",
-      "sha256": "2e4c03f9278af649809317acb6bd46ebcdc4c9b35be16c448dc793b5a88f9fe1",
+      "sha256": "1983d0b50b07b5fbd5d748c92ba09bccfb21445041922b6916998504212307a4",
       "boundary": "context-dependent",
       "imports": [
         "./scopes",
@@ -17604,6 +17684,7 @@
         "@/lib/native/client",
         "@/lib/native/contract",
         "@/lib/native/coursesContract",
+        "@/lib/native/studyCoursesContract",
         "@/lib/native/studyMediaContract",
         "@/lib/native/todayActionsContract",
         "@/lib/native/todayContract",
@@ -17613,6 +17694,8 @@
       "requests": [
         "chapters/${encodeURIComponent(id)}",
         "content-context",
+        "courses/${nativeCourseId.parse(courseId)}/${scope}",
+        "courses/${nativeCourseId.parse(courseId)}/weeks/${nativeCourseId.parse(editionId)}/steps",
         "me",
         "study-media/${id}",
         "today",
@@ -19337,7 +19420,7 @@
     },
     {
       "file": "src/lib/i18n/messages/de.ts",
-      "sha256": "51f01e1f8d20728b2458f4e074e372bbc4415e7417128673fcf06747d0d845e9",
+      "sha256": "2ea69f71bae98d14ee47bfc4dbc4f286db7c7655d7c5b29657d80a3a058bee35",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19352,7 +19435,7 @@
     },
     {
       "file": "src/lib/i18n/messages/en.ts",
-      "sha256": "49ddf91d0227b49af2121565249227efcdeba2dc79c74cdbcbf36e0e33612f2a",
+      "sha256": "023e0eb14366d3367a507d2e70b7927162f65791067832d0a1208f9a3a345d28",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19367,7 +19450,7 @@
     },
     {
       "file": "src/lib/i18n/messages/es.ts",
-      "sha256": "fe2f4f5cd1fe2c9d77c48ee357b09ba80f861b2ebe80bcfdd43e4a8e397662d3",
+      "sha256": "588c8feafdf47f2b771af8670e77f49d7588bec13623d9ae4c191152ed936f55",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19382,7 +19465,7 @@
     },
     {
       "file": "src/lib/i18n/messages/fr.ts",
-      "sha256": "a1187e016b4068ca2cf4590c003ba68ceb2f2e67f465dd4b4dd1fff858064c69",
+      "sha256": "5a8bdf0a770d9a047b3974e40b62d52cdcd9b250d15fba659ee4c8a533884005",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19465,7 +19548,7 @@
     },
     {
       "file": "src/lib/i18n/messages/nl.ts",
-      "sha256": "215ef9c521e1121ee7e687c545c4b5e97a3abdaa0062e083538704bb36510b46",
+      "sha256": "f948d661d5d0a10c302f7daa146270e4fd63405d9bb488bfd06c5ec82cfabc42",
       "boundary": "context-dependent",
       "imports": [
         "./kompas/nl"
@@ -20840,7 +20923,7 @@
     },
     {
       "file": "src/lib/native/access.ts",
-      "sha256": "3e0bafed1abb2d27f57a54e8cceb3a7522f35cf0a769e54f17b8732c77712d96",
+      "sha256": "29a063ab209deffbdbdbb22bd899a6dfde6465fb679141f840325bfeeea31035",
       "boundary": "context-dependent",
       "imports": [
         "./client",
@@ -20876,7 +20959,7 @@
     },
     {
       "file": "src/lib/native/api.ts",
-      "sha256": "48d3b6afffbeedfd07da69caf3f395e2d007b6b07c9dbe3ff9dabaf97245f7de",
+      "sha256": "84af5f2d1e365c2d0ce0a276d640acf5c269c9f4e1aeac654bcfcc8e66f93ff0",
       "boundary": "context-dependent",
       "imports": [
         "./apple",
@@ -20891,6 +20974,7 @@
         "./shellHeader.server",
         "./socketAuth",
         "./socketTickets",
+        "./studyCourses.server",
         "./studyMedia.server",
         "./studyMediaContract",
         "./today.server",
@@ -21044,7 +21128,7 @@
     },
     {
       "file": "src/lib/native/courses.server.ts",
-      "sha256": "e5bf1c68e2c53df52989781e33c728e0d04b070eb971059f2d7bad226e352baa",
+      "sha256": "c88812e23a0d990e5c11ae19886217fe861e9f7cb055ffa91ff6d18789def67b",
       "boundary": "context-dependent",
       "imports": [
         "./coursesContract",
@@ -21068,8 +21152,11 @@
       "requests": [],
       "checks": [],
       "exports": [
+        "context",
+        "envelope",
         "nativeCoursePath",
-        "nativeCourses"
+        "nativeCourses",
+        "recheck"
       ]
     },
     {
@@ -21109,7 +21196,7 @@
     },
     {
       "file": "src/lib/native/navigation.ts",
-      "sha256": "329c7befaa315082cc48cfecc8acf7e5b67e121ad8bf068c5aa43533cad8f775",
+      "sha256": "dce2684bfe26546b5f4317f71e0f6677c5cd844b80b0964c0b5224707cc3e186",
       "boundary": "context-dependent",
       "imports": [],
       "methods": [],
@@ -21369,6 +21456,50 @@
         "issueSocketTicket",
         "redisSocketTicketStore",
         "socketTicketKey"
+      ]
+    },
+    {
+      "file": "src/lib/native/studyCourses.server.ts",
+      "sha256": "cd0b12cca2b99b7efccad59845e3475108d8747d7a6687ab7f89eca4573ca52b",
+      "boundary": "context-dependent",
+      "imports": [
+        "./courses.server",
+        "./sessions",
+        "./studyCoursesContract",
+        "@/lib/contentAccess",
+        "@/lib/courseContent",
+        "@/lib/courseText",
+        "@/lib/db",
+        "@/lib/readingCourses",
+        "@/lib/studyContent/catalogue",
+        "@/lib/studyContent/cfmCourses",
+        "@/lib/studyContent/cfmProgramme",
+        "@/lib/studyContent/stepProgress",
+        "@/lib/studyContent/weekSelection",
+        "@/lib/timeZone"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "nativeStudyCourse",
+        "nativeStudySteps"
+      ]
+    },
+    {
+      "file": "src/lib/native/studyCoursesContract.ts",
+      "sha256": "63e08c3137a71424c060fae0a1b6979a5e8cc7d42ca7f52b94f3957e3352e907",
+      "boundary": "context-dependent",
+      "imports": [
+        "./coursesContract",
+        "zod"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "nativeStudyCourseSchema",
+        "nativeStudyStepsSchema"
       ]
     },
     {
@@ -24577,7 +24708,7 @@
     },
     {
       "file": "src/lib/studyContent/catalogue.ts",
-      "sha256": "c3b8b63c1f0f8eba7e6ff51a39b5ea561dd3949420f836d5f74c3af9feb60b73",
+      "sha256": "01a051bfa346b1e3c7830b787c258dff9b79c4d81c4ffd746b39e9b0759add7d",
       "boundary": "context-dependent",
       "imports": [
         "./cfmProgramme",
@@ -25151,9 +25282,10 @@
     },
     {
       "file": "src/lib/studyContent/personalStudy.ts",
-      "sha256": "3ecf8ada02633b3a26840c1b4c71612b70b0091d4f4dc6ffabfcd7edd5425409",
+      "sha256": "3f260b518a60487d509b9c1938f8e10b4bc1a2afc13af4292eff510277e2a369",
       "boundary": "context-dependent",
       "imports": [
+        "./personalStudyConstants",
         "./readingPositionContract",
         "node:crypto"
       ],
@@ -25169,6 +25301,20 @@
         "stepOfBlock",
         "text8",
         "validatePersonalPlan"
+      ]
+    },
+    {
+      "file": "src/lib/studyContent/personalStudyConstants.ts",
+      "sha256": "d7cb053da2fbf200f8d01d7aa76ef7cd634e86f6cd78c53bc09bc4687a5aa24a",
+      "boundary": "context-dependent",
+      "imports": [],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "LEGACY_PERSONAL_STUDY",
+        "PERSONAL_STUDY_STEPS",
+        "PERSONAL_STUDY_VERSION"
       ]
     },
     {
@@ -25209,7 +25355,7 @@
     },
     {
       "file": "src/lib/studyContent/personalStudyOverrides.ts",
-      "sha256": "1fa22de495739b02929a2215129d56bc0b53f57f49fdc8038ebb79f42a33ab60",
+      "sha256": "c05f4d032b9c2d8a0765b6cc8424b6eb99297ead17a3c9a192d6d8cce050a3c9",
       "boundary": "context-dependent",
       "imports": [
         "../../../data/study-content/cfm-2026-nl/personal-study-overrides.json",
@@ -25227,6 +25373,7 @@
         "legacyPersonalPlan",
         "loadPersonalStudyOverrides",
         "personalStudyFor",
+        "personalStudyPlanVersion",
         "previousPersonalPlan",
         "safePersonalPlan"
       ]
@@ -25629,7 +25776,7 @@
     },
     {
       "file": "src/lib/studyContent/stepProgress.ts",
-      "sha256": "98e0398c745390c115733539a186275981365d0db4deffae914fcb209e588809",
+      "sha256": "40eadc2c98aa1d7480aeaf25bc5e163eb6fd7d9edd64061a99f6c2af3e0d0df2",
       "boundary": "context-dependent",
       "imports": [
         "./personalStudy",
@@ -25647,6 +25794,7 @@
         "completedStepCounts",
         "getStepProgress",
         "getStepProgressForEdition",
+        "readOnlyCompletedStepCounts",
         "recordStepProgress"
       ]
     },
@@ -27967,6 +28115,7 @@
         "src/lib/studyContent/imports.ts",
         "src/lib/studyContent/manifest.ts",
         "src/lib/studyContent/personalStudy.ts",
+        "src/lib/studyContent/personalStudyConstants.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
         "src/lib/studyContent/policy.ts",
         "src/lib/studyContent/programPublication.ts",
@@ -28344,6 +28493,7 @@
         "src/lib/studyContent/exercisePlan.ts",
         "src/lib/studyContent/exerciseSource.ts",
         "src/lib/studyContent/personalStudy.ts",
+        "src/lib/studyContent/personalStudyConstants.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
         "src/lib/studyContent/pilotReadingSource.ts",
         "src/lib/studyContent/pilotReadings.ts",
@@ -32059,6 +32209,7 @@
         "src/lib/studyContent/imports.ts",
         "src/lib/studyContent/manifest.ts",
         "src/lib/studyContent/personalStudy.ts",
+        "src/lib/studyContent/personalStudyConstants.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
         "src/lib/studyContent/pilotReadingSource.ts",
         "src/lib/studyContent/pilotReadings.ts",
@@ -32274,6 +32425,7 @@
         "src/lib/studyContent/imports.ts",
         "src/lib/studyContent/manifest.ts",
         "src/lib/studyContent/personalStudy.ts",
+        "src/lib/studyContent/personalStudyConstants.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
         "src/lib/studyContent/pilotReadingSource.ts",
         "src/lib/studyContent/pilotReadings.ts",
@@ -32401,6 +32553,7 @@
         "src/lib/studyContent/manifest.ts",
         "src/lib/studyContent/mediaAccess.ts",
         "src/lib/studyContent/personalStudy.ts",
+        "src/lib/studyContent/personalStudyConstants.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
         "src/lib/studyContent/policy.ts",
         "src/lib/studyContent/publication.ts",
@@ -32528,6 +32681,7 @@
         "src/lib/studyContent/imports.ts",
         "src/lib/studyContent/manifest.ts",
         "src/lib/studyContent/personalStudy.ts",
+        "src/lib/studyContent/personalStudyConstants.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
         "src/lib/studyContent/policy.ts",
         "src/lib/studyContent/programPublication.ts",
@@ -32653,6 +32807,7 @@
         "src/lib/studyContent/imports.ts",
         "src/lib/studyContent/manifest.ts",
         "src/lib/studyContent/personalStudy.ts",
+        "src/lib/studyContent/personalStudyConstants.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
         "src/lib/studyContent/policy.ts",
         "src/lib/studyContent/programReport.ts",
@@ -36293,6 +36448,7 @@
         "src/lib/studyContent/exercisePlan.ts",
         "src/lib/studyContent/exerciseSource.ts",
         "src/lib/studyContent/personalStudy.ts",
+        "src/lib/studyContent/personalStudyConstants.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
         "src/lib/studyContent/pilotReadingSource.ts",
         "src/lib/studyContent/pilotReadings.ts",
@@ -36414,6 +36570,7 @@
         "src/lib/studyContent/exercisePlan.ts",
         "src/lib/studyContent/exerciseSource.ts",
         "src/lib/studyContent/personalStudy.ts",
+        "src/lib/studyContent/personalStudyConstants.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
         "src/lib/studyContent/pilotReadingSource.ts",
         "src/lib/studyContent/pilotReadings.ts",
@@ -36815,6 +36972,7 @@
         "src/lib/studyContent/exercisePlan.ts",
         "src/lib/studyContent/exerciseSource.ts",
         "src/lib/studyContent/personalStudy.ts",
+        "src/lib/studyContent/personalStudyConstants.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
         "src/lib/studyContent/pilotReadingSource.ts",
         "src/lib/studyContent/pilotReadings.ts",
@@ -36940,6 +37098,7 @@
         "src/lib/studyContent/cfmProgramme.ts",
         "src/lib/studyContent/cfmVolumes.ts",
         "src/lib/studyContent/personalStudy.ts",
+        "src/lib/studyContent/personalStudyConstants.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
         "src/lib/studyContent/readingPositionContract.ts",
         "src/lib/studyContent/revisions.ts",
@@ -37117,6 +37276,7 @@
         "src/lib/studyContent/cfmProgramme.ts",
         "src/lib/studyContent/cfmVolumes.ts",
         "src/lib/studyContent/personalStudy.ts",
+        "src/lib/studyContent/personalStudyConstants.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
         "src/lib/studyContent/readingPositionContract.ts",
         "src/lib/studyContent/revisions.ts",
@@ -37588,6 +37748,7 @@
         "src/lib/studyContent/exercisePlan.ts",
         "src/lib/studyContent/exerciseSource.ts",
         "src/lib/studyContent/personalStudy.ts",
+        "src/lib/studyContent/personalStudyConstants.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
         "src/lib/studyContent/pilotReadingSource.ts",
         "src/lib/studyContent/pilotReadings.ts",
@@ -37700,6 +37861,7 @@
         "src/lib/studyContent/exercisePlan.ts",
         "src/lib/studyContent/exerciseSource.ts",
         "src/lib/studyContent/personalStudy.ts",
+        "src/lib/studyContent/personalStudyConstants.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
         "src/lib/studyContent/pilotReadingSource.ts",
         "src/lib/studyContent/pilotReadings.ts",
@@ -37807,6 +37969,7 @@
         "src/lib/studyContent/exercisePlan.ts",
         "src/lib/studyContent/exerciseSource.ts",
         "src/lib/studyContent/personalStudy.ts",
+        "src/lib/studyContent/personalStudyConstants.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
         "src/lib/studyContent/pilotReadingSource.ts",
         "src/lib/studyContent/pilotReadings.ts",
@@ -37909,6 +38072,7 @@
         "src/lib/studyContent/exercisePlan.ts",
         "src/lib/studyContent/exerciseSource.ts",
         "src/lib/studyContent/personalStudy.ts",
+        "src/lib/studyContent/personalStudyConstants.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
         "src/lib/studyContent/pilotReadingSource.ts",
         "src/lib/studyContent/pilotReadings.ts",
@@ -44189,6 +44353,7 @@
         "src/lib/studyContent/exercisePlan.ts",
         "src/lib/studyContent/exerciseSource.ts",
         "src/lib/studyContent/personalStudy.ts",
+        "src/lib/studyContent/personalStudyConstants.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
         "src/lib/studyContent/pilotReadingSource.ts",
         "src/lib/studyContent/pilotReadings.ts",
@@ -45425,6 +45590,7 @@
         "src/lib/studyContent/exercisePlan.ts",
         "src/lib/studyContent/exerciseSource.ts",
         "src/lib/studyContent/personalStudy.ts",
+        "src/lib/studyContent/personalStudyConstants.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
         "src/lib/studyContent/pilotReadingSource.ts",
         "src/lib/studyContent/pilotReadings.ts",
@@ -45617,6 +45783,7 @@
         "src/lib/studyContent/exercisePlan.ts",
         "src/lib/studyContent/exerciseSource.ts",
         "src/lib/studyContent/personalStudy.ts",
+        "src/lib/studyContent/personalStudyConstants.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
         "src/lib/studyContent/pilotReadingSource.ts",
         "src/lib/studyContent/pilotReadings.ts",
@@ -49146,6 +49313,7 @@
         "src/lib/studyContent/exercisePlan.ts",
         "src/lib/studyContent/exerciseSource.ts",
         "src/lib/studyContent/personalStudy.ts",
+        "src/lib/studyContent/personalStudyConstants.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
         "src/lib/studyContent/pilotReadingSource.ts",
         "src/lib/studyContent/pilotReadings.ts",
@@ -49348,6 +49516,7 @@
         "src/lib/studyContent/manifest.ts",
         "src/lib/studyContent/mediaAccess.ts",
         "src/lib/studyContent/personalStudy.ts",
+        "src/lib/studyContent/personalStudyConstants.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
         "src/lib/studyContent/policy.ts",
         "src/lib/studyContent/publication.ts",
@@ -49746,6 +49915,7 @@
         "src/lib/studyContent/exercisePlan.ts",
         "src/lib/studyContent/exerciseSource.ts",
         "src/lib/studyContent/personalStudy.ts",
+        "src/lib/studyContent/personalStudyConstants.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
         "src/lib/studyContent/pilotReadingSource.ts",
         "src/lib/studyContent/pilotReadings.ts",
@@ -50367,6 +50537,8 @@
         "src/lib/native/shellHeader.server.ts",
         "src/lib/native/socketAuth.ts",
         "src/lib/native/socketTickets.ts",
+        "src/lib/native/studyCourses.server.ts",
+        "src/lib/native/studyCoursesContract.ts",
         "src/lib/native/studyMedia.server.ts",
         "src/lib/native/studyMediaContract.ts",
         "src/lib/native/today.server.ts",
@@ -50437,6 +50609,7 @@
         "src/lib/studyContent/manifest.ts",
         "src/lib/studyContent/mediaAccess.ts",
         "src/lib/studyContent/personalStudy.ts",
+        "src/lib/studyContent/personalStudyConstants.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
         "src/lib/studyContent/pilotReadingSource.ts",
         "src/lib/studyContent/pilotReadings.ts",
@@ -52767,6 +52940,7 @@
         "src/lib/studyContent/cfmProgramme.ts",
         "src/lib/studyContent/cfmVolumes.ts",
         "src/lib/studyContent/personalStudy.ts",
+        "src/lib/studyContent/personalStudyConstants.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
         "src/lib/studyContent/presentation.ts",
         "src/lib/studyContent/readingPositionContract.ts",
@@ -52963,6 +53137,7 @@
         "src/lib/studyContent/cfmProgramme.ts",
         "src/lib/studyContent/cfmVolumes.ts",
         "src/lib/studyContent/personalStudy.ts",
+        "src/lib/studyContent/personalStudyConstants.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
         "src/lib/studyContent/readingPositionContract.ts",
         "src/lib/studyContent/revisions.ts",
@@ -53019,7 +53194,7 @@
     },
     {
       "file": "src/app/courses/[courseId]/archief/page.tsx",
-      "sha256": "5ba61b958ab9883f9be7633aa659256c7d3d0f698305b063869a67bacd407bdf",
+      "sha256": "1229e035998e8a599c0a261530f52f2a611b6e6eec96fdb7963c65b4a6c33d07",
       "boundary": "context-dependent",
       "imports": [
         "@/components/LiveRefresh",
@@ -53050,8 +53225,8 @@
         "src/app/courses/[courseId]/archief/page.tsx",
         "src/components/I18nProvider.tsx",
         "src/components/LiveRefresh.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/study/CfmArchiveView.tsx",
-        "src/components/study/PersonalStudyParts.tsx",
         "src/components/versado/styles.ts",
         "src/lib/alleskenner/content.ts",
         "src/lib/alleskenner/validate.ts",
@@ -53125,6 +53300,7 @@
         "src/lib/studyContent/cfmProgramme.ts",
         "src/lib/studyContent/cfmVolumes.ts",
         "src/lib/studyContent/personalStudy.ts",
+        "src/lib/studyContent/personalStudyConstants.ts",
         "src/lib/studyContent/personalStudyMode.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
         "src/lib/studyContent/presentation.ts",
@@ -53132,7 +53308,6 @@
         "src/lib/studyContent/revisions.ts",
         "src/lib/studyContent/schema.ts",
         "src/lib/studyContent/stepProgress.ts",
-        "src/lib/studyContent/weekContext.ts",
         "src/lib/studyContent/weekSelection.ts",
         "src/lib/studyContext.ts",
         "src/lib/studyContextContract.ts",
@@ -53156,8 +53331,8 @@
       "clientBoundaries": [
         "src/components/I18nProvider.tsx",
         "src/components/LiveRefresh.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/study/CfmArchiveView.tsx",
-        "src/components/study/PersonalStudyParts.tsx",
         "src/lib/data/client.ts",
         "src/lib/socketClient.ts"
       ],
@@ -53251,6 +53426,7 @@
         "src/lib/studyContent/exercisePlan.ts",
         "src/lib/studyContent/exerciseSource.ts",
         "src/lib/studyContent/personalStudy.ts",
+        "src/lib/studyContent/personalStudyConstants.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
         "src/lib/studyContent/pilotReadingSource.ts",
         "src/lib/studyContent/pilotReadings.ts",
@@ -53288,14 +53464,14 @@
     },
     {
       "file": "src/app/courses/[courseId]/pad/page.tsx",
-      "sha256": "7a6b690c4b846046794e5b80d1cf40e54ea8e61cccdff0be09571975f4de95d6",
+      "sha256": "24f94c29d800c00d7fbf28417cb69d640e1de7c4d0f5691895d1476d7a4a4fb0",
       "boundary": "context-dependent",
       "imports": [
         "@/components/ChapterListCourseView",
         "@/components/LiveRefresh",
         "@/components/ReadingCourseView",
-        "@/components/study/CfmCourseView",
         "@/components/study/StudyTogetherButton",
+        "@/components/study/WebCfmCourseView",
         "@/lib/chapterPathData",
         "@/lib/chapterTerm",
         "@/lib/contentCollections",
@@ -53339,8 +53515,10 @@
         "src/components/reading/pathParts.tsx",
         "src/components/study/CfmCourseView.tsx",
         "src/components/study/CfmWeekPath.tsx",
-        "src/components/study/PersonalStudyParts.tsx",
+        "src/components/study/CfmWeekStepsView.tsx",
         "src/components/study/StudyTogetherButton.tsx",
+        "src/components/study/WebCfmCourseView.tsx",
+        "src/components/study/WebWeekSteps.tsx",
         "src/components/versado/MediaArtwork.tsx",
         "src/components/versado/styles.ts",
         "src/lib/achievements.ts",
@@ -53459,6 +53637,7 @@
         "src/lib/studyContent/exercisePlan.ts",
         "src/lib/studyContent/exerciseSource.ts",
         "src/lib/studyContent/personalStudy.ts",
+        "src/lib/studyContent/personalStudyConstants.ts",
         "src/lib/studyContent/personalStudyMode.ts",
         "src/lib/studyContent/personalStudyModeClient.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
@@ -53470,7 +53649,6 @@
         "src/lib/studyContent/revisions.ts",
         "src/lib/studyContent/schema.ts",
         "src/lib/studyContent/stepProgress.ts",
-        "src/lib/studyContent/weekContext.ts",
         "src/lib/studyContent/weekLabels.ts",
         "src/lib/studyContent/weekSelection.ts",
         "src/lib/studyContext.ts",
@@ -53486,8 +53664,8 @@
         "src/components/ChapterListCourseView.tsx",
         "src/components/LiveRefresh.tsx",
         "src/components/ReadingCourseView.tsx",
-        "src/components/study/CfmCourseView.tsx",
         "src/components/study/StudyTogetherButton.tsx",
+        "src/components/study/WebCfmCourseView.tsx",
         "src/lib/chapterPathData.ts",
         "src/lib/chapterTerm.ts",
         "src/lib/contentCollections.ts",
@@ -53517,8 +53695,10 @@
         "src/components/reading/pathParts.tsx",
         "src/components/study/CfmCourseView.tsx",
         "src/components/study/CfmWeekPath.tsx",
-        "src/components/study/PersonalStudyParts.tsx",
+        "src/components/study/CfmWeekStepsView.tsx",
         "src/components/study/StudyTogetherButton.tsx",
+        "src/components/study/WebCfmCourseView.tsx",
+        "src/components/study/WebWeekSteps.tsx",
         "src/components/versado/MediaArtwork.tsx",
         "src/lib/data/client.ts",
         "src/lib/data/hooks.ts",
@@ -53787,6 +53967,7 @@
         "src/lib/studyContent/fixtureAdapter.ts",
         "src/lib/studyContent/manifest.ts",
         "src/lib/studyContent/personalStudy.ts",
+        "src/lib/studyContent/personalStudyConstants.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
         "src/lib/studyContent/pilotReadingSource.ts",
         "src/lib/studyContent/pilotReadings.ts",
@@ -54684,6 +54865,7 @@
         "src/lib/studyContent/exercisePlan.ts",
         "src/lib/studyContent/exerciseSource.ts",
         "src/lib/studyContent/personalStudy.ts",
+        "src/lib/studyContent/personalStudyConstants.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
         "src/lib/studyContent/pilotReadingSource.ts",
         "src/lib/studyContent/pilotReadings.ts",
@@ -55359,6 +55541,7 @@
         "src/lib/studyContent/figureDisplay.ts",
         "src/lib/studyContent/manifest.ts",
         "src/lib/studyContent/personalStudy.ts",
+        "src/lib/studyContent/personalStudyConstants.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
         "src/lib/studyContent/pilotReadingSource.ts",
         "src/lib/studyContent/pilotReadings.ts",
@@ -58243,6 +58426,7 @@
         "src/lib/studyContent/exercisePlan.ts",
         "src/lib/studyContent/exerciseSource.ts",
         "src/lib/studyContent/personalStudy.ts",
+        "src/lib/studyContent/personalStudyConstants.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
         "src/lib/studyContent/pilotReadingSource.ts",
         "src/lib/studyContent/pilotReadings.ts",
@@ -64453,6 +64637,7 @@
         "src/lib/studyContent/exercisePlan.ts",
         "src/lib/studyContent/exerciseSource.ts",
         "src/lib/studyContent/personalStudy.ts",
+        "src/lib/studyContent/personalStudyConstants.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
         "src/lib/studyContent/pilotReadingSource.ts",
         "src/lib/studyContent/pilotReadings.ts",
@@ -66176,6 +66361,7 @@
         "src/lib/studyContent/figureDisplay.ts",
         "src/lib/studyContent/manifest.ts",
         "src/lib/studyContent/personalStudy.ts",
+        "src/lib/studyContent/personalStudyConstants.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
         "src/lib/studyContent/personalStudyPage.ts",
         "src/lib/studyContent/pilotReadingSource.ts",
@@ -66339,6 +66525,7 @@
         "src/lib/studyContent/exerciseSource.ts",
         "src/lib/studyContent/manifest.ts",
         "src/lib/studyContent/personalStudy.ts",
+        "src/lib/studyContent/personalStudyConstants.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
         "src/lib/studyContent/personalStudyPage.ts",
         "src/lib/studyContent/pilotReadingSource.ts",
@@ -66540,6 +66727,7 @@
         "src/lib/studyContent/figureDisplay.ts",
         "src/lib/studyContent/manifest.ts",
         "src/lib/studyContent/personalStudy.ts",
+        "src/lib/studyContent/personalStudyConstants.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
         "src/lib/studyContent/personalStudyPage.ts",
         "src/lib/studyContent/pilotReadingSource.ts",
@@ -66820,6 +67008,7 @@
         "src/lib/studyContent/exercisePlan.ts",
         "src/lib/studyContent/exerciseSource.ts",
         "src/lib/studyContent/personalStudy.ts",
+        "src/lib/studyContent/personalStudyConstants.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
         "src/lib/studyContent/pilotReadingSource.ts",
         "src/lib/studyContent/pilotReadings.ts",
@@ -69066,7 +69255,7 @@
     },
     {
       "file": "src/app/courses/[courseId]/archief/page.tsx",
-      "sha256": "5ba61b958ab9883f9be7633aa659256c7d3d0f698305b063869a67bacd407bdf",
+      "sha256": "1229e035998e8a599c0a261530f52f2a611b6e6eec96fdb7963c65b4a6c33d07",
       "boundary": "context-dependent",
       "imports": [
         "@/components/LiveRefresh",
@@ -69117,14 +69306,14 @@
     },
     {
       "file": "src/app/courses/[courseId]/pad/page.tsx",
-      "sha256": "7a6b690c4b846046794e5b80d1cf40e54ea8e61cccdff0be09571975f4de95d6",
+      "sha256": "24f94c29d800c00d7fbf28417cb69d640e1de7c4d0f5691895d1476d7a4a4fb0",
       "boundary": "context-dependent",
       "imports": [
         "@/components/ChapterListCourseView",
         "@/components/LiveRefresh",
         "@/components/ReadingCourseView",
-        "@/components/study/CfmCourseView",
         "@/components/study/StudyTogetherButton",
+        "@/components/study/WebCfmCourseView",
         "@/lib/chapterPathData",
         "@/lib/chapterTerm",
         "@/lib/contentCollections",
@@ -75482,6 +75671,32 @@
       ]
     },
     {
+      "file": "src/components/native/NativeCfmCourseView.tsx",
+      "sha256": "e35a33bda7a58879659ffd9e0a8c2b7757bb910b51a0a76da2c0bf6ee38d2979",
+      "boundary": "client",
+      "imports": [
+        "./NativeStudyImage",
+        "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
+        "@/components/study/CfmArchiveView",
+        "@/components/study/CfmCourseView",
+        "@/components/study/CfmWeekPath",
+        "@/lib/data/native",
+        "@/lib/data/nativeHooks",
+        "@/lib/native/client",
+        "@/lib/native/contract",
+        "@/lib/native/routeFocus",
+        "@/lib/timeZone",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NativeCfmCourseView"
+      ]
+    },
+    {
       "file": "src/components/native/NativeContentPicker.tsx",
       "sha256": "215efceade348da0bb2fc6efcf216aa995d6b001701e75868f1dab76901f9e86",
       "boundary": "client",
@@ -75524,7 +75739,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "c1284a2ce5e6d5b6161deac67267e3b1a77b649c83742a53fb70fc39bd97e506",
+      "sha256": "f7050325da4b3564bd9e970452b0697775e64d97cb9ec3d54b679bc4f7e8542c",
       "boundary": "client",
       "imports": [
         "./NativeContentPicker",
@@ -75577,9 +75792,10 @@
     },
     {
       "file": "src/components/native/NativeLearningView.tsx",
-      "sha256": "28cd8be719c7639219a2573cd05f96334d054b49a7e672e1ddf471671c689df6",
+      "sha256": "068886f5fe0c8e5a33f6e7da84a9ecfeaa0d8cc27cbd82e833e702b86f396d41",
       "boundary": "client",
       "imports": [
+        "./NativeCfmCourseView",
         "./NativeStudyImage",
         "@/components/ChapterListCourseView",
         "@/components/ConfirmProvider",
@@ -75595,6 +75811,7 @@
         "@/lib/native/routeFocus",
         "@/lib/native/studyMediaContract",
         "@/lib/native/todayAssets",
+        "@/lib/readingCourses",
         "react"
       ],
       "methods": [],
@@ -76960,16 +77177,16 @@
     },
     {
       "file": "src/components/study/CfmArchiveView.tsx",
-      "sha256": "2886b092c36392e7954b8b6b7e7c249a7f5db57429b5bcd2dd577d61505f12f7",
+      "sha256": "758882359ba1b1aefe9e653a074ad8dcd1de840309ea87ef0242431e0e2efa53",
       "boundary": "client",
       "imports": [
-        "./PersonalStudyParts",
         "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
         "@/components/versado/styles",
         "@/lib/studyContent/cfmProgramme",
         "@/lib/studyContent/cfmVolumes",
         "@/lib/studyContent/personalStudyMode",
-        "next/link"
+        "@/lib/studyContent/presentation"
       ],
       "methods": [],
       "requests": [],
@@ -76980,25 +77197,22 @@
     },
     {
       "file": "src/components/study/CfmCourseView.tsx",
-      "sha256": "7996460133d192f9f5ffaf1fea68665345cce2672fa7bd0b1015b243dafe311a",
+      "sha256": "ac0c4fd09ebc00db59ac3a74d08780d632ba80ab00c6c04447e7052f542351bd",
       "boundary": "client",
       "imports": [
         "./CfmWeekPath",
         "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
         "@/components/reading/MyStepNav",
         "@/components/versado/styles",
-        "@/lib/data/mutation",
         "@/lib/studyContent/personalStudyMode",
-        "@/lib/studyContent/personalStudyModeClient",
         "@/lib/studyContent/weekLabels",
         "@/lib/studyContent/weekSelection",
         "lucide-react",
-        "next/link"
+        "react"
       ],
       "methods": [],
-      "requests": [
-        "/api/study-context"
-      ],
+      "requests": [],
       "checks": [],
       "exports": [
         "CfmCourseView"
@@ -77026,32 +77240,48 @@
     },
     {
       "file": "src/components/study/CfmWeekPath.tsx",
-      "sha256": "99e4bc2b76f667dac671020c9293e805747baef88abf33f078926b4670e3e4a6",
+      "sha256": "2346c841c38bef0fa85c8adae4ffa3d328d56c41ac781cfc95842793516c2780",
       "boundary": "client",
       "imports": [
-        "./PersonalStudyParts",
+        "./CfmWeekStepsView",
         "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
         "@/components/reading/pathParts",
         "@/components/versado/styles",
-        "@/lib/data/fetchJson",
-        "@/lib/data/hooks",
-        "@/lib/studyContent/personalStudy",
+        "@/lib/studyContent/personalStudyConstants",
         "@/lib/studyContent/personalStudyMode",
+        "@/lib/studyContent/presentation",
         "@/lib/studyContent/stepProgress",
         "@/lib/studyContent/weekLabels",
         "@/lib/studyContent/weekSelection",
         "lucide-react",
-        "next/image",
-        "next/link",
         "react"
       ],
       "methods": [],
-      "requests": [
-        "/api/study-steps?lessonEditionId=${encodeURIComponent(week.id)}"
-      ],
+      "requests": [],
       "checks": [],
       "exports": [
-        "CfmWeekPath"
+        "CfmWeekPath",
+        "WeekStepCards"
+      ]
+    },
+    {
+      "file": "src/components/study/CfmWeekStepsView.tsx",
+      "sha256": "cf38a90f9ebc059d8b2f8cd69da70fcb1b2f5d893d90ca61f57e072cbafb7643",
+      "boundary": "client",
+      "imports": [
+        "./CfmWeekPath",
+        "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
+        "@/components/versado/styles",
+        "@/lib/studyContent/presentation",
+        "lucide-react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "WeekStepCards"
       ]
     },
     {
@@ -77408,6 +77638,45 @@
       "checks": [],
       "exports": [
         "StudyVideo"
+      ]
+    },
+    {
+      "file": "src/components/study/WebCfmCourseView.tsx",
+      "sha256": "ec1f0d1bd3909f628e0bd9df39af1c227a8c7ece091bc1db528e5b71864c578f",
+      "boundary": "client",
+      "imports": [
+        "./CfmCourseView",
+        "./WebWeekSteps",
+        "@/lib/data/mutation",
+        "@/lib/studyContent/personalStudyModeClient"
+      ],
+      "methods": [],
+      "requests": [
+        "/api/study-context"
+      ],
+      "checks": [],
+      "exports": [
+        "WebCfmCourseView"
+      ]
+    },
+    {
+      "file": "src/components/study/WebWeekSteps.tsx",
+      "sha256": "e787fb76fcfeb571d022d3860cc5752f402d58153d18c4c64f85920858891eb4",
+      "boundary": "client",
+      "imports": [
+        "./CfmWeekPath",
+        "./CfmWeekStepsView",
+        "@/components/I18nProvider",
+        "@/lib/data/fetchJson",
+        "@/lib/data/hooks"
+      ],
+      "methods": [],
+      "requests": [
+        "/api/study-steps?lessonEditionId=${encodeURIComponent(week.id)}"
+      ],
+      "checks": [],
+      "exports": [
+        "WebWeekSteps"
       ]
     },
     {
@@ -78467,6 +78736,9 @@
     "tests/native-socket.integration.test.ts",
     "tests/native-socket.test.ts",
     "tests/native-store-readiness.test.mjs",
+    "tests/native-study-courses.browser.mjs",
+    "tests/native-study-courses.integration.test.ts",
+    "tests/native-study-courses.test.tsx",
     "tests/native-study-media.browser.mjs",
     "tests/native-study-media.integration.test.ts",
     "tests/native-study-media.test.ts",

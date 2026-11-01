@@ -1,12 +1,12 @@
 "use client";
 
-import Link from "next/link";
+import { AppLink as Link } from "@/components/navigation/AppNavigation";
 import { useT, useUiLanguage } from "@/components/I18nProvider";
 import { focusRing } from "@/components/versado/styles";
 import { CFM_SCRIPTURE_LABEL_KEY } from "@/lib/studyContent/cfmProgramme";
 import type { CfmScripture } from "@/lib/studyContent/cfmVolumes";
 import type { PersonalStudyModeValue } from "@/lib/studyContent/personalStudyMode";
-import { formatWeekPeriod, lessonBase } from "./PersonalStudyParts";
+import { formatWeekPeriod, lessonBase } from "@/lib/studyContent/presentation";
 
 export interface ArchiveWeek {
   id: string;
@@ -25,15 +25,16 @@ export interface ArchiveGroupView { workKey: string; year: number; scripture: Cf
  * leeswijze als het leerpad (geen kopieën): een les openen toont zijn bestaande voortgang, aantekeningen en markeringen.
  * Bewust zonder totaalpercentage: CFM is deelname, geen cursus om te voltooien.
  */
-export default function CfmArchiveView({ courseName, mode, groups }: { courseName: string; mode: PersonalStudyModeValue; groups: ArchiveGroupView[] }) {
+export default function CfmArchiveView({ courseName, mode, groups, truncated = false }: { courseName: string; mode: PersonalStudyModeValue; groups: ArchiveGroupView[]; truncated?: boolean }) {
   const t = useT();
   const language = useUiLanguage();
   return (
-    <div data-cfm-archive className="mx-auto flex max-w-2xl flex-col gap-6 sm:gap-8">
+    <div data-cfm-archive className="mx-auto flex w-full min-w-0 max-w-2xl flex-col gap-6 sm:gap-8">
       <div className="min-w-0">
-        <h1 className="vs-wrap text-2xl font-extrabold text-vs-fg">{courseName}</h1>
+        <h1 tabIndex={-1} className="vs-wrap text-2xl font-extrabold text-vs-fg">{courseName}</h1>
         <p className="mt-1 text-sm text-vs-fg-2">{t("cfmProgramme.archiveIntro")}</p>
       </div>
+      {truncated && <p role="status">{t("nativeLearning.catalogueTruncated")}</p>}
       {groups.length === 0 && <p role="status" className="text-sm text-vs-fg-2">{t("cfmProgramme.archiveEmpty")}</p>}
       {groups.map((group) => (
         <section key={group.workKey} data-archive-year={group.year} aria-labelledby={`archive-${group.workKey}`} className="min-w-0">

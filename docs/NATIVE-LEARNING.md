@@ -1,7 +1,7 @@
-# Native Leren — B3a-1
+# Native Leren — B3a-1 en B3a-2
 
 Gerichte technische herbeoordeling, afzonderlijk vastgelegde bevindingen en
-reparaties, fysieke acceptatiechecklist en het nog niet geïmplementeerde B3a-2-plan:
+reparaties, fysieke acceptatiechecklist en het oorspronkelijke B3a-2-plan:
 [B3a-1-review](NATIVE-LEARNING-REVIEW.md). Eigen technische controles vervangen
 geen afzonderlijke onafhankelijke review of fysieke toestelacceptatie.
 
@@ -68,7 +68,7 @@ krijgt een expliciete fallback met terugnavigatie, nooit de oude Vandaag-proef.
 Dit is de eerste afgebakende B3a-PR, geen volledige B3-oplevering:
 
 - CFM-kaarten en hun serverbepaalde hervatreden staan in het overzicht; het
-  persoonlijke weekpad/archief vraagt een volgende B3a-deelstap.
+  persoonlijke weekpad/archief is toegevoegd in B3a-2, zie hieronder.
 - Podcast-, kinderen-, introductie-, FSY- en per-boekdetailroutes worden nog
   niet als werkende native detailflow geclaimd.
 - Inschrijving/verbergen/herordenen van cursussen blijft buiten deze
@@ -91,7 +91,8 @@ Browserbewijs staat bij de PR/Actions-artifacts onder `courses`.
 Definitieve head, werkelijk uitgevoerde testresultaten en platformcompilaties
 staan in de PR; een eerdere groene B2-run geldt niet als bewijs voor B3a.
 
-Nog fysiek op iPhone en Android na afzonderlijk goedgekeurde app/backendbuild:
+Uitgebreide toestelchecklist na afzonderlijk goedgekeurde app/backendbuild
+(de beperkte B3a-1-bevestiging van de eigenaar staat hieronder):
 
 1. Login/2FA, Access en sessieherstel; Leren-tab met juiste capability.
 2. Vergelijk dezelfde gebruiker/bron/taal met web: kaarten, volgorde, echte
@@ -104,4 +105,19 @@ Nog fysiek op iPhone en Android na afzonderlijk goedgekeurde app/backendbuild:
 6. Controleer dat de nog niet ondersteunde lesactie duidelijk wordt uitgelegd
    en geen volledig hoofdstuk afrondt.
 
-Geen fysieke acceptatie of volledige cursus-/leespariteit geclaimd.
+Geen aanvullende fysieke acceptatie of volledige cursus-/leespariteit geclaimd.
+
+## B3a-2 — CFM-weekpad en archief
+
+Vanaf de B3a-1-merge `896c2a4d8288e1c050eaac3a1dadab18a3bcd99c`
+worden ook `CfmCourseView`, `CfmWeekPath`, `CfmArchiveView`, de stapkaarten en
+`MyStepNav` daadwerkelijk gedeeld. De webadapter behoudt de bestaande
+voorkeur-/contextmutaties; de native adapter biedt uitsluitend lezen.
+Capability `study-course-overview-v1` ontsluit de exacte week-, archief- en
+stapplan-GETs. Zie [contract, read-only bewijs en toesteltest](NATIVE-CFM-COURSES.md).
+
+De eigenaar bevestigde B3a-1 op een fysieke iPhone: drie schriftelijke
+leespaden, boekgroepen, voortgang en de veilige melding bij niet-ondersteunde
+acties. Dit is geen fysieke acceptatie van B3a-2 en geen Android-acceptatie.
+De CFM-studielezer, afronding, vragen, leesposities en beloningen blijven buiten
+B3a-2; de lesbestemmingen tonen de bestaande veilige melding.
