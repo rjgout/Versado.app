@@ -4,6 +4,17 @@ on:
     branches: [main, develop, 'feat/native-*', 'fix/native-*']
     paths:
       - 'src/lib/native/**'
+      - 'src/lib/learning/course*.server.ts'
+      - 'src/lib/*PathData.ts'
+      - 'src/lib/navigationEntry.ts'
+      - 'src/components/Courses*'
+      - 'src/components/ReadingCourseView.tsx'
+      - 'src/components/ChapterListCourseView.tsx'
+      - 'src/components/reading/**'
+      - 'src/components/learning/ContentStatus.tsx'
+      - 'src/components/versado/ContentCard.tsx'
+      - 'tests/native-courses*'
+      - 'tests/fixtures/native-courses.ts'
       - 'src/lib/data/**'
       - 'src/lib/today*'
       - 'src/lib/listPreferences.server.ts'

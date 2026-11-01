@@ -24,23 +24,23 @@ function NativeFriendActions({ friendshipId, name }: { friendshipId: string; nam
   const { respondFriend } = useTodayInteractions();
   return <FriendRequestControl name={name} respond={action => respondFriend!(friendshipId, action)}/>;
 }
-export default function NativeTodayView({ state, actions, mediaEnabled = false }: { state: NativeTodayOverview; actions?: Actions; mediaEnabled?: boolean }) {
-  return <ConfirmProvider><NativeStudyMediaProvider state={state}><NativeTodayContent state={state} actions={actions} mediaEnabled={mediaEnabled}/></NativeStudyMediaProvider></ConfirmProvider>;
+export default function NativeTodayView({ state, actions, mediaEnabled = false, coursesEnabled = false }: { coursesEnabled?: boolean; state: NativeTodayOverview; actions?: Actions; mediaEnabled?: boolean }) {
+  return <ConfirmProvider><NativeStudyMediaProvider state={state}><NativeTodayContent state={state} actions={actions} mediaEnabled={mediaEnabled} coursesEnabled={coursesEnabled}/></NativeStudyMediaProvider></ConfirmProvider>;
 }
-function NativeTodayContent({ state, actions, mediaEnabled }: { state: NativeTodayOverview; actions?: Actions; mediaEnabled: boolean }) {
+function NativeTodayContent({ state, actions, mediaEnabled, coursesEnabled }: { coursesEnabled: boolean; state: NativeTodayOverview; actions?: Actions; mediaEnabled: boolean }) {
   const navigation = useAppNavigationAdapter(), t = useT();
   const confirm = useConfirm();
   const notify = useCallback(() => { void confirm(t("nativeToday.unavailable"), { native: true, notice: true, title: t("nav.today"), confirmLabel: t("common.close") }); }, [confirm, t]);
   const adapter = useMemo(() => {
     function TodayLink({ href, ...props }: AppLinkProps) {
-      const target = nativeTodayDestination(href);
+      const target = nativeTodayDestination(href, coursesEnabled);
       if (target.href) { const Link = navigation.Link; return <Link {...props} href={target.href}/>; }
       const { replace, prefetch, onNavigate, ...anchor } = props; void replace; void prefetch; void onNavigate;
       return <a {...anchor} role="button" tabIndex={props.tabIndex ?? 0} data-native-unavailable-href={href} aria-describedby="native-today-destinations" onClick={event => { event.preventDefault(); notify(); }} onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); notify(); } }}/>;
     }
     // The supported links use the parent adapter, not a recursively nested AppLink.
     return { ...navigation, Link: TodayLink, ...(mediaEnabled ? { Image: NativeStudyImage } : {}), imageSource: (src: string) => mediaEnabled && studyMediaIdFromSource(src) ? src : nativeTodayImageSource(src) };
-  }, [navigation, notify, mediaEnabled]);
+  }, [navigation, notify, mediaEnabled, coursesEnabled]);
   const interactions = useMemo<TodayInteractions>(() => ({
     Avatar: ({ avatarEmoji, ...props }) => { void avatarEmoji; return <UserAvatarView {...props} appearance={state.avatars[props.id] ?? EMPTY_AVATAR_APPEARANCE}/>; },
     Social: SocialView,

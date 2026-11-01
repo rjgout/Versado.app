@@ -36,10 +36,8 @@ function navigationApi(): NavigationLike | null {
   return api && api.currentEntry ? api : null;
 }
 
-export function currentEntryKey(): string {
-  const key = navigationApi()?.currentEntry?.key;
-  return key ? `k:${key}` : `u:${window.location.pathname}${window.location.search}`;
-}
+export { currentEntryKey } from "./navigationEntry";
+import { currentEntryKey } from "./navigationEntry";
 
 const CONTENT_DEPARTURE_KEY = "vs-content-departure";
 interface ContentDeparture {

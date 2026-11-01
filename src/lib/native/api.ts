@@ -12,6 +12,8 @@ import { nativeSetupFinishSchema } from "./contract";
 import { saveListPreferences } from "@/lib/listPreferences.server";
 import { FriendRequestError, respondFriendRequest } from "@/lib/social/friendRequests";
 import { nativeTodayHideSchema, nativeFriendResponseSchema } from "./todayActionsContract";
+import { nativeCourses, nativeCoursePath } from "./courses.server";
+import { nativeCourseId } from "./coursesContract";
 import { nativeStudyImage } from "./studyMedia.server";
 import { nativeStudyMediaId } from "./studyMediaContract";
 import { getNativeTodayOverview } from "./today.server";
@@ -76,7 +78,7 @@ export async function nativeApi(req: NextRequest, parts: string[]): Promise<Next
   const ip = hashSecret(clientIp(req)), failureKey = `native-auth:${ip}`;
   try {
     if (mutation && req.headers.get("content-type")?.split(";")[0] !== "application/json") throw new NativeAuthError("json_required", 415);
-    if (req.method === "GET" && path === "capabilities") return json({ apiVersion: 1, apple: !!appleConfiguration(), registration: true, features: ["study-media-v1", "today-actions-v1", "today-overview-v1", "content-picker-v1", "security-setup-v1", "account-password-v1", "password-reset-v1", "email-confirmation-v1", ...(nativeSocketEnabled() ? ["realtime-ticket-v1"] : [])] });
+    if (req.method === "GET" && path === "capabilities") return json({ apiVersion: 1, apple: !!appleConfiguration(), registration: true, features: ["courses-overview-v1", "study-media-v1", "today-actions-v1", "today-overview-v1", "content-picker-v1", "security-setup-v1", "account-password-v1", "password-reset-v1", "email-confirmation-v1", ...(nativeSocketEnabled() ? ["realtime-ticket-v1"] : [])] });
     if (req.method === "POST" && path === "login") {
       if (failureLockSeconds(failureKey, 30)) throw new NativeAuthError("too_many_attempts", 429);
       const input = z.object({ identifier: z.string().trim().min(1).max(320), ...credentials, supportsSecuritySetup: z.boolean().optional() }).strict().parse(await body(req));
@@ -172,6 +174,11 @@ export async function nativeApi(req: NextRequest, parts: string[]): Promise<Next
       return json(await issueSocketTicket(header.slice(7)));
     }
     const user = await authenticated(req);
+    if (req.method === "GET" && (path === "courses" || (parts.length === 3 && parts[0] === "courses" && parts[2] === "path"))) {
+      if (req.nextUrl.search) throw new NativeAuthError("invalid_input",400);
+      const identity = await nativeSessionIdentity(req.headers.get("authorization")!.slice(7));
+      return json(path === "courses" ? await nativeCourses(identity.binding) : await nativeCoursePath(identity.binding,nativeCourseId.parse(parts[1])));
+    }
     if (req.method === "POST" && ["today-actions/hide", "today-actions/friend-response"].includes(path)) {
       const limited = await authBudget(authBudgetKey("native-today-actions", user.id), 60, 60_000);
       if (limited) throw new NativeAuthError(limited.status === 503 ? "security_check_unavailable" : "too_many_attempts", limited.status);

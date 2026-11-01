@@ -104,7 +104,7 @@
     "test:fsy-conversion:integration": "node scripts/content-architecture/test-access-isolated.mjs --focused --fsy-conversion --browser",
     "native:build": "tsx scripts/native/build.ts",
     "native:verify": "node scripts/native/verify-distribution.mjs",
-    "test:native": "tsx --test tests/native-foundation.test.ts tests/native-shell.test.tsx tests/native-navigation.test.ts tests/native-socket.test.ts tests/native-distribution.test.ts tests/native-access.test.ts tests/native-today.test.ts tests/native-today-view.test.tsx tests/native-today-actions.test.ts tests/native-study-media.test.ts && npm run test:native:data",
+    "test:native": "tsx --test tests/native-foundation.test.ts tests/native-shell.test.tsx tests/native-navigation.test.ts tests/native-socket.test.ts tests/native-distribution.test.ts tests/native-access.test.ts tests/native-today.test.ts tests/native-today-view.test.tsx tests/native-today-actions.test.ts tests/native-study-media.test.ts tests/native-courses.test.tsx && npm run test:native:data",
     "test:native:data": "tsx --test tests/native-data.test.ts tests/live-data.test.ts tests/live-data-architecture.test.ts tests/live-data-migration.test.ts tests/content-switch.test.ts",
     "test:native:integration": "node scripts/native/test-isolated.mjs",
     "test:security": "tsx --test tests/security-policy.test.ts",
