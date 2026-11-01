@@ -45,7 +45,7 @@ Er worden geen willekeurige URL's, checksums, back-uppaden of testinjecties uit 
 Deze stappen vereisen eerst een goedgekeurde merge en een door de eigenaar uitgevoerde update van uitsluitend
 zijn bestaande development-app. Deze PR voert die stappen niet uit. Geen migratie of seed is voor deze wijziging nodig.
 
-1. Open op **dev.versado.app** de Adminbackend → Content → Nieuwe content ophalen.
+1. Open op **dev.versado.app** de Adminbackend → Systeem → Nieuwe content ophalen (`/adminbackend/systeem`).
 2. Kies **Herstelplan bekijken (alleen lezen)**. Controleer aantallen, bronlessen, volledige hashes en
    de melding per beeld: origineel geldig / origineel in snapshot / mediabeoordeling nodig.
 3. Als een gecontroleerde back-up nog oude bytes kan bevatten: stop vóór voorbereiden. Deze app doorzoekt geen NAS-back-ups.
@@ -54,7 +54,7 @@ zijn bestaande development-app. Deze PR voert die stappen niet uit. Geen migrati
    De checkbox keurt alleen de getoonde media als concept goed, niet de publicatie.
 5. Bevestig **Originelen herstellen en concepten voorbereiden**. Laat de actie uitlopen en bekijk het beheerlogboek.
    Een fout laat reeds geslaagde concepten staan. Vraag een nieuw herstelplan op voordat je handmatig hervat.
-6. Ga naar **Studielespublicaties**. Kies CFM 2026 en voer de bestaande **Controleren**-actie uit.
+6. Ga naar **Adminbackend → Content → Studielespublicaties**. Kies CFM 2026 en voer de bestaande **Controleren**-actie uit.
    Beoordeel de concepten/voorbeelden en los alle blokkades op. Er moeten 52 complete, publiceerbare lessen zijn.
 7. Alleen na jouw afzonderlijke publicatiegoedkeuring: gebruik de bestaande bevestigde publicatiehandeling.
    Geef daarna de collectie inhoudelijk vrij en maak haar alleen bewust zichtbaar voor gebruikers.
@@ -112,6 +112,7 @@ blokkade van automatische publicatie en behoud van gebruikersgegevens. Dat is ge
 | TypeScript en schone Next-productiebuild | Geslaagd |
 | ESLint gewijzigde herstelbestanden | Geen fouten of waarschuwingen; bestaande effectwaarschuwing in ReseedClient apart |
 | Repositorylint | Geen fouten met uitsluitend lokale oude gegenereerde `dist/native-b3a1-*`-bundels buiten beschouwing; 171 bestaande waarschuwingen |
+| Native inventaris-/pariteitscontrole | Gegenereerde broninventaris bijgewerkt; 6/6 tests en `native:parity:check` geslaagd; geen nieuwe functiepariteit geclaimd |
 | i18n- en workflowvalidatie | Geslaagd; bestaande vertaalachterstand buiten deze nieuwe teksten blijft staan |
 | Zeven eerder gecontroleerde lokale auditkopieën | SHA-256, omvang, MIME, afmetingen en volledige decodering opnieuw gecontroleerd tegen het kandidaatvoorstel |
 
