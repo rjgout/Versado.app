@@ -8,6 +8,8 @@ import { studyRightsMetadataSchema } from "./revisions";
 import { safeStudyUrlSchema, studySourceKeySchema } from "./schema";
 import { StudyPublishingError, syntheticStudyEnvironment } from "./policy";
 
+import { StudyMediaError } from "./mediaDiagnostic";
+
 export const STUDY_MEDIA_MAX_BYTES = 10 * 1024 * 1024;
 const keyPattern = /^[a-f0-9]{64}\.(png|jpg|webp)$/;
 const markerName = ".versado-study-volume.json";
@@ -112,7 +114,10 @@ export async function validateStudyImage(
   expectedChecksum?: string,
 ): Promise<ValidatedStudyImage> {
   if (!bytes.length || bytes.length > STUDY_MEDIA_MAX_BYTES)
-    throw new StudyPublishingError("MEDIA");
+    throw new StudyMediaError({
+      stage: "FILE_SIZE",
+      actualBytes: bytes.length,
+    });
   let detected: "png" | "jpeg" | "webp" | null = null;
   if (
     bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))
@@ -127,7 +132,7 @@ export async function validateStudyImage(
     detected = "webp";
   const mimeType = `image/${detected}`;
   if (!detected || claimedMime.toLowerCase().split(";")[0].trim() !== mimeType)
-    throw new StudyPublishingError("MEDIA");
+    throw new StudyMediaError({ stage: "MIME", expectedChecksum });
   try {
     const decoder = sharp(bytes, {
       limitInputPixels: 16_000_000,
@@ -147,7 +152,13 @@ export async function validateStudyImage(
     // Metadata alleen bewijst geen decodeerbaar/compleet bestand.
     await decoder.raw().toBuffer();
     const checksum = createHash("sha256").update(bytes).digest("hex");
-    if (expectedChecksum && checksum !== expectedChecksum) throw new Error();
+    if (expectedChecksum && checksum !== expectedChecksum)
+      throw new StudyMediaError({
+        stage: "CHECKSUM",
+        expectedChecksum,
+        actualChecksum: checksum,
+        actualBytes: bytes.length,
+      });
     return {
       checksum,
       mimeType,
@@ -156,8 +167,9 @@ export async function validateStudyImage(
       height,
       storageKey: `${checksum}.${detected === "jpeg" ? "jpg" : detected}`,
     };
-  } catch {
-    throw new StudyPublishingError("MEDIA");
+  } catch (error) {
+    if (error instanceof StudyMediaError) throw error;
+    throw new StudyMediaError({ stage: "DECODE", expectedChecksum });
   }
 }
 
@@ -184,13 +196,32 @@ export async function readStudyMedia(
       stat.size !== media.byteSize ||
       stat.size > STUDY_MEDIA_MAX_BYTES
     )
-      throw new Error();
+      throw new StudyMediaError({
+        stage: "FILE_SIZE",
+        expectedChecksum: media.checksum,
+        expectedBytes: media.byteSize,
+        actualBytes: stat.size,
+      });
     const bytes = await handle.readFile();
-    if (createHash("sha256").update(bytes).digest("hex") !== media.checksum)
-      throw new Error();
+    const actualChecksum = createHash("sha256").update(bytes).digest("hex");
+    if (actualChecksum !== media.checksum)
+      throw new StudyMediaError({
+        stage: "FILE_HASH",
+        expectedChecksum: media.checksum,
+        actualChecksum,
+        actualBytes: bytes.length,
+      });
     return bytes;
-  } catch {
-    throw new StudyPublishingError("MEDIA");
+  } catch (error) {
+    if (error instanceof StudyMediaError) throw error;
+    const reason = (error as NodeJS.ErrnoException).code;
+    throw new StudyMediaError({
+      stage: "READ",
+      expectedChecksum: media.checksum,
+      reason: ["ENOENT", "EACCES", "ELOOP", "EPERM"].includes(reason ?? "")
+        ? reason
+        : "READ_FAILED",
+    });
   } finally {
     await handle?.close();
   }

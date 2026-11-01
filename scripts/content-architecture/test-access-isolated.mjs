@@ -219,6 +219,7 @@ try {
     await run("npx",["tsx","--test",`tests/${cfmSuite}`],env);
     // Het programma gebruikt dezelfde voortgangsbrug als de oorspronkelijke zes-/zevenstappenroutes.
     if (cfmSuite === "cfm-programme.integration.test.ts") await run("npx",["tsx","--test","tests/study-steps.integration.test.ts"],env);
+    if (cfmSuite === "cfm-recovery.integration.test.ts" && process.argv.includes("--browser")) await run("npx",["tsx","tests/cfm-recovery.browser.mjs"],env);
   }
   if(process.argv.includes("--reference-preview")) {
     const longChapterOnly = process.argv.includes("--long-chapter-only");
