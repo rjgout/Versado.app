@@ -324,7 +324,7 @@ De onafhankelijke review volgt door ChatGPT. #176 en #178 blijven ongemerged.
 <!-- BEGIN NATIVE PARITY INVENTORY -->
 ## Volledige broninventaris (gegenereerd)
 
-Gevonden: **143 pagina's**, **244 fysieke routehandlers**, **462 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
+Gevonden: **143 pagina's**, **244 fysieke routehandlers**, **463 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
 
 De JSON-bijlage bevat per route alle transitief bereikbare lokale modules, clientgrenzen en statische requestpaden. Dat is een afhankelijkheidsinventaris, geen autorisatiebewijs; voorwaarden per HTTP-methode blijven apart te controleren. Een Client Component kan via een gedeelde helper nog een serverafhankelijkheid hebben. Een module zonder eigen `use client` is contextafhankelijk, niet automatisch browsergeschikt.
 
@@ -1010,6 +1010,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/admin/AdminSection.tsx](../src/components/admin/AdminSection.tsx) | contextafhankelijk / server-entry waar page/layout | AdminSection
 [src/components/admin/AdminStudyPublicationsClient.tsx](../src/components/admin/AdminStudyPublicationsClient.tsx) | use client | AdminStudyPublicationsClient
 [src/components/admin/AdminTable.tsx](../src/components/admin/AdminTable.tsx) | contextafhankelijk / server-entry waar page/layout | AdminTable
+[src/components/admin/CfmRecoveryControl.tsx](../src/components/admin/CfmRecoveryControl.tsx) | use client | CfmRecoveryControl
 [src/components/admin/LegacyAudioClient.tsx](../src/components/admin/LegacyAudioClient.tsx) | use client | LegacyAudioClient
 [src/components/admin/OfficialAudioClient.tsx](../src/components/admin/OfficialAudioClient.tsx) | use client | OfficialAudioClient
 [src/components/admin/ScriptureUpdateClient.tsx](../src/components/admin/ScriptureUpdateClient.tsx) | use client | ScriptureUpdateClient

@@ -13,6 +13,8 @@ import {
   validateStudyImage,
 } from "./storage";
 
+import { StudyMediaError } from "./mediaDiagnostic";
+
 export function publicStudyAddress(address: string): boolean {
   if (isIP(address) === 4) {
     const [a, b, c] = address.split(".").map(Number);
@@ -81,7 +83,10 @@ export interface StudyDownloadOptions {
     signal: AbortSignal,
   ) => Promise<DownloadResponse>;
 }
-export function abortable<T>(promise: Promise<T>, signal: AbortSignal): Promise<T> {
+export function abortable<T>(
+  promise: Promise<T>,
+  signal: AbortSignal,
+): Promise<T> {
   signal.throwIfAborted();
   return new Promise((resolve, reject) => {
     const abort = () => reject(new Error());
@@ -172,7 +177,12 @@ export async function downloadStudyImage(
         current = new URL(location, url).href;
         continue;
       }
-      if (response.status !== 200) throw new Error();
+      if (response.status !== 200)
+        throw new StudyMediaError({
+          stage: "DOWNLOAD",
+          reason: "HTTP_STATUS",
+          status: response.status,
+        });
       const length = response.headers["content-length"],
         mime = response.headers["content-type"];
       if (
@@ -211,8 +221,25 @@ export async function downloadStudyImage(
       return { bytes, image };
     }
     throw new Error();
-  } catch {
-    throw new StudyPublishingError("MEDIA");
+  } catch (error) {
+    let url: URL | undefined;
+    try {
+      url = studyDownloadUrl(source, options.allowedHosts);
+    } catch {}
+    const diagnostic =
+      error instanceof StudyMediaError
+        ? error.diagnostic
+        : {
+            stage: "DOWNLOAD" as const,
+            reason: signal.aborted ? "TIMEOUT" : "NETWORK_OR_RESPONSE",
+          };
+    throw new StudyMediaError({
+      ...diagnostic,
+      expectedChecksum,
+      status: response?.status,
+      host: url?.hostname,
+      pathname: url?.pathname.slice(0, 512),
+    });
   } finally {
     clearTimeout(timer);
     response?.close();

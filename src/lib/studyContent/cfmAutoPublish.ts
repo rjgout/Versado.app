@@ -1,3 +1,5 @@
+import { CFM_MEDIA_DRAFT_VERSION } from "./cfmMedia";
+import { mediaDiagnosticText } from "./mediaDiagnostic";
 import { randomUUID } from "node:crypto";
 import type { PrismaClient } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
@@ -40,9 +42,9 @@ export type CfmAutoPublishReport = {
   alreadyPublished: number;
   publishedNow: number;
   /** Lessen die de voorcontrole blokkeert; ze blijven concept. */
-  blocked: Array<{ sourceKey: string; codes: string[] }>;
+  blocked: Array<{ sourceKey: string; codes: string[]; diagnostic?: string }>;
   /** Lessen waarvan de publicatie zelf faalde (bv. een gelijktijdige wijziging); ze komen bij een herhaling opnieuw aan bod. */
-  failed: Array<{ sourceKey: string; code: string }>;
+  failed: Array<{ sourceKey: string; code: string; diagnostic?: string }>;
   /** Aantallen uit de voorcontrole: bewezen verwijzingen en als veilige tekst gepubliceerde (bekend onoplosbare) verwijzingen. */
   references: { total: number; verified: number; displayOnly: number; blocking: number };
   released: boolean;
@@ -72,7 +74,10 @@ export async function autoPublishCfmVolume(
       if (!locked) return { ...base, ...empty, status: "busy" as const };
       const review = await studyProgramReview(actor, base.collectionId, client);
       if (!review.catalogueValid) return { ...base, ...empty, total: review.lessons.length, status: "skipped" as const, reason: "CATALOGUE_INVALID" as const };
-      const blocked = review.lessons.filter((l) => l.status === "blocked").map((l) => ({ sourceKey: l.sourceKey, codes: [...new Set(l.issues.map((i) => i.code))] }));
+      const blocked: CfmAutoPublishReport["blocked"] = review.lessons.filter(l => l.status === "blocked").map(l => ({
+        sourceKey: l.sourceKey, codes: [...new Set(l.issues.map(i => i.code))],
+        diagnostic: l.issues.map(i => i.diagnostic).filter(Boolean).join(" | ") || undefined,
+      }));
       const failed: CfmAutoPublishReport["failed"] = [];
       let publishedNow = 0;
       for (const lesson of review.lessons) {
@@ -80,6 +85,11 @@ export async function autoPublishCfmVolume(
         try {
           const edition = await client.studyLessonEdition.findUnique({ where: { id: lesson.editionId }, select: { publishedRevisionId: true, draftRevisionId: true, publicationVersion: true } });
           if (!edition || edition.publishedRevisionId === lesson.revisionId) continue;
+          const run = await client.contentImportRun.findUnique({ where: { id: lesson.importRunId }, select: { adapterVersion: true } });
+          if (edition.publishedRevisionId || run?.adapterVersion === CFM_MEDIA_DRAFT_VERSION) {
+            blocked.push({ sourceKey: lesson.sourceKey, codes: ["EXPLICIT_REVISION_REQUIRED"] });
+            continue;
+          }
           if (edition.draftRevisionId !== lesson.revisionId) throw new StudyPublishingError("CONFLICT");
           const result = await publishStudyRevision(
             actor,
@@ -98,7 +108,9 @@ export async function autoPublishCfmVolume(
           );
           if (result.changed) publishedNow += 1;
         } catch (error) {
-          failed.push({ sourceKey: lesson.sourceKey, code: error instanceof StudyPublishingError ? error.code : "INVALID" });
+          failed.push({ sourceKey: lesson.sourceKey, code: error instanceof StudyPublishingError ? error.code : "INVALID",
+            ...(mediaDiagnosticText(error) ? { diagnostic: mediaDiagnosticText(error)! } : {}),
+          });
         }
       }
       // Inhoudelijke vrijgave van de collectie (niet de zichtbaarheid): alleen als alles gepubliceerd is.

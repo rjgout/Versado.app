@@ -24,7 +24,18 @@ on:
       - 'src/lib/studyContent/personalStudyOverrides.ts'
       - 'src/lib/studyContent/personalStudyConstants.ts'
       - 'src/lib/studyContent/personalStudy.ts'
-      - 'src/lib/studyContent/cfmProgramme.ts'
+      - 'src/lib/studyContent/cfm*'
+      - 'src/lib/studyContent/originalMedia.ts'
+      - 'src/lib/studyContent/mediaDiagnostic.ts'
+      - 'src/lib/studyContent/storage.ts'
+      - 'src/lib/studyContent/download.ts'
+      - 'src/lib/reseedJob.ts'
+      - 'src/app/api/admin/reseed/**'
+      - 'src/components/admin/CfmRecoveryControl.tsx'
+      - 'src/components/ReseedClient.tsx'
+      - 'tests/cfm-recovery*'
+      - 'scripts/content-architecture/test-access-isolated.mjs'
+      - 'data/study-content/cfm-2026-nl/media-revision-candidates.json'
       - 'src/lib/studyContent/cfmVolumes.ts'
       - 'src/lib/studyContent/weekSelection.ts'
       - 'tests/fixtures/native-courses.ts'
@@ -160,12 +171,18 @@ jobs:
         run: npm run test:native:focus
       - name: Migratie, sessies, Apple en lokale leesflow op geïsoleerde PostgreSQL
         run: npm run test:native:integration
+      - name: CFM-herstel zonder externe downloads (bestaande geïsoleerde runner en webbuild)
+        run: |
+          npx tsx --test tests/cfm-recovery.test.ts
+          node scripts/content-architecture/test-access-isolated.mjs --focused --cfm-suite=cfm-recovery.integration.test.ts --browser
       - name: Browserbewijs
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: native-foundation-browser
-          path: /tmp/versado-native-browser
+          path: |
+            /tmp/versado-native-browser
+            /tmp/versado-cfm-recovery-browser
           retention-days: 7
       - name: Focusbewijs
         if: always()
