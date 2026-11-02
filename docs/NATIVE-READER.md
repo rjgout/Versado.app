@@ -62,6 +62,10 @@ Lokale verificatie op de geïntegreerde develop-basis:
 - Geïsoleerde reader-SQL: 6/6 geslaagd; standaardmigratiebehoud/foutrollback van de runner behouden.
 - Readerbrowser: alle drie leeswijzen in vijf talen; 25 screenshots; vertraagd A-antwoord na B-login,
   bron/capabilityweigering, offline herstel en zes minuten behoud van open boekgroepen geslaagd.
+- Bestaande Access-browser: vijf taal-/layoutconfiguraties met gesimuleerde native Service Auth-bridge;
+  echte read-only cursusroute, late A-verscursor na B-login, intrekking/enrollment, geen secrets in JS
+  en geen WebSocket geslaagd. De oude afrondings-UI-proef is vervangen; de bestaande backward-compatible
+  POST-bevestiging-/GET-foutcontracten blijven in de runtime-unittests gecontroleerd.
 - Bestaande Foundation-/accountbrowser, B3a-cursusbrowser (54 web/native screenshots) en
   webversmenu-/audio-/annotatiebrowser (40/40 controles) geslaagd.
 - Routefocus: 16 viewport-/tekst-/themacombinaties, drie oude-backendgevallen en acht gecombineerde
