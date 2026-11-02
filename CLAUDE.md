@@ -106,6 +106,26 @@ ook Genees als voorraad (prijs uitsluitend via `geneesPriceXp`,
 seed + servertijd, uitslag alleen server-side in `match.ts`/`runs.ts` met
 vergrendelingsvolgorde wedstrijd → run → gebruiker).
 
+### Figma-ready doorbouw: functioneel nu, visueel redesign later (2 november 2026)
+
+De eigenaar geeft prioriteit aan het afbouwen van de Versado-app. Een later
+volledig Figma-redesign wordt bewust **niet** vooraf in featurebranches
+uitgevoerd. Scheid bij iedere nieuwe functie de getypeerde data-/gedragslaag
+(autorisatie, cursor, annotaties, audio, XP, reeks) van de visuele
+React-presentatie; gebruik bestaande gedeelde componenten en
+web/native-platformadapters. Behoud de huidige visuele vorm tenzij een
+ontwerpwijziging uitdrukkelijk is goedgekeurd. Nieuwe UI gebruikt de bestaande
+semantische `--vs-*`-tokens; legacy-styling wordt alleen bij een afgebakende
+ontwerp-PR omgezet. Zorg dat Rive later achter `MascotSlot` kan worden
+toegevoegd, zonder Rive- of animatie-afhankelijkheden in nieuwe businesslogica.
+
+Lees de uitgewerkte regels in
+`docs/VERSADO-DESIGN.md#figma-ready-doorbouwen-zonder-redesign-besluit-2-november-2026`.
+Bouw lopende native werkpakketten zoals B3b-2a (leespositie/navigatie) door
+zonder designrefactor; tests en onafhankelijke review blijven verplicht.
+Een Figma-redesign krijgt later eigen goedgekeurde ontwerpen, afzonderlijke
+PR's en platform-/toegankelijkheids-/visuele regressiechecks.
+
 ## ⚠️ Harde regel: shell-layout, safe areas en tekstschaling
 
 Zie `docs/LAYOUT.md`. Er is één shell: een `fixed` bovenbalk
