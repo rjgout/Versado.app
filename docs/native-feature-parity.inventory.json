@@ -12849,7 +12849,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "10d7c02fc442990548be5ef22de79ecc278a31734732581aa8874274153fb057",
+      "sha256": "a93e2b2e0130328a356c3102c34497d8f8782c1ceb5cb84b4d4e4caf3c48303c",
       "boundary": "client",
       "imports": [
         "./NativeContentPicker",
@@ -12902,7 +12902,7 @@
     },
     {
       "file": "src/components/native/NativeLearningView.tsx",
-      "sha256": "4d53486e281be6f59ecfaaa44c90b4d9db7a953024cbfd356a41da9feca2be9d",
+      "sha256": "829061729ea604e85f4148b159e2ee814ef43bf992bd63fd7dee0a9736556b38",
       "boundary": "client",
       "imports": [
         "./NativeCfmCourseView",
@@ -12978,9 +12978,10 @@
     },
     {
       "file": "src/components/native/NativeReaderView.tsx",
-      "sha256": "e1336f86572fb29c6c0156facf28ed07fcb30ad236dc7f7962eda0e6cf35dc2c",
+      "sha256": "1de3dc872a72680ec5ac7e9f661f8d8d990a8eb5cc801c191a5e9e0c15823391",
       "boundary": "client",
       "imports": [
+        "./useNativeReaderPosition",
         "@/components/I18nProvider",
         "@/components/navigation/AppNavigation",
         "@/components/reading/ScriptureReaderView",
@@ -13102,6 +13103,24 @@
       "requests": [],
       "checks": [],
       "exports": []
+    },
+    {
+      "file": "src/components/native/useNativeReaderPosition.ts",
+      "sha256": "9abe63b1a8a8ca25a3fd1c161203e67bdeecb3997cec687e13a38b8085d67654",
+      "boundary": "client",
+      "imports": [
+        "@/lib/native/readerContract",
+        "@/lib/native/readerPositionContract",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [
+        "cancel"
+      ],
+      "exports": [
+        "useNativeReaderPosition"
+      ]
     },
     {
       "file": "src/components/navigation/AppNavigation.tsx",
@@ -17016,7 +17035,7 @@
     },
     {
       "file": "src/lib/chapterPathData.ts",
-      "sha256": "046bd8214d56dd809379f78bc286f621e0663dc94ef85ce5a1527806606b75d5",
+      "sha256": "616755ab3c20b96d8c59de09eb61c404fffcc0b18bc0b5ad5cc737faaaf12cf1",
       "boundary": "context-dependent",
       "imports": [
         "@/generated/prisma/client",
@@ -17215,7 +17234,7 @@
     },
     {
       "file": "src/lib/contentCollections.ts",
-      "sha256": "90599d0f8d05353216a8358230d6e4e2c10db28e28fddfe38542f49d4a9e20a1",
+      "sha256": "0ef588f69a6278fe7321e7b9e9933ebc5fa3d7076ea8c362d731053da25d50c3",
       "boundary": "context-dependent",
       "imports": [
         "@/generated/prisma/client",
@@ -17740,7 +17759,7 @@
     },
     {
       "file": "src/lib/data/native.ts",
-      "sha256": "1b69ab81df986729f655302bcaef101476cf722f12bb8b3ba1f0bf51c320dfdb",
+      "sha256": "55a8a55bf960ce1a363d2c9670036219fc1981e611ed115b781f3583abcd2858",
       "boundary": "context-dependent",
       "imports": [
         "./scopes",
@@ -17749,6 +17768,7 @@
         "@/lib/native/contract",
         "@/lib/native/coursesContract",
         "@/lib/native/readerContract",
+        "@/lib/native/readerPositionContract",
         "@/lib/native/studyCoursesContract",
         "@/lib/native/studyMediaContract",
         "@/lib/native/todayActionsContract",
@@ -17761,6 +17781,7 @@
         "content-context",
         "courses/${nativeCourseId.parse(courseId)}/${scope}",
         "courses/${nativeCourseId.parse(courseId)}/read/${nativeReaderKind.parse(kind)}/${nativeCourseId.parse(targetId)}",
+        "courses/${nativeCourseId.parse(courseId)}/read/${nativeReaderKind.parse(kind)}/${nativeCourseId.parse(targetId)}/resume",
         "courses/${nativeCourseId.parse(courseId)}/weeks/${nativeCourseId.parse(editionId)}/steps",
         "me",
         "study-media/${id}",
@@ -19486,7 +19507,7 @@
     },
     {
       "file": "src/lib/i18n/messages/de.ts",
-      "sha256": "96f8bf280b622ce0bc6e5f46699885442cd5b2bfa71e447d75e0b4f0688cf750",
+      "sha256": "911944aa9d65ac120b38014a1ebb40f6ee3e19875aecade10c7d00825f9c0a4c",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19501,7 +19522,7 @@
     },
     {
       "file": "src/lib/i18n/messages/en.ts",
-      "sha256": "b3e0a0fe628764512d13672b3b41b005c7978a8c41d062c135e8f356db53a653",
+      "sha256": "1fe0373caf6e6f2bcfbb98f940406d5d129c2f94850d981795b9773c1e7ef9fd",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19516,7 +19537,7 @@
     },
     {
       "file": "src/lib/i18n/messages/es.ts",
-      "sha256": "768a3c4ed7ca4a96456818dc59b396d76310db2db7cb8772eb983739412f3e2c",
+      "sha256": "fdb2b071c38cd2be312d43cb5503b4fc6c9b12adc8315016a3323435f6928bd0",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19531,7 +19552,7 @@
     },
     {
       "file": "src/lib/i18n/messages/fr.ts",
-      "sha256": "cf326da6dc15906ad5a57e0ac4b1d731d884abf44fee041847f3be091667408a",
+      "sha256": "9447aae39a4b9f4d8826c270daeed15719a191422cd46704ea2c74880ed226a9",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19614,7 +19635,7 @@
     },
     {
       "file": "src/lib/i18n/messages/nl.ts",
-      "sha256": "1d485693c352f42ec6207c9c4e0beb5477c3e19330717db6596fff7ae70a7715",
+      "sha256": "0b08db0f04ae7393afaf986ec63d728bef4241e38a822a3b9aefcffca8483c9f",
       "boundary": "context-dependent",
       "imports": [
         "./kompas/nl"
@@ -20179,6 +20200,24 @@
       "checks": [],
       "exports": [
         "resolveContentState"
+      ]
+    },
+    {
+      "file": "src/lib/learning/readerPosition.ts",
+      "sha256": "4f45276ea5daae2d5a73fe976addcce521b1cf6b60e11d97eab5143604f24eec",
+      "boundary": "context-dependent",
+      "imports": [
+        "zod"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "claimReaderPosition",
+        "readReaderPosition",
+        "readerPositionKey",
+        "readerPositions",
+        "savedReaderPosition"
       ]
     },
     {
@@ -20989,7 +21028,7 @@
     },
     {
       "file": "src/lib/native/access.ts",
-      "sha256": "1d5acc4fa569f6a5d1ad1f4cd1c32a9a656697631d5c9400258418a55a8c6264",
+      "sha256": "02c3c71782623237ead15aa775e40b170740d1cda69899ecff1528ceb013386e",
       "boundary": "context-dependent",
       "imports": [
         "./client",
@@ -21025,7 +21064,7 @@
     },
     {
       "file": "src/lib/native/api.ts",
-      "sha256": "8492d17b26dfef988f6fbba6a31a1217724e5d6fc5225daadcdea6c7a1ddea46",
+      "sha256": "4d72fb0b6d26aeb9738bccd7b4e6547349efcd25b86ccdc632e072b7250ecb0d",
       "boundary": "context-dependent",
       "imports": [
         "./apple",
@@ -21037,6 +21076,8 @@
         "./password",
         "./reader.server",
         "./readerContract",
+        "./readerPosition.server",
+        "./readerPositionContract",
         "./securitySetup",
         "./sessions",
         "./shellHeader.server",
@@ -21196,11 +21237,12 @@
     },
     {
       "file": "src/lib/native/courses.server.ts",
-      "sha256": "c88812e23a0d990e5c11ae19886217fe861e9f7cb055ffa91ff6d18789def67b",
+      "sha256": "e3f95e606acd0f693940300f66d210bd91cd483e8df0ece54580bbaf8883c4e8",
       "boundary": "context-dependent",
       "imports": [
         "./coursesContract",
         "./sessions",
+        "@/generated/prisma/client",
         "@/lib/chapterPathData",
         "@/lib/chapterTerm",
         "@/lib/contentAccess",
@@ -21341,13 +21383,14 @@
     },
     {
       "file": "src/lib/native/reader.server.ts",
-      "sha256": "78ebd823ceb32ec934e6bdab725e3063fa3bda9a50f3eb2ae7936cd420527b3f",
+      "sha256": "f910dc27a2cfd2bee8896aa9de06a5c59cd176845e4e16c4c556a7e54073d8b0",
       "boundary": "context-dependent",
       "imports": [
         "./courses.server",
         "./coursesContract",
         "./readerContract",
         "./sessions",
+        "@/generated/prisma/client",
         "@/lib/contentAccess",
         "@/lib/db",
         "@/lib/learning/contentProgress",
@@ -21390,6 +21433,49 @@
       "exports": [
         "nativeReaderDestination",
         "nativeReaderRoute"
+      ]
+    },
+    {
+      "file": "src/lib/native/readerPosition.server.ts",
+      "sha256": "11e0d7330956502093d81e367d0072e38caa453873db7054122d48998137d0b0",
+      "boundary": "context-dependent",
+      "imports": [
+        "./courses.server",
+        "./reader.server",
+        "./readerContract",
+        "./readerPositionContract",
+        "./sessions",
+        "@/generated/prisma/client",
+        "@/lib/account/mutation",
+        "@/lib/db",
+        "@/lib/learning/contentProgress",
+        "@/lib/learning/readerPosition",
+        "@/lib/readingCourses"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "nativeReaderResume",
+        "saveNativeReaderPosition"
+      ]
+    },
+    {
+      "file": "src/lib/native/readerPositionContract.ts",
+      "sha256": "952a84b2fd55a028e5adc161bf6e2295e9e09889053173dc242c449a4213bcf4",
+      "boundary": "context-dependent",
+      "imports": [
+        "./coursesContract",
+        "./readerContract",
+        "zod"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "readerPositionInput",
+        "readerPositionResult",
+        "readerResumeSchema"
       ]
     },
     {
@@ -23017,7 +23103,7 @@
     },
     {
       "file": "src/lib/readingPathData.ts",
-      "sha256": "2c84946009040428ee0f464a7da364eeedadb50c7098caf9018cebdaea2e93d1",
+      "sha256": "73ccea9aefae6e15b9d5f861490ec44c18cb581d89495ec5e800aaadd826a7e3",
       "boundary": "context-dependent",
       "imports": [
         "@/generated/prisma/client",
@@ -50784,6 +50870,7 @@
         "src/lib/learning/courseProgress.ts",
         "src/lib/learning/exercisePlan.ts",
         "src/lib/learning/progressState.ts",
+        "src/lib/learning/readerPosition.ts",
         "src/lib/learning/readingTime.ts",
         "src/lib/learning/rewards.ts",
         "src/lib/learning/routes.ts",
@@ -50825,6 +50912,8 @@
         "src/lib/native/password.ts",
         "src/lib/native/reader.server.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/readerPosition.server.ts",
+        "src/lib/native/readerPositionContract.ts",
         "src/lib/native/securitySetup.ts",
         "src/lib/native/sessions.ts",
         "src/lib/native/shellHeader.server.ts",
@@ -76072,7 +76161,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "10d7c02fc442990548be5ef22de79ecc278a31734732581aa8874274153fb057",
+      "sha256": "a93e2b2e0130328a356c3102c34497d8f8782c1ceb5cb84b4d4e4caf3c48303c",
       "boundary": "client",
       "imports": [
         "./NativeContentPicker",
@@ -76125,7 +76214,7 @@
     },
     {
       "file": "src/components/native/NativeLearningView.tsx",
-      "sha256": "4d53486e281be6f59ecfaaa44c90b4d9db7a953024cbfd356a41da9feca2be9d",
+      "sha256": "829061729ea604e85f4148b159e2ee814ef43bf992bd63fd7dee0a9736556b38",
       "boundary": "client",
       "imports": [
         "./NativeCfmCourseView",
@@ -76201,9 +76290,10 @@
     },
     {
       "file": "src/components/native/NativeReaderView.tsx",
-      "sha256": "e1336f86572fb29c6c0156facf28ed07fcb30ad236dc7f7962eda0e6cf35dc2c",
+      "sha256": "1de3dc872a72680ec5ac7e9f661f8d8d990a8eb5cc801c191a5e9e0c15823391",
       "boundary": "client",
       "imports": [
+        "./useNativeReaderPosition",
         "@/components/I18nProvider",
         "@/components/navigation/AppNavigation",
         "@/components/reading/ScriptureReaderView",

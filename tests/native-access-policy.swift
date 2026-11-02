@@ -53,6 +53,16 @@ private final class FakeAccessProtocol: URLProtocol {
             for method in ["POST","PUT","PATCH","DELETE","HEAD"] { require(!NativeAccessPolicy.routeAllowed(path,method), "reader write enabled") }
             for suffix in ["/", "?x=1", "/complete", "%2f", "/../me"] { require(!NativeAccessPolicy.routeAllowed(path+suffix,"GET"), "broad reader route") }
         }
+        for path in ["courses/c/read/steps/s", "courses/c/read/chapters/ch"] {
+            require(NativeAccessPolicy.routeAllowed(path + "/resume", "GET"), "resume rejected")
+            require(NativeAccessPolicy.routeAllowed(path + "/position", "POST"), "position rejected")
+            require(!NativeAccessPolicy.routeAllowed(path + "/resume", "POST"), "resume write enabled")
+            require(!NativeAccessPolicy.routeAllowed(path + "/position", "GET"), "position read enabled")
+            for suffix in ["/", "?x=1", "\n", "/complete"] {
+                require(!NativeAccessPolicy.routeAllowed(path + "/resume" + suffix, "GET"), "broad resume enabled")
+                require(!NativeAccessPolicy.routeAllowed(path + "/position" + suffix, "POST"), "broad position enabled")
+            }
+        }
         require(NativeAccessPolicy.routeAllowed("today-overview", "GET"), "today overview rejected")
         for method in ["POST", "PUT", "DELETE", "HEAD"] { require(!NativeAccessPolicy.routeAllowed("today-overview", method), "today overview write enabled") }
         for path in ["today-overview/", "today-overview?user=A", "today-overview/complete"] { require(!NativeAccessPolicy.routeAllowed(path, "GET"), "broad today route enabled") }

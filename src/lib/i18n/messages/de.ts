@@ -4,6 +4,13 @@ import { kompasDe } from "./kompas/de";
 // Ontbrekende teksten vallen terug volgens fallbackChain (src/lib/languages.ts).
 export const de: PartialMessages = {
   nativeReader: {
+    positionEnabled: "Deine Leseposition wird nach ruhigem Lesen gespeichert. Audio, Anmerkungen, Fragen und Abschließen folgen später. Lesen und Blättern vergeben keine XP und schließen nichts ab.",
+    saving: "Leseposition wird gespeichert…",
+    saved: "Leseposition gespeichert.",
+    saveFailed: "Leseposition nicht gespeichert. Bitte erneut versuchen.",
+    conflict: "Die Leseposition wurde anderswo geändert. Lade die bestätigte Position neu und lies dann weiter.",
+    previous: "Vorheriges Kapitel",
+    next: "Nächstes Kapitel",
     "unsupported": "Dieses Backend unterstützt den gemeinsamen Leser noch nicht. Kehre zu Lernen zurück.",
     "readOnly": "Hier kannst du lesen und Text kopieren. Audio, Anmerkungen, das Speichern der Leseposition, Fragen und Abschluss folgen später. Öffnen und Scrollen bringen keine XP oder Fortschritte.",
     "range": "Leseschritt: Verse {start}–{end}.",

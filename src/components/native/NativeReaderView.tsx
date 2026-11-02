@@ -1,5 +1,6 @@
 "use client";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useNativeReaderPosition } from "./useNativeReaderPosition";
 import ScriptureReaderView from "@/components/reading/ScriptureReaderView";
 import FocusLayout from "@/components/versado/FocusLayout";
 import { useAppNavigation } from "@/components/navigation/AppNavigation";
@@ -18,6 +19,7 @@ export default function NativeReaderView({
   language,
   content,
   enabled,
+  positionEnabled = false,
   route,
   onError,
 }: {
@@ -25,6 +27,7 @@ export default function NativeReaderView({
   language: string;
   content?: NativeContentState;
   enabled: boolean;
+  positionEnabled?: boolean;
   route: NonNullable<ReturnType<typeof nativeReaderRoute>>;
   onError: (e: unknown) => void;
 }) {
@@ -32,16 +35,18 @@ export default function NativeReaderView({
     navigation = useAppNavigation(),
     t = useT();
   const identity = `${userId}:${language}:${content?.picker.activeCollectionId}:${content?.picker.selectionVersion}:${route.courseId}:${route.kind}:${route.targetId}`;
+  const queryKey = ["reader", identity, positionEnabled] as const;
   const query = useNativeLiveQuery(
-    ["reader", identity],
+    queryKey,
     () =>
-      runtime.reader(
+      runtime.readerResume(
         userId,
         language,
         content!.picker,
         route.courseId,
         route.kind,
         route.targetId,
+        positionEnabled,
       ),
     {
       enabled: enabled && !!content,
@@ -52,7 +57,7 @@ export default function NativeReaderView({
   const transient = nativeLearningTransientError(query.error),
     data =
       enabled && content && (!query.error || transient)
-        ? query.data
+        ? query.data?.reader
         : undefined;
   useEffect(() => {
     if (
@@ -63,6 +68,14 @@ export default function NativeReaderView({
     )
       onError(query.error);
   }, [query.error, onError]);
+  const [conflict,setConflict] = useState(false);
+  const writePosition=query.data ? runtime.readerPositionWriter(query.data,queryKey) : null;
+  const position = useNativeReaderPosition(data,query.data?.positionVersion ?? 0,positionEnabled,
+    async input => {if(!writePosition)throw new NativeClientError("content_context_changed",409);return writePosition(input);},
+    error => {
+      if(error instanceof NativeClientError && error.status === 409)setConflict(true);
+      if(error instanceof NativeClientError && (error.status===401||error.code.startsWith("access_")||error.code==="content_context_changed"))onError(error);
+    });
   const hasData = !!data;
   const focused = useRef("");
   useEffect(() => {
@@ -141,8 +154,18 @@ export default function NativeReaderView({
           </p>
         )}
         <p role="note" className="text-sm text-vs-fg-2">
-          {t("nativeReader.readOnly")}
+          {t(positionEnabled ? "nativeReader.positionEnabled" : "nativeReader.readOnly")}
         </p>
+        {positionEnabled && <div aria-live="polite" className="text-sm text-vs-fg-2" data-reader-save-status>
+          {position.status === "saving" && t("nativeReader.saving")}
+          {position.status === "saved" && t("nativeReader.saved")}
+          {position.status === "error" && <><p role="status">{t(conflict ? "nativeReader.conflict" : "nativeReader.saveFailed")}</p>
+            <button className="btn-secondary" onClick={()=>{if(conflict){position.reset();setConflict(false);void query.refetch();}else position.retry();}}>{t("nativeFoundation.retry")}</button></>}
+        </div>}
+        {data.kind === "chapters" && positionEnabled && <nav aria-label={t("pages.lesson")} className="flex flex-wrap gap-3" data-reader-chapter-navigation>
+          {query.data?.previous && <button className="btn-secondary" onClick={()=>navigation.push(`/courses/${route.courseId}/read/chapters/${query.data!.previous}`)}>{t("nativeReader.previous")}</button>}
+          {query.data?.next && <button className="btn-secondary" onClick={()=>navigation.push(`/courses/${route.courseId}/read/chapters/${query.data!.next}`)}>{t("nativeReader.next")}</button>}
+        </nav>}
         {!!query.error && (
           <p role="status">{t("nativeLearning.refreshFailed")}</p>
         )}

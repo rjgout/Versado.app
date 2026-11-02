@@ -44,6 +44,18 @@ public class NativeAccessTransportTest {
             for(String suffix : new String[]{"/","?x=1","/complete","%2f","/../me"}) assertFalse(NativeAccessTransport.routeAllowed(path+suffix,"GET"));
         }
     }
+    @Test public void readerPositionIsExactAndSeparate() {
+        for(String path : new String[]{"courses/c/read/steps/s", "courses/c/read/chapters/ch"}) {
+            assertTrue(NativeAccessTransport.routeAllowed(path+"/resume","GET"));
+            assertTrue(NativeAccessTransport.routeAllowed(path+"/position","POST"));
+            assertFalse(NativeAccessTransport.routeAllowed(path+"/resume","POST"));
+            assertFalse(NativeAccessTransport.routeAllowed(path+"/position","GET"));
+            for(String suffix : new String[]{"/","?x=1","\n","/complete"}) {
+                assertFalse(NativeAccessTransport.routeAllowed(path+"/resume"+suffix,"GET"));
+                assertFalse(NativeAccessTransport.routeAllowed(path+"/position"+suffix,"POST"));
+            }
+        }
+    }
     @Test public void contentContextIsExactAndBounded() {
         assertTrue(NativeAccessTransport.routeAllowed("today-overview", "GET"));
         for (String method : new String[]{"POST", "PUT", "DELETE", "HEAD"}) assertFalse(NativeAccessTransport.routeAllowed("today-overview", method));

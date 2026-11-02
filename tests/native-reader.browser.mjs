@@ -5,6 +5,7 @@ import { readFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { build } from "esbuild";
 import { seedNativeCourses } from "./fixtures/native-courses.ts";
 import { prisma } from "../src/lib/db.ts";
+import { issueNativeSession } from "../src/lib/native/sessions.ts";
 import { createSessionToken, SESSION_COOKIE } from "../src/lib/auth.ts";
 import { getT } from "../src/lib/i18n/index.ts";
 const db = new URL(process.env.NATIVE_TEST_DATABASE_URL ?? "http://invalid"),
@@ -64,14 +65,14 @@ const bundle = await build({
 const secrets = new Map(),
   calls = [],
   held = [];
-let oldBackend = false,
+let noPositionBackend = false, oldBackend = false,
   readFailure = 0,
   holdReader = false;
 const front = createServer(async (req, res) => {
   try {
     const url = new URL(req.url, "http://127.0.0.1");
     if (url.pathname.startsWith("/api/v1/native/")) {
-      calls.push({ path: url.pathname, method: req.method });
+      const record={ path: url.pathname, method: req.method };calls.push(record);
       const isReader = /\/courses\/[^/]+\/read\//.test(url.pathname);
       if (isReader && readFailure) {
         res.writeHead(readFailure, { "Content-Type": "application/json" });
@@ -97,11 +98,13 @@ const front = createServer(async (req, res) => {
           ? undefined
           : Buffer.concat(chunks),
       });
+      record.status=response.status;
       let body = await response.text();
-      if (url.pathname.endsWith("/capabilities") && oldBackend) {
+      if(url.pathname.endsWith("/position")){const value=JSON.parse(body);record.outcome=value.error??value.version;}
+      if (url.pathname.endsWith("/capabilities") && (oldBackend || noPositionBackend)) {
         const value = JSON.parse(body);
         value.features = value.features.filter(
-          (f) => f !== "scripture-reader-v1",
+          (f) => !(oldBackend && f === "scripture-reader-v1") && !(noPositionBackend && f === "scripture-reading-position-v1"),
         );
         body = JSON.stringify(value);
       }
@@ -275,6 +278,21 @@ try {
           );
           throw e;
         });
+    const showVerse = async number => page.locator(`#vers-${number}`).evaluate(element=>{
+      const header=document.querySelector("[data-sticky-header]")?.getBoundingClientRect().bottom??0;
+      const anchor=header+(innerHeight-header)*0.4,rect=element.getBoundingClientRect();
+      window.scrollTo({top:Math.max(0,scrollY+rect.top+rect.height/2-anchor),behavior:"instant"});
+    });
+    const wheelAndWait = async (delta, milliseconds) => {
+      // Playwright wheel keert terug vóór de compositor het event verwerkt.
+      // Eerst echte delivery bevestigen, daarna de virtuele rusttimer doorlopen.
+      await page.evaluate(()=>{window.__readerWheelDelivered=false;window.addEventListener("wheel",()=>{window.__readerWheelDelivered=true;},{once:true});});
+      await page.mouse.wheel(0,delta);
+      await page.waitForFunction(()=>window.__readerWheelDelivered);
+      // Ook compositor-scroll en React-effecten krijgen tussen de klokstappen
+      // een echte eventloopbeurt; één grote sprong kan scroll pas erna leveren.
+      for(let elapsed=0;elapsed<milliseconds;elapsed+=250){await page.clock.runFor(Math.min(250,milliseconds-elapsed));await page.waitForTimeout(10);}
+    };
     const go = (path) =>
       page.evaluate(
         (path) =>
@@ -352,6 +370,67 @@ try {
       ),
       true,
     );
+    if(language === "nl") {
+      const writes=()=>calls.filter(c=>c.method==="POST"&&c.path.endsWith("/position")).length;
+      const untouched=writes();
+      await page.clock.runFor(6000);
+      await page.evaluate(()=>window.scrollTo(0,100));
+      await page.clock.runFor(6000);
+      assert.equal(writes(),untouched,"openen en programmatisch scrollen bewaren niets");
+      await wheelAndWait(30,3000);
+      await page.getByText(t("nativeReader.saved"),{exact:true}).waitFor();
+      assert.equal(writes(),untouched+1,"stabiele echte leesinteractie bewaart precies eenmaal");
+      await page.screenshot({path:`${out}/nl-position-saved-native.png`,fullPage:true});
+      const progress=await prisma.contentProgress.findUniqueOrThrow({where:{userId_contentKey:{userId:user.id,contentKey:"bofm/alma#32"}}});
+      const saved=Object.values(progress.readerPositions)[0];
+      assert.ok(saved.verse>=1&&saved.verse<=2);assert.equal(saved.version,1);
+      assert.equal(progress.readStatus,null);assert.equal(progress.readVerse,0);
+      await page.reload();await waitReader();
+      await page.clock.runFor(6000);
+      assert.equal(writes(),untouched+1,"heropenen schrijft niet opnieuw");
+      // Een echte mislukte schrijfintentie blijft zichtbaar en wordt bij online
+      // herstel niet automatisch opnieuw verzonden.
+      await page.waitForTimeout(100);
+      await context.setOffline(true);
+      await page.locator("#vers-2").scrollIntoViewIfNeeded();
+      await wheelAndWait(-1,10000);
+      await page.getByText(t("nativeReader.saveFailed"),{exact:true}).waitFor().catch(async error=>{console.error("Positie/offline-diagnose",await page.locator("body").innerText(),await page.evaluate(()=>({visibility:document.visibilityState,online:navigator.onLine,height:innerHeight,scroll:scrollY,verses:[...document.querySelectorAll("[data-native-reader] .reader-text")].map(e=>({id:e.id,top:e.getBoundingClientRect().top,bottom:e.getBoundingClientRect().bottom})),header:document.querySelector("[data-sticky-header]")?.getBoundingClientRect().bottom})),calls.slice(-8));throw error;});
+      await page.screenshot({path:`${out}/nl-position-offline-native.png`,fullPage:true});
+      await context.setOffline(false);
+      await page.evaluate(()=>window.dispatchEvent(new Event("online")));
+      await page.clock.runFor(10000);
+      assert.equal(writes(),untouched+1,"geen automatische offline schrijfretry");
+      await page.locator("[data-reader-save-status] button").click();
+      await page.getByText(t("nativeReader.saved"),{exact:true}).waitFor();
+      assert.equal(writes(),untouched+2,"expliciete retry slaagt");
+      assert.equal(await page.locator("[data-reader-chapter-navigation]").count(),0,"stappen bieden geen hoofdstukoverslag");
+      // Werkelijke tweede native sessie schrijft via dezelfde publieke API.
+      // De eerste app moet een stale CAS expliciet herstellen, zonder retryloop.
+      await page.waitForLoadState("networkidle");
+      const second=await issueNativeSession(user.id,user.sessionVersion),apiPath=`courses/${f.steps.id}/read/steps/${f.steps.lessons[1].id}`;
+      const apiHeaders={Origin:"capacitor://localhost","X-Versado-Client":"native-v1",Authorization:`Bearer ${second.accessToken}`,"Content-Type":"application/json"};
+      const remote=await (await fetch(`${backend}/api/v1/native/${apiPath}/resume`,{headers:apiHeaders})).json();
+      assert.equal(remote.positionVersion,2);
+      const previousLocal=remote.reader.focusVerse,observed=previousLocal===1?2:1;
+      const changed=await fetch(`${backend}/api/v1/native/${apiPath}/position`,{method:"POST",headers:apiHeaders,body:JSON.stringify({chapterId:remote.reader.chapterId,startVerse:remote.reader.startVerse,endVerse:remote.reader.endVerse,activeCollectionId:remote.reader.activeCollectionId,selectionVersion:remote.reader.selectionVersion,language:remote.reader.language,expectedVersion:remote.positionVersion,verse:observed,actionId:crypto.randomUUID()})});
+      assert.equal(changed.status,200);
+      await showVerse(observed);await wheelAndWait(1,10000);
+      await page.getByText(t("nativeReader.conflict"),{exact:true}).waitFor().catch(async error=>{console.error("Positie/conflict-diagnose",await page.locator("body").innerText(),calls.slice(-16));throw error;});
+      assert.equal(writes(),untouched+3,"conflict veroorzaakt precies één poging");
+      const refreshed=page.waitForResponse(response=>response.url().endsWith("/resume")&&response.status()===200);
+      await page.locator("[data-reader-save-status] button").click();await refreshed;
+      await page.waitForTimeout(100);
+      await showVerse(previousLocal);await wheelAndWait(-1,10000);
+      await page.getByText(t("nativeReader.saved"),{exact:true}).waitFor();
+      assert.equal(writes(),untouched+4,"na bevestigde GET mag een nieuwe waarneming opslaan");
+      noPositionBackend=true;await page.reload();await waitReader();
+      await page.getByText(t("nativeReader.readOnly"),{exact:true}).waitFor();
+      assert.equal(await page.locator("[data-reader-save-status]").count(),0);
+      await wheelAndWait(30,10000);
+      assert.equal(writes(),untouched+4,"oude backend blijft uitsluitend lezen, zonder nieuwe POST");
+      noPositionBackend=false;await page.reload();await waitReader();
+
+    }
     await page.screenshot({
       path: `${out}/${language}-step-native.png`,
       fullPage: true,
@@ -366,6 +445,15 @@ try {
         await page.locator("[data-native-reader] .reader-text").count(),
         4,
       );
+      const navigation=page.locator("[data-reader-chapter-navigation]");
+      await navigation.getByRole("button",{name:t("nativeReader.previous"),exact:true}).waitFor();
+      if(course.type === "FREE_CHOICE") {
+        await navigation.getByRole("button",{name:t("nativeReader.next"),exact:true}).click();
+        await page.waitForFunction(()=>document.querySelector("[data-scripture-reader] h1")?.textContent?.includes("Mosiah"));
+        assert.equal(await page.locator("[data-native-reader] .reader-text").count(),3);
+        await navigation.getByRole("button",{name:t("nativeReader.previous"),exact:true}).click();
+        await page.waitForFunction(()=>document.querySelector("[data-scripture-reader] h1")?.textContent?.includes("Alma 32"));
+      } else assert.equal(await navigation.getByRole("button",{name:t("nativeReader.next"),exact:true}).count(),0);
       await web.goto(`${backend}/scripture/${f.chapters[1].id}`);
       await web.locator("[data-scripture-reader]").waitFor();
       assert.deepEqual(
@@ -559,13 +647,17 @@ try {
       capabilityFallback: language === "nl" ? "PASS" : "NOT TESTED",
       delayedAccountResponse: language === "nl" ? "PASS" : "NOT TESTED",
       sixMinuteGroupRetention: language === "nl" ? "PASS" : "NOT TESTED",
+      durablePosition: language === "nl" ? "PASS" : "SQL TESTED",
+      offlineManualRetry: language === "nl" ? "PASS" : "NOT TESTED",
+      concurrentPositionConflict: language === "nl" ? "PASS" : "NOT TESTED",
+      chapterNavigation: true,
       noCompletion: true,
     });
     await context.close();
   }
   assert.equal(
     calls.some(
-      (c) => c.method !== "GET" && /\/read\/|\/complete$|exercise/.test(c.path),
+      (c) => c.method !== "GET" && !c.path.endsWith("/position") && /\/read\/|\/complete$|exercise/.test(c.path),
     ),
     false,
     "Er worden geen leesafrondingen of oefensessies aangeroepen",

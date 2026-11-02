@@ -129,3 +129,9 @@ De drie Boek-van-Mormon-leespaden openen nu de bestaande gedeelde tekstpresentat
 tonen het gekozen toegestane hoofdstuk. Zie [NATIVE-READER.md](NATIVE-READER.md) voor contracten,
 beveiliging, testbewijs, grenzen en fysieke acceptatie. B3b-2/B3c blijven afzonderlijk; de oude
 Foundation-hoofdstukafronding wordt vanuit deze nieuwe app niet meer aangeboden.
+
+
+## B3b-2a
+
+Duurzame hervatpositie en hoofdstuknavigatie staan beschreven in
+[NATIVE-READER.md](NATIVE-READER.md#b3b-2a--duurzame-hervatpositie-en-hoofdstuknavigatie).

@@ -6,6 +6,13 @@ import { kompasNl } from "./kompas/nl";
 
 export const nl = {
   nativeReader: {
+    positionEnabled: "Je leespositie wordt bewaard na rustig lezen. Audio, annotaties, vragen en afronden volgen later. Lezen en bladeren leveren geen XP of leesafronding op.",
+    saving: "Leespositie opslaan…",
+    saved: "Leespositie opgeslagen.",
+    saveFailed: "Leespositie niet opgeslagen. Probeer zelf opnieuw.",
+    conflict: "De leespositie is elders gewijzigd. Laad de bevestigde positie opnieuw; daarna kun je verder lezen.",
+    previous: "Vorig hoofdstuk",
+    next: "Volgende hoofdstuk",
     "unsupported": "Deze backend ondersteunt de gedeelde lezer nog niet. Ga terug naar Leren.",
     "readOnly": "Je kunt hier lezen en tekst kopiëren. Audio, annotaties, leespositie opslaan, vragen en afronden volgen later. Openen en scrollen leveren geen XP of voortgang op.",
     "range": "Leesstap: verzen {start}–{end}.",
