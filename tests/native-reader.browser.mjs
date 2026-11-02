@@ -695,9 +695,13 @@ try {
       await context.setOffline(false);
       await page.evaluate(() => window.dispatchEvent(new Event("online")));
       await waitReader();
+      // Stop de oude document-/storegeneratie vóór de capabilitygrens.
+      // Een geldige achtergrond-GET uit die generatie mag niet worden geteld
+      // als aanvraag van de hierna koud gestarte oude backend.
+      const readerUrl=page.url();await page.goto("about:blank");await page.waitForLoadState("networkidle");
       noAnnotationsBackend=true;
       const annCalls=calls.filter(c=>c.path.includes("/annotations")).length;
-      await page.reload();await waitReader();
+      await page.goto(readerUrl);await waitReader();
       await page.getByText(t("nativeReader.positionEnabled"),{exact:true}).waitFor();
       assert.equal(await page.locator("[data-native-reader] [data-annotation-trigger]").count(),0);
       assert.equal(calls.filter(c=>c.path.includes("/annotations")).length,annCalls,"oude backend krijgt geen annotatieverzoeken");
