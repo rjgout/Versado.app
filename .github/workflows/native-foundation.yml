@@ -182,6 +182,7 @@ jobs:
           name: native-foundation-browser
           path: |
             /tmp/versado-native-browser
+            /tmp/versado-reader-verse-menu-browser
             /tmp/versado-cfm-recovery-browser
           retention-days: 7
       - name: Focusbewijs

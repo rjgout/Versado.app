@@ -3,6 +3,12 @@ import { kompasEs } from "./kompas/es";
 
 // Spaanse app-teksten; ontbrekende teksten vallen terug volgens fallbackChain.
 export const es: PartialMessages = {
+  nativeReader: {
+    "unsupported": "Este servidor todavía no admite el lector compartido. Vuelve a Aprender.",
+    "readOnly": "Aquí puedes leer y copiar texto. El audio, las anotaciones, guardar la posición, las preguntas y la finalización llegarán después. Abrir o desplazarse no concede XP ni progreso.",
+    "range": "Paso de lectura: versículos {start}–{end}.",
+    "legacy": "Abre este capítulo desde la ruta correcta en Aprender. Esta antigua ruta de prueba ya no completa nada."
+},
   nativeLearning: {
     catalogueTruncated: "Esta lista está incompleta. Se muestran como máximo 600 lecciones.",
     refreshFailed: "No se ha podido actualizar temporalmente. Se muestran los últimos datos confirmados.",

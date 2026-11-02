@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { nativeReaderRoute } from "@/lib/native/readerNavigation";
 import NativeLearningView from "./NativeLearningView";
 import { nativePrimaryNav } from "@/lib/native/shell";
 import { HANDLE_MAX_LENGTH } from "@/lib/handle";
@@ -8,8 +9,8 @@ import { LogOut, WifiOff } from "lucide-react";
 import MascotSlot from "@/components/versado/MascotSlot";
 import { useT, useUiLanguage } from "@/components/I18nProvider";
 import { primaryButton, secondaryButton } from "@/components/versado/styles";
-import { isNativeApp, dismissNativeKeyboard, isIOSApp, lightHaptic, nativeAppleAuthorization, openExternalUrl, startNativeFoundationRuntime } from "@/lib/platform";
-import { nativeCapabilitiesSchema, nativeChapterSchema, type NativeAccount, type NativeChapter, type NativeSecuritySetup, type NativeContentState } from "@/lib/native/contract";
+import { isNativeApp, dismissNativeKeyboard, isIOSApp, nativeAppleAuthorization, openExternalUrl, startNativeFoundationRuntime } from "@/lib/platform";
+import { nativeCapabilitiesSchema, type NativeAccount, type NativeSecuritySetup, type NativeContentState } from "@/lib/native/contract";
 import { NativeClientError, type NativeSessionClient, type NativeSignInOutcome } from "@/lib/native/client";
 import { AppLink, useAppNavigation } from "@/components/navigation/AppNavigation";
 import PrivacyContent from "@/components/legal/PrivacyContent";
@@ -37,7 +38,6 @@ import { nativeDeepLink, nativePasswordResetLink, nativeEmailConfirmationLink } 
 import { focusNativeRouteHeading } from "@/lib/native/routeFocus";
 
 type Account = NativeAccount;
-type Chapter = NativeChapter;
 type FoundationProps = { client: NativeSessionClient; termsUrl?: string | null; onLanguage?: (language: string) => void; buildBanner?: ReactNode; buildIndicator?: ReactNode; internalTools?: boolean; internalAccess?: ReactNode };
 export default function NativeFoundation(props: FoundationProps) {
   return <NativeDataProvider client={props.client}><NativeFoundationContent {...props} /></NativeDataProvider>;
@@ -83,15 +83,6 @@ function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBan
   const overview = overviewEnabled && overviewQuery.data?.userId === user?.id && overviewQuery.data.selectionVersion === content?.picker.selectionVersion ? overviewQuery.data : undefined;
   const overviewReady = navigation.pathname === "/dashboard" && !!overview;
 
-  const chapterQuery = useNativeLiveQuery<Chapter>(["chapter", user?.id ?? null, chapterId, contentStamp], async () => {
-    const response = await dataRuntime.chapter(chapterId!);
-    if (content && (response.contentCollectionId !== content.picker.activeCollectionId || response.selectionVersion !== content.picker.selectionVersion)) throw new NativeClientError("content_context_changed", 409);
-    return response;
-  }, {
-    scopes: ["content", "progress"], contentScoped: true, enabled: !!chapterId && !!user && (!contentEnabled || !!content),
-  });
-  const chapter = user && chapterQuery.data?.id === chapterId ? chapterQuery.data : null;
-  const saved = chapter?.state.read === "READ";
   const [identifier, setIdentifier] = useState(""), [password, setPassword] = useState(""), [code, setCode] = useState(""), [handle, setHandle] = useState("");
   const [error, setError] = useState(""), [notice, setNotice] = useState(false), [busy, setBusy] = useState(false), [offline, setOffline] = useState(false), [apple, setApple] = useState(false);
   const launchHandled = useRef(false), fullTodayBackend = useRef(false);
@@ -99,7 +90,7 @@ function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBan
   useEffect(() => { current.current = { busy, navigation, setup, recoveryCodes }; }, [busy, navigation, setup, recoveryCodes]);
   const accountLanguage = navigation.pathname === "/dashboard" ? overview?.language ?? user?.uiLanguage : user?.uiLanguage;
   useEffect(() => { if (accountLanguage) onLanguage?.(accountLanguage); }, [accountLanguage, onLanguage]);
-  useEffect(() => focusNativeRouteHeading(), [chapter?.id, navigation.pathname, user?.id, setup?.step, recoveryCodes, pickerAvailable, overviewReady]);
+  useEffect(() => focusNativeRouteHeading(), [chapterId, navigation.pathname, user?.id, setup?.step, recoveryCodes, pickerAvailable, overviewReady]);
   const report = useCallback((err: unknown) => {
     const key = err instanceof NativeClientError ? err.code : "request_failed";
     if (key.startsWith("access_")) {
@@ -199,15 +190,6 @@ function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBan
     connection.start();
     return () => { detach(); connection.dispose(); };
   }, [accountId, realtime, reloadKey, client, report, dataRuntime]);
-  useEffect(() => {
-    let current = true;
-    void Promise.resolve().then(() => {
-      if (!current || !chapterQuery.error) return;
-      if (chapterQuery.error instanceof NativeClientError && chapterQuery.error.code === "content_context_changed") { navigation.replace("/dashboard");return; }
-      report(chapterQuery.error);
-    });
-    return () => { current = false; };
-  }, [chapterQuery.error, report, navigation]);
   async function action(run: (isCurrent: () => boolean) => Promise<void>) {
     if (busy) return;
     const id = ++sequence.current; setBusy(true); setError(""); setNotice(false);
@@ -249,19 +231,20 @@ function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBan
   }
   const button = `${secondaryButton} min-h-12 whitespace-normal`;
   const appleLoginAvailable = isIOSApp() && nativeAppleLoginUIAvailable(apple, features);
+  const readerRoute = nativeReaderRoute(navigation.pathname);
   const learningPage = /^\/courses(?:\/|$)/.test(navigation.pathname);
   const destinations = nativePrimaryNav(features);
-  const detail = (learningPage && navigation.pathname !== "/courses") || diagnostics || pickerPage || legal || profile || passwordPage || resetPage || confirmationPage || !!chapterId;
+  const detail = !!readerRoute || (learningPage && navigation.pathname !== "/courses") || diagnostics || pickerPage || legal || profile || passwordPage || resetPage || confirmationPage || !!chapterId;
   const shellAccount = user && !setup && !recoveryCodes ? user : null;
   return <AccountActionsProvider actions={accountActions}><AppShellFrame
     header={<NativeShellHeader account={shellAccount} onError={report} content={content} buildIndicator={buildIndicator} destinations={destinations} />}
-    headerExtras={detail && <SubpageBackBarView title={diagnostics ? t("nativeDiagnostics.title") : pickerPage ? t("contentSwitcher.picker.title") : profile ? t("nav.profile") : learningPage ? t("pages.course") : chapterId ? chapter?.title ?? t("pages.lesson") : t("common.back")} onBack={() => navigation.back(learningPage ? navigation.pathname.endsWith("/archief") ? navigation.pathname.replace(/archief$/, "pad") : "/courses" : "/dashboard")} />}
+    headerExtras={detail && <SubpageBackBarView title={diagnostics ? t("nativeDiagnostics.title") : pickerPage ? t("contentSwitcher.picker.title") : profile ? t("nav.profile") : readerRoute ? t("pages.lesson") : learningPage ? t("pages.course") : chapterId ? t("pages.lesson") : t("common.back")} onBack={() => navigation.back(readerRoute ? `/courses/${readerRoute.courseId}/pad` : learningPage ? navigation.pathname.endsWith("/archief") ? navigation.pathname.replace(/archief$/, "pad") : "/courses" : "/dashboard")} />}
     showNavigation={!!shellAccount} destinations={destinations}
     mainClassName="native-foundation flex min-h-dvh w-full flex-col gap-5 bg-vs-bg text-vs-fg"
   >
     {offline && <p role="status" className="flex gap-2 rounded-xl bg-vs-surface p-3"><WifiOff className="h-5 w-5 shrink-0" />{t("nativeFoundation.offline")}</p>}
     {error && <p role="alert" className="rounded-xl border border-vs-line bg-vs-surface p-3">{error}</p>}
-    {(busy || (!!chapterId && !!user && chapterQuery.isLoading)) && <p role="status">{t("nativeFoundation.loading")}</p>}
+    {busy && <p role="status">{t("nativeFoundation.loading")}</p>}
     {diagnostics && canDiagnose ? <>
       <h1 tabIndex={-1} className="text-2xl font-extrabold">{t("nativeDiagnostics.title")}</h1>
       {buildBanner}{internalAccess}
@@ -309,7 +292,7 @@ function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBan
       <div className="flex flex-wrap gap-3">{(["login", "register", "forgot"] as const).filter(v => v !== mode).map(value => <button className={button} disabled={busy} key={value} onClick={() => { navigation.push(value === "forgot" ? "/forgot-password" : `/${value}`); setError(""); setNotice(false); }}>{t(`nativeFoundation.${value}`)}</button>)}</div>
       {appleLoginAvailable && <p className="text-sm">{t("nativeFoundation.appleResetHelp")}</p>}
       {!termsUrl && <p className="text-sm">{t("nativeFoundation.termsUnavailable")}</p>}
-    </> : learningPage ? <NativeLearningView key={`${user.id}:${dataRuntime.getSnapshot()}:${contentStamp}`} userId={user.id} language={user.uiLanguage} content={content} enabled={features.includes("courses-overview-v1")} studyEnabled={features.includes("study-course-overview-v1")} mediaEnabled={features.includes("study-media-v1")} onError={error => { if (error instanceof NativeClientError && error.code === "content_context_changed") { void refreshContent(); } else report(error); }}/> : overviewEnabled && navigation.pathname === "/dashboard" ? overview ? <>
+    </> : learningPage ? <NativeLearningView key={`${user.id}:${dataRuntime.getSnapshot()}:${contentStamp}`} userId={user.id} language={user.uiLanguage} content={content} enabled={features.includes("courses-overview-v1")} readerEnabled={features.includes("scripture-reader-v1")} studyEnabled={features.includes("study-course-overview-v1")} mediaEnabled={features.includes("study-media-v1")} onError={error => { if (error instanceof NativeClientError && error.code === "content_context_changed") { void refreshContent(); } else report(error); }}/> : overviewEnabled && navigation.pathname === "/dashboard" ? overview ? <>
       {!!overviewQuery.error && <section role="alert" className="rounded-2xl border border-vs-line p-4"><p>{t("nativeFoundation.error")}</p><button type="button" className={button} onClick={() => { void overviewQuery.refetch(); }}>{t("nativeFoundation.retry")}</button></section>}
       {user.onboardingRequired && <p>{t("nativeFoundation.onboardingNote")}</p>}
       <NativeTodayView key={`${user.id}:${dataRuntime.getSnapshot()}:${contentStamp}`} state={overview} coursesEnabled={features.includes("courses-overview-v1")} mediaEnabled={features.includes("study-media-v1")} actions={features.includes("today-actions-v1") ? (() => {
@@ -321,7 +304,7 @@ function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBan
       <p role="status">{t(overviewQuery.error ? "nativeFoundation.error" : "nativeFoundation.loading")}</p>
       {!!overviewQuery.error && <button type="button" className={button} onClick={() => { void overviewQuery.refetch(); }}>{t("nativeFoundation.retry")}</button>}
     </section> : <>
-      <h1 tabIndex={-1} className="text-2xl font-extrabold">{passwordPage ? t("profile.changePassword") : profile ? t("nativeFoundation.account") : (chapterId ? chapter?.title ?? t("pages.lesson") : `${t("nativeFoundation.today")}, ${user.handle}`)}</h1>
+      <h1 tabIndex={-1} className="text-2xl font-extrabold">{passwordPage ? t("profile.changePassword") : profile ? t("nativeFoundation.account") : (chapterId ? t("pages.lesson") : `${t("nativeFoundation.today")}, ${user.handle}`)}</h1>
       {passwordPage ? <PasswordChangeForm forced={false} requiresSecondFactor={user.totpEnabled} onChanged={async () => {
         await client.logout(() => { setUser(null); dataRuntime.reset(); setRecoveryCodes(null); navigation.replace("/login"); }).catch(report);
       }} /> : profile ? <>
@@ -333,23 +316,7 @@ function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBan
         </>}
         {user.passwordLoginEnabled && features.includes("account-password-v1") && <AppLink className={button} href="/change-password">{t("profile.changePassword")}</AppLink>}
         {!user.passwordLoginEnabled && <p>{t("nativeFoundation.alternativeRequired")}</p>}
-      </> : chapterId ? chapter ? <>
-        {chapter.verses.map(verse => <p key={verse.number} className="leading-relaxed"><sup className="mr-2">{verse.number}</sup>{verse.text}</p>)}
-        <button className={`${primaryButton} min-h-12 whitespace-normal`} disabled={busy || saved} onClick={() => void action(async isCurrent => {
-          const epoch = dataRuntime.getSnapshot();
-          const confirmed = await dataRuntime.mutation(async () => {
-            const result = await client.api<{ content: unknown }>(`chapters/${encodeURIComponent(chapter.id)}/complete`, {});
-            const state = nativeChapterSchema.shape.state.safeParse(result?.content);
-            if (!state.success || state.data.read !== "READ") throw new NativeClientError("invalid_response");
-            return state.data;
-          }, "activityCompleted");
-          if (!isCurrent() || epoch !== dataRuntime.getSnapshot()) return;
-          // Bevestigde serverdata in dezelfde account-/hoofdstuk-/epochcache.
-          // De invalidatie controleert later opnieuw; een GET-fout maakt deze commit niet ongedaan.
-          chapterQuery.setData(previous => previous?.id === chapter.id ? { ...previous, state: confirmed } : previous);
-          await lightHaptic();
-        })}>{t(saved ? "nativeFoundation.completeSaved" : "nativeFoundation.complete")}</button>
-      </> : null : <>
+      </> : chapterId ? <><p role="status">{t("nativeReader.legacy")}</p><AppLink className={button} href="/courses">{t("nav.learn")}</AppLink></> : <>
         {user.onboardingRequired && <p>{t("nativeFoundation.onboardingNote")}</p>}
         {(contentEnabled ? todayQuery.data?.activity : activity) ? <button className={`${primaryButton} min-h-12 whitespace-normal`} disabled={busy} onClick={() => navigation.push(`/lesson/${encodeURIComponent((contentEnabled ? todayQuery.data!.activity : activity)!.id)}`)}>{(contentEnabled ? todayQuery.data!.activity : activity)!.title} — {t("nativeFoundation.continue")}</button> : <p>{t("nativeFoundation.empty")}</p>}
       </>}

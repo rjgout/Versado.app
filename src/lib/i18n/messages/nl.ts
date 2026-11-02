@@ -5,6 +5,12 @@
 import { kompasNl } from "./kompas/nl";
 
 export const nl = {
+  nativeReader: {
+    "unsupported": "Deze backend ondersteunt de gedeelde lezer nog niet. Ga terug naar Leren.",
+    "readOnly": "Je kunt hier lezen en tekst kopiëren. Audio, annotaties, leespositie opslaan, vragen en afronden volgen later. Openen en scrollen leveren geen XP of voortgang op.",
+    "range": "Leesstap: verzen {start}–{end}.",
+    "legacy": "Open dit hoofdstuk vanuit het juiste leerpad in Leren. Deze oude proefroute rondt niets meer af."
+},
   nativeLearning: {
     catalogueTruncated: "Niet alle studieweken passen in dit overzicht. Er worden maximaal 600 lessen getoond.",
     refreshFailed: "Verversen is tijdelijk niet gelukt. Je ziet de laatst bevestigde gegevens.",

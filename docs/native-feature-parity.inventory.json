@@ -10097,7 +10097,7 @@
     },
     {
       "file": "src/components/LessonFlow.tsx",
-      "sha256": "1f35b65564359a47426c2556b15a465ef384f05d7c3a85d17150ab089b180b6d",
+      "sha256": "f1b0ad481ec345e80e9c491bf78a6eeea7a568d40eda71d9c406eb866cc5740c",
       "boundary": "client",
       "imports": [
         "@/components/ExerciseFeedbackSheet",
@@ -10106,6 +10106,7 @@
         "@/components/StreakContinuation",
         "@/components/annotations/AnnotationActions",
         "@/components/learning/ContentStatus",
+        "@/components/reading/ScriptureReaderView",
         "@/components/versado/AchievementIcon",
         "@/components/versado/FocusLayout",
         "@/components/versado/PersonalMascot",
@@ -12848,7 +12849,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "f7050325da4b3564bd9e970452b0697775e64d97cb9ec3d54b679bc4f7e8542c",
+      "sha256": "10d7c02fc442990548be5ef22de79ecc278a31734732581aa8874274153fb057",
       "boundary": "client",
       "imports": [
         "./NativeContentPicker",
@@ -12878,6 +12879,7 @@
         "@/lib/native/client",
         "@/lib/native/contract",
         "@/lib/native/navigation",
+        "@/lib/native/readerNavigation",
         "@/lib/native/routeFocus",
         "@/lib/native/shell",
         "@/lib/native/socketClient",
@@ -12891,8 +12893,7 @@
         "apple",
         "apple/challenge",
         "apple/complete",
-        "capabilities",
-        "chapters/${encodeURIComponent(chapter.id)}/complete"
+        "capabilities"
       ],
       "checks": [],
       "exports": [
@@ -12901,10 +12902,11 @@
     },
     {
       "file": "src/components/native/NativeLearningView.tsx",
-      "sha256": "068886f5fe0c8e5a33f6e7da84a9ecfeaa0d8cc27cbd82e833e702b86f396d41",
+      "sha256": "4d53486e281be6f59ecfaaa44c90b4d9db7a953024cbfd356a41da9feca2be9d",
       "boundary": "client",
       "imports": [
         "./NativeCfmCourseView",
+        "./NativeReaderView",
         "./NativeStudyImage",
         "@/components/ChapterListCourseView",
         "@/components/ConfirmProvider",
@@ -12917,6 +12919,7 @@
         "@/lib/native/client",
         "@/lib/native/contract",
         "@/lib/native/navigation",
+        "@/lib/native/readerNavigation",
         "@/lib/native/routeFocus",
         "@/lib/native/studyMediaContract",
         "@/lib/native/todayAssets",
@@ -12971,6 +12974,32 @@
       "checks": [],
       "exports": [
         "NativePasswordReset"
+      ]
+    },
+    {
+      "file": "src/components/native/NativeReaderView.tsx",
+      "sha256": "e1336f86572fb29c6c0156facf28ed07fcb30ad236dc7f7962eda0e6cf35dc2c",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
+        "@/components/reading/ScriptureReaderView",
+        "@/components/versado/FocusLayout",
+        "@/lib/data/native",
+        "@/lib/data/nativeHooks",
+        "@/lib/native/client",
+        "@/lib/native/contract",
+        "@/lib/native/readerNavigation",
+        "@/lib/native/routeFocus",
+        "@/lib/navigationEntry",
+        "@/lib/scrollRestore",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NativeReaderView"
       ]
     },
     {
@@ -13603,6 +13632,21 @@
       "checks": [],
       "exports": [
         "ReadingPath"
+      ]
+    },
+    {
+      "file": "src/components/reading/ScriptureReaderView.tsx",
+      "sha256": "a916c13c70f1298ade772446e8bffe0d0c4037277e3f925b72f270f805fb0ca2",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "ScriptureReaderView"
       ]
     },
     {
@@ -17696,7 +17740,7 @@
     },
     {
       "file": "src/lib/data/native.ts",
-      "sha256": "1983d0b50b07b5fbd5d748c92ba09bccfb21445041922b6916998504212307a4",
+      "sha256": "1b69ab81df986729f655302bcaef101476cf722f12bb8b3ba1f0bf51c320dfdb",
       "boundary": "context-dependent",
       "imports": [
         "./scopes",
@@ -17704,6 +17748,7 @@
         "@/lib/native/client",
         "@/lib/native/contract",
         "@/lib/native/coursesContract",
+        "@/lib/native/readerContract",
         "@/lib/native/studyCoursesContract",
         "@/lib/native/studyMediaContract",
         "@/lib/native/todayActionsContract",
@@ -17715,6 +17760,7 @@
         "chapters/${encodeURIComponent(id)}",
         "content-context",
         "courses/${nativeCourseId.parse(courseId)}/${scope}",
+        "courses/${nativeCourseId.parse(courseId)}/read/${nativeReaderKind.parse(kind)}/${nativeCourseId.parse(targetId)}",
         "courses/${nativeCourseId.parse(courseId)}/weeks/${nativeCourseId.parse(editionId)}/steps",
         "me",
         "study-media/${id}",
@@ -18467,7 +18513,7 @@
     },
     {
       "file": "src/lib/focusMode.ts",
-      "sha256": "e93a0d62b9f2745faa4114bd8d3300588bb9779e985dc74e6405b081dbfd6011",
+      "sha256": "97f5d68f9d847a289464e7af8618a485d6ad07eb10184763a4f4965acdc0cb9b",
       "boundary": "context-dependent",
       "imports": [],
       "methods": [],
@@ -19440,7 +19486,7 @@
     },
     {
       "file": "src/lib/i18n/messages/de.ts",
-      "sha256": "1e6f6c407f64b5b435a5a0b134a89538041f33f259c89a9f7f486b6e76115980",
+      "sha256": "96f8bf280b622ce0bc6e5f46699885442cd5b2bfa71e447d75e0b4f0688cf750",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19455,7 +19501,7 @@
     },
     {
       "file": "src/lib/i18n/messages/en.ts",
-      "sha256": "fb8d461b4f7c16f4dc3fc2acec8051b5d343b45e18fc19f5736ea79c7673f3ee",
+      "sha256": "b3e0a0fe628764512d13672b3b41b005c7978a8c41d062c135e8f356db53a653",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19470,7 +19516,7 @@
     },
     {
       "file": "src/lib/i18n/messages/es.ts",
-      "sha256": "54482cb0592dab367b33c549c3c05bc4e3158affc2116b111f9a2e4551ab8a33",
+      "sha256": "768a3c4ed7ca4a96456818dc59b396d76310db2db7cb8772eb983739412f3e2c",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19485,7 +19531,7 @@
     },
     {
       "file": "src/lib/i18n/messages/fr.ts",
-      "sha256": "b05fc7161ad97733695eb4cfb32aac9314efdbb87417138417f18dddfb71bb9f",
+      "sha256": "cf326da6dc15906ad5a57e0ac4b1d731d884abf44fee041847f3be091667408a",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19568,7 +19614,7 @@
     },
     {
       "file": "src/lib/i18n/messages/nl.ts",
-      "sha256": "6a5670f9a7b2ebc6468015447bd965c709f823d4dcc5ca2c5aabd93f9a1dac20",
+      "sha256": "1d485693c352f42ec6207c9c4e0beb5477c3e19330717db6596fff7ae70a7715",
       "boundary": "context-dependent",
       "imports": [
         "./kompas/nl"
@@ -20943,7 +20989,7 @@
     },
     {
       "file": "src/lib/native/access.ts",
-      "sha256": "29a063ab209deffbdbdbb22bd899a6dfde6465fb679141f840325bfeeea31035",
+      "sha256": "1d5acc4fa569f6a5d1ad1f4cd1c32a9a656697631d5c9400258418a55a8c6264",
       "boundary": "context-dependent",
       "imports": [
         "./client",
@@ -20979,7 +21025,7 @@
     },
     {
       "file": "src/lib/native/api.ts",
-      "sha256": "84af5f2d1e365c2d0ce0a276d640acf5c269c9f4e1aeac654bcfcc8e66f93ff0",
+      "sha256": "8492d17b26dfef988f6fbba6a31a1217724e5d6fc5225daadcdea6c7a1ddea46",
       "boundary": "context-dependent",
       "imports": [
         "./apple",
@@ -20989,6 +21035,8 @@
         "./coursesContract",
         "./origin",
         "./password",
+        "./reader.server",
+        "./readerContract",
         "./securitySetup",
         "./sessions",
         "./shellHeader.server",
@@ -21216,7 +21264,7 @@
     },
     {
       "file": "src/lib/native/navigation.ts",
-      "sha256": "dce2684bfe26546b5f4317f71e0f6677c5cd844b80b0964c0b5224707cc3e186",
+      "sha256": "f0c7988c5f6dff430b93967713e378edcea7e4f7dfece249f5d9c7a0e2522a36",
       "boundary": "context-dependent",
       "imports": [],
       "methods": [],
@@ -21292,8 +21340,61 @@
       ]
     },
     {
+      "file": "src/lib/native/reader.server.ts",
+      "sha256": "78ebd823ceb32ec934e6bdab725e3063fa3bda9a50f3eb2ae7936cd420527b3f",
+      "boundary": "context-dependent",
+      "imports": [
+        "./courses.server",
+        "./coursesContract",
+        "./readerContract",
+        "./sessions",
+        "@/lib/contentAccess",
+        "@/lib/db",
+        "@/lib/learning/contentProgress",
+        "@/lib/readingCourses"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "nativeScriptureReader"
+      ]
+    },
+    {
+      "file": "src/lib/native/readerContract.ts",
+      "sha256": "35103a13f13c6e9ff8e68a170b606dffcf0b5bf2719ee37080bf3c933d2f68e4",
+      "boundary": "context-dependent",
+      "imports": [
+        "./coursesContract",
+        "zod"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NATIVE_READER_MAX_BYTES",
+        "nativeReaderKind",
+        "nativeReaderSchema"
+      ]
+    },
+    {
+      "file": "src/lib/native/readerNavigation.ts",
+      "sha256": "b7f031ae16fc939323ad9ae6d3625a9fd43d4f56385186ab834d34a0be6f98bd",
+      "boundary": "context-dependent",
+      "imports": [
+        "./readerContract"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "nativeReaderDestination",
+        "nativeReaderRoute"
+      ]
+    },
+    {
       "file": "src/lib/native/routeFocus.ts",
-      "sha256": "9024917e4d9bfc5e35fd90c5088267112b7a386f252d4f61684112dba568d613",
+      "sha256": "2e25a981db144d3713cdfcf6fb6a19b839cdbd0e7cc66d90b901c24260477f38",
       "boundary": "context-dependent",
       "imports": [],
       "methods": [],
@@ -27625,6 +27726,7 @@
         "src/components/annotations/MarkSwatch.tsx",
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
+        "src/components/reading/ScriptureReaderView.tsx",
         "src/components/social/shared.tsx",
         "src/components/today/StreakContinuationCardView.tsx",
         "src/components/versado/AchievementIcon.tsx",
@@ -27798,6 +27900,7 @@
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
+        "src/components/reading/ScriptureReaderView.tsx",
         "src/components/social/shared.tsx",
         "src/components/today/StreakContinuationCardView.tsx",
         "src/components/versado/AchievementIcon.tsx",
@@ -50720,6 +50823,8 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/password.ts",
+        "src/lib/native/reader.server.ts",
+        "src/lib/native/readerContract.ts",
         "src/lib/native/securitySetup.ts",
         "src/lib/native/sessions.ts",
         "src/lib/native/shellHeader.server.ts",
@@ -56452,6 +56557,7 @@
         "src/components/annotations/MarkSwatch.tsx",
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
+        "src/components/reading/ScriptureReaderView.tsx",
         "src/components/social/shared.tsx",
         "src/components/today/StreakContinuationCardView.tsx",
         "src/components/versado/AchievementIcon.tsx",
@@ -56636,6 +56742,7 @@
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
+        "src/components/reading/ScriptureReaderView.tsx",
         "src/components/social/shared.tsx",
         "src/components/today/StreakContinuationCardView.tsx",
         "src/components/versado/AchievementIcon.tsx",
@@ -57847,6 +57954,7 @@
         "src/components/annotations/MarkSwatch.tsx",
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
+        "src/components/reading/ScriptureReaderView.tsx",
         "src/components/social/shared.tsx",
         "src/components/today/StreakContinuationCardView.tsx",
         "src/components/versado/AchievementIcon.tsx",
@@ -58029,6 +58137,7 @@
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
+        "src/components/reading/ScriptureReaderView.tsx",
         "src/components/social/shared.tsx",
         "src/components/today/StreakContinuationCardView.tsx",
         "src/components/versado/AchievementIcon.tsx",
@@ -58459,6 +58568,7 @@
         "src/components/annotations/MarkSwatch.tsx",
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
+        "src/components/reading/ScriptureReaderView.tsx",
         "src/components/social/shared.tsx",
         "src/components/today/StreakContinuationCardView.tsx",
         "src/components/versado/AchievementIcon.tsx",
@@ -58672,6 +58782,7 @@
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
+        "src/components/reading/ScriptureReaderView.tsx",
         "src/components/social/shared.tsx",
         "src/components/today/StreakContinuationCardView.tsx",
         "src/components/versado/AchievementIcon.tsx",
@@ -58914,6 +59025,7 @@
         "src/components/annotations/MarkSwatch.tsx",
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
+        "src/components/reading/ScriptureReaderView.tsx",
         "src/components/social/shared.tsx",
         "src/components/study/StudyRoom.tsx",
         "src/components/today/StreakContinuationCardView.tsx",
@@ -59110,6 +59222,7 @@
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
+        "src/components/reading/ScriptureReaderView.tsx",
         "src/components/social/shared.tsx",
         "src/components/study/StudyRoom.tsx",
         "src/components/today/StreakContinuationCardView.tsx",
@@ -63787,6 +63900,7 @@
         "src/components/annotations/MarkSwatch.tsx",
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
+        "src/components/reading/ScriptureReaderView.tsx",
         "src/components/social/shared.tsx",
         "src/components/today/StreakContinuationCardView.tsx",
         "src/components/versado/AchievementIcon.tsx",
@@ -63969,6 +64083,7 @@
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
+        "src/components/reading/ScriptureReaderView.tsx",
         "src/components/social/shared.tsx",
         "src/components/today/StreakContinuationCardView.tsx",
         "src/components/versado/AchievementIcon.tsx",
@@ -64048,6 +64163,7 @@
         "src/components/annotations/MarkSwatch.tsx",
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
+        "src/components/reading/ScriptureReaderView.tsx",
         "src/components/social/shared.tsx",
         "src/components/today/StreakContinuationCardView.tsx",
         "src/components/versado/AchievementIcon.tsx",
@@ -64218,6 +64334,7 @@
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
+        "src/components/reading/ScriptureReaderView.tsx",
         "src/components/social/shared.tsx",
         "src/components/today/StreakContinuationCardView.tsx",
         "src/components/versado/AchievementIcon.tsx",
@@ -64674,6 +64791,7 @@
         "src/components/annotations/MarkSwatch.tsx",
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
+        "src/components/reading/ScriptureReaderView.tsx",
         "src/components/social/shared.tsx",
         "src/components/today/StreakContinuationCardView.tsx",
         "src/components/versado/AchievementIcon.tsx",
@@ -64878,6 +64996,7 @@
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
+        "src/components/reading/ScriptureReaderView.tsx",
         "src/components/social/shared.tsx",
         "src/components/today/StreakContinuationCardView.tsx",
         "src/components/versado/AchievementIcon.tsx",
@@ -65304,6 +65423,7 @@
         "src/components/annotations/MarkSwatch.tsx",
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
+        "src/components/reading/ScriptureReaderView.tsx",
         "src/components/social/shared.tsx",
         "src/components/study/ReferenceReturn.tsx",
         "src/components/today/StreakContinuationCardView.tsx",
@@ -65479,6 +65599,7 @@
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
+        "src/components/reading/ScriptureReaderView.tsx",
         "src/components/social/shared.tsx",
         "src/components/study/ReferenceReturn.tsx",
         "src/components/today/StreakContinuationCardView.tsx",
@@ -67044,6 +67165,7 @@
         "src/components/annotations/MarkSwatch.tsx",
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
+        "src/components/reading/ScriptureReaderView.tsx",
         "src/components/social/shared.tsx",
         "src/components/study/StudyExerciseClient.tsx",
         "src/components/today/StreakContinuationCardView.tsx",
@@ -67247,6 +67369,7 @@
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
+        "src/components/reading/ScriptureReaderView.tsx",
         "src/components/social/shared.tsx",
         "src/components/study/StudyExerciseClient.tsx",
         "src/components/today/StreakContinuationCardView.tsx",
@@ -73286,7 +73409,7 @@
     },
     {
       "file": "src/components/LessonFlow.tsx",
-      "sha256": "1f35b65564359a47426c2556b15a465ef384f05d7c3a85d17150ab089b180b6d",
+      "sha256": "f1b0ad481ec345e80e9c491bf78a6eeea7a568d40eda71d9c406eb866cc5740c",
       "boundary": "client",
       "imports": [
         "@/components/ExerciseFeedbackSheet",
@@ -73295,6 +73418,7 @@
         "@/components/StreakContinuation",
         "@/components/annotations/AnnotationActions",
         "@/components/learning/ContentStatus",
+        "@/components/reading/ScriptureReaderView",
         "@/components/versado/AchievementIcon",
         "@/components/versado/FocusLayout",
         "@/components/versado/PersonalMascot",
@@ -75948,7 +76072,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "f7050325da4b3564bd9e970452b0697775e64d97cb9ec3d54b679bc4f7e8542c",
+      "sha256": "10d7c02fc442990548be5ef22de79ecc278a31734732581aa8874274153fb057",
       "boundary": "client",
       "imports": [
         "./NativeContentPicker",
@@ -75978,6 +76102,7 @@
         "@/lib/native/client",
         "@/lib/native/contract",
         "@/lib/native/navigation",
+        "@/lib/native/readerNavigation",
         "@/lib/native/routeFocus",
         "@/lib/native/shell",
         "@/lib/native/socketClient",
@@ -75991,8 +76116,7 @@
         "apple",
         "apple/challenge",
         "apple/complete",
-        "capabilities",
-        "chapters/${encodeURIComponent(chapter.id)}/complete"
+        "capabilities"
       ],
       "checks": [],
       "exports": [
@@ -76001,10 +76125,11 @@
     },
     {
       "file": "src/components/native/NativeLearningView.tsx",
-      "sha256": "068886f5fe0c8e5a33f6e7da84a9ecfeaa0d8cc27cbd82e833e702b86f396d41",
+      "sha256": "4d53486e281be6f59ecfaaa44c90b4d9db7a953024cbfd356a41da9feca2be9d",
       "boundary": "client",
       "imports": [
         "./NativeCfmCourseView",
+        "./NativeReaderView",
         "./NativeStudyImage",
         "@/components/ChapterListCourseView",
         "@/components/ConfirmProvider",
@@ -76017,6 +76142,7 @@
         "@/lib/native/client",
         "@/lib/native/contract",
         "@/lib/native/navigation",
+        "@/lib/native/readerNavigation",
         "@/lib/native/routeFocus",
         "@/lib/native/studyMediaContract",
         "@/lib/native/todayAssets",
@@ -76071,6 +76197,32 @@
       "checks": [],
       "exports": [
         "NativePasswordReset"
+      ]
+    },
+    {
+      "file": "src/components/native/NativeReaderView.tsx",
+      "sha256": "e1336f86572fb29c6c0156facf28ed07fcb30ad236dc7f7962eda0e6cf35dc2c",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
+        "@/components/reading/ScriptureReaderView",
+        "@/components/versado/FocusLayout",
+        "@/lib/data/native",
+        "@/lib/data/nativeHooks",
+        "@/lib/native/client",
+        "@/lib/native/contract",
+        "@/lib/native/readerNavigation",
+        "@/lib/native/routeFocus",
+        "@/lib/navigationEntry",
+        "@/lib/scrollRestore",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NativeReaderView"
       ]
     },
     {
@@ -76675,6 +76827,21 @@
       "checks": [],
       "exports": [
         "ReadingPath"
+      ]
+    },
+    {
+      "file": "src/components/reading/ScriptureReaderView.tsx",
+      "sha256": "a916c13c70f1298ade772446e8bffe0d0c4037277e3f925b72f270f805fb0ca2",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "ScriptureReaderView"
       ]
     },
     {
@@ -78940,6 +79107,9 @@
     "tests/native-ios-release.test.mjs",
     "tests/native-navigation.test.ts",
     "tests/native-parity.test.mjs",
+    "tests/native-reader.browser.mjs",
+    "tests/native-reader.integration.test.ts",
+    "tests/native-reader.test.ts",
     "tests/native-responsive-css.test.ts",
     "tests/native-route-focus.browser.mjs",
     "tests/native-shell.browser.mjs",

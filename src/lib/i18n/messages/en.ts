@@ -3,6 +3,12 @@ import { kompasEn } from "./kompas/en";
 
 // Ontbrekende teksten vallen terug volgens fallbackChain (src/lib/languages.ts).
 export const en: PartialMessages = {
+  nativeReader: {
+    "unsupported": "This backend does not support the shared reader yet. Return to Learn.",
+    "readOnly": "You can read and copy text here. Audio, annotations, saving your reading position, questions and completion will follow later. Opening or scrolling awards no XP or progress.",
+    "range": "Reading step: verses {start}–{end}.",
+    "legacy": "Open this chapter from the correct learning path in Learn. This old trial route no longer completes anything."
+},
   nativeLearning: {
     catalogueTruncated: "This overview is incomplete. At most 600 lessons are shown.",
     refreshFailed: "Refresh failed temporarily. You are viewing the last confirmed data.",

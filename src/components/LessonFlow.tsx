@@ -1,5 +1,6 @@
 "use client";
 
+import ScriptureReaderView from "@/components/reading/ScriptureReaderView";
 import type { ExerciseCheckpoint } from "@/lib/learning/exerciseCheckpoint";
 import AnnotationActions from "@/components/annotations/AnnotationActions";
 import { useLiveQuery } from "@/lib/data/hooks";
@@ -123,9 +124,6 @@ export interface SummaryResult {
   dayEarned?: boolean;
 }
 
-const FONT_SCALE_KEY = "bom-reader-font-scale";
-const MIN_SCALE = 0.85;
-const MAX_SCALE = 1.5;
 
 export default function LessonFlow({ chapterId, bookName, chapterNumber, previousChapterId, nextChapterId, verses, audio, term = chapterTerm(null), exercises, sessionId, content, route, readingMinutes, stepsHref, challengeId, courseId, focusVerse, language, contentKey }: Props) {
   const t = useT();
@@ -384,7 +382,6 @@ export function ReaderView({
   preview?: boolean;
 }) {
   const t = useT();
-  const [scale, setScale] = useState(1);
   const [annotationTarget,setAnnotationTarget] = useState<{verseId:string;element:HTMLElement}|null>(null);
   const annotations = useLiveQuery<AnnotationList>(["annotations","chapter",chapterId],()=>fetchJson(`/api/annotations?view=reader&chapterId=${encodeURIComponent(chapterId)}`),{scopes:["annotations"],contentScoped:true,enabled:!preview});
   const [confirmed,setConfirmed]=useState<Record<string,Partial<VerseView>>>({});
@@ -397,34 +394,6 @@ export function ReaderView({
 
   const { source, currentIndex, isPlaying } = useReadAloudPlayer();
   const readingVerse = !preview && source && source.id === chapterId && isPlaying ? source.verses[currentIndex]?.number ?? null : null;
-  // Het opgevraagde vers licht even op, zodat je ziet waar je bent beland.
-  const [flashVerse, setFlashVerse] = useState<number | null>(focusVerse ?? null);
-
-  useEffect(() => {
-    if (!focusVerse) return;
-    document.getElementById(`vers-${focusVerse}`)?.scrollIntoView({ block: "center" });
-    const timer = window.setTimeout(() => setFlashVerse(null), 4000);
-    return () => window.clearTimeout(timer);
-  }, [focusVerse]);
-
-  useEffect(() => {
-    if (!readingVerse) return;
-    document.getElementById(`vers-${readingVerse}`)?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-  }, [readingVerse]);
-
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(FONT_SCALE_KEY);
-      if (stored) setScale(parseFloat(stored));
-    } catch {
-      // negeren
-    }
-  }, []);
-
   const readAloud = useRef<ReadAloudControl | null>(null);
   const [audioStatus, setAudioStatus] = useState<ReadAloudStatus>("loading");
   const pointerStart = useRef<{ x: number; y: number; hadSelection: boolean } | null>(null);
@@ -455,40 +424,31 @@ export function ReaderView({
     };
   }
 
-  function changeScale(delta: number) {
-    const next = Math.min(MAX_SCALE, Math.max(MIN_SCALE, Math.round((scale + delta) * 100) / 100));
-    setScale(next);
-    try {
-      localStorage.setItem(FONT_SCALE_KEY, String(next));
-    } catch {
-      // negeren
-    }
-  }
-
-  return (
-    <>
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold text-brand-800 dark:text-brand-300">
-          {bookName} {chapterNumber}
-        </h1>
-        <div className="flex items-center gap-1 text-sm">
-          <button
-            aria-label={t("lesson.smallerText")}
-            className="w-8 h-8 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold"
-            onClick={() => changeScale(-0.1)}
-          >
-            A-
-          </button>
-          <button
-            aria-label={t("lesson.largerText")}
-            className="w-8 h-8 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold"
-            onClick={() => changeScale(0.1)}
-          >
-            A+
-          </button>
-        </div>
-      </div>
-
+  const colorForVerse = (id:string) => annotations.data?.annotations.find(row=>row.kind==='highlight'&&row.target.type==='verse'&&row.target.verseId===id)?.color;
+  return <ScriptureReaderView bookName={bookName} chapterNumber={chapterNumber} verses={verseState} focus={focus} focusVerse={focusVerse} readingVerse={readingVerse} activeVerseId={annotationTarget?.verseId} language={language}
+    colorForVerse={colorForVerse} onPointerDown={preview?undefined:rememberPointer} onVerseClick={preview?undefined:tapVerse}
+    renderVerseNumber={preview?undefined:(v)=>(
+                <button
+                  type="button"
+                  data-annotation-trigger
+                  aria-haspopup="dialog"
+                  aria-label={t("annotations.verseActions", { number: v.number })}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setAnnotationTarget({ verseId: v.id, element: event.currentTarget });
+                  }}
+                  className="mr-2 inline cursor-pointer select-none align-baseline font-bold text-brand-400 dark:text-brand-500 rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-vs-accent"
+                >
+                  {v.number}
+                  {(v.bookmarked || v.note || colorForVerse(v.id)) && (
+                    <span className="ml-0.5 inline-flex gap-0.5 align-[-0.1em] text-vs-accent">
+                      {colorForVerse(v.id) && <Highlighter aria-hidden className="h-[0.8em] w-[0.8em]" style={{ color: "rgb(var(--m))" }} />}
+                      {v.bookmarked && <Bookmark aria-hidden className="h-[0.8em] w-[0.8em] fill-current" />}
+                      {v.note && <StickyNote aria-hidden className="h-[0.8em] w-[0.8em]" />}
+                    </span>
+                  )}
+                </button>
+    )} beforeVerses={<>
       {!preview && <ReadAloudPlayer
           sourceId={chapterId}
           title={`${bookName} ${chapterNumber}`}
@@ -502,70 +462,8 @@ export function ReaderView({
 
       {!preview && annotations.data && !annotations.data.complete && <p role="status">{t("annotations.incomplete")}</p>}
       {!preview && !!annotations.error && <p role="alert">{t("annotations.failed")}</p>}
-      <div className={`${focus ? "" : "card "}flex flex-col gap-1`} style={{ "--reader-font-scale": scale } as React.CSSProperties}>
-        {verseState.map((v) => {
-          const mark = annotations.data?.annotations.find(row=>row.kind==='highlight'&&row.target.type==='verse'&&row.target.verseId===v.id)?.color;
-          // Markeringskleur, selectie, voorlezen en focus staan op aparte lagen: de ring (voorlezen/selectie/focus) laat
-          // de kleurlaag van een expliciete markering ongemoeid. De gouden vangnetkleur geldt alleen zolang de kleur nog onbekend is.
-          const ring = flashVerse === v.number
-            ? "ring-2 ring-brand-400 dark:ring-brand-500"
-            : annotationTarget?.verseId === v.id
-            ? "ring-2 ring-brand-300 dark:ring-brand-600"
-            : readingVerse === v.number
-              ? "ring-2 ring-brand-300/70 dark:ring-brand-600/70"
-              : "";
-          const surface = mark ? "" : flashVerse === v.number
-            ? "bg-brand-100/70 dark:bg-brand-900/30"
-            : annotationTarget?.verseId === v.id
-            ? "bg-brand-50 dark:bg-brand-900/20"
-            : v.highlighted
-            ? "bg-gold-400/20 dark:bg-gold-400/10"
-            : readingVerse === v.number
-              ? "bg-brand-100/70 dark:bg-brand-900/30"
-              : "";
-          return (
-          <div
-            key={v.id}
-            id={`vers-${v.number}`}
-            data-annotation-color={mark}
-            onPointerDown={preview ? undefined : rememberPointer}
-            onClick={preview ? undefined : (event) => tapVerse(event, v.id)}
-            className={`reader-text rounded-xl -mx-2 px-2 py-1 transition-colors duration-700 ${preview ? "" : "cursor-pointer"} ${ring} ${surface}`}
-          >
-            <p className="whitespace-pre-line">
-              {preview ? (
-                <span className="text-brand-400 dark:text-brand-500 font-bold mr-2 select-none">{v.number}</span>
-              ) : (
-                <button
-                  type="button"
-                  data-annotation-trigger
-                  aria-haspopup="dialog"
-                  aria-label={t("annotations.verseActions", { number: v.number })}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    setAnnotationTarget({ verseId: v.id, element: event.currentTarget });
-                  }}
-                  className="mr-2 inline cursor-pointer select-none align-baseline font-bold text-brand-400 dark:text-brand-500 rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-vs-accent"
-                >
-                  {v.number}
-                  {(v.bookmarked || v.note || mark) && (
-                    <span className="ml-0.5 inline-flex gap-0.5 align-[-0.1em] text-vs-accent">
-                      {mark && <Highlighter aria-hidden className="h-[0.8em] w-[0.8em]" style={{ color: "rgb(var(--m))" }} />}
-                      {v.bookmarked && <Bookmark aria-hidden className="h-[0.8em] w-[0.8em] fill-current" />}
-                      {v.note && <StickyNote aria-hidden className="h-[0.8em] w-[0.8em]" />}
-                    </span>
-                  )}
-                </button>
-              )}
-              {v.text}
-            </p>
-          </div>
-          );
-        })}
-      </div>
-      {!preview && annotationTarget && verses.some(v=>v.id===annotationTarget.verseId) && <AnnotationActions key={annotationTarget.verseId} target={{type:'verse',verseId:annotationTarget.verseId}} returnFocus={annotationTarget.element} onClose={()=>setAnnotationTarget(null)} onChanged={annotationChanged} audio={audioFor(annotationTarget.verseId)}/>}
-    </>
-  );
+    </>} afterVerses={<>
+      {!preview && annotationTarget && verses.some(v=>v.id===annotationTarget.verseId) && <AnnotationActions key={annotationTarget.verseId} target={{type:'verse',verseId:annotationTarget.verseId}} returnFocus={annotationTarget.element} onClose={()=>setAnnotationTarget(null)} onChanged={annotationChanged} audio={audioFor(annotationTarget.verseId)}/>}    </>}/>;
 }
 
 function formatCorrectAnswer(type: Exercise["type"], correctAnswer: string[], t: TFunction): string {

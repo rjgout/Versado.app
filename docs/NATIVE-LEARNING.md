@@ -121,3 +121,11 @@ leespaden, boekgroepen, voortgang en de veilige melding bij niet-ondersteunde
 acties. Dit is geen fysieke acceptatie van B3a-2 en geen Android-acceptatie.
 De CFM-studielezer, afronding, vragen, leesposities en beloningen blijven buiten
 B3a-2; de lesbestemmingen tonen de bestaande veilige melding.
+
+## B3b-1 — gedeelde schriftlezer (read-only)
+
+De drie Boek-van-Mormon-leespaden openen nu de bestaande gedeelde tekstpresentatie via
+`scripture-reader-v1`. Stap voor stap toont exact het toegestane versbereik; beide hoofdstukroutes
+tonen het gekozen toegestane hoofdstuk. Zie [NATIVE-READER.md](NATIVE-READER.md) voor contracten,
+beveiliging, testbewijs, grenzen en fysieke acceptatie. B3b-2/B3c blijven afzonderlijk; de oude
+Foundation-hoofdstukafronding wordt vanuit deze nieuwe app niet meer aangeboden.

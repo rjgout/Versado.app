@@ -15,7 +15,8 @@ test("de verslezer heeft geen aparte actierij of puntjesknop per vers", () => {
 });
 
 test("tikken is beveiligd tegen selectie, slepen en preview", () => {
-  assert.match(readerView, /onClick=\{preview \? undefined : \(event\) => tapVerse/);
+  assert.match(readerView, /onVerseClick=\{preview\?undefined:tapVerse/);
+  assert.match(read("src/components/reading/ScriptureReaderView.tsx"), /onClick=\{\s*onVerseClick\s*\?\s*\(?event\)?\s*=>\s*onVerseClick\(event,\s*v.id\)/);
   assert.match(readerView, /hadSelection/);
   assert.match(readerView, /Math\.hypot/);
   assert.match(readerView, /closest\("button, a, input, textarea, select"\)/);
