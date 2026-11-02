@@ -48,15 +48,17 @@ const login=async(page,user,t)=>{await page.getByLabel(t('nativeFoundation.email
 try{
  await prisma.contentSwitcherSettings.upsert({where:{id:'singleton'},create:{id:'singleton',enabled:true},update:{enabled:true}});
  await prisma.contentWork.upsert({where:{key:'bofm'},create:{key:'bofm',kind:'SCRIPTURE'},update:{}});
- const prefix='picker-browser-'+randomUUID(),collections={},chapters={};
+ const prefix='picker-browser-'+randomUUID(),collections={},chapters={},courses={};
  for(const language of ['nl','en','de','fr','es']){
   collections[language]=await prisma.contentCollection.create({data:{id:`${prefix}-${language}`,slug:`${prefix}-${language}`,name:`Boek van Mormon (${language})`,icon:'book',work:'bofm',language,editionKey:prefix,enabled:true,visibleToUsers:true,publicationState:'PUBLISHED'}});
   const book=await prisma.book.create({data:{slug:`${prefix}-${language}`,name:`Boek ${language}`,order:1,key:'bofm/1-ne',contentCollectionId:collections[language].id}});
   chapters[language]=await prisma.chapter.create({data:{bookId:book.id,number:1,order:1,verses:{create:{number:1,text:`Synthetische ${language}-passage voor de contentkiezer.`}}}});
+  courses[language]=await prisma.course.create({data:{slug:`${prefix}-${language}`,name:`Cursus ${language}`,type:'FREE_CHOICE',contentCollectionId:collections[language].id,chapters:{create:{chapterId:chapters[language].id,order:1}}}});
  }
  const artifacts=[];
  for(const language of ['nl','en','de','fr','es']){
   const t=getT(language),user=await prisma.user.create({data:{email:`picker-browser-${randomUUID()}@example.invalid`,handle:`Kiezer${language}${randomUUID().slice(0,6)}`,discriminator:'01',passwordHash:await hashPassword(password),emailVerifiedAt:new Date(),onboardingSeenAt:new Date(),activeContentCollectionId:collections.nl.id,contentLanguage:'nl',uiLanguage:language,xpTotal:37}});
+  for(const course of Object.values(courses))await prisma.userCourseProgress.create({data:{userId:user.id,courseId:course.id,subscribed:true}});
   const context=await browser.newContext({viewport:{width:390,height:844},locale:language,colorScheme:'light'}),web=await browser.newContext({viewport:{width:390,height:844},locale:language,colorScheme:'light'});
   const page=await context.newPage(),webPage=await web.newPage();for(const p of [page,webPage])p.on('pageerror',e=>errors.push(e.message));
   await page.goto(`${origin}/?device=${randomUUID()}`);await login(page,user,t);
@@ -83,6 +85,19 @@ try{
   }
   await page.setViewportSize({width:390,height:844});await page.evaluate(()=>{document.documentElement.style.fontSize='100%';window.dispatchEvent(new Event('resize'));});
   if(language==='nl'){
+   const openSelectedChapter=async source=>{
+    await page.locator('[data-main-nav]').getByRole('link',{name:t('nav.learn'),exact:true}).click();
+    await page.locator(`a.card-title-link[href="#/courses/${courses[source].id}"]`).click();
+    await page.locator(`a[href="#/courses/${courses[source].id}/read/chapters/${chapters[source].id}"]`).click();
+    await page.getByText(`Synthetische ${source}-passage voor de contentkiezer.`,{exact:false}).waitFor();
+   };
+   const backToToday=async source=>{
+    for(const target of [`#/courses/${courses[source].id}/pad`,'#/courses']){
+     await page.locator('[data-subpage-back-bar] button').click();await page.waitForFunction(target=>location.hash===target,target);
+    }
+    await page.locator('[data-main-nav]').getByRole('link',{name:t('nav.today'),exact:true}).click();await page.waitForFunction(()=>location.hash==='#/dashboard');
+   };
+
    const selected=page.waitForResponse(r=>r.request().method()==='POST'&&new URL(r.url()).pathname==='/api/v1/native/content-context');
    await page.locator('[data-content-language]').getByRole('button',{name:'English',exact:true}).click();assert.equal((await selected).status(),200);
    await page.waitForFunction(()=>location.hash==='#/dashboard');
@@ -93,15 +108,14 @@ try{
    await webPage.locator('[data-content-language]').getByRole('button',{name:'Deutsch',exact:true}).click();assert.equal((await update).status(),200);
    // Accessnative heeft bewust geen WebSocket: de bestaande storepoll synchroniseert uiterlijk15s, hervatten meteen.
    await page.waitForFunction(()=>document.querySelector('[data-kompas-target="content-switcher"] a')?.getAttribute('title')==='Boek van Mormon (de)',{},{timeout:20_000});
-   await page.getByRole('button',{name:/Boek de 1/}).click();await page.getByText('Synthetische de-passage voor de contentkiezer.',{exact:false}).waitFor();
-   await page.locator('[data-subpage-back-bar] button').click();await page.waitForFunction(()=>location.hash==='#/dashboard');
+   await openSelectedChapter('de');
+   await backToToday('de');
    await page.locator('[data-kompas-target="content-switcher"] a').click();
    const remap=page.waitForResponse(r=>r.request().method()==='POST'&&new URL(r.url()).pathname==='/api/v1/native/content-context');
    await page.locator('[data-content-language]').getByRole('button',{name:'Français',exact:true}).click();assert.equal((await remap).status(),200);
-   await page.getByRole('button',{name:/Boek fr 1/}).click();
-   await page.getByText('Synthetische fr-passage voor de contentkiezer.',{exact:false}).waitFor();
+   await openSelectedChapter('fr');
    assert.equal(await page.getByText('Synthetische de-passage voor de contentkiezer.',{exact:false}).count(),0,'Geen oude hoofdstuktekst onder nieuwe bron');
-   await page.locator('[data-subpage-back-bar] button').click();await page.waitForFunction(()=>location.hash==='#/dashboard');
+   await backToToday('fr');
    await page.locator('a[data-kompas-target="profile"]').click();await page.getByRole('link',{name:t('nativeDiagnostics.open'),exact:true}).click();
    await page.getByRole('heading',{name:t('nativeDiagnostics.title'),exact:true}).waitFor();await page.getByRole('button',{name:t('nativeFoundation.keyboardDone'),exact:true}).waitFor();
    await page.screenshot({path:`${out}/internal-diagnostics.png`,fullPage:true});await page.locator('[data-subpage-back-bar] button').click();

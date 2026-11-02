@@ -41,6 +41,8 @@ const front=createServer(async(req,res)=>{
       if(options.path==='capabilities'&&value.status===200){const body=JSON.parse(value.body);body.features=body.features.filter(f=>f!=='today-overview-v1');value={...value,body:JSON.stringify(body)};}
       if(holdNextChapterRead&&options.method==='GET'&&/^courses\/[^/]+\/read\/chapters\/[^/]+$/.test(options.path)){
        holdNextChapterRead=false;
+       // Canary uitsluitend in de vertraagde fixture-response: een verkeerde accountbinding moet zichtbaar falen.
+       const canary=JSON.parse(value.body);value={...value,body:JSON.stringify({...canary,bookName:'ALLEEN VERTRAAGDE ACCOUNT A'})};
        heldReads.push({path:options.path,authorization:options.authorization,finish(){if(!res.destroyed){res.setHeader('Content-Type','application/json');res.end(JSON.stringify(value));}}});return;
       }
       break;
@@ -113,7 +115,8 @@ try{
     pending.finish();heldReads.shift();const delivered=await lateResponse;
     const lateRead=await delivered.json();assert.equal(lateRead.status,200);assert.equal(JSON.parse(lateRead.body).userId,user.id);assert.equal(JSON.parse(lateRead.body).focusVerse,2);await delivered.finished();
     await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
-    assert.equal(await page.locator('#vers-1').evaluate(el=>el.classList.contains('ring-2')),true,'Een laat antwoord met A-verscursor vervangt niet de eigen B-tekst/cursor');
+    assert.equal(await page.getByRole('heading',{name:/ALLEEN VERTRAAGDE ACCOUNT A/}).count(),0,'Een late A-response mag de B-reader niet overnemen');
+    assert.equal(await page.locator('[data-scripture-reader] h1').innerText(),'WP6-testboek 1','De huidige B-presentatie blijft na echte A-delivery behouden');
     assert.equal(await prisma.contentProgress.count({where:{userId:other.id}}),0,'Lezen creëert ook voor een nieuwe gebruiker geen voortgang');
     assert.equal(completions(),completedBefore,'Hervatten, accountwisseling en late leesantwoorden veroorzaken geen afrondings-POST');
     await openChapter(chapters[1]);await page.getByText('Synthetische WP6-passage 2.',{exact:false}).waitFor();

@@ -59,20 +59,25 @@ Lokale verificatie op de geïntegreerde develop-basis:
 
 - `test:native`: 111 native- en 80 datatests geslaagd.
 - Gecombineerde reader-/cursus-/CFM-contract-/webversmenu-unitproeven: 19/19 geslaagd.
-- Geïsoleerde reader-SQL: 6/6 geslaagd; standaardmigratiebehoud/foutrollback van de runner behouden.
+- Volledige standaard `test:native:integration`: 80/80 API-/databaseproeven en 64/64
+  socket-/content-/actieraces geslaagd, plus alle dertien browserprogramma’s. Daarbinnen reader-SQL 6/6;
+  standaardmigratiebehoud/foutrollback van de runner behouden.
 - Readerbrowser: alle drie leeswijzen in vijf talen; 25 screenshots; vertraagd A-antwoord na B-login,
   bron/capabilityweigering, offline herstel en zes minuten behoud van open boekgroepen geslaagd.
 - Bestaande Access-browser: vijf taal-/layoutconfiguraties met gesimuleerde native Service Auth-bridge;
   echte read-only cursusroute, late A-verscursor na B-login, intrekking/enrollment, geen secrets in JS
-  en geen WebSocket geslaagd. De oude afrondings-UI-proef is vervangen; de bestaande backward-compatible
+  en geen WebSocket geslaagd. Een unieke A-kop in de vertraagde fixture-response bewijst
+  dat de actuele B-presentatie na die levering intact blijft; deze proef steunt niet op de tijdelijke versmarkering. De oude afrondings-UI-proef is vervangen; de bestaande backward-compatible
   POST-bevestiging-/GET-foutcontracten blijven in de runtime-unittests gecontroleerd.
+- Bestaande contentkiezerbrowser gebruikt nu de echte cursus-/readerroute na bronwisseling:
+  100 gekoppelde web/native screenshots en selectie-, terug-, account- en offlinecontroles geslaagd.
 - Bestaande Foundation-/accountbrowser, B3a-cursusbrowser (54 web/native screenshots) en
   webversmenu-/audio-/annotatiebrowser (40/40 controles) geslaagd.
 - Routefocus: 16 viewport-/tekst-/themacombinaties, drie oude-backendgevallen en acht gecombineerde
   content-/scroll-/sessieflows geslaagd. Focus-/shell-unitproeven 28/28; pariteitstests 6/6.
 - Schone Next-productiebuild, TypeScript, ESLint (geen fouten), vertaalcontrole, lokale native bundel,
   Capacitor-sync en beide distributieverificaties geslaagd. Repositorywaarschuwingen bij ESLint en
-  dynamische bestandstracering bij Next blijven apart van fouten; de bestaande fontscale-effectwaarschuwing
+  dynamische bestandstracering bij Next en bestaande `pg`-concurrentie-deprecaties in de media-/CFM-browsertests blijven apart van fouten; de bestaande fontscale-effectwaarschuwing
   verhuisde met de gedeelde tekstpresentatie.
 - De Linux-omgeving voert geen Xcode-simulatorcompilatie uit. iOS-/Android-compilatie en de volledige
   bestaande integratieketen moeten op de definitieve PR-head via de bestaande CI slagen.
