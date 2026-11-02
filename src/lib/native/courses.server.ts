@@ -1,3 +1,4 @@
+import type { Prisma } from "@/generated/prisma/client";
 import { cfmCourseListWhere } from "@/lib/studyContent/cfmCourses";
 import { applyPersonalOrder } from "@/lib/listOrder";
 import { prisma } from "@/lib/db";
@@ -15,13 +16,13 @@ import { getT } from "@/lib/i18n";
 import { activeNativeSession, NativeAuthError, type NativeSessionBinding } from "./sessions";
 import { nativeCoursesSchema, nativeCoursePathSchema } from "./coursesContract";
 
-export async function context(binding: NativeSessionBinding) {
- const user = await activeNativeSession(binding), picker = await getContentPickerContext(user.id);
+export async function context(binding: NativeSessionBinding, db: Prisma.TransactionClient = prisma) {
+ const user = await activeNativeSession(binding, db), picker = await getContentPickerContext(user.id, db);
  if (user.contentSelectionVersion !== picker.selectionVersion) throw new NativeAuthError("content_context_changed",409);
  return {user,picker};
 }
-export async function recheck(binding: NativeSessionBinding, original: Awaited<ReturnType<typeof context>>) {
- const latest = await context(binding);
+export async function recheck(binding: NativeSessionBinding, original: Awaited<ReturnType<typeof context>>, db: Prisma.TransactionClient = prisma) {
+ const latest = await context(binding, db);
  if (latest.user.uiLanguage !== original.user.uiLanguage || latest.user.timeZone !== original.user.timeZone || latest.user.isAdmin !== original.user.isAdmin || latest.picker.selectionVersion !== original.picker.selectionVersion || latest.picker.activeCollectionId !== original.picker.activeCollectionId) throw new NativeAuthError("content_context_changed",409);
  return latest;
 }
@@ -38,14 +39,14 @@ export async function nativeCourses(binding: NativeSessionBinding) {
  await recheck(binding,value);
  return nativeCoursesSchema.parse({...envelope(value),courses:applyPersonalOrder(courses.filter(course=>eligible.has(course.id)),order.map(row=>row.itemKey)),catalog:catalog.filter(course=>eligible.has(course.id))});
 }
-export async function nativeCoursePath(binding: NativeSessionBinding, courseId: string) {
- const value=await context(binding);
+export async function nativeCoursePath(binding: NativeSessionBinding, courseId: string, db: Prisma.TransactionClient = prisma) {
+ const value=await context(binding, db);
  const where={id:courseId,enabled:true,contentCollectionId:value.picker.activeCollectionId ?? "",contentCollection:readingAccessWhere(value.user)};
- const course=await prisma.course.findFirst({where,include:{contentCollection:{select:{work:true}}}});
+ const course=await db.course.findFirst({where,include:{contentCollection:{select:{work:true}}}});
  if (!course || !courseTypeMatchesContent(course.type,course.contentCollection.work) || !isReadingPathType(course.type)) throw new NativeAuthError("content_unavailable",404);
  const base={...envelope(value),courseId,courseName:localizedCourse({...course,work:course.contentCollection.work},value.user.uiLanguage).name,unitPlural:localizeTerm(chapterTerm(null,course.contentCollectionId),getT(value.user.uiLanguage)).plural};
- const data=course.type === "READING_LESSONS" ? {kind:"steps" as const,...await loadReadingPath(prisma,value.user.id,course.id,{readOnly:true})} : {kind:"chapters" as const,sequential:course.type !== "FREE_CHOICE",...await loadChapterPath(prisma,value.user.id,course,{readOnly:true})};
- await recheck(binding,value);
- if (!await prisma.course.findFirst({where,select:{id:true}})) throw new NativeAuthError("content_unavailable",404);
+ const data=course.type === "READING_LESSONS" ? {kind:"steps" as const,...await loadReadingPath(db,value.user.id,course.id,{readOnly:true})} : {kind:"chapters" as const,sequential:course.type !== "FREE_CHOICE",...await loadChapterPath(db,value.user.id,course,{readOnly:true})};
+ await recheck(binding,value,db);
+ if (!await db.course.findFirst({where,select:{id:true}})) throw new NativeAuthError("content_unavailable",404);
  return nativeCoursePathSchema.parse({...base,...data});
 }

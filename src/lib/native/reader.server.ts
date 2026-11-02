@@ -1,3 +1,4 @@
+import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { readingAccessWhere } from "@/lib/contentAccess";
 import { chapterLocks } from "@/lib/readingCourses";
@@ -42,9 +43,10 @@ export async function nativeScriptureReader(
   courseId: string,
   kind: NativeReaderKind,
   targetId: string,
+  db: Prisma.TransactionClient = prisma,
 ) {
-  const value = await context(binding);
-  const path = await nativeCoursePath(binding, courseId);
+  const value = await context(binding, db);
+  const path = await nativeCoursePath(binding, courseId, db);
   if (
     path.activeCollectionId !== value.picker.activeCollectionId ||
     path.selectionVersion !== value.picker.selectionVersion
@@ -60,7 +62,7 @@ export async function nativeScriptureReader(
       contentCollection: { ...readingAccessWhere(value.user), work: "bofm" },
     },
   };
-  const chapter = await prisma.chapter.findFirst({
+  const chapter = await db.chapter.findFirst({
     where,
     select: {
       id: true,
@@ -76,7 +78,7 @@ export async function nativeScriptureReader(
   });
   if (!chapter) throw new NativeAuthError("content_unavailable", 404);
   const [verses, position] = await Promise.all([
-    prisma.verse.findMany({
+    db.verse.findMany({
       where: {
         chapterId: chapter.id,
         number: { gte: chosen.start, lte: chosen.end },
@@ -85,7 +87,7 @@ export async function nativeScriptureReader(
       take: 501,
       select: { id: true, number: true, text: true },
     }),
-    prisma.contentProgress.findUnique({
+    db.contentProgress.findUnique({
       where: {
         userId_contentKey: {
           userId: value.user.id,
@@ -96,14 +98,14 @@ export async function nativeScriptureReader(
     }),
   ]);
   // Ook na de tekstquery: sessie/ABA/bron en bestaande cursus-/staprechten opnieuw bepalen.
-  const latest = await nativeCoursePath(binding, courseId),
+  const latest = await nativeCoursePath(binding, courseId, db),
     again = selection(latest, kind, targetId);
-  await recheck(binding, value);
+  await recheck(binding, value, db);
   if (
     latest.selectionVersion !== value.picker.selectionVersion ||
     latest.activeCollectionId !== value.picker.activeCollectionId ||
     JSON.stringify(again) !== JSON.stringify(chosen) ||
-    !(await prisma.chapter.findFirst({ where, select: { id: true } }))
+    !(await db.chapter.findFirst({ where, select: { id: true } }))
   )
     throw new NativeAuthError("content_context_changed", 409);
   const focusVerse =

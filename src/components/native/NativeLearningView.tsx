@@ -20,10 +20,10 @@ import { NativeClientError } from "@/lib/native/client";
 import NativeStudyImage, { NativeStudyMediaProvider } from "./NativeStudyImage";
 import { studyMediaIdFromSource } from "@/lib/native/studyMediaContract";
 
-export default function NativeLearningView(props: { userId: string; language: string; content?: NativeContentState; enabled: boolean; studyEnabled?: boolean; readerEnabled?: boolean; mediaEnabled: boolean; onError: (error: unknown) => void }) {
+export default function NativeLearningView(props: { userId: string; language: string; content?: NativeContentState; enabled: boolean; studyEnabled?: boolean; readerEnabled?: boolean; positionEnabled?: boolean; mediaEnabled: boolean; onError: (error: unknown) => void }) {
  return <ConfirmProvider><Learning {...props}/></ConfirmProvider>;
 }
-function Learning({ userId, language, content, enabled, studyEnabled = false, readerEnabled = false, mediaEnabled, onError }: Parameters<typeof NativeLearningView>[0]) {
+function Learning({ userId, language, content, enabled, studyEnabled = false, readerEnabled = false, positionEnabled = false, mediaEnabled, onError }: Parameters<typeof NativeLearningView>[0]) {
  const navigation=useAppNavigationAdapter(),runtime=useNativeData(),t=useT(),confirm=useConfirm();
  const readerRoute=nativeReaderRoute(navigation.pathname);
  const readerPage=readerRoute!==null;
@@ -62,7 +62,7 @@ function Learning({ userId, language, content, enabled, studyEnabled = false, re
   return focusNativeRouteHeading();
  },[focusIdentity,readerPage]);
  useEffect(()=>{if(!readerPage && !isStudy && !archiveRoute && data && "courseId" in data && !navigation.pathname.endsWith("/pad"))navigation.replace(`/courses/${data.courseId}/pad`);},[data,navigation,isStudy,archiveRoute,readerPage]);
- const reader=readerRoute?<NativeReaderView key={`${userId}:${runtime.getSnapshot()}:${language}:${content?.picker.selectionVersion}:${navigation.pathname}`} userId={userId} language={language} content={content} enabled={readerEnabled} route={readerRoute} onError={onError}/>:null;
+ const reader=readerRoute?<NativeReaderView key={`${userId}:${runtime.getSnapshot()}:${language}:${content?.picker.selectionVersion}:${navigation.pathname}`} userId={userId} language={language} content={content} enabled={readerEnabled} positionEnabled={positionEnabled} route={readerRoute} onError={onError}/>:null;
  if(readerRoute && (!data || (query.error && !transientFailure)))return reader;
  if(!readerRoute && isStudy && content && (!catalogQuery.error || nativeLearningTransientError(catalogQuery.error)))return <AppNavigationProvider adapter={adapter}><NativeCfmCourseView userId={userId} language={language} content={content} courseId={courseId!} onError={onError}/></AppNavigationProvider>;
  if((archiveRoute&&!isStudy) || resolving || (catalogQuery.error && !nativeLearningTransientError(catalogQuery.error)) || !enabled || !content || !data || (query.error && !transientFailure) || ("chapters" in data && data.chapters.length===0))return <section aria-busy={query.isFetching}><h1 tabIndex={-1} className="text-2xl font-extrabold">{t("pages.courses")}</h1><p role="status">{t(!enabled?"nativeLearning.unsupported":archiveRoute&&!isStudy?"nativeLearning.pathUnavailable":failure instanceof NativeClientError && failure.status === 404 ? "nativeLearning.pathUnavailable" : data && "chapters" in data && data.chapters.length===0 ? "nativeLearning.pathUnavailable" : failure?"nativeFoundation.error":"nativeFoundation.loading")}</p>{enabled&&(!archiveRoute||resolving)&&<button className="btn-secondary" onClick={()=>{void (resolving||catalogQuery.error?catalogQuery.refetch():query.refetch());}}>{t("nativeFoundation.retry")}</button>}<button className="btn-secondary" onClick={()=>navigation.back("/dashboard")}>{t("common.back")}</button></section>;

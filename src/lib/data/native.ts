@@ -10,6 +10,7 @@ import { DATA_EVENT_SOCKET_NAME, SOCKET_EVENT_TO_DATA_EVENT, dataEventsForSocket
 import { nativeAccountSchema, nativeTodaySchema, nativeChapterSchema, nativeContentStateSchema, nativeContentResultSchema, nativeContentSelectionSchema, type NativeContentState, type NativeContentSelection } from "@/lib/native/contract";
 import { NativeClientError, type NativeSessionClient } from "@/lib/native/client";
 
+import { readerResumeSchema, readerPositionInput, readerPositionResult, type ReaderResume, type ReaderPositionInput } from "@/lib/native/readerPositionContract";
 import { nativeReaderSchema, nativeReaderKind, type NativeReaderKind } from "@/lib/native/readerContract";
 import { nativeStudyCourseSchema, nativeStudyStepsSchema } from "@/lib/native/studyCoursesContract";
 import { nativeCoursesSchema, nativeCoursePathSchema, nativeCourseId } from "@/lib/native/coursesContract";
@@ -61,6 +62,34 @@ export class NativeDataRuntime {
     const value=nativeReaderSchema.parse(await this.client.api(`courses/${nativeCourseId.parse(courseId)}/read/${nativeReaderKind.parse(kind)}/${nativeCourseId.parse(targetId)}`));
     if(value.courseId!==courseId||value.kind!==kind||value.targetId!==targetId)throw new NativeClientError("content_context_changed",409);
     return this.studyResponse(value,epoch,userId,language,expected);
+  }
+  async readerResume(userId:string,language:string,expected:{activeCollectionId:string|null;selectionVersion:number},courseId:string,kind:NativeReaderKind,targetId:string,positionEnabled:boolean):Promise<ReaderResume> {
+    if(!positionEnabled)return {reader:await this.reader(userId,language,expected,courseId,kind,targetId),positionVersion:0,previous:null,next:null};
+    const epoch=this.epoch;
+    const value=readerResumeSchema.parse(await this.client.api(`courses/${nativeCourseId.parse(courseId)}/read/${nativeReaderKind.parse(kind)}/${nativeCourseId.parse(targetId)}/resume`));
+    if(value.reader.courseId!==courseId||value.reader.kind!==kind||value.reader.targetId!==targetId)throw new NativeClientError("content_context_changed",409);
+    this.studyResponse(value.reader,epoch,userId,language,expected);
+    return value;
+  }
+  readerPositionWriter(state:ReaderResume,queryKey:QueryKey) {
+    const epoch=this.epoch, reader=state.reader;
+    return async (raw:ReaderPositionInput)=>{
+      const input=readerPositionInput.parse(raw);
+      this.studyResponse(reader,epoch,reader.userId,reader.language,reader);
+      if(!this.environment.isOnline())throw new NativeClientError("network_unavailable");
+      // Eerst uitsluitend lezen: een verlopen kort access-token mag via de
+      // bestaande sessierotatie herstellen vóór de eenmalige schrijfaanvraag.
+      // Nooit een ontvangen 401 van de POST automatisch opnieuw versturen.
+      const account=await this.account();
+      this.studyResponse(reader,epoch,reader.userId,reader.language,reader);
+      if(account.id!==reader.userId)throw new NativeClientError("session_changed",409);
+      const result=readerPositionResult.parse(await this.client.actionOnce(`courses/${reader.courseId}/read/${reader.kind}/${reader.targetId}/position`,input));
+      this.studyResponse(result,epoch,reader.userId,reader.language,reader);
+      if(result.courseId!==reader.courseId||result.kind!==reader.kind||result.targetId!==reader.targetId||result.actionId!==input.actionId||result.verse!==input.verse||result.version!==input.expectedVersion+1)throw new NativeClientError("invalid_response");
+      // Bevestigde hervatdata beschermen tegen een oudere in-flight GET.
+      this.store.setData<ReaderResume>(["native",epoch,...queryKey],previous=>previous && previous.positionVersion<=result.version ? {...previous,positionVersion:result.version,reader:{...previous.reader,focusVerse:result.verse}}:previous);
+      return result;
+    };
   }
   async studyCourse(userId:string,language:string,expected:{activeCollectionId:string|null;selectionVersion:number},courseId:string,scope:"weeks"|"archive") {
     const epoch=this.epoch;

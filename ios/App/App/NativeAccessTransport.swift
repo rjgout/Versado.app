@@ -11,8 +11,8 @@ enum NativeAccessPolicy {
     static func routeAllowed(_ path: String, _ method: String) -> Bool {
         let pattern: String
         switch method {
-        case "GET": pattern = "(?:capabilities|me|today|today-overview|content-context|courses|courses/[A-Za-z0-9_-]{1,128}/read/(?:steps|chapters)/[A-Za-z0-9_-]{1,128}|courses/[A-Za-z0-9_-]{1,128}/path|courses/[A-Za-z0-9_-]{1,128}/(?:weeks|archive)|courses/[A-Za-z0-9_-]{1,128}/weeks/[A-Za-z0-9_-]{1,128}/steps|(chapters|study-media)/[A-Za-z0-9_-]{1,128})"
-        case "POST": pattern = "(?:today-actions/(hide|friend-response)|content-context|login|register|forgot-password|reset-password|verify-email|refresh|logout|security-setup/(?:complete|cancel)|apple/(?:challenge|complete)|account/password|chapters/[A-Za-z0-9_-]{1,128}/complete)"
+        case "GET": pattern = "(?:capabilities|me|today|today-overview|content-context|courses|courses/[A-Za-z0-9_-]{1,128}/read/(?:steps|chapters)/[A-Za-z0-9_-]{1,128}/resume|courses/[A-Za-z0-9_-]{1,128}/read/(?:steps|chapters)/[A-Za-z0-9_-]{1,128}|courses/[A-Za-z0-9_-]{1,128}/path|courses/[A-Za-z0-9_-]{1,128}/(?:weeks|archive)|courses/[A-Za-z0-9_-]{1,128}/weeks/[A-Za-z0-9_-]{1,128}/steps|(chapters|study-media)/[A-Za-z0-9_-]{1,128})"
+        case "POST": pattern = "(?:courses/[A-Za-z0-9_-]{1,128}/read/(?:steps|chapters)/[A-Za-z0-9_-]{1,128}/position|today-actions/(hide|friend-response)|content-context|login|register|forgot-password|reset-password|verify-email|refresh|logout|security-setup/(?:complete|cancel)|apple/(?:challenge|complete)|account/password|chapters/[A-Za-z0-9_-]{1,128}/complete)"
         case "DELETE": pattern = "(?:apple|account)"
         default: return false
         }

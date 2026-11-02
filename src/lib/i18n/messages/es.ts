@@ -4,6 +4,13 @@ import { kompasEs } from "./kompas/es";
 // Spaanse app-teksten; ontbrekende teksten vallen terug volgens fallbackChain.
 export const es: PartialMessages = {
   nativeReader: {
+    positionEnabled: "Tu posición se guarda tras una lectura estable. El audio, las anotaciones, las preguntas y la finalización llegarán más adelante. Leer y navegar no otorgan XP ni completan la lectura.",
+    saving: "Guardando posición…",
+    saved: "Posición guardada.",
+    saveFailed: "No se guardó la posición. Vuelve a intentarlo manualmente.",
+    conflict: "La posición cambió en otro lugar. Recarga la posición confirmada y continúa leyendo.",
+    previous: "Capítulo anterior",
+    next: "Capítulo siguiente",
     "unsupported": "Este servidor todavía no admite el lector compartido. Vuelve a Aprender.",
     "readOnly": "Aquí puedes leer y copiar texto. El audio, las anotaciones, guardar la posición, las preguntas y la finalización llegarán después. Abrir o desplazarse no concede XP ni progreso.",
     "range": "Paso de lectura: versículos {start}–{end}.",

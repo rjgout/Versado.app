@@ -4,6 +4,13 @@ import { kompasFr } from "./kompas/fr";
 // Ontbrekende teksten vallen terug volgens fallbackChain (src/lib/languages.ts).
 export const fr: PartialMessages = {
   nativeReader: {
+    positionEnabled: "Votre position est enregistrée après une lecture stable. Audio, annotations, questions et validation viendront plus tard. Lire et feuilleter ne donnent ni XP ni validation.",
+    saving: "Enregistrement de la position…",
+    saved: "Position enregistrée.",
+    saveFailed: "Position non enregistrée. Réessayez manuellement.",
+    conflict: "La position a été modifiée ailleurs. Rechargez la position confirmée, puis continuez à lire.",
+    previous: "Chapitre précédent",
+    next: "Chapitre suivant",
     "unsupported": "Ce serveur ne prend pas encore en charge le lecteur partagé. Revenez à Apprendre.",
     "readOnly": "Vous pouvez lire et copier le texte ici. Audio, annotations, enregistrement de la position, questions et validation viendront ensuite. Ouvrir ou faire défiler ne donne ni XP ni progression.",
     "range": "Étape de lecture : versets {start}–{end}.",
