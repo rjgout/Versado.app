@@ -100,6 +100,13 @@ public class NativeAccessTransportTest {
         Edge backend = new Edge(); backend.status = 401; backend.response = "{\"error\":\"session_expired\"}";
         assertEquals(401, request(backend).status);
     }
+    @Test public void upstream5xxDiscardsBodyAndRemainsNetworkFailure() {
+        for (int status : new int[]{500,502,503}) {
+            Edge edge=new Edge(); edge.status=status; edge.type="text/html"; edge.origin=null; edge.response=credentials.secret;
+            assertEquals("access_network_unavailable",assertThrows(NativeAccessTransport.Failure.class,()->request(edge)).code);
+            assertEquals(1,edge.calls);
+        }
+    }
     @Test public void redirectsAndSecretEchoAreRejected() throws Exception {
         Edge redirect = new Edge(); redirect.status = 302;
         assertEquals("access_redirect_blocked", assertThrows(NativeAccessTransport.Failure.class, () -> request(redirect)).code);

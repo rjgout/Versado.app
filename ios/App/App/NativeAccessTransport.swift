@@ -74,6 +74,9 @@ final class NativeAccessRequest: NSObject, URLSessionDataDelegate, URLSessionTas
         status = response.statusCode
         guard (200...599).contains(status) else { completionHandler(.cancel); finish(.failure(NativeAccessFailure("access_invalid_response"))); return }
         guard !(300..<400).contains(status) else { completionHandler(.cancel); finish(.failure(NativeAccessFailure("access_redirect_blocked"))); return }
+        // Een 5xx is geen inhoud/autoritatieve weigering. Breek af vóór body- of
+        // headerdoorgifte; ook een HTML-gatewayfout blijft een transportfout.
+        if status >= 500 { completionHandler(.cancel); finish(.failure(NativeAccessFailure("access_network_unavailable"))); return }
         guard response.value(forHTTPHeaderField: "Access-Control-Allow-Origin") == "capacitor://localhost",
               response.mimeType?.lowercased() == "application/json" else {
             completionHandler(.cancel); finish(.failure(NativeAccessFailure([401, 403].contains(status) ? "access_denied" : "access_invalid_response"))); return

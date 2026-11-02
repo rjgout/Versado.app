@@ -37,6 +37,7 @@ assert.equal(
 const osBoundary = {
   name: "reader-os-events-only",
   setup(api) {
+    api.onLoad({filter:/src\/lib\/data\/native\.ts$/},args=>({loader:"ts",contents:readFileSync(args.path,"utf8").replace("const input=readerPositionInput.parse(raw);","const input=readerPositionInput.parse(raw); globalThis.__positionInputs.push({...input});").replace("this.store = new LiveDataStore(environment);","this.store = new LiveDataStore(environment); globalThis.__readerRuntime = this; globalThis.__positionInputs=[];")}));
     api.onLoad({ filter: /src\/lib\/platform\.ts$/ }, (args) => {
       const source = readFileSync(args.path, "utf8"),
         start = source.indexOf(
@@ -67,16 +68,19 @@ const secrets = new Map(),
   held = [];
 let noPositionBackend = false, oldBackend = false,
   readFailure = 0,
-  holdReader = false;
+  holdReader = false, proxyFailure = false, holdLearning = false, learningFailure = 0;
+const heldLearning=[];
 const front = createServer(async (req, res) => {
   try {
     const url = new URL(req.url, "http://127.0.0.1");
     if (url.pathname.startsWith("/api/v1/native/")) {
       const record={ path: url.pathname, method: req.method };calls.push(record);
       const isReader = /\/courses\/[^/]+\/read\//.test(url.pathname);
+      const isLearning=req.method === "GET" && (url.pathname.endsWith("/courses") || url.pathname.endsWith("/path"));
+      if(isLearning && learningFailure){res.writeHead(learningFailure,{"Content-Type":"application/json"});res.end(JSON.stringify({error:"content_unavailable"}));return;}
       if (isReader && readFailure) {
-        res.writeHead(readFailure, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ error: "native_request_failed" }));
+        res.writeHead(readFailure, { "Content-Type": proxyFailure ? "text/html" : "application/json" });
+        res.end(proxyFailure ? "<html>Temporary upstream failure</html>" : JSON.stringify({ error: "native_request_failed" }));
         return;
       }
       const chunks = [];
@@ -117,6 +121,7 @@ const front = createServer(async (req, res) => {
           res.end(body);
         }
       };
+      if(isLearning && holdLearning){heldLearning.push(finish);return;}
       if (isReader && holdReader) {
         holdReader = false;
         held.push(finish);
@@ -474,6 +479,78 @@ try {
           fullPage: true,
         });
     }
+    if(language === "nl") {
+      const long=await prisma.chapter.create({data:{bookId:f.book.id,number:71,order:71,verses:{create:Array.from({length:40},(_,i)=>({number:i+1,text:`Lang synthetisch leesvers ${i+1}. `+"Leesbare tekst voor behoud van de zichtbare leespositie. ".repeat(4)}))}}});
+      await prisma.courseChapter.create({data:{courseId:free.id,chapterId:long.id,order:3}});
+      const longRoute=route(free.id,"chapters",long.id);
+      const posts=()=>calls.filter(c=>c.method==="POST"&&c.path.endsWith("/position")).length;
+      await go(longRoute);await waitReader();await showVerse(5);await wheelAndWait(1,10000);
+      await page.getByText(t("nativeReader.saved"),{exact:true}).waitFor();
+      // Koude reader mag al leesbaar zijn terwijl het aparte leerpad nog laadt.
+      holdLearning=true;await page.reload();await waitReader();await page.waitForTimeout(100);
+      assert.ok(heldLearning.length>0,"leerpad/catalogus is aantoonbaar vertraagd");
+      const beforePosts=posts();
+      await context.setOffline(true);await showVerse(20);await wheelAndWait(1,10000);
+      await page.getByText(t("nativeReader.saveFailed"),{exact:true}).waitFor();
+      const failedIntent=await page.evaluate(()=>globalThis.__positionInputs.at(-1));
+      assert.equal(failedIntent.verse,20);
+      const beforeTop=await page.evaluate(()=>{globalThis.__readerNode=document.querySelector("[data-scripture-reader]");return document.getElementById("vers-20").getBoundingClientRect().top;});
+      const epoch=await page.evaluate(()=>globalThis.__readerRuntime.getSnapshot());
+      const assertStable=async label=>{
+        assert.equal(await page.locator("[data-native-reader] .reader-text").count(),40,label+": bevestigde tekst blijft zichtbaar");
+        assert.ok(await page.evaluate(()=>globalThis.__readerNode===document.querySelector("[data-scripture-reader]")),label+": dezelfde React DOM-node");
+        assert.ok(Math.abs(await page.locator("#vers-20").evaluate(e=>e.getBoundingClientRect().top)-beforeTop)<3,label+": zichtbaar vers blijft op dezelfde schermpositie");
+        assert.equal(posts(),beforePosts,label+": geen automatische positie-POST");
+      };
+      readFailure=502;proxyFailure=true;
+      const failedGet=page.waitForResponse(r=>r.url().includes(`/read/chapters/${long.id}/resume`)&&r.status()===502);
+      await context.setOffline(false);await failedGet;await page.waitForTimeout(100);
+      assert.equal(await page.evaluate(()=>globalThis.__readerRuntime.getSnapshot()),epoch,"netwerkherstel wisselt geen sessie-epoch");
+      const cached=await page.evaluate(({userId,collectionId,courseId,chapterId,epoch})=>{
+        const identity=`${userId}:nl:${collectionId}:0:${courseId}:chapters:${chapterId}`;
+        const value=globalThis.__readerRuntime.store.getSnapshot(JSON.stringify(["native",epoch,"reader",identity,true]));
+        return {chapterId:value.data?.reader.chapterId,error:value.error?.code};
+      },{userId:user.id,collectionId:f.collection.id,courseId:free.id,chapterId:long.id,epoch});
+      assert.equal(cached.chapterId,long.id,"cache blijft intact ondanks mislukte GET");assert.equal(cached.error,"invalid_response");
+      await assertStable("502 tijdens internetherstel");
+      holdLearning=false;for(const finish of heldLearning.splice(0))finish();
+      await page.waitForLoadState("networkidle");await assertStable("leerpad wordt alsnog geladen");
+      // Een volgende, succesvolle maar vertraagde GET mag de onbewaarde lokale
+      // vers20 niet terugzetten naar de laatst bevestigde serverpositie vers5.
+      readFailure=0;proxyFailure=false;holdReader=true;
+      await page.evaluate(()=>window.dispatchEvent(new Event("reader:test-resume")));
+      for(let i=0;i<100&&!held.length;i++)await new Promise(r=>setTimeout(r,20));
+      assert.equal(held.length,1);await assertStable("GET is nog onderweg");
+      for(const finish of held.splice(0))finish();await page.waitForLoadState("networkidle");await assertStable("GET met oudere serverpositie is voltooid");
+      const before=await prisma.contentProgress.findUniqueOrThrow({where:{userId_contentKey:{userId:user.id,contentKey:"bofm/alma#71"}}});
+      assert.equal(Object.values(before.readerPositions)[0].verse,5,"fout en herstel wijzigen de serverpositie niet");
+      // Alleen de bestaande retryhandler uitvoeren; Playwright mag niet eerst
+      // zelf naar de knop onderaan het lange hoofdstuk scrollen.
+      await page.locator("[data-reader-save-status] button").evaluate(button=>button.click());
+      await page.getByText(t("nativeReader.saved"),{exact:true}).waitFor();
+      assert.equal(posts(),beforePosts+1);assert.deepEqual(await page.evaluate(()=>globalThis.__positionInputs.at(-1)),failedIntent,"retry behoudt UUID, verwachte versie en vers");
+      assert.ok(await page.evaluate(()=>globalThis.__readerNode===document.querySelector("[data-scripture-reader]")));
+      assert.ok(Math.abs(await page.locator("#vers-20").evaluate(e=>e.getBoundingClientRect().top)-beforeTop)<3,"schrijfretry reset geen scroll");
+      await page.reload();await waitReader();
+      await page.waitForFunction(()=>document.getElementById("vers-20")?.classList.contains("ring-2"));
+      assert.equal(posts(),beforePosts+1,"heropenen schrijft niets");
+      // Een echte expliciete weigering van het leerpad moet eigen readercache
+      // blokkeren, ook wanneer die read-only reader-GET zelf nog succesvol is.
+      learningFailure=403;
+      await page.evaluate(()=>window.dispatchEvent(new Event("reader:test-resume")));
+      await page.waitForFunction(()=>!document.querySelector("[data-native-reader] .reader-text"));
+      assert.equal(await page.locator("[data-native-reader] .reader-text").count(),0);
+      learningFailure=0;
+      await page.locator("[data-native-reader-unavailable]").getByRole("button",{name:t("nativeFoundation.retry"),exact:true}).click();await waitReader();
+      // Echte backendrechten wijzigen, niet alleen een gemockte HTTP-code.
+      try {
+        await prisma.contentCollection.update({where:{id:f.collection.id},data:{visibleToUsers:false}});
+        await page.evaluate(()=>window.dispatchEvent(new Event("reader:test-resume")));
+        await page.waitForFunction(()=>!document.querySelector("[data-native-reader] .reader-text"));
+        assert.equal(await page.locator("[data-native-reader] .reader-text").count(),0,"ingetrokken collectierechten verbergen oude tekst");
+      }finally{await prisma.contentCollection.update({where:{id:f.collection.id},data:{visibleToUsers:true}});}
+      await page.reload();await waitReader();
+    }
     // Werkelijke padlink en terugnavigatie: de React-padpresentatie blijft gemount, geen tweede UI-cache.
     const pathUrl = `/courses/${free.id}/pad`;
     await go(pathUrl);
@@ -650,6 +727,10 @@ try {
       durablePosition: language === "nl" ? "PASS" : "SQL TESTED",
       offlineManualRetry: language === "nl" ? "PASS" : "NOT TESTED",
       concurrentPositionConflict: language === "nl" ? "PASS" : "NOT TESTED",
+      networkRecoverySameDOMAndViewport: language === "nl" ? "PASS" : "NOT TESTED",
+      manualRetrySameActionAndVersion: language === "nl" ? "PASS" : "NOT TESTED",
+      parentAuthorizationBlocksCache: language === "nl" ? "PASS" : "NOT TESTED",
+      realCollectionWithdrawalHidesCache: language === "nl" ? "PASS" : "NOT TESTED",
       chapterNavigation: true,
       noCompletion: true,
     });
@@ -665,7 +746,7 @@ try {
   writeFileSync(`${out}/resultaten.json`, JSON.stringify(results, null, 2));
   console.log(JSON.stringify(results));
 } finally {
-  for (const finish of held) finish();
+  for (const finish of [...held,...heldLearning]) finish();
   await browser.close();
   front.closeAllConnections?.();
   await new Promise((resolve) => front.close(resolve));

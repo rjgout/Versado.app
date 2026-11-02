@@ -22,6 +22,8 @@ export default function NativeReaderView({
   positionEnabled = false,
   route,
   onError,
+  parentError,
+  retryParent,
 }: {
   userId: string;
   language: string;
@@ -30,6 +32,8 @@ export default function NativeReaderView({
   positionEnabled?: boolean;
   route: NonNullable<ReturnType<typeof nativeReaderRoute>>;
   onError: (e: unknown) => void;
+  parentError?: unknown;
+  retryParent?: () => void;
 }) {
   const runtime = useNativeData(),
     navigation = useAppNavigation(),
@@ -54,27 +58,21 @@ export default function NativeReaderView({
       staleTime: 60_000,
     },
   );
-  const transient = nativeLearningTransientError(query.error),
-    data =
-      enabled && content && (!query.error || transient)
-        ? query.data?.reader
-        : undefined;
+  // Bevestigde tekst blijft bij transportfouten gemount. Een echte blokkade
+  // van reader óf leerpad heeft altijd voorrang, ook als de andere GET slaagt.
+  const blockingError = [parentError,query.error].find(error=>error && !nativeLearningTransientError(error));
+  const data = enabled && content && !blockingError ? query.data?.reader : undefined;
   useEffect(() => {
-    if (
-      query.error instanceof NativeClientError &&
-      (query.error.status === 401 ||
-        query.error.code.startsWith("access_") ||
-        query.error.code === "content_context_changed")
-    )
-      onError(query.error);
-  }, [query.error, onError]);
+    if (blockingError instanceof NativeClientError &&
+      (blockingError.status === 401 || blockingError.code.startsWith("access_") || blockingError.code === "content_context_changed"))onError(blockingError);
+  },[blockingError,onError]);
   const [conflict,setConflict] = useState(false);
   const writePosition=query.data ? runtime.readerPositionWriter(query.data,queryKey) : null;
   const position = useNativeReaderPosition(data,query.data?.positionVersion ?? 0,positionEnabled,
     async input => {if(!writePosition)throw new NativeClientError("content_context_changed",409);return writePosition(input);},
     error => {
       if(error instanceof NativeClientError && error.status === 409)setConflict(true);
-      if(error instanceof NativeClientError && (error.status===401||error.code.startsWith("access_")||error.code==="content_context_changed"))onError(error);
+      if(!nativeLearningTransientError(error) && error instanceof NativeClientError && (error.status===401||error.code.startsWith("access_")||error.code==="content_context_changed"))onError(error);
     });
   const hasData = !!data;
   const focused = useRef("");
@@ -103,7 +101,7 @@ export default function NativeReaderView({
   const back = () => navigation.back(`/courses/${route.courseId}/pad`);
   if (!data)
     return (
-      <section aria-busy={query.isFetching}>
+      <section data-native-reader-unavailable aria-busy={query.isFetching}>
         <h1 tabIndex={-1} className="text-2xl font-extrabold">
           {t("pages.lesson")}
         </h1>
@@ -111,7 +109,7 @@ export default function NativeReaderView({
           {t(
             !enabled
               ? "nativeReader.unsupported"
-              : query.error
+              : blockingError || query.error
                 ? "nativeLearning.pathUnavailable"
                 : "nativeFoundation.loading",
           )}
@@ -120,7 +118,7 @@ export default function NativeReaderView({
           <button
             className="btn-secondary"
             disabled={query.isFetching}
-            onClick={() => void query.refetch()}
+            onClick={() => { void query.refetch(); retryParent?.(); }}
           >
             {t("nativeFoundation.retry")}
           </button>
@@ -166,7 +164,7 @@ export default function NativeReaderView({
           {query.data?.previous && <button className="btn-secondary" onClick={()=>navigation.push(`/courses/${route.courseId}/read/chapters/${query.data!.previous}`)}>{t("nativeReader.previous")}</button>}
           {query.data?.next && <button className="btn-secondary" onClick={()=>navigation.push(`/courses/${route.courseId}/read/chapters/${query.data!.next}`)}>{t("nativeReader.next")}</button>}
         </nav>}
-        {!!query.error && (
+        {!!query.error && position.status !== "error" && (
           <p role="status">{t("nativeLearning.refreshFailed")}</p>
         )}
         <button className="btn-secondary self-start" onClick={back}>

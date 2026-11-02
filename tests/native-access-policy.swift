@@ -80,6 +80,10 @@ private final class FakeAccessProtocol: URLProtocol {
         require(headers.value(forHTTPHeaderField: "Authorization") == "Bearer synthetic.native", "Versado authorization changed")
         require(headers.value(forHTTPHeaderField: "Cookie") == nil, "cookies sent")
         for status in [401, 403] { FakeAccessProtocol.response = (status, "text/html", nil, "Access denied"); failure(try perform(), "access_denied") }
+        for status in [500, 502, 503] {
+            FakeAccessProtocol.response = (status, "text/html", nil, "synthetic-secret-for-native-tests")
+            failure(try perform(), "access_network_unavailable")
+        }
         FakeAccessProtocol.response = (401, "application/json", "capacitor://localhost", "{\"error\":\"session_expired\"}")
         if case .success(let response) = try perform() { require(response.0 == 401, "Versado 401 changed") } else { fatalError("backend 401 hidden") }
         FakeAccessProtocol.response = (302, "text/html", nil, "redirect"); failure(try perform(), "access_redirect_blocked")
