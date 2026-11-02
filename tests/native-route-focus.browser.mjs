@@ -18,7 +18,8 @@ const stylesheet = readFileSync('dist/native/index.css');
 const saved = new Map(), calls = [], errors = [], results = [];
 const account = { id: 'focus-user', handle: 'Langetoegankelijkegebruikersnaam', uiLanguage: 'nl', onboardingRequired: false, appleLinked: false, passwordLoginEnabled: true };
 const chapter = { id: 'focus-chapter', title: 'Lang synthetisch leeshoofdstuk', state: { read: 'READING' }, verses: Array.from({ length: 90 }, (_, i) => ({ number: i + 1, text: 'Selecteerbare synthetische schrifttekst om de bewaarde leespositie en kopfocus te controleren.' })) };
-let advertised = [], expired = false, version = 1, language = 'nl';
+const readerPath='/courses/focus-course/read/chapters/focus-chapter';
+let advertised = ['content-picker-v1','scripture-reader-v1'], expired = false, version = 1, language = 'nl';
 const editions = ['nl', 'en'].map(language => ({ id: `focus-source-${language}`, slug: `focus-source-${language}`, name: `Schriften ${language}`, icon: 'book', order: 0, visibleToUsers: true, work: 'bofm', editionKey: 'focus-edition', language, sourceName: null, sourceUrl: null, licenseName: null, licenseUrl: null, selectable: true, previewHref: null }));
 const contentState = () => ({ version: 1, userId: account.id, switcherEnabled: true, picker: { activeCollectionId: `focus-source-${language}`, selectionVersion: version, selection: { activeContentCollectionId: `focus-source-${language}`, contentLanguage: language }, works: [{ key: 'bofm', kind: 'SCRIPTURE', editions }] } });
 const front = createServer(async (req, res) => {
@@ -31,17 +32,18 @@ const front = createServer(async (req, res) => {
     }
     if (url.pathname.startsWith('/api/v1/native/')) {
       const path = url.pathname.slice('/api/v1/native/'.length); calls.push({ path, method: req.method });
-      if (expired && ['refresh', 'me', 'today', 'content-context'].includes(path)) { res.writeHead(401, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ error: 'session_expired' })); return; }
+      if (expired && (['refresh', 'me', 'today', 'content-context'].includes(path)||path.includes('/read/'))) { res.writeHead(401, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ error: 'session_expired' })); return; }
       if (path === 'content-context' && req.method === 'POST') {
         const chunks = []; for await (const chunk of req) chunks.push(chunk); const input = JSON.parse(Buffer.concat(chunks));
         assert.equal(input.expectedSelectionVersion, version); assert.ok(editions.some(e => e.id === input.contentCollectionId));
         language = editions.find(e => e.id === input.contentCollectionId).language; version++;
-        res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify({ state: contentState(), destination: '/lesson/focus-chapter-en', changed: true })); return;
+        res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify({ state: contentState(), destination: readerPath+'-en', changed: true })); return;
       }
       const answer = path === 'capabilities' ? { apiVersion: 1, apple: false, registration: true, features: advertised }
         : ['login', 'refresh'].includes(path) ? { accessToken: 'synthetic-access', refreshToken: 'synthetic-refresh', expiresIn: 300 }
         : path === 'logout' ? { ok: true } : path === 'me' ? account
         : path === 'today' ? { selectionVersion: version, activity: { id: chapter.id, title: chapter.title } }
+        : /^courses\/focus-course\/read\/chapters\/focus-chapter(?:-en)?$/.test(path) ? {version:1,userId:account.id,activeCollectionId:`focus-source-${language}`,selectionVersion:version,language:'nl',courseId:'focus-course',kind:'chapters',targetId:path.split('/').at(-1),chapterId:path.split('/').at(-1),collectionName:`Schriften ${language}`,bookName:language==='en'?'English chapter':chapter.title,chapterNumber:1,sourceLanguage:language,startVerse:1,endVerse:90,focusVerse:1,verses:chapter.verses.map(v=>({...v,id:`focus-verse-${v.number}`}))}
         : path === 'content-context' ? contentState() : path === `chapters/${chapter.id}` ? { ...chapter, contentCollectionId: 'focus-source-nl', selectionVersion: version } : path === 'chapters/focus-chapter-en' ? { ...chapter, id: 'focus-chapter-en', title: 'English chapter', contentCollectionId: 'focus-source-en', selectionVersion: version } : null;
       assert.ok(answer, `Onverwacht contract ${path}`);
       res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(answer)); return;
@@ -99,7 +101,7 @@ try {
     await page.screenshot({ path: `${out}/profile-${width}-${scale}-${scheme}.png`, fullPage: true });
     await keyboardFocus(page, page.locator('[data-subpage-back-bar] button'));
     await page.locator('[data-subpage-back-bar] button').click(); await headingFocused(page, /Vandaag/);
-    await page.getByRole('button', { name: /Lang synthetisch leeshoofdstuk/ }).click(); await headingFocused(page, chapter.title);
+    await page.evaluate(path=>window.dispatchEvent(new CustomEvent('focus:test-open',{detail:location.origin+path})),readerPath); await headingFocused(page, chapter.title);
     const verse = page.locator('.native-foundation p').filter({ hasText: chapter.verses[0].text }).first();
     assert.notEqual(await verse.evaluate(p => getComputedStyle(p).userSelect), 'none');
     assert.equal(await verse.evaluate(p => { const selection = getSelection(), range = document.createRange(); range.selectNodeContents(p); selection.removeAllRanges(); selection.addRange(range); return selection.toString().includes('Selecteerbare synthetische schrifttekst'); }), true);
@@ -118,7 +120,7 @@ try {
     // Hervatten mag dezelfde route/scroll niet naar h1 trekken.
     await page.evaluate(() => window.dispatchEvent(new Event('versado:app-resumed')));
     await page.waitForTimeout(50); assert.ok(Math.abs(await page.evaluate(() => scrollY) - position) < 2);
-    await keyboardFocus(page, page.getByRole('button', { name: 'Markeer als gelezen', exact: true }));
+    await keyboardFocus(page, page.getByRole('button', { name: 'Grotere tekst', exact: true }));
     await page.locator('[data-subpage-back-bar] button').click(); await page.locator('a[data-kompas-target="profile"]').click();
     await page.getByRole('button', { name: 'Uitloggen', exact: true }).click(); await headingFocused(page, 'Welkom bij Versado');
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false);
@@ -132,13 +134,13 @@ try {
   // Een expliciete login vanuit een private deeplink behoudt juist die bestemming.
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'nl-NL' });
   const page = await context.newPage(); page.on('pageerror', error => errors.push(error.message));
-  await page.goto(`${origin}/?device=private-deeplink#/lesson/${chapter.id}`);
+  await page.goto(`${origin}/?device=private-deeplink#${readerPath}`);
   await headingFocused(page, 'Welkom bij Versado');
   await page.getByLabel('E-mail of gebruikerstag').fill('focus@example.invalid');
   await page.getByLabel('Wachtwoord', { exact: true }).fill('Synthetisch-42');
   await page.getByRole('button', { name: 'Inloggen', exact: true }).click();
   await headingFocused(page, chapter.title);
-  assert.equal(await page.evaluate(() => location.hash), `#/lesson/${chapter.id}`);
+  assert.equal(await page.evaluate(() => location.hash), `#${readerPath}`);
   await context.close();
   // Oude/ontbrekende capability: directe route, heropening, veilige bestemming en verlopen sessie.
   for (const capabilities of [[], undefined, ['security-setup-v1']]) {
@@ -167,7 +169,7 @@ try {
     await context.close(); expired = false;
   }
   // Gecombineerde #241/#242-flow: één routefocus, lange leespositie, bronwissel en sessie-intrekking.
-  advertised = ['content-picker-v1'];
+  advertised = ['content-picker-v1','scripture-reader-v1'];
   for (const width of [320, 375, 390, 400]) for (const scheme of ['light', 'dark']) {
     version = 1; language = 'nl';
     const context = await browser.newContext({ viewport: { width, height: 844 }, colorScheme: scheme, locale: 'nl-NL' });
@@ -180,7 +182,8 @@ try {
     await page.goto(`${origin}/?device=combined-${width}-${scheme}`);
     await page.getByLabel('E-mail of gebruikerstag').fill('focus@example.invalid'); await page.getByLabel('Wachtwoord', { exact: true }).fill('Synthetisch-42');
     await page.getByRole('button', { name: 'Inloggen', exact: true }).click();
-    await page.getByRole('button', { name: /Lang synthetisch leeshoofdstuk/ }).click(); await headingFocused(page, chapter.title);
+    await headingFocused(page, /Vandaag/);
+    await page.evaluate(path=>window.dispatchEvent(new CustomEvent('focus:test-open',{detail:location.origin+path})),readerPath); await headingFocused(page, chapter.title);
     await page.mouse.wheel(0, 1450); await page.waitForFunction(() => scrollY > 1000); const position = await page.evaluate(() => scrollY);
     const openPicker = () => page.evaluate(origin => window.dispatchEvent(new CustomEvent('focus:test-open', { detail: origin + '/content' })), origin);
     await openPicker(); await headingFocused(page, 'Kies je content'); await page.locator('[data-content-work="bofm"]').waitFor();

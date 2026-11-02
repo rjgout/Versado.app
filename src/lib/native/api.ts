@@ -13,6 +13,8 @@ import { saveListPreferences } from "@/lib/listPreferences.server";
 import { FriendRequestError, respondFriendRequest } from "@/lib/social/friendRequests";
 import { nativeTodayHideSchema, nativeFriendResponseSchema } from "./todayActionsContract";
 import { nativeStudyCourse, nativeStudySteps } from "./studyCourses.server";
+import { nativeScriptureReader } from "./reader.server";
+import { nativeReaderKind } from "./readerContract";
 import { nativeCourses, nativeCoursePath } from "./courses.server";
 import { nativeCourseId } from "./coursesContract";
 import { nativeStudyImage } from "./studyMedia.server";
@@ -79,7 +81,7 @@ export async function nativeApi(req: NextRequest, parts: string[]): Promise<Next
   const ip = hashSecret(clientIp(req)), failureKey = `native-auth:${ip}`;
   try {
     if (mutation && req.headers.get("content-type")?.split(";")[0] !== "application/json") throw new NativeAuthError("json_required", 415);
-    if (req.method === "GET" && path === "capabilities") return json({ apiVersion: 1, apple: !!appleConfiguration(), registration: true, features: ["study-course-overview-v1", "courses-overview-v1", "study-media-v1", "today-actions-v1", "today-overview-v1", "content-picker-v1", "security-setup-v1", "account-password-v1", "password-reset-v1", "email-confirmation-v1", ...(nativeSocketEnabled() ? ["realtime-ticket-v1"] : [])] });
+    if (req.method === "GET" && path === "capabilities") return json({ apiVersion: 1, apple: !!appleConfiguration(), registration: true, features: ["scripture-reader-v1", "study-course-overview-v1", "courses-overview-v1", "study-media-v1", "today-actions-v1", "today-overview-v1", "content-picker-v1", "security-setup-v1", "account-password-v1", "password-reset-v1", "email-confirmation-v1", ...(nativeSocketEnabled() ? ["realtime-ticket-v1"] : [])] });
     if (req.method === "POST" && path === "login") {
       if (failureLockSeconds(failureKey, 30)) throw new NativeAuthError("too_many_attempts", 429);
       const input = z.object({ identifier: z.string().trim().min(1).max(320), ...credentials, supportsSecuritySetup: z.boolean().optional() }).strict().parse(await body(req));
@@ -175,6 +177,11 @@ export async function nativeApi(req: NextRequest, parts: string[]): Promise<Next
       return json(await issueSocketTicket(header.slice(7)));
     }
     const user = await authenticated(req);
+    if(req.method === "GET" && parts.length === 5 && parts[0] === "courses" && parts[2] === "read") {
+      if(req.nextUrl.search)throw new NativeAuthError("invalid_input",400);
+      const identity=await nativeSessionIdentity(req.headers.get("authorization")!.slice(7));
+      return json(await nativeScriptureReader(identity.binding,nativeCourseId.parse(parts[1]),nativeReaderKind.parse(parts[3]),nativeCourseId.parse(parts[4])));
+    }
     if (req.method === "GET" && parts[0] === "courses" && ((parts.length===3 && ["weeks","archive"].includes(parts[2])) || (parts.length===5 && parts[2]==="weeks" && parts[4]==="steps"))) {
       if(req.nextUrl.search)throw new NativeAuthError("invalid_input",400);
       const identity=await nativeSessionIdentity(req.headers.get("authorization")!.slice(7)),courseId=nativeCourseId.parse(parts[1]);

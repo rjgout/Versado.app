@@ -10,6 +10,7 @@ import { DATA_EVENT_SOCKET_NAME, SOCKET_EVENT_TO_DATA_EVENT, dataEventsForSocket
 import { nativeAccountSchema, nativeTodaySchema, nativeChapterSchema, nativeContentStateSchema, nativeContentResultSchema, nativeContentSelectionSchema, type NativeContentState, type NativeContentSelection } from "@/lib/native/contract";
 import { NativeClientError, type NativeSessionClient } from "@/lib/native/client";
 
+import { nativeReaderSchema, nativeReaderKind, type NativeReaderKind } from "@/lib/native/readerContract";
 import { nativeStudyCourseSchema, nativeStudyStepsSchema } from "@/lib/native/studyCoursesContract";
 import { nativeCoursesSchema, nativeCoursePathSchema, nativeCourseId } from "@/lib/native/coursesContract";
 
@@ -54,6 +55,12 @@ export class NativeDataRuntime {
     const latest=this.store.getSnapshot<NativeContentState>(serializeKey(["native",epoch,...nativeContentQueryKey(userId)])).data?.picker??expected;
     if(value.activeCollectionId!==latest.activeCollectionId || value.selectionVersion!==latest.selectionVersion || value.language!==language)throw new NativeClientError("content_context_changed",409);
     return value;
+  }
+  async reader(userId:string,language:string,expected:{activeCollectionId:string|null;selectionVersion:number},courseId:string,kind:NativeReaderKind,targetId:string) {
+    const epoch=this.epoch;
+    const value=nativeReaderSchema.parse(await this.client.api(`courses/${nativeCourseId.parse(courseId)}/read/${nativeReaderKind.parse(kind)}/${nativeCourseId.parse(targetId)}`));
+    if(value.courseId!==courseId||value.kind!==kind||value.targetId!==targetId)throw new NativeClientError("content_context_changed",409);
+    return this.studyResponse(value,epoch,userId,language,expected);
   }
   async studyCourse(userId:string,language:string,expected:{activeCollectionId:string|null;selectionVersion:number},courseId:string,scope:"weeks"|"archive") {
     const epoch=this.epoch;

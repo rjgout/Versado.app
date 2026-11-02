@@ -3,6 +3,12 @@ import { kompasFr } from "./kompas/fr";
 
 // Ontbrekende teksten vallen terug volgens fallbackChain (src/lib/languages.ts).
 export const fr: PartialMessages = {
+  nativeReader: {
+    "unsupported": "Ce serveur ne prend pas encore en charge le lecteur partagé. Revenez à Apprendre.",
+    "readOnly": "Vous pouvez lire et copier le texte ici. Audio, annotations, enregistrement de la position, questions et validation viendront ensuite. Ouvrir ou faire défiler ne donne ni XP ni progression.",
+    "range": "Étape de lecture : versets {start}–{end}.",
+    "legacy": "Ouvrez ce chapitre depuis le bon parcours dans Apprendre. Cet ancien parcours de test ne valide plus rien."
+},
   nativeLearning: {
     catalogueTruncated: "Cet aperçu est incomplet. Au maximum 600 leçons sont affichées.",
     refreshFailed: "L’actualisation a temporairement échoué. Les dernières données confirmées restent affichées.",
