@@ -1,8 +1,13 @@
-# Native schriftlezer — B3b-1 en B3b-2a
+# Native schriftlezer — B3b-1, B3b-2a en B3b-2b
 
 De eerste secties beschrijven B3b-1 en het bijbehorende historische testbewijs.
 De eigenaar accepteerde B3b-1 inmiddels op iPhone build 2494. De aanvullende
 hervatpositie/hoofdstuknavigatie en nieuwe fysieke acceptatie staan [onderaan](#b3b-2a--duurzame-hervatpositie-en-hoofdstuknavigatie).
+
+De aansluitende B3b-2b-uitbreiding gebruikt hetzelfde versmenu en dezelfde
+annotatie-editor als web; zie [gedeelde annotaties](NATIVE-ANNOTATIONS.md) voor
+contracten, beveiliging, tests en de nog openstaande fysieke acceptatie.
+De historische secties hieronder blijven het bewijs van hun eigen fase.
 
 ## B3b-1 — gedeelde schriftlezer, uitsluitend lezen
 

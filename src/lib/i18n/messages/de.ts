@@ -4,6 +4,8 @@ import { kompasDe } from "./kompas/de";
 // Ontbrekende teksten vallen terug volgens fallbackChain (src/lib/languages.ts).
 export const de: PartialMessages = {
   nativeReader: {
+    annotationsEnabled: "Du kannst Lesezeichen, Markierungen und Notizen verwalten. Audio, das Speichern der Leseposition, Fragen und Abschließen folgen später. Diese Aktionen vergeben keine XP und schließen keine Lektüre ab.",
+    annotationsPositionEnabled: "Deine Leseposition wird nach ruhigem Lesen gespeichert. Lesezeichen, Markierungen und Notizen werden mit der Website geteilt. Audio, Fragen und Abschließen folgen später. Diese Aktionen vergeben keine XP und schließen keine Lektüre ab.",
     positionEnabled: "Deine Leseposition wird nach ruhigem Lesen gespeichert. Audio, Anmerkungen, Fragen und Abschließen folgen später. Lesen und Blättern vergeben keine XP und schließen nichts ab.",
     saving: "Leseposition wird gespeichert…",
     saved: "Leseposition gespeichert.",

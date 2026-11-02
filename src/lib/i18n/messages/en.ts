@@ -4,6 +4,8 @@ import { kompasEn } from "./kompas/en";
 // Ontbrekende teksten vallen terug volgens fallbackChain (src/lib/languages.ts).
 export const en: PartialMessages = {
   nativeReader: {
+    annotationsEnabled: "You can manage bookmarks, highlights and notes. Audio, saving your reading position, questions and completion will follow later. These actions do not award XP or complete reading.",
+    annotationsPositionEnabled: "Your reading position is saved after steady reading. Bookmarks, highlights and notes are shared with the website. Audio, questions and completion will follow later. These actions do not award XP or complete reading.",
     positionEnabled: "Your reading position is saved after steady reading. Audio, annotations, questions and completion will follow later. Reading and browsing do not award XP or complete reading.",
     saving: "Saving reading position…",
     saved: "Reading position saved.",

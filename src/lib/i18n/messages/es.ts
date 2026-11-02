@@ -4,6 +4,8 @@ import { kompasEs } from "./kompas/es";
 // Spaanse app-teksten; ontbrekende teksten vallen terug volgens fallbackChain.
 export const es: PartialMessages = {
   nativeReader: {
+    annotationsEnabled: "Puedes gestionar marcadores, resaltados y notas. El audio, guardar la posición de lectura, las preguntas y la finalización llegarán más adelante. Estas acciones no otorgan XP ni completan la lectura.",
+    annotationsPositionEnabled: "Tu posición se guarda tras una lectura estable. Los marcadores, resaltados y notas se comparten con el sitio web. El audio, las preguntas y la finalización llegarán más adelante. Estas acciones no otorgan XP ni completan la lectura.",
     positionEnabled: "Tu posición se guarda tras una lectura estable. El audio, las anotaciones, las preguntas y la finalización llegarán más adelante. Leer y navegar no otorgan XP ni completan la lectura.",
     saving: "Guardando posición…",
     saved: "Posición guardada.",

@@ -56,6 +56,16 @@ public class NativeAccessTransportTest {
             }
         }
     }
+    @Test public void annotationsAreExactlyScopedToExistingReaderTargets() {
+        for(String path:new String[]{"courses/c/read/steps/s/annotations","courses/c/read/chapters/ch/annotations"}) {
+            assertTrue(NativeAccessTransport.routeAllowed(path,"GET"));
+            assertTrue(NativeAccessTransport.routeAllowed(path+"/v","GET"));
+            assertTrue(NativeAccessTransport.routeAllowed(path,"POST"));
+            assertFalse(NativeAccessTransport.routeAllowed(path+"/v","POST"));
+            for(String method:new String[]{"PUT","PATCH","DELETE","HEAD"})assertFalse(NativeAccessTransport.routeAllowed(path,method));
+            for(String suffix:new String[]{"/","?user=B","/v/extra","/../v","/%2f","\n"})assertFalse(NativeAccessTransport.routeAllowed(path+suffix,"GET"));
+        }
+    }
     @Test public void contentContextIsExactAndBounded() {
         assertTrue(NativeAccessTransport.routeAllowed("today-overview", "GET"));
         for (String method : new String[]{"POST", "PUT", "DELETE", "HEAD"}) assertFalse(NativeAccessTransport.routeAllowed("today-overview", method));

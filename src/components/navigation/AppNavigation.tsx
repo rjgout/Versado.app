@@ -7,6 +7,7 @@ export type AppImageProps = Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "w
 export interface AppNavigation {
   pathname: string;
   contentDeparture?(): string;
+  registerNavigationGuard?(guard: (proceed: () => void) => boolean): () => void;
   push(href: string): void;
   replace(href: string): void;
   back(fallback?: string): void;

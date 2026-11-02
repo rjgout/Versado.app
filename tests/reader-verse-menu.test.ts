@@ -5,22 +5,24 @@ import { test } from "node:test";
 const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 const reader = read("src/components/LessonFlow.tsx");
 const player = read("src/components/ReadAloudPlayer.tsx");
-const actions = read("src/components/annotations/AnnotationActions.tsx");
+const actions = read("src/components/annotations/AnnotationActionsView.tsx");
+const menu = read("src/components/annotations/useVerseAnnotationMenu.tsx");
 const readerView = reader.slice(reader.indexOf("export function ReaderView"), reader.indexOf("function formatCorrectAnswer"));
 
 test("de verslezer heeft geen aparte actierij of puntjesknop per vers", () => {
   assert.doesNotMatch(readerView, /<AnnotationTrigger/);
   assert.doesNotMatch(readerView, /flex flex-col gap-4/);
-  assert.match(readerView, /aria-label=\{t\("annotations\.verseActions"/);
+  assert.match(menu, /aria-label=\{t\("annotations\.verseActions"/);
 });
 
 test("tikken is beveiligd tegen selectie, slepen en preview", () => {
-  assert.match(readerView, /onVerseClick=\{preview\?undefined:tapVerse/);
+  assert.match(readerView, /useVerseAnnotationMenu\(!preview,colorForVerse\)/);
+  assert.match(menu, /onVerseClick:enabled\?tapVerse:undefined/);
   assert.match(read("src/components/reading/ScriptureReaderView.tsx"), /onClick=\{\s*onVerseClick\s*\?\s*\(?event\)?\s*=>\s*onVerseClick\(event,\s*v.id\)/);
-  assert.match(readerView, /hadSelection/);
-  assert.match(readerView, /Math\.hypot/);
-  assert.match(readerView, /closest\("button, a, input, textarea, select"\)/);
-  assert.match(readerView, /event\.stopPropagation\(\)/);
+  assert.match(menu, /hadSelection/);
+  assert.match(menu, /Math\.hypot/);
+  assert.match(menu, /closest\("button, a, input, textarea, select"\)/);
+  assert.match(menu, /event\.stopPropagation\(\)/);
 });
 
 test("voorlezen vanaf een vers gebruikt de taal- en bronkeuze van ReadAloudPlayer", () => {

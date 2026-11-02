@@ -4,6 +4,11 @@ on:
     branches: [main, develop, 'feat/native-*', 'fix/native-*']
     paths:
       - 'src/lib/native/**'
+      - 'src/lib/annotations/**'
+      - 'src/components/annotations/**'
+      - 'tests/native-annotations*'
+      - 'tests/annotation-*'
+      - 'tests/reader-verse-menu*'
       - 'src/lib/learning/course*.server.ts'
       - 'src/lib/*PathData.ts'
       - 'src/lib/navigationEntry.ts'
@@ -149,6 +154,7 @@ jobs:
           npx prisma validate
           npm run db:generate
           npm run test:native
+          npm run test:annotations
           npm run test:focus
           npm run test:profile
           npx tsx --test tests/hymns-sunday.test.ts tests/artwork.test.ts tests/streak-return.test.ts tests/generalConference.test.ts

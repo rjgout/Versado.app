@@ -12,6 +12,10 @@ const container=`versado-native-${randomUUID()}`,redisContainer=`${container}-re
 for(const key of ['DOCKER_HOST','DOCKER_CONTEXT','DOCKER_TLS','DOCKER_TLS_VERIFY','DOCKER_CERT_PATH'])delete dockerEnv[key];
 function docker(args){const r=spawnSync('docker',['--host=unix:///var/run/docker.sock',...args],{env:dockerEnv,encoding:'utf8'});if(r.status!==0)throw Error(r.stderr||'Lokale Docker mislukt');return r.stdout.trim();}
 function run(cmd,args,env){return new Promise((resolve,reject)=>{const p=spawn(cmd,args,{env,stdio:'inherit'});p.on('error',reject);p.on('exit',c=>c===0?resolve():reject(Error(`${cmd} stopte met ${c}`)));});}
+async function annotationRegression(env,browser) {
+ await run('npx',['tsx','--test','--test-concurrency=1','tests/annotation-foundation.integration.test.mjs','tests/study-folder.integration.test.mjs','tests/annotation-recovery.integration.test.mjs','tests/annotation-resolution-migration.test.mjs'],env);
+ if(browser)for(const file of ['annotation-actions','study-folder','study-folder-colors','annotation-recovery'])await run('npx',['tsx',`tests/${file}.browser.mjs`],env);
+}
 const port=await new Promise(resolve=>{const s=createServer();s.listen(0,'127.0.0.1',()=>{const p=s.address().port;s.close(()=>resolve(p));});});
 let server,mediaRoot;const socketServers=[];
 try{
@@ -80,7 +84,11 @@ try{
  }finally{await client.end();}
  server=spawn('node',['scripts/content-architecture/test-server.mjs'],{env,stdio:'inherit',detached:true});
  let healthy=false;for(let i=0;i<100;i++){try{if((await fetch(`${base}/api/health`)).ok){healthy=true;break;}}catch{}if(server.exitCode!==null)throw Error('Testserver gestopt');await delay(500);}if(!healthy)throw Error('Productiebuild niet bereikbaar');
- if(process.argv.includes('--reader-only') || process.argv.includes('--reader-ui-only')) {
+ if(process.argv.includes('--annotations-only')) {
+  await run('npx',['tsx','--test','tests/native-annotations.integration.test.ts'],env);
+  if(!process.argv.includes('--no-browser'))await run('npx',['tsx','tests/native-reader.browser.mjs'],env);
+  await annotationRegression(env,!process.argv.includes('--no-browser'));
+ } else if(process.argv.includes('--reader-only') || process.argv.includes('--reader-ui-only')) {
   await run('npx',['tsx','--test','tests/native-reader.integration.test.ts'],env);
   if(!process.argv.includes('--no-browser')) {
    for(const file of (process.argv.includes('--reader-ui-only') ? ['native-reader'] : ['native-foundation','native-access','native-content','native-reader','native-courses','reader-verse-menu'])) await run('npx',['tsx',`tests/${file}.browser.mjs`],env);
@@ -97,7 +105,7 @@ try{
   await run('npx',['tsx','--test','--test-concurrency=1','tests/native-today.integration.test.ts','tests/today-continue-cards.test.ts','tests/native-study-media.integration.test.ts','tests/native-courses.integration.test.ts'],env);
   if(!process.argv.includes('--no-browser')){await run('npx',['tsx','tests/native-today.browser.mjs'],env);await run('npx',['tsx','tests/native-today-actions.browser.mjs'],env);await run('npx',['tsx','tests/native-study-media.browser.mjs'],env);await run('npx',['tsx','tests/native-courses.browser.mjs'],env);}
  } else {
- await run('npx',['tsx','--test','--test-concurrency=1','tests/native-foundation.integration.test.ts','tests/native-shell.integration.test.ts','tests/native-account.integration.test.ts','tests/registration.integration.test.ts','tests/native-access.integration.test.ts','tests/content-switch.integration.test.ts','tests/native-today.integration.test.ts','tests/today-continue-cards.test.ts','tests/native-study-media.integration.test.ts','tests/native-courses.integration.test.ts','tests/native-study-courses.integration.test.ts','tests/native-reader.integration.test.ts'],env);
+ await run('npx',['tsx','--test','--test-concurrency=1','tests/native-foundation.integration.test.ts','tests/native-shell.integration.test.ts','tests/native-account.integration.test.ts','tests/registration.integration.test.ts','tests/native-access.integration.test.ts','tests/content-switch.integration.test.ts','tests/native-today.integration.test.ts','tests/today-continue-cards.test.ts','tests/native-study-media.integration.test.ts','tests/native-courses.integration.test.ts','tests/native-study-courses.integration.test.ts','tests/native-reader.integration.test.ts','tests/native-annotations.integration.test.ts'],env);
  // Twee onafhankelijke processen, dezelfde bestaande database/Redis-adapter.
  const available=()=>new Promise(resolve=>{const listener=createServer();listener.listen(0,'127.0.0.1',()=>{const chosen=listener.address().port;listener.close(()=>resolve(chosen));});});
  const socketA=`http://127.0.0.1:${await available()}`;let socketB;do{socketB=`http://127.0.0.1:${await available()}`;}while(socketB===socketA);
@@ -110,7 +118,8 @@ try{
  try{await run('npx',['tsx','--test','--test-concurrency=1','tests/native-socket.integration.test.ts','tests/native-content.integration.test.ts','tests/native-today-actions.integration.test.ts'],socketEnv);}catch(error){socketFailure=error;}
  for(const child of socketServers){try{process.kill(-child.pid,'SIGTERM');}catch{}}
  if(!process.argv.includes('--no-browser')){await run('npx',['tsx','tests/native-foundation.browser.mjs'],env);await run('npx',['tsx','tests/native-access.browser.mjs'],env);await run('npx',['tsx','tests/native-data.browser.mjs'],env);await run('npx',['tsx','tests/native-shell.browser.mjs'],env);await run('npx',['tsx','tests/native-content.browser.mjs'],env);await run('npx',['tsx','tests/native-foundation-apple.browser.mjs'],env);await run('npx',['tsx','tests/native-today.browser.mjs'],env);await run('npx',['tsx','tests/native-today-actions.browser.mjs'],env);await run('npx',['tsx','tests/native-study-media.browser.mjs'],env);await run('npx',['tsx','tests/native-courses.browser.mjs'],env);await run('npx',['tsx','tests/native-study-courses.browser.mjs'],env);await run('npx',['tsx','tests/native-reader.browser.mjs'],env);await run('npx',['tsx','tests/reader-verse-menu.browser.mjs'],env);}
- if(socketFailure)throw socketFailure; // Browserbewijs verzamelen wist nooit een falende beveiligingstest.
+ if(socketFailure)throw socketFailure;
+ await annotationRegression(env,!process.argv.includes('--no-browser')); // Browserbewijs verzamelen wist nooit een falende beveiligingstest.
  }
 }finally{
  for(const child of socketServers){try{process.kill(-child.pid,'SIGTERM');}catch{}}
