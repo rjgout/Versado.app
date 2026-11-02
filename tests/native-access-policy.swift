@@ -84,6 +84,10 @@ private final class FakeAccessProtocol: URLProtocol {
             FakeAccessProtocol.response = (status, "text/html", nil, "synthetic-secret-for-native-tests")
             failure(try perform(), "access_network_unavailable")
         }
+        FakeAccessProtocol.response = (503, "application/json", "capacitor://localhost", "{\"error\":\"synthetic_backend_unavailable\"}")
+        if case .success(let response) = try perform() { require(response.0 == 503 && response.1.contains("synthetic_backend_unavailable"), "valid backend 503 hidden") } else { fatalError("backend 503 hidden") }
+        FakeAccessProtocol.response = (503, "application/json", "capacitor://localhost", "{\"error\":\"synthetic-secret-for-native-tests\"}")
+        failure(try perform(), "access_invalid_response")
         FakeAccessProtocol.response = (401, "application/json", "capacitor://localhost", "{\"error\":\"session_expired\"}")
         if case .success(let response) = try perform() { require(response.0 == 401, "Versado 401 changed") } else { fatalError("backend 401 hidden") }
         FakeAccessProtocol.response = (302, "text/html", nil, "redirect"); failure(try perform(), "access_redirect_blocked")

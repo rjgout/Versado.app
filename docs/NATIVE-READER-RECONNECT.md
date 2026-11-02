@@ -32,8 +32,11 @@ netwerkpakket op dat toestel.
   5xx-foutcodes. Onbekende fouten, 401/403/404/409, Access-weigeringen en ongeldige
   200-responsen blijven blokkeren. Een harde ouderqueryfout blokkeert ook een
   succesvol gecachte Reader. Handmatige GET-retry hercontroleert falende ouders.
-- De native bridges verwerpen een 5xx onmiddellijk als
-  `access_network_unavailable`; zij accepteren of retourneren de inhoud niet.
+- De native bridges verwerpen een 5xx met ongeldige API-headers (bijvoorbeeld
+  HTML of ontbrekende CORS-header) als `access_network_unavailable`, zonder de
+  inhoud te lezen of retourneren. Geldige JSON-API-foutmeldingen, waaronder
+  bestaande 503-configuratiefouten, behouden hun status en inhoud na alle
+  bestaande controles.
   Redirect-, authenticatie-, CORS-, inhouds- en omvangcontroles op overige
   responsen blijven behouden.
 - De bestaande positiehook, actie-UUID, verwachte versie, LiveDataStore,
@@ -63,7 +66,8 @@ schriftlezer, met geïsoleerde PostgreSQL/Redis en de bestaande native API:
 De bestaande vijf talen, drie leeswijzen, bron-/accountwisselingen,
 sessie-intrekking, read-only SQL-controles en webversmenu blijven meedraaien.
 Swift- en Java-transporttests controleren apart dat HTML-5xx-inhoud wordt
-weggegooid en ongeldige succesresponsen nog steeds worden geweigerd.
+weggegooid, geldige JSON-503-fouten behouden blijven en ongeldige succesresponsen
+of geheime waarden in JSON-503-responsen nog steeds worden geweigerd.
 
 De tijdelijke testobservatie van cache/epoch en schrijfinput wordt alleen door
 het esbuild-browserharnas geïnjecteerd, nooit in de distributiebundel.
