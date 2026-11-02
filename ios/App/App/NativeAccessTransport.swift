@@ -76,7 +76,7 @@ final class NativeAccessRequest: NSObject, URLSessionDataDelegate, URLSessionTas
         guard !(300..<400).contains(status) else { completionHandler(.cancel); finish(.failure(NativeAccessFailure("access_redirect_blocked"))); return }
         guard response.value(forHTTPHeaderField: "Access-Control-Allow-Origin") == "capacitor://localhost",
               response.mimeType?.lowercased() == "application/json" else {
-            completionHandler(.cancel); finish(.failure(NativeAccessFailure([401, 403].contains(status) ? "access_denied" : "access_invalid_response"))); return
+            completionHandler(.cancel); finish(.failure(NativeAccessFailure([401, 403].contains(status) ? "access_denied" : status >= 500 ? "access_network_unavailable" : "access_invalid_response"))); return
         }
         completionHandler(.allow)
     }

@@ -12902,7 +12902,7 @@
     },
     {
       "file": "src/components/native/NativeLearningView.tsx",
-      "sha256": "829061729ea604e85f4148b159e2ee814ef43bf992bd63fd7dee0a9736556b38",
+      "sha256": "18d738d8a8995f9c227ccaba471c75957db1435a5510622bff07abe6d651b7f2",
       "boundary": "client",
       "imports": [
         "./NativeCfmCourseView",
@@ -12978,7 +12978,7 @@
     },
     {
       "file": "src/components/native/NativeReaderView.tsx",
-      "sha256": "1de3dc872a72680ec5ac7e9f661f8d8d990a8eb5cc801c191a5e9e0c15823391",
+      "sha256": "64e81b3bcc2e1880848172d9f4376900b516c2db335263e8a80c3e9190b49dc0",
       "boundary": "client",
       "imports": [
         "./useNativeReaderPosition",
@@ -17759,7 +17759,7 @@
     },
     {
       "file": "src/lib/data/native.ts",
-      "sha256": "55a8a55bf960ce1a363d2c9670036219fc1981e611ed115b781f3583abcd2858",
+      "sha256": "30faf89306587ccbc0f757d9cadacd41fd76fe77298bea064e01f672efd760e4",
       "boundary": "context-dependent",
       "imports": [
         "./scopes",
@@ -76214,7 +76214,7 @@
     },
     {
       "file": "src/components/native/NativeLearningView.tsx",
-      "sha256": "829061729ea604e85f4148b159e2ee814ef43bf992bd63fd7dee0a9736556b38",
+      "sha256": "18d738d8a8995f9c227ccaba471c75957db1435a5510622bff07abe6d651b7f2",
       "boundary": "client",
       "imports": [
         "./NativeCfmCourseView",
@@ -76290,7 +76290,7 @@
     },
     {
       "file": "src/components/native/NativeReaderView.tsx",
-      "sha256": "1de3dc872a72680ec5ac7e9f661f8d8d990a8eb5cc801c191a5e9e0c15823391",
+      "sha256": "64e81b3bcc2e1880848172d9f4376900b516c2db335263e8a80c3e9190b49dc0",
       "boundary": "client",
       "imports": [
         "./useNativeReaderPosition",

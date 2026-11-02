@@ -23,7 +23,7 @@ export const nativeLearningQueryKey = (userId: string, language: string, context
  * data laten staan. Autorisatie, Access-weigering en gewijzigde context nooit. */
 export function nativeLearningTransientError(error: unknown): boolean {
   return error instanceof NativeClientError && (["network_unavailable", "access_network_unavailable"].includes(error.code) ||
-    (error.code === "native_request_failed" && error.status >= 500 && error.status < 600));
+    (["native_request_failed", "request_failed", "invalid_response"].includes(error.code) && error.status >= 500 && error.status < 600));
 }
 
 export const nativeContentQueryKey = (userId: string | null) => ["content-context", userId] as const;

@@ -103,7 +103,7 @@ final class NativeAccessTransport {
                 if (status >= 300 && status < 400) throw new Failure("access_redirect_blocked");
                 String type = response.header("Content-Type");
                 if (!nativeOrigin.equals(response.header("Access-Control-Allow-Origin")) || type == null || !"application/json".equalsIgnoreCase(type.split(";", 2)[0].trim())) {
-                    throw new Failure(status == 401 || status == 403 ? "access_denied" : "access_invalid_response");
+                    throw new Failure(status == 401 || status == 403 ? "access_denied" : status >= 500 ? "access_network_unavailable" : "access_invalid_response");
                 }
                 if (response.body() == null) throw new Failure("access_invalid_response");
                 try (InputStream input = response.body().byteStream(); ByteArrayOutputStream bytes = new ByteArrayOutputStream()) {

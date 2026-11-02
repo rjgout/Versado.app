@@ -58,5 +58,6 @@ test("overview/path keys never alias legal course IDs, actors, languages or sour
 });
 test("confirmed learning data survives only transient errors, never auth/Access/context denials",()=>{
  for(const error of [new NativeClientError("network_unavailable"),new NativeClientError("access_network_unavailable"),new NativeClientError("native_request_failed",503)])assert.equal(nativeLearningTransientError(error),true);
- for(const error of [new NativeClientError("session_expired",401),new NativeClientError("forbidden",403),new NativeClientError("content_unavailable",404),new NativeClientError("content_context_changed",409),new NativeClientError("access_denied",503),new NativeClientError("access_missing"),new NativeClientError("invalid_response",503),Error("unknown")])assert.equal(nativeLearningTransientError(error),false);
+ for(const code of ["invalid_response","request_failed"])assert.equal(nativeLearningTransientError(new NativeClientError(code,502)),true);
+ for(const error of [new NativeClientError("session_expired",401),new NativeClientError("forbidden",403),new NativeClientError("content_unavailable",404),new NativeClientError("content_context_changed",409),new NativeClientError("access_denied",503),new NativeClientError("access_missing"),new NativeClientError("invalid_response",200),new NativeClientError("access_invalid_response"),Error("unknown")])assert.equal(nativeLearningTransientError(error),false);
 });

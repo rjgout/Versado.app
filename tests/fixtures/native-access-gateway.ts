@@ -39,6 +39,7 @@ export async function nativeAccessGateway(backend: string) {
       if (!vault) throw new Error("access_missing");
       if (!accessRouteAllowed(options.path, options.method)) throw new Error("access_request_invalid");
       const response = await fetch(`${origin}/api/v1/native/${options.path}`, { method: options.method, redirect: "manual", headers: { "CF-Access-Client-Id": vault.id, "CF-Access-Client-Secret": vault.secret, ...(options.authorization ? { Authorization: options.authorization } : {}), ...(options.body ? { "Content-Type": "application/json" } : {}) }, body: options.body });
+      if (response.status >= 500 && (response.headers.get("access-control-allow-origin") !== "capacitor://localhost" || response.headers.get("content-type")?.split(";",1)[0].trim().toLowerCase() !== "application/json")) { await response.body?.cancel(); throw new Error("access_network_unavailable"); }
       if (response.status >= 300 && response.status < 400) throw new Error("access_redirect_blocked");
       if (response.headers.get("access-control-allow-origin") !== "capacitor://localhost") throw new Error("access_denied");
       return { status: response.status, body: await response.text() };
