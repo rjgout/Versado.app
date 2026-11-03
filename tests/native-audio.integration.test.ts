@@ -11,6 +11,7 @@ import { prisma } from "../src/lib/db";
 import { seedNativeCourses } from "./fixtures/native-courses";
 import { issueNativeSession,nativeSessionIdentity } from "../src/lib/native/sessions";
 import { nativeReaderAudio,streamNativeReaderAudio } from "../src/lib/native/audio.server";
+import {nativePlaybackSchema} from "../src/lib/native/audioPlaybackContract";
 import { nativeAudioCatalogue,NATIVE_AUDIO_CHUNK_BYTES } from "../src/lib/native/audioContract";
 import { chapterSourceHash,sha256,type AudioManifest } from "../src/lib/audio/contract";
 import { importAudioPackage,publishAudio } from "../src/lib/audio/library";
@@ -57,7 +58,7 @@ async function state(userId:string){
 
 test("read-only: drie leesmethoden en vijf talen gebruiken bestaande publicaties en exacte stapgrenzen",async()=>{
  for(const language of ["nl","en","de","fr","es"]){const {f,user,pair}=await fixture(language);await recording(f.chapters[1].id);const before=await state(user.id),beforeAudio=await audioState();
-  for(const course of f.courses){const p=route(f,course),c=await catalogue(pair.accessToken,p);assert.equal(c.sourceLanguage,language);assert.equal(c.sources.length,1);const source=c.sources[0];assert.equal(source.language,language);assert.equal(source.start,0);assert.equal(source.end,course.type==="READING_LESSONS"?14:duration);assert.equal(source.verses.length,course.type==="READING_LESSONS"?2:4);
+  for(const course of f.courses){const p=route(f,course),c=await catalogue(pair.accessToken,p);const playbackResponse=await request(pair.accessToken,p+"/audio/playback");assert.equal(playbackResponse.status,200);const playback=nativePlaybackSchema.parse(await playbackResponse.json());assert.equal(playback.reader.courseId,course.id);assert.equal(playback.reader.sourceLanguage,language);assert.equal(playback.reader.verses.length,course.type==="READING_LESSONS"?2:4);assert.equal(playback.audio.readerHash,c.readerHash);assert.equal(c.sourceLanguage,language);assert.equal(c.sources.length,1);const source=c.sources[0];assert.equal(source.language,language);assert.equal(source.start,0);assert.equal(source.end,course.type==="READING_LESSONS"?14:duration);assert.equal(source.verses.length,course.type==="READING_LESSONS"?2:4);
    const stream=await request(pair.accessToken,p+`/audio/${source.id}/stream`,"GET",{Range:"bytes=0-999"});assert.equal(stream.status,206);assert.equal(stream.headers.get("content-range"),`bytes 0-999/${bytes.length}`);assert.deepEqual(Buffer.from(await stream.arrayBuffer()),bytes.subarray(0,1000));
   }assert.deepEqual(await state(user.id),before,"GET/audio verandert geen READ, XP, reeks, cursus-/leespositie of oefensessies");assert.deepEqual(await audioState(),beforeAudio,"GET registreert, publiceert of herstelt geen audio/tekstcontroles");
  }
@@ -140,7 +141,7 @@ test("laat catalogusantwoord na sessie-intrekking geeft geen bron terug",async()
   const cols=(await sql.query("SELECT column_name FROM information_schema.columns WHERE table_name='AudioRecording' AND table_schema='public' ORDER BY ordinal_position")).rows.map(r=>{assert.match(r.column_name,/^[A-Za-z0-9_]+$/);return r.column_name==="sourceHash"?'native_audio_read(a."sourceHash") AS "sourceHash"':`a."${r.column_name}"`;});
   await sql.query("CREATE FUNCTION native_audio_read(value text) RETURNS text LANGUAGE plpgsql STABLE AS $$ BEGIN PERFORM pg_advisory_xact_lock(765432117); RETURN value; END $$");
   await sql.query('ALTER TABLE "AudioRecording" RENAME TO "NativeAudioTestRecording"');renamed=true;await sql.query(`CREATE VIEW "AudioRecording" AS SELECT ${cols.join(',')} FROM "NativeAudioTestRecording" a`);view=true;
-  await sql.query('SELECT pg_advisory_lock(765432117)');locked=true;pending=request(pair.accessToken,route(f)+"/audio");
+  await sql.query('SELECT pg_advisory_lock(765432117)');locked=true;pending=request(pair.accessToken,route(f)+"/audio/playback");
   let waiting=false;for(let i=0;i<100;i++){if((await sql.query("SELECT 1 FROM pg_stat_activity WHERE wait_event='advisory' AND pid<>pg_backend_pid() AND query LIKE '%AudioRecording%' LIMIT 1")).rows.length){waiting=true;break;}await new Promise(r=>setTimeout(r,10));}assert.ok(waiting,recordingRow.id);
   await prisma.nativeSession.update({where:{id:identity.binding.sessionId},data:{revokedAt:new Date()}});await sql.query('SELECT pg_advisory_unlock(765432117)');locked=false;
   const response=await pending;assert.ok([401,409].includes(response.status),await response.clone().text());assert.equal('sources' in await response.json(),false);

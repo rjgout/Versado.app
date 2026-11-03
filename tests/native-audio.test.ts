@@ -29,7 +29,8 @@ test("native ranges zijn eindig, enkelvoudig en maximaal 256 KiB",()=>{
 });
 test("de JSON-brug laat alleen de catalogus toe, geen binair pad of brede mediaproxy",()=>{
  for(const kind of ["steps","chapters"]){const p=`courses/c/read/${kind}/t/audio`;assert.ok(accessRouteAllowed(p,"GET"));for(const suffix of ["/","?url=x",`/${"a".repeat(64)}/stream`])for(const method of ["GET","HEAD","POST"])assert.equal(accessRouteAllowed(p+suffix,method),false);}
- const api=readFileSync("src/lib/native/api.ts","utf8");assert.doesNotMatch(api.match(/features: \[[^\n]+/)![0],/audio/);
+ const api=readFileSync("src/lib/native/api.ts","utf8");assert.match(api.match(/features: \[[^\n]+/)![0],/"scripture-audio-v1"/);
+ assert.ok(readFileSync("src/components/native/NativeFoundation.tsx","utf8").includes('audioEnabled={!!audioOutput?.enabled&&features.includes("scripture-audio-v1")}'));
  for(const file of ["ios/App/App/VersadoNativePlugin.swift","android/app/src/main/java/app/versado/app/VersadoNativePlugin.java"])assert.doesNotMatch(readFileSync(file,"utf8"),/audioPrepare|audioPlay|audioCredentials/);
 });
 test("integriteitscache merkt zelfde-lengte wijziging op, ook wanneer mtime wordt teruggezet",async()=>fixture(async(file,bytes)=>{
@@ -70,3 +71,14 @@ test("bestaand webtransport behoudt 200/206/416, suffixranges en HEAD zonder nie
  const invalid=await streamAudio(file,`bytes=${bytes.length}-`,true);assert.equal(invalid.status,416);
  const head=await streamAudio(file,null,false);assert.equal(head.status,200);assert.equal(head.body,null);assert.equal(head.headers.get("Content-Length"),String(bytes.length));
 }));
+
+test("Android ontdekt uitsluitend toestel-TTS via de exacte servicequery, zonder extra permissies",()=>{
+ const manifest=readFileSync("android/app/src/main/AndroidManifest.xml","utf8");
+ const queries=manifest.match(/<queries>([\s\S]*?)<\/queries>/)?.[1]??"";
+ assert.match(queries,/<action android:name="android\.intent\.action\.TTS_SERVICE"/);
+ assert.equal([...queries.matchAll(/<action /g)].length,1);
+ assert.equal(queries.includes("<package"),false);
+ const permissions=[...manifest.matchAll(/<uses-permission android:name="([^"]+)"([^>]*)/g)];
+ assert.deepEqual(permissions.filter(match=>!match[2].includes('tools:node="remove"')).map(match=>match[1]),["android.permission.INTERNET"]);
+ assert.deepEqual(permissions.filter(match=>match[2].includes('tools:node="remove"')).map(match=>match[1]),["android.permission.WAKE_LOCK"]);
+});

@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A11E10000000000000000005 /* NativeAudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11E00000000000000000005 /* NativeAudioPlayer.swift */; };
+		A11E10000000000000000004 /* NativeAudioContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11E00000000000000000004 /* NativeAudioContext.swift */; };
 		A11E10000000000000000003 /* NativeAudioTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11E00000000000000000003 /* NativeAudioTransport.swift */; };
 		A11E10000000000000000002 /* NativeAccessTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11E00000000000000000002 /* NativeAccessTransport.swift */; };
 		2FAD9763203C412B000D30F8 /* config.xml in Resources */ = {isa = PBXBuildFile; fileRef = 2FAD9762203C412B000D30F8 /* config.xml */; };
@@ -24,6 +26,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		A11E00000000000000000005 /* NativeAudioPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeAudioPlayer.swift; sourceTree = "<group>"; };
+		A11E00000000000000000004 /* NativeAudioContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeAudioContext.swift; sourceTree = "<group>"; };
 		A11E00000000000000000003 /* NativeAudioTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeAudioTransport.swift; sourceTree = "<group>"; };
 		A11E00000000000000000002 /* NativeAccessTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeAccessTransport.swift; sourceTree = "<group>"; };
 		2FAD9762203C412B000D30F8 /* config.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = config.xml; sourceTree = "<group>"; };
@@ -81,6 +85,8 @@
 				A11E00000000000000000000 /* VersadoNativePlugin.swift */,
 				A11E00000000000000000002 /* NativeAccessTransport.swift */,
 				A11E00000000000000000003 /* NativeAudioTransport.swift */,
+				A11E00000000000000000005 /* NativeAudioPlayer.swift */,
+				A11E00000000000000000004 /* NativeAudioContext.swift */,
 				504EC30B1FED79650016851F /* Main.storyboard */,
 				504EC30E1FED79650016851F /* Assets.xcassets */,
 				504EC3101FED79650016851F /* LaunchScreen.storyboard */,
@@ -179,6 +185,8 @@
 				A11E10000000000000000000 /* VersadoNativePlugin.swift in Sources */,
 				A11E10000000000000000002 /* NativeAccessTransport.swift in Sources */,
 				A11E10000000000000000003 /* NativeAudioTransport.swift in Sources */,
+				A11E10000000000000000005 /* NativeAudioPlayer.swift in Sources */,
+				A11E10000000000000000004 /* NativeAudioContext.swift in Sources */,
 				9582B6832FE993A70072D4E8 /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

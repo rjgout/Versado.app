@@ -9,6 +9,8 @@ import NativeBuildBanner from "./NativeBuildBanner";
 import { NativeClientError, NativeSessionClient } from "@/lib/native/client";
 import { nativeSecureSessionStore, nativeBridge } from "@/lib/native/bridge";
 import { nativeAccessTransport } from "@/lib/native/access";
+import { NativeAudioSessionGate } from "@/lib/native/audioSessionGate";
+import { NativeReadAloudOutput } from "@/lib/native/audioOutput";
 import NativeAccessPanel from "./NativeAccessPanel";
 import "@/app/globals.css";
 import "./native.css";
@@ -21,7 +23,10 @@ declare const NATIVE_BUILD_CHANNEL: string;
 declare const NATIVE_BUILD_VERSION: string;
 declare const NATIVE_BUILD_NUMBER: number;
 declare const NATIVE_INTERNAL_ACCESS: boolean;
-const client = new NativeSessionClient(NATIVE_API_BASE_URL, nativeSecureSessionStore, NATIVE_INTERNAL_ACCESS ? nativeAccessTransport(nativeBridge) : undefined, !NATIVE_INTERNAL_ACCESS);
+const audioGate = new NativeAudioSessionGate(nativeBridge);
+const client = new NativeSessionClient(NATIVE_API_BASE_URL, nativeSecureSessionStore, NATIVE_INTERNAL_ACCESS ? nativeAccessTransport(nativeBridge, stamp => audioGate.beforeRequest(stamp)) : undefined, !NATIVE_INTERNAL_ACCESS);
+if(NATIVE_INTERNAL_ACCESS)audioGate.attach(client);
+const audioOutput = new NativeReadAloudOutput(client,nativeBridge,NATIVE_INTERNAL_ACCESS);
 function NativeRoot() {
   const [language, setLanguage] = useState(toLanguageCode(navigator.language));
   const [accessEpoch, setAccessEpoch] = useState(0);
@@ -40,6 +45,6 @@ function NativeRoot() {
     }
   }, []);
   const changeLanguage = useCallback((value: string) => { const code = toLanguageCode(value); document.documentElement.lang = code; setLanguage(code); }, []);
-  return <I18nProvider language={language} messages={messagesFor(language)}><NativeNavigationProvider><NativeFoundation key={accessEpoch} client={client} termsUrl={NATIVE_TERMS_URL} onLanguage={changeLanguage} internalTools={NATIVE_BUILD_CHANNEL === "internal" || !NATIVE_BUILD_DISTRIBUTION} buildIndicator={NATIVE_BUILD_DISTRIBUTION ? <NativeBuildBanner compact channel={NATIVE_BUILD_CHANNEL} version={NATIVE_BUILD_VERSION} build={NATIVE_BUILD_NUMBER} /> : null} internalAccess={NATIVE_INTERNAL_ACCESS ? <NativeAccessPanel onChanged={accessChanged} onBeforeClear={beforeAccessClear} /> : null} buildBanner={NATIVE_BUILD_DISTRIBUTION ? <NativeBuildBanner channel={NATIVE_BUILD_CHANNEL} version={NATIVE_BUILD_VERSION} build={NATIVE_BUILD_NUMBER} /> : null} /></NativeNavigationProvider></I18nProvider>;
+  return <I18nProvider language={language} messages={messagesFor(language)}><NativeNavigationProvider><NativeFoundation audioOutput={audioOutput} key={accessEpoch} client={client} termsUrl={NATIVE_TERMS_URL} onLanguage={changeLanguage} internalTools={NATIVE_BUILD_CHANNEL === "internal" || !NATIVE_BUILD_DISTRIBUTION} buildIndicator={NATIVE_BUILD_DISTRIBUTION ? <NativeBuildBanner compact channel={NATIVE_BUILD_CHANNEL} version={NATIVE_BUILD_VERSION} build={NATIVE_BUILD_NUMBER} /> : null} internalAccess={NATIVE_INTERNAL_ACCESS ? <NativeAccessPanel onChanged={accessChanged} onBeforeClear={beforeAccessClear} /> : null} buildBanner={NATIVE_BUILD_DISTRIBUTION ? <NativeBuildBanner channel={NATIVE_BUILD_CHANNEL} version={NATIVE_BUILD_VERSION} build={NATIVE_BUILD_NUMBER} /> : null} /></NativeNavigationProvider></I18nProvider>;
 }
 createRoot(document.getElementById("root")!).render(<NativeRoot />);

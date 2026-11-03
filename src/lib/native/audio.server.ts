@@ -1,4 +1,5 @@
 import path from "node:path";
+import { nativePlaybackSchema } from "./audioPlaybackContract";
 import { ZodError } from "zod";
 import { chapterTextHash } from "@/lib/audioCheck";
 import { prisma } from "@/lib/db";
@@ -110,4 +111,13 @@ export async function streamNativeReaderAudio(binding:NativeSessionBinding,cours
   if((withBody||range!==null)&&!nativeAudioRange(range))return new Response(null,{status:416,headers:{"Content-Range":`bytes */${selected.source.byteSize}`,"Cache-Control":"private, no-store"}});
   try {return await streamAudio(selected.file,range,withBody,{verify:async handle=>{await verifyNativeAudioFile(handle,selected.source);},authorize});}
   catch(error){if(error instanceof Error&&(error.message==="AUDIO_UNAVAILABLE"||["ENOENT","ELOOP"].includes((error as NodeJS.ErrnoException).code??"")))unavailable();throw error;}
+}
+
+/** Afzonderlijk contract: oude /audio-clients houden hun strikte V1-respons.
+ * De laatste cataloguscontrole en bestaande readerrechten zijn autoritatief. */
+export async function nativeReaderPlayback(binding:NativeSessionBinding,courseId:string,kind:NativeReaderKind,targetId:string) {
+  const reader=await nativeScriptureReader(binding,courseId,kind,targetId);
+  const audio=await nativeReaderAudio(binding,courseId,kind,targetId);
+  if(readerStamp(reader)!==audio.readerHash)throw new NativeAuthError("content_context_changed",409);
+  return nativePlaybackSchema.parse({version:1,audio,reader});
 }

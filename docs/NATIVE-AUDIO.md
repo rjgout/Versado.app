@@ -2,18 +2,80 @@
 
 ## Status en integratievolgorde
 
-Deze eerste, afzonderlijk te beoordelen PR levert een **inactieve transportfundering**.
-Er is nog geen native audiocapability, plugincommando, credentialsetter of afspeelknop.
-De huidige native lezer, annotaties en webspeler veranderen niet. Audio/TTS-pariteit
-blijft ontbreken. Geen import, publicatie, migratie of nieuwe audio-opname.
-Basis: develop `09d60ad55efb6e9c52779f6fd482e81d681a22ea` na #260.
+B3b-2c deel 2 sluit de bestaande gedeelde speler, mini-speler en provider aan op
+PR #261 (develop `77de2d13dd7f0dfea48e0dbfa3b2fc80b4226979`). Web blijft
+HTMLAudioElement/Web Speech gebruiken; native gebruikt een uitvoeradapter.
+`scripture-audio-v1` maakt de bediening uitsluitend beschikbaar in de bestaande
+interne Service Auth-build. Andere distributieprofielen krijgen geen onbeveiligde
+terugval. Geen migratie, nieuwe audio, import, publicatie of voortgangsmutatie.
 
-De volgende PR moet eerst bestaande sessie-/contextovergangen veilig koppelen aan
-native invalidatie en een native verzegelde broncontext. Pas daarna worden de
-bestaande `ReadAloudPlayer`, `ReadAloudMiniPlayer` en provider via een engineadapter
-aangesloten. Geen tweede speler, cache, sessie of voortgangssysteem. TTS volgt in
-die aansluiting met werkelijk aanwezige stemmen in de vijf talen, expliciete
-stemkeuze en dezelfde snelheden (0,75×, 1×, 1,25×, 1,5×, 2×).
+De transportfundering hieronder blijft van toepassing. Nieuwe native code vereist
+een nieuwe lokale bundel, Capacitor-sync en Xcode-/Android-installatie. Alleen
+backend bijwerken maakt een eerder geïnstalleerde app niet geschikt.
+
+## Speler, TTS en lifecycle
+
+- `ReadAloudPlayer`, `ReadAloudMiniPlayer` en `ReadAloudPlayerProvider` zijn
+  dezelfde React-componenten op web en native. NativeReadAloudPlayer levert
+  metadata via LiveDataStore, geen tweede afspeelinterface of serverdatacache.
+- Opnamekeuze begint bij de teksttaal; andere talen vragen een expliciete keuze.
+  Computerstemmen komen uitsluitend uit de daadwerkelijk beschikbare native
+  stemmenlijst en moeten bij de geopende teksttaal passen. Een ontbrekende
+  webstemvoorkeur wordt geen stem in een andere taal. Toestelstemvoorkeuren worden
+  per taal bewaard en overschrijven de bestaande Nederlandse webstem niet. Native tekst voor TTS
+  komt uit de geautoriseerde serverresponse, nooit uit een JS-spreekcommando.
+- Alle vijf snelheden, verskeuze, vorige/volgende vers, pauze, hervatten en stop
+  delen de bestaande bediening. iOS AVPlayer begrenst met forwardPlaybackEndTime;
+  Android Media3/ExoPlayer met ClippingMediaSource. Geen UI-timer als stapgrens.
+  De enige nieuwe Android-runtimeafhankelijkheid is Media3 exoplayer 1.11.1;
+  deze gebruikt de bestaande begrensde transportadapter, geen eigen HTTP-stack.
+  Media3 kan vierbyte-peeks doen. De native decoder heeft daarom één tijdelijk
+  64KiB-read-aheadblok (maximaal vier tijdelijke fills), nooit een MP3-bestandscache.
+  Ook bufferaflevering loopt door de bestaande lifetime-/close-gate. Close annuleert
+  netwerk-I/O vóór het bufferlock en wist de bytes; netwerk-I/O houdt geen lock vast.
+  iOS vraagt circa 15 seconden voorwaartse buffering; AVFoundation beheert de
+  daadwerkelijke decoderbuffers. Werkelijk toestelgeheugen moet nog worden gemeten.
+- Deze fase is **uitsluitend voorgrond**. Achtergrond, schermslot, onderbreking,
+  verlies van audiofocus, loskoppelen hoofdtelefoon en verlaten van de lezer
+  stoppen en ruimen uitvoer/buffers op. Geen automatische hervatting, background
+  audio entitlement, media service of claim van lockscreenbediening.
+- iOS kan een TTS-uitspraak pauzeren/hervatten; Android hervat het huidige vers
+  opnieuw, omdat TextToSpeech geen betrouwbare woordcursor/pauze biedt.
+  Beschikbaarheid/offlinewerking en verstaanbaarheid vereisen toestelacceptatie.
+- Podcast en schriftvoorlezen blijven elkaar uitsluiten via bestaande events.
+  De mini-speler staat binnen de gedeelde header en vouwt op kleine schermen.
+  Hoofdstukwisseling stopt; het volgende hoofdstuk vraagt nieuwe autorisatie.
+- Voorlezen vanuit het bestaande annotatiemenu respecteert notitieconcepten en
+  onzekere annotatieschrijfacties. Audio markeert alleen het vers; native volgt
+  niet automatisch met scrollen. Bediening ontwapent de leespositietimer,
+  behoudt een mislukte positie-intentie voor handmatige retry en schrijft niets.
+
+## Verzegelde native context en vernieuwing
+
+Een niet-geheime UUID-requeststamp volgt de bestaande NativeSessionClient-epoch.
+De native reset moet bevestigd zijn vóór de volgende Access-request. Alleen een
+succesvol bestaand native login-/refresh-/setupantwoord kan een token voorbereiden.
+Pas nadat hetzelfde refreshpaar veilig is opgeslagen, wordt het native anchor
+actief. Dit is een tijdelijke geheugenbinding, geen tweede sessie of tokenopslag.
+Oude outbox-writes mogen geen nieuw account activeren of zijn voorbereide paar
+wissen. Falen van de bijbehorende veilige opslag maakt het paar onbruikbaar.
+
+De native capsule bevat sessie-ID/-versie, gebruiker, exacte leesscope,
+selectieversie, tekst, bron/publicatie-identiteit en beschikbare opnamen. JS geeft
+alleen eigenaar, command-ID, oplopende actiesequentie, versindex, snelheid en
+opname-/stem-ID door. Credentials en MP3-bytes blijven native. Een nieuwe
+reader-eigenaar voorkomt ook hergebruik na verlaten en heropenen van dezelfde route.
+
+De geldigheid is maximaal vijf minuten en nooit langer dan de bestaande JWT,
+inclusief verstreken aanvraagtijd en drie seconden marge. Voor lang luisteren
+vraagt de adapter vóór afloop uitsluitend nieuwe leesautorisatie aan via de
+bestaande refreshqueue. Er is geen schrijf-retry of nieuwe refreshimplementatie.
+Tijdens spelen controleert dezelfde metadataquery elke 30 seconden opnieuw de
+rechten, uitsluitend op de voorgrond. Lokale logout/account-/bron-/Accesswissel
+stopt direct. Een op afstand ingetrokken recht kan pas bij de volgende controle
+worden waargenomen (of eerdere streamrequest); offline geldt de harde leasetijd.
+Reeds afgespeelde bytes kunnen niet worden teruggenomen. Een streamingfout
+beëindigt audio, maar trekt niet zelfstandig de hele Versado-sessie in.
 
 ## Audit en hergebruik
 
@@ -38,6 +100,7 @@ Uitsluitend binnen de bestaande native readercontext:
 
 ```
 GET courses/<courseId>/read/{steps|chapters}/<targetId>/audio
+GET courses/<courseId>/read/{steps|chapters}/<targetId>/audio/playback
 GET courses/<courseId>/read/{steps|chapters}/<targetId>/audio/<sha256-id>/stream
 HEAD courses/<courseId>/read/{steps|chapters}/<targetId>/audio/<sha256-id>/stream
 ```
@@ -59,8 +122,8 @@ Iedere stream controleert JWT/sessie, reader-/cursusrechten, actuele bron en
 publicatie opnieuw. Dezelfde controles worden voor en na ieder gelezen blok
 uitgevoerd voordat het wordt afgeleverd. Account- of bronwissel maakt oude IDs
 onbruikbaar, ook na een ABA-wissel. Reeds afgeleverde decoderbytes zijn niet terug
-te halen; de latere spelerintegratie moet daarom ook onmiddellijk stoppen en
-zijn buffers vrijgeven bij contextintrekking.
+te halen; de spelerintegratie stopt daarom ook onmiddellijk en geeft zijn buffers vrij
+bij lokale contextintrekking.
 
 GET accepteert uitsluitend één eindige Range van maximaal 256 KiB en geeft 206;
 ontbrekende, te grote, open of meervoudige ranges geven 416. HEAD geeft alleen
@@ -76,7 +139,7 @@ positieve integriteitsmetadata worden kort gecachet, nooit MP3-bytes. Annuleren
 sluit de descriptor. Gewijzigde bestanden of intrekking na de headers breken de
 body af; er is geen automatische retry.
 
-## Platformbewijs en nog ontbrekende aansluiting
+## Historisch transportbewijs uit PR #261
 
 Apple: AVAssetResourceLoader met eigen scheme, URLSession ephemeral, begrensde
 64 KiB chunks, maximaal vier wachtende laadverzoeken; AVFoundation krijgt geen
@@ -145,8 +208,7 @@ rechtencontrole per chunk moet later op een developmenttoestel worden beoordeeld
 
 ## PENDING PHYSICAL ACCEPTANCE
 
-Deze inactieve fundering heeft nog geen toestelbediening. Na de aparte, beoordeelde
-speler-/TTS-aansluiting op iPhone én Android controleren:
+De nieuwe speler-/TTS-aansluiting is nog niet fysiek geaccepteerd. Op iPhone én Android controleren:
 
 1. Juiste teksttaal, expliciete andere audiotaal, echte stemmen en ontbrekende bron.
 2. Start/pauze/stop, versselectie, vorig/volgend vers en alle vijf snelheden.
@@ -159,3 +221,93 @@ speler-/TTS-aansluiting op iPhone én Android controleren:
 
 Geen van deze punten is hier als fysieke acceptatie geslaagd gemeld. #258/#259,
 B3c, CFM, imports en publicaties blijven buiten scope.
+
+
+## Verificatie deel 2 en bewijsgrenzen
+
+Lokaal uitgevoerd: TypeScript; 41 gerichte audio-/Access-/session-gatetests;
+14 geïsoleerde PostgreSQL/Redis-audioproeven, inclusief drie leesmethoden × vijf
+talen, twee Node-processen, ingetrokken rechten tijdens vertraagde playback-GET,
+140 gelijktijdige catalogi en ongewijzigde gebruikers-/audiotabellen. De
+bestaande 170 migraties zijn uitsluitend op de eigen wegwerpdatabase toegepast;
+deze wijziging heeft geen migratie. Pariteitscontrole en zes pariteitstests slagen.
+
+De browserproef gebruikt dezelfde echte React-speler, mini-speler en lezer met
+synthetische metadata en OS-uitvoer. Vijf talen × opname/TTS, 320px/200% donker,
+ontbrekende toestelstem, geen leespositiewrite en stop tijdens een vertraagde
+start zijn afgedekt. Voorbeelden: [web](screenshots/native-audio/web-nl-390-light.png),
+[native](screenshots/native-audio/native-nl-390-light.png) en
+[native 320px/200%](screenshots/native-audio/native-nl-320-200-dark.png).
+Dit zijn browserbeelden, geen iPhone-screenshots.
+
+De bestaande platformworkflow voert nu native contextproeven uit voor
+secure-storage-commit, oude outbox/refresh, account-/bron-/achtergrond-epochs,
+vertraagde antwoorden en harde JWT-/lifetimegrenzen. AVFoundation decodeert
+synthetische MP3 naar PCM via de bestaande resource-loader; de Android-proef
+gebruikt dezelfde SourceData, ExoPlayer en ClippingMediaSource op één emulator.
+Alleen HTTP-antwoorden zijn daarin gesimuleerd. Het geslaagde uitvoeren hiervan
+en de compilaties moet uit de GitHub-checks op de definitieve PR-head blijken;
+toegevoegde tests zijn op zichzelf geen geslaagd platformbewijs.
+
+De afzonderlijke securityreview vond een P2 in Android-audiofocus: na een
+geweigerde aanvraag kon hervatten de nieuwe focusaanvraag overslaan. De tijdelijke
+focuslease wordt nu alleen na OS-bevestiging verleend, wordt bij weigering,
+pauze en einde vrijgegeven en weigert callbacks van eerdere leases. Drie echte
+lokale JVM-tests slagen; de herreview vindt geen resterende P0–P2. Platformresultaten
+blijven een voorwaarde vóór een mergeadvies. Fysieke
+luidsprekeruitvoer, stemkwaliteit, schermslot, gesprekken, Bluetooth en langdurig
+luisteren zijn **PENDING PHYSICAL ACCEPTANCE**. Gebruik de bovenstaande checklist
+met hetzelfde testaccount op web/iPhone/Android. Controleer daarbij expliciet
+het stap-eindvers, geen voortgangswijziging door audio, behoud van een open
+notitieconcept en onmiddellijke stop bij logout of bron-/hoofdstukwisseling.
+
+
+### Gerichte regressies tijdens deze implementatie
+
+De eerste emulatorproef faalde met een bronfout. De synthetische Android-JWT
+bevatte base64url-padding; de bestaande transportregex weigert die terecht.
+De fixture gebruikt nu dezelfde paddingloze vorm als echte server-JWT's. De
+transportcontrole is niet versoepeld; de nieuwe OS-run moet de diagnose bevestigen.
+
+Een apart browserrepro leverde één ongewenste positie-opslag op bij scrollen in
+het portaal van de nieuwe stemkeuzelijst. Role=listbox/option telt daarom niet
+meer als leesinteractie; dezelfde proef verwacht en krijgt nu nul opslagacties.
+Ook toestelstemkeuze per taal en ontbrekende/mislukte eventregistratie hebben
+regressies: een webstem blijft behouden, en audio start pas met werkende native
+eventafhandeling. Een expliciete nieuwe poging kan die lokale koppeling herstellen.
+
+
+De eerste iOS-job kreeg volgens GitHub na meerdere pogingen geen ARM64-hosted
+runner, met expliciete capaciteitsmeldingen. Dezelfde bestaande job gebruikt nu
+`macos-26-intel` (officiële runner, dezelfde OS-generatie), zonder nieuwe workflow
+of signing/distributieroute. Simulator-/codecresultaten op deze host zijn geen
+bewijs van fysieke ARM64-iPhone-audio. De eigenaar blijft daarvoor de bestaande
+Mac → Capacitor → Xcode → iPhone-route gebruiken.
+
+
+Android 11+ krijgt uitsluitend de exacte `android.intent.action.TTS_SERVICE`-
+zichtbaarheidsquery, zonder nieuwe permissies of algemene pakketinzage. Een
+emulatorproef inventariseert de werkelijk aanwezige lokale stemmen en controleert
+dat een ontbrekende/verkeerdtalige stem niet wordt uitgesproken. Geen engine of
+stem wordt automatisch geïnstalleerd of gedownload.
+
+Toestelonderbrekingen hebben ook een opdrachtloos epoch-event: headsetverlies of
+onderbreking tijdens de eerste autorisatie annuleert de pending start. Een later
+metadataantwoord kan niet alsnog audio activeren; de gerichte race-unit slaagt.
+
+Platformtussenstand op `9f08dea6304bfab7fa121377da150540383f9777`: Android-build,
+JVM-proeven en echte emulator-decoder/clipproef geslaagd; op macOS zijn Access-
+policy en echte AVFoundation-PCM-decodering geslaagd. De Swift-contextfixture
+faalde door wisselende JSON-sleutelvolgorde in herhaald geconstrueerde synthetische
+JWT's. De fixture gebruikt nu sortedKeys en toetst determinisme; de exacte
+productie-tokenbinding is behouden. De nieuwe PR-head moet opnieuw geheel groen
+worden. Deze tussenstand geldt niet als iOS-appcompilatie of fysieke acceptatie.
+
+
+Controle van de echte APK liet Media3's transitieve WAKE_LOCK-permissie zien.
+De voorgrondspeler gebruikt geen wakemode; deze permissie wordt expliciet uit
+het gemergde manifest verwijderd. Een emulatorproef controleert de werkelijk
+geïnstalleerde APK: uitsluitend INTERNET, netwerkstatus, bestaande haptics en de
+eigen signature-permissie voor niet-geëxporteerde receivers. Geen wakelock,
+microfoon- of algemene pakketinzage. Media3's netwerkstatuspermissie ondersteunt
+de bestaande netwerk-/streamingafhandeling; de TTS-query vraagt geen permissie.

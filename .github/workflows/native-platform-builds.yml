@@ -63,6 +63,32 @@ jobs:
       - name: Native Access HTTP-/policyregressies op de JVM
         working-directory: android
         run: bash ./gradlew :app:testDebugUnitTest --no-daemon
+      - name: KVM uitsluitend op de wegwerp-CI-runner
+        run: |
+          sudo chown "$USER" /dev/kvm
+          sudo chmod u+rw /dev/kvm
+      - name: Echte Android-codec en stapgrens met synthetische MP3
+        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2
+        timeout-minutes: 8
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          cores: 2
+          ram-size: 2048M
+          emulator-boot-timeout: 180
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          working-directory: android
+          script: bash ./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=app.versado.app.NativeAudioDecoderTest --no-daemon
+      - name: Android-codec- en instrumentatierapporten
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-audio-android-decoder
+          path: |
+            android/app/build/reports/androidTests
+            android/app/build/outputs/androidTest-results
+          retention-days: 7
       - name: Controleer de assets in de APK
         run: |
           unzip -q android/app/build/outputs/apk/debug/app-debug.apk 'assets/*' -d "$RUNNER_TEMP/versado-android-artifact"
@@ -152,7 +178,9 @@ jobs:
             android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 7
   ios-simulator:
-    runs-on: macos-latest
+    # ARM64-hosted gaf op de eerste head geen runner (bevestigde capaciteitsmelding).
+    # Zelfde bestaande job/OS-generatie, Intel-host; geen fysieke toestelclaim.
+    runs-on: macos-26-intel
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
@@ -161,6 +189,7 @@ jobs:
           node-version: 24
           cache: npm
       - name: Lokaal bundelen en synchroniseren
+        id: ios-bundle
         run: |
           npm ci
           npm run db:generate
@@ -173,7 +202,11 @@ jobs:
           "$RUNNER_TEMP/versado-access-policy"
           swiftc -swift-version 5 -target "$(uname -m)-apple-macos14.0" ios/App/App/NativeAccessTransport.swift ios/App/App/NativeAudioTransport.swift tests/native-audio-transport.swift -o "$RUNNER_TEMP/versado-audio-transport"
           "$RUNNER_TEMP/versado-audio-transport" tests/fixtures/native-audio/synthetic.mp3
+          swiftc -swift-version 5 -target "$(uname -m)-apple-macos14.0" ios/App/App/NativeAccessTransport.swift ios/App/App/NativeAudioTransport.swift ios/App/App/NativeAudioContext.swift tests/native-audio-context.swift -o "$RUNNER_TEMP/versado-audio-context"
+          "$RUNNER_TEMP/versado-audio-context" tests/fixtures/native-audio/playback.json
       - name: Echte iOS-simulatorcompilatie zonder signing
+        # Verzamel ook compilebewijs wanneer een onafhankelijke policyproef faalt; job blijft rood.
+        if: ${{ !cancelled() && steps.ios-bundle.outcome == 'success' }}
         run: |
           xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath "$RUNNER_TEMP/versado-ios" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
       - name: Controleer de assets in de simulatorapp

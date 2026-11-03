@@ -97,7 +97,19 @@ private func read(_ source: NativeAudioSourceRequest, _ life: NativeAudioLifetim
             let bounds = range.dropFirst(6).split(separator: "-").compactMap { Int($0) }
             return bounds.count == 2 && bounds[1] - bounds[0] < NativeAudioRangeRequest.maxBytes
         })
+        // Echte PCM-decodering via dezelfde custom AVAssetResourceLoader.
+        // Dit is codec-/clipbewijs, geen luidspreker- of toestelacceptatie.
+        let tracks = try await wrapper.asset.loadTracks(withMediaType: .audio)
+        precondition(!tracks.isEmpty)
+        let decoder = try AVAssetReader(asset: wrapper.asset)
+        let pcm = AVAssetReaderTrackOutput(track: tracks[0], outputSettings: [AVFormatIDKey:kAudioFormatLinearPCM,AVLinearPCMBitDepthKey:16,AVLinearPCMIsFloatKey:false])
+        decoder.timeRange = CMTimeRange(start:CMTime(seconds:7,preferredTimescale:1000),duration:CMTime(seconds:1,preferredTimescale:1000))
+        decoder.add(pcm); precondition(decoder.startReading())
+        let timeout = DispatchWorkItem { decoder.cancelReading() }; DispatchQueue.global().asyncAfter(deadline:.now()+20,execute:timeout)
+        var decodedFrames = 0
+        while let sample = pcm.copyNextSampleBuffer() { decodedFrames += CMSampleBufferGetNumSamples(sample) }
+        timeout.cancel(); precondition(decodedFrames>1000 && decoder.status == .completed)
         wrapper.cancel(); precondition(!assetLife.current)
-        print("Native audio: begrensde URLSession-ranges, header-/statusfouten, late intrekking en echte AVFoundation resource-loader/MP3-duur geslaagd; geen fysieke acceptatie.")
+        print("Native audio: begrensde URLSession-ranges, header-/statusfouten, late intrekking en echte AVFoundation resource-loader/MP3-duur/PCM-decodering geslaagd; geen fysieke acceptatie.")
     }
 }

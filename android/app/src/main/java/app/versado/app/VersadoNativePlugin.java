@@ -32,8 +32,57 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
 
+@androidx.media3.common.util.UnstableApi
 @CapacitorPlugin(name = "VersadoNative")
 public class VersadoNativePlugin extends Plugin {
+    private final NativeAudioContext audio = new NativeAudioContext();
+    private NativeAudioPlayer nativePlayer;
+    private NativeAudioPlayer player() {
+        if (nativePlayer == null) { nativePlayer = new NativeAudioPlayer(getContext(), audio); nativePlayer.emit = state -> { try { notifyListeners("audioState", JSObject.fromJSONObject(state)); } catch (org.json.JSONException ignored) { } }; }
+        return nativePlayer;
+    }
+    private void audioLifecycleChanged(boolean active) {
+        audio.setForeground(active); JSObject state = new JSObject(); state.put("lifecycle",true); state.put("active",active); state.put("contextEpoch",audio.epoch()); notifyListeners("audioState",state);
+    }
+    @Override protected void handleOnPause() { getActivity().runOnUiThread(() -> audioLifecycleChanged(false)); }
+    @Override protected void handleOnResume() { getActivity().runOnUiThread(() -> audioLifecycleChanged(true)); }
+    @PluginMethod public void audioSession(PluginCall call) {
+        if (!localOnly(call)) return;
+        String stamp = call.getString("sessionStamp");
+        try { java.util.UUID.fromString(stamp); } catch (Exception ignored) { call.reject("audio_unavailable"); return; }
+        getActivity().runOnUiThread(() -> { audio.reset(stamp); call.resolve(); });
+    }
+    @PluginMethod public void audioContext(PluginCall call) {
+        if (!accessOnly(call)) return;
+        getActivity().runOnUiThread(() -> {
+            try {
+                if (!audio.matchesStamp(call.getString("sessionStamp"))) throw NativeAudioContext.invalid();
+                String owner = call.getString("ownerId"); java.util.UUID.fromString(owner);
+                if (call.getBoolean("forget", false)) { audio.forget(owner); call.resolve(); return; }
+                if (!audio.foreground()) throw NativeAudioContext.invalid();
+                JSObject scope = call.getObject("scope");
+                if (scope == null || scope.toString().getBytes(StandardCharsets.UTF_8).length > 4096) throw NativeAudioContext.invalid();
+                audio.select(new NativeAudioContext.Scope(scope), owner); call.resolve();
+            } catch (Exception ignored) { call.reject("audio_unavailable"); }
+        });
+    }
+    @PluginMethod public void audioStatus(PluginCall call) {
+        if (!localOnly(call)) return;
+        getActivity().runOnUiThread(() -> {
+            try {
+                if (!accessEnabled()) { call.resolve(new JSObject().put("enabled", false).put("anchored", false).put("foreground", false).put("contextEpoch", 0).put("validForMs", 0)); return; }
+                JSONObject state = player().status().put("enabled", true); call.resolve(JSObject.fromJSONObject(state));
+            } catch (Exception ignored) { call.reject("audio_unavailable"); }
+        });
+    }
+    @PluginMethod public void audioVoices(PluginCall call) {
+        if (!accessOnly(call)) return;
+        getActivity().runOnUiThread(() -> { if (!audio.foreground()) { call.reject("audio_unavailable"); return; } player().voices(voices -> { JSObject value = new JSObject(); value.put("voices", voices); call.resolve(value); }); });
+    }
+    @PluginMethod public void audioCommand(PluginCall call) {
+        if (!accessOnly(call)) return;
+        getActivity().runOnUiThread(() -> { try { player().control(call.getData()); call.resolve(); } catch (Exception ignored) { call.reject("audio_unavailable"); } });
+    }
     private static final String ALIAS = "versado-native-session-v1";
     private static final String ACCESS_ALIAS = "versado-native-cloudflare-v1";
     private final Object accessLock = new Object();
@@ -58,7 +107,7 @@ public class VersadoNativePlugin extends Plugin {
     @Override public void load() {
         if (!accessEnabled()) { accessPreferences().edit().clear().commit(); }
     }
-    @Override protected void handleOnDestroy() { accessWorkers.shutdownNow(); synchronized (accessLock) { accessEpoch++; } }
+    @Override protected void handleOnDestroy() { accessWorkers.shutdownNow(); synchronized (accessLock) { accessEpoch++; } getActivity().runOnUiThread(() -> { if (nativePlayer != null) nativePlayer.destroy(); else audio.reset(null); }); }
     private boolean accessOnly(PluginCall call) {
         if (!localOnly(call)) return false;
         if (!accessEnabled()) { call.reject("access_disabled"); return false; }
@@ -127,8 +176,11 @@ public class VersadoNativePlugin extends Plugin {
                             if (!accessPreferences().edit().putString("ciphertext", encrypted).putString("iv", Base64.encodeToString(cipher.getIV(), Base64.NO_WRAP)).commit()) throw new Exception();
                             accessEpoch++;
                         }
+                        audio.reset(null);
                         JSObject result = new JSObject(); result.put("changed", true); call.resolve(result);
-                    } catch (NativeAccessTransport.Failure error) { call.reject(error.code); }
+                    } catch (NativeAccessTransport.Failure error) {
+                    getActivity().runOnUiThread(() -> { call.reject(error.code); });
+                }
                     catch (Exception ignored) { call.reject("access_storage_unavailable"); }
                 }).create();
             dialog.setCanceledOnTouchOutside(false);
@@ -140,16 +192,21 @@ public class VersadoNativePlugin extends Plugin {
     }
     @PluginMethod public void clearAccess(PluginCall call) {
         if (!accessOnly(call)) return;
-        synchronized (accessLock) {
-            if (accessDialogBusy) { call.reject("access_busy"); return; }
-            if (!accessPreferences().edit().clear().commit()) { call.reject("access_storage_unavailable"); return; }
-            accessEpoch++; JSObject result = new JSObject(); result.put("changed", true); call.resolve(result);
-        }
+        getActivity().runOnUiThread(() -> {
+            synchronized (accessLock) {
+                if (accessDialogBusy) { call.reject("access_busy"); return; }
+                if (!accessPreferences().edit().clear().commit()) { call.reject("access_storage_unavailable"); return; }
+                accessEpoch++;
+            }
+            audio.reset(null); JSObject result = new JSObject(); result.put("changed", true); call.resolve(result);
+        });
     }
     @PluginMethod public void accessRequest(PluginCall call) {
         if (!accessOnly(call)) return;
         String path = call.getString("path"), method = call.getString("method"), authorization = call.getString("authorization"), body = call.getString("body");
         if (!NativeAccessTransport.routeAllowed(path, method)) { call.reject("access_request_invalid"); return; }
+        final NativeAudioContext.Tag audioTag = audio.tag(call.getString("sessionStamp"));
+        final long audioStarted = android.os.SystemClock.elapsedRealtimeNanos();
         final long requestedEpoch;
         synchronized (accessLock) { requestedEpoch = accessEpoch; }
         try {
@@ -159,8 +216,8 @@ public class VersadoNativePlugin extends Plugin {
                     if (requestedEpoch != accessEpoch) { call.reject("access_changed"); return; }
                     pair = readAccess(); epoch = accessEpoch;
                 } }
-                catch (NativeAccessTransport.Failure error) { call.reject(error.code); return; }
-                catch (Exception ignored) { call.reject("access_storage_unavailable"); return; }
+                catch (NativeAccessTransport.Failure error) { getActivity().runOnUiThread(() -> { audio.accessFailed(audioTag); call.reject(error.code); }); return; }
+                catch (Exception ignored) { getActivity().runOnUiThread(() -> { audio.accessFailed(audioTag); call.reject("access_storage_unavailable"); }); return; }
                 try {
                     NativeAccessTransport.Reply reply = NativeAccessTransport.request(path, method, authorization, body, pair, "https://localhost", NativeAccessTransport.client()::newCall, () -> {
                         synchronized (accessLock) { return epoch == accessEpoch; }
@@ -169,10 +226,16 @@ public class VersadoNativePlugin extends Plugin {
                         if (!accessOnly(call)) return;
                         synchronized (accessLock) {
                             if (epoch != accessEpoch) { call.reject("access_changed"); return; }
-                            JSObject result = new JSObject(); result.put("status", reply.status); result.put("body", reply.body); call.resolve(result);
+                            // State/capture alleen op de eigenaarqueue; geen codecwerk onder accessLock.
                         }
+                        audio.stage(path, reply.status, reply.body, audioTag);
+                        audio.observed(path, reply.status, reply.body, authorization, audioTag);
+                        try { if (audio.capture(path, reply.status, reply.body, authorization, pair, audioTag, audioStarted) && nativePlayer != null) nativePlayer.authorized(); }
+                        catch (Exception ignored) { /* Alleen audio is ongeldig; geen nieuwe sessiewisactie. */ }
+                        JSObject result = new JSObject(); result.put("status", reply.status); result.put("body", reply.body); call.resolve(result);
+
                     });
-                } catch (NativeAccessTransport.Failure error) { call.reject(error.code); }
+                } catch (NativeAccessTransport.Failure error) { getActivity().runOnUiThread(() -> { if (java.util.Arrays.asList("access_denied", "access_redirect_blocked", "access_invalid_response", "access_storage_unavailable").contains(error.code)) audio.accessFailed(audioTag); call.reject(error.code); }); }
             });
         } catch (java.util.concurrent.RejectedExecutionException ignored) { call.reject("access_busy"); }
     }
@@ -209,20 +272,22 @@ public class VersadoNativePlugin extends Plugin {
             JSObject result = new JSObject(); result.put("value", new String(cipher.doFinal(Base64.decode(encrypted, Base64.NO_WRAP)), StandardCharsets.UTF_8)); call.resolve(result);
         } catch (Exception ignored) { call.reject("secure_storage_unavailable"); }
     }
-    @PluginMethod public synchronized void writeSession(PluginCall call) {
+    @PluginMethod public void writeSession(PluginCall call) {
         if (!localOnly(call)) return;
         String value = call.getString("value");
         if (value == null || value.getBytes(StandardCharsets.UTF_8).length > 4096) { call.reject("invalid_session"); return; }
-        try {
-            Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding"); cipher.init(Cipher.ENCRYPT_MODE, key());
-            String encrypted = Base64.encodeToString(cipher.doFinal(value.getBytes(StandardCharsets.UTF_8)), Base64.NO_WRAP);
-            if (!preferences().edit().putString("ciphertext", encrypted).putString("iv", Base64.encodeToString(cipher.getIV(), Base64.NO_WRAP)).commit()) throw new Exception();
-            call.resolve();
-        } catch (Exception ignored) { call.reject("secure_storage_unavailable"); }
+        getActivity().runOnUiThread(() -> {
+            try {
+                Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding"); cipher.init(Cipher.ENCRYPT_MODE, key());
+                String encrypted = Base64.encodeToString(cipher.doFinal(value.getBytes(StandardCharsets.UTF_8)), Base64.NO_WRAP);
+                if (!preferences().edit().putString("ciphertext", encrypted).putString("iv", Base64.encodeToString(cipher.getIV(), Base64.NO_WRAP)).commit()) throw new Exception();
+                audio.saved(value, true); call.resolve();
+            } catch (Exception ignored) { audio.saved(value, false); call.reject("secure_storage_unavailable"); }
+        });
     }
-    @PluginMethod public synchronized void clearSession(PluginCall call) {
+    @PluginMethod public void clearSession(PluginCall call) {
         if (!localOnly(call)) return;
-        if (preferences().edit().clear().commit()) call.resolve(); else call.reject("secure_storage_unavailable");
+        getActivity().runOnUiThread(() -> { audio.storedClear(); if (preferences().edit().clear().commit()) call.resolve(); else call.reject("secure_storage_unavailable"); });
     }
     @PluginMethod public synchronized void signInWithApple(PluginCall call) { call.reject("apple_web_oauth_not_configured"); }
 }

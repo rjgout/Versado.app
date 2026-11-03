@@ -16,8 +16,22 @@ public class VersadoNativePlugin: CAPPlugin, CAPBridgedPlugin, ASAuthorizationCo
         CAPPluginMethod(name: "accessStatus", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "enrollAccess", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "clearAccess", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "accessRequest", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "accessRequest", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "audioSession", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "audioContext", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "audioStatus", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "audioVoices", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "audioCommand", returnType: CAPPluginReturnPromise)
     ]
+    private let audio = NativeAudioContext()
+    private var nativePlayer: NativeAudioPlayer?
+    private var audioLifecycle: [NSObjectProtocol] = []
+    private func player() -> NativeAudioPlayer {
+        if let player = nativePlayer { return player }
+        let player = NativeAudioPlayer(context: audio)
+        player.emit = { [weak self] state in self?.notifyListeners("audioState", data: state) }
+        nativePlayer = player; return player
+    }
     private var authorization: CAPPluginCall?
     private var controller: ASAuthorizationController?
     private let service = "app.versado.native.session.v1"
@@ -37,6 +51,54 @@ public class VersadoNativePlugin: CAPPlugin, CAPBridgedPlugin, ASAuthorizationCo
     public override func load() {
         // Een andere build mag eerder opgeslagen interne credentials niet gebruiken.
         if !accessEnabled() { SecItemDelete(accessQuery as CFDictionary) }
+        audio.setForeground(UIApplication.shared.applicationState == .active)
+        audioLifecycle = [UIApplication.willResignActiveNotification, UIApplication.didEnterBackgroundNotification].map { name in
+            NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in self?.audioLifecycleChanged(false) }
+        }
+        audioLifecycle.append(NotificationCenter.default.addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: .main) { [weak self] _ in self?.audioLifecycleChanged(true) })
+    }
+    deinit { audioLifecycle.forEach { NotificationCenter.default.removeObserver($0) }; let output = nativePlayer; DispatchQueue.main.async { output?.destroy() } }
+    private func audioLifecycleChanged(_ active: Bool) {
+        audio.setForeground(active)
+        notifyListeners("audioState", data:["lifecycle":true,"active":active,"contextEpoch":audio.contextEpoch])
+    }
+    @objc func audioSession(_ call: CAPPluginCall) {
+        guard localOnly(call) else { return }
+        guard let stamp = call.getString("sessionStamp"), UUID(uuidString: stamp) != nil else { call.reject("audio_unavailable"); return }
+        DispatchQueue.main.async { self.audio.reset(stamp); call.resolve() }
+    }
+    @objc func audioContext(_ call: CAPPluginCall) {
+        guard accessOnly(call) else { return }
+        DispatchQueue.main.async {
+            guard call.getString("sessionStamp") == self.audio.stamp, let owner = call.getString("ownerId"), UUID(uuidString: owner) != nil else { call.reject("audio_changed"); return }
+            if call.getBool("forget") == true { self.audio.forget(owner); call.resolve(); return }
+            do {
+                guard self.audio.foreground else { throw NativeAudioFailure() }
+                guard let scope = call.getObject("scope") else { throw NativeAudioFailure() }
+                let data = try JSONSerialization.data(withJSONObject: scope)
+                guard data.count <= 4096 else { throw NativeAudioFailure() }
+                let value = try JSONDecoder().decode(NativeAudioScope.self, from: data); try value.validate()
+                self.audio.select(value, owner: owner); call.resolve()
+            } catch { call.reject("audio_unavailable") }
+        }
+    }
+    @objc func audioStatus(_ call: CAPPluginCall) {
+        guard localOnly(call) else { return }
+        DispatchQueue.main.async {
+            guard self.accessEnabled() else { call.resolve(["enabled":false,"anchored":false,"foreground":false,"contextEpoch":0,"validForMs":0]); return }
+            var state = self.player().status(); state["enabled"] = true; call.resolve(state)
+        }
+    }
+    @objc func audioVoices(_ call: CAPPluginCall) {
+        guard accessOnly(call) else { return }
+        DispatchQueue.main.async { guard self.audio.foreground else { call.reject("audio_unavailable"); return }; call.resolve(["voices":NativeAudioPlayer.voices()]) }
+    }
+    @objc func audioCommand(_ call: CAPPluginCall) {
+        guard accessOnly(call) else { return }
+        DispatchQueue.main.async {
+            do { try self.player().control(call.options as? [String:Any] ?? [:]); call.resolve() }
+            catch { call.reject((error as? NativeAudioFailure)?.code ?? "audio_unavailable") }
+        }
     }
     private func accessOnly(_ call: CAPPluginCall) -> Bool {
         guard localOnly(call) else { return false }
@@ -102,6 +164,7 @@ public class VersadoNativePlugin: CAPPlugin, CAPBridgedPlugin, ASAuthorizationCo
                         var item = self.accessQuery; attributes.forEach { item[$0.key] = $0.value }; status = SecItemAdd(item as CFDictionary, nil)
                     }
                     if status == errSecSuccess { self.accessEpoch += 1 }; self.accessLock.unlock()
+                    if status == errSecSuccess { self.audio.reset(self.audio.stamp) }
                     guard status == errSecSuccess else { call.reject("access_storage_unavailable"); return }
                     call.resolve(["changed": true]) // Geen getter, identifier of secret naar JavaScript.
                 } catch { call.reject("access_request_invalid") }
@@ -111,19 +174,28 @@ public class VersadoNativePlugin: CAPPlugin, CAPBridgedPlugin, ASAuthorizationCo
     }
     @objc func clearAccess(_ call: CAPPluginCall) {
         guard accessOnly(call) else { return }
-        accessLock.lock(); defer { accessLock.unlock() }
-        guard !accessDialogBusy else { call.reject("access_busy"); return }
-        let status = SecItemDelete(accessQuery as CFDictionary)
-        guard status == errSecSuccess || status == errSecItemNotFound else { call.reject("access_storage_unavailable"); return }
-        accessEpoch += 1; call.resolve(["changed": true])
+        DispatchQueue.main.async {
+            self.accessLock.lock()
+            guard !self.accessDialogBusy else { self.accessLock.unlock(); call.reject("access_busy"); return }
+            let status = SecItemDelete(self.accessQuery as CFDictionary)
+            if status == errSecSuccess || status == errSecItemNotFound { self.accessEpoch += 1 }
+            self.accessLock.unlock()
+            guard status == errSecSuccess || status == errSecItemNotFound else { call.reject("access_storage_unavailable"); return }
+            self.audio.reset(self.audio.stamp); call.resolve(["changed":true])
+        }
     }
     @objc func accessRequest(_ call: CAPPluginCall) {
         guard accessOnly(call) else { return }
+        DispatchQueue.main.async { self.performAccessRequest(call) }
+    }
+    private func performAccessRequest(_ call: CAPPluginCall) {
+        guard accessOnly(call) else { return }
         guard let path = call.getString("path"), let method = call.getString("method"), NativeAccessPolicy.routeAllowed(path, method) else { call.reject("access_request_invalid"); return }
+        let tag = audio.tag(call.getString("sessionStamp")), started = NativeAudioLifetime.continuousTime()
         accessLock.lock()
         guard accessRequests.count < 4 else { accessLock.unlock(); call.reject("access_busy"); return }
         let credentials: NativeAccessCredentials
-        do { credentials = try readAccess() } catch { accessLock.unlock(); call.reject((error as? NativeAccessFailure)?.code ?? "access_storage_unavailable"); return }
+        do { credentials = try readAccess() } catch { accessLock.unlock(); audio.accessFailed(tag); call.reject((error as? NativeAccessFailure)?.code ?? "access_storage_unavailable"); return }
         let epoch = accessEpoch, id = UUID()
         let request = NativeAccessRequest(credentials: credentials, isCurrent: { [weak self] in
             guard let self = self else { return false }; self.accessLock.lock(); defer { self.accessLock.unlock() }; return epoch == self.accessEpoch
@@ -134,8 +206,16 @@ public class VersadoNativePlugin: CAPPlugin, CAPBridgedPlugin, ASAuthorizationCo
                 guard current else { call.reject("access_changed"); return }
                 guard self.accessOnly(call) else { return }
                 switch result {
-                case .success(let value): call.resolve(["status": value.0, "body": value.1])
-                case .failure(let error): call.reject(error.code)
+                case .success(let value):
+                    self.audio.stage(path:path,status:value.0,body:value.1,tag:tag)
+                    self.audio.observed(path:path,status:value.0,body:value.1,authorization:call.getString("authorization"),tag:tag)
+                    do {
+                        if try self.audio.capture(path:path,status:value.0,body:value.1,authorization:call.getString("authorization"),credentials:credentials,tag:tag,startedAt:started) { self.nativePlayer?.authorized() }
+                    } catch { /* Alleen de audio-context is ongeldig; geen sessiewisactie of nieuwe native details naar JS. */ }
+                    call.resolve(["status": value.0, "body": value.1])
+                case .failure(let error):
+                    if ["access_denied","access_redirect_blocked","access_invalid_response","access_storage_unavailable"].contains(error.code) { self.audio.accessFailed(tag) }
+                    call.reject(error.code)
                 }
             }
         }
@@ -166,19 +246,25 @@ public class VersadoNativePlugin: CAPPlugin, CAPBridgedPlugin, ASAuthorizationCo
     @objc func writeSession(_ call: CAPPluginCall) {
         guard localOnly(call) else { return }
         guard let value = call.getString("value"), value.utf8.count <= 4096 else { call.reject("invalid_session"); return }
-        let attributes: [String: Any] = [kSecValueData as String: Data(value.utf8), kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly]
-        let status = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
-        if status == errSecItemNotFound {
-            var item = query; attributes.forEach { item[$0.key] = $0.value }
-            guard SecItemAdd(item as CFDictionary, nil) == errSecSuccess else { call.reject("secure_storage_unavailable"); return }
-        } else if status != errSecSuccess { call.reject("secure_storage_unavailable"); return }
-        call.resolve()
+        DispatchQueue.main.async {
+            let attributes: [String: Any] = [kSecValueData as String: Data(value.utf8), kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly]
+            var status = SecItemUpdate(self.query as CFDictionary, attributes as CFDictionary)
+            if status == errSecItemNotFound {
+                var item = self.query; attributes.forEach { item[$0.key] = $0.value }; status = SecItemAdd(item as CFDictionary, nil)
+            }
+            self.audio.saved(value, success: status == errSecSuccess)
+            guard status == errSecSuccess else { call.reject("secure_storage_unavailable"); return }
+            call.resolve()
+        }
     }
     @objc func clearSession(_ call: CAPPluginCall) {
         guard localOnly(call) else { return }
-        let status = SecItemDelete(query as CFDictionary)
-        guard status == errSecSuccess || status == errSecItemNotFound else { call.reject("secure_storage_unavailable"); return }
-        call.resolve()
+        DispatchQueue.main.async {
+            self.audio.storedClear()
+            let status = SecItemDelete(self.query as CFDictionary)
+            guard status == errSecSuccess || status == errSecItemNotFound else { call.reject("secure_storage_unavailable"); return }
+            call.resolve()
+        }
     }
     @objc func signInWithApple(_ call: CAPPluginCall) {
         guard localOnly(call) else { return }

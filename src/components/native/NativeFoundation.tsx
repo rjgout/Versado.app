@@ -37,12 +37,16 @@ import { NativeDataProvider, useNativeData, useNativeLiveQuery } from "@/lib/dat
 import { nativeDeepLink, nativePasswordResetLink, nativeEmailConfirmationLink } from "@/lib/native/navigation";
 import { focusNativeRouteHeading } from "@/lib/native/routeFocus";
 
+import {ReadAloudPlayerProvider} from "@/lib/readAloudPlayerContext";
+import ReadAloudMiniPlayer from "@/components/ReadAloudMiniPlayer";
+import type {NativeReadAloudOutput} from "@/lib/native/audioOutput";
+
 type Account = NativeAccount;
-type FoundationProps = { client: NativeSessionClient; termsUrl?: string | null; onLanguage?: (language: string) => void; buildBanner?: ReactNode; buildIndicator?: ReactNode; internalTools?: boolean; internalAccess?: ReactNode };
+type FoundationProps = { audioOutput?: NativeReadAloudOutput; client: NativeSessionClient; termsUrl?: string | null; onLanguage?: (language: string) => void; buildBanner?: ReactNode; buildIndicator?: ReactNode; internalTools?: boolean; internalAccess?: ReactNode };
 export default function NativeFoundation(props: FoundationProps) {
-  return <NativeDataProvider client={props.client}><NativeFoundationContent {...props} /></NativeDataProvider>;
+  return <NativeDataProvider client={props.client}><ReadAloudPlayerProvider output={props.audioOutput}><NativeFoundationContent {...props} /></ReadAloudPlayerProvider></NativeDataProvider>;
 }
-function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBanner = null, buildIndicator = null, internalTools = false, internalAccess = null }: FoundationProps) {
+function NativeFoundationContent({ audioOutput, client, termsUrl = null, onLanguage, buildBanner = null, buildIndicator = null, internalTools = false, internalAccess = null }: FoundationProps) {
   const t = useT(), uiLanguage = useUiLanguage(), navigation = useAppNavigation();
   const diagnostics = navigation.pathname === "/diagnostics";
   const pickerPage = navigation.pathname === "/content";
@@ -237,7 +241,7 @@ function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBan
   const detail = !!readerRoute || (learningPage && navigation.pathname !== "/courses") || diagnostics || pickerPage || legal || profile || passwordPage || resetPage || confirmationPage || !!chapterId;
   const shellAccount = user && !setup && !recoveryCodes ? user : null;
   return <AccountActionsProvider actions={accountActions}><AppShellFrame
-    header={<NativeShellHeader account={shellAccount} onError={report} content={content} buildIndicator={buildIndicator} destinations={destinations} />}
+    header={<><NativeShellHeader account={shellAccount} onError={report} content={content} buildIndicator={buildIndicator} destinations={destinations} /><ReadAloudMiniPlayer /></>}
     headerExtras={detail && <SubpageBackBarView title={diagnostics ? t("nativeDiagnostics.title") : pickerPage ? t("contentSwitcher.picker.title") : profile ? t("nav.profile") : readerRoute ? t("pages.lesson") : learningPage ? t("pages.course") : chapterId ? t("pages.lesson") : t("common.back")} onBack={() => navigation.back(readerRoute ? `/courses/${readerRoute.courseId}/pad` : learningPage ? navigation.pathname.endsWith("/archief") ? navigation.pathname.replace(/archief$/, "pad") : "/courses" : "/dashboard")} />}
     showNavigation={!!shellAccount} destinations={destinations}
     mainClassName="native-foundation flex min-h-dvh w-full flex-col gap-5 bg-vs-bg text-vs-fg"
@@ -292,7 +296,7 @@ function NativeFoundationContent({ client, termsUrl = null, onLanguage, buildBan
       <div className="flex flex-wrap gap-3">{(["login", "register", "forgot"] as const).filter(v => v !== mode).map(value => <button className={button} disabled={busy} key={value} onClick={() => { navigation.push(value === "forgot" ? "/forgot-password" : `/${value}`); setError(""); setNotice(false); }}>{t(`nativeFoundation.${value}`)}</button>)}</div>
       {appleLoginAvailable && <p className="text-sm">{t("nativeFoundation.appleResetHelp")}</p>}
       {!termsUrl && <p className="text-sm">{t("nativeFoundation.termsUnavailable")}</p>}
-    </> : learningPage ? <NativeLearningView key={`${user.id}:${dataRuntime.getSnapshot()}:${contentStamp}`} userId={user.id} language={user.uiLanguage} content={content} enabled={features.includes("courses-overview-v1")} readerEnabled={features.includes("scripture-reader-v1")} positionEnabled={features.includes("scripture-reading-position-v1")} annotationsEnabled={features.includes("scripture-annotations-v1")} studyEnabled={features.includes("study-course-overview-v1")} mediaEnabled={features.includes("study-media-v1")} onError={error => { if (error instanceof NativeClientError && error.code === "content_context_changed") { void refreshContent(); } else report(error); }}/> : overviewEnabled && navigation.pathname === "/dashboard" ? overview ? <>
+    </> : learningPage ? <NativeLearningView key={`${user.id}:${dataRuntime.getSnapshot()}:${contentStamp}`} userId={user.id} language={user.uiLanguage} content={content} enabled={features.includes("courses-overview-v1")} readerEnabled={features.includes("scripture-reader-v1")} positionEnabled={features.includes("scripture-reading-position-v1")} audioEnabled={!!audioOutput?.enabled&&features.includes("scripture-audio-v1")} annotationsEnabled={features.includes("scripture-annotations-v1")} studyEnabled={features.includes("study-course-overview-v1")} mediaEnabled={features.includes("study-media-v1")} onError={error => { if (error instanceof NativeClientError && error.code === "content_context_changed") { void refreshContent(); } else report(error); }}/> : overviewEnabled && navigation.pathname === "/dashboard" ? overview ? <>
       {!!overviewQuery.error && <section role="alert" className="rounded-2xl border border-vs-line p-4"><p>{t("nativeFoundation.error")}</p><button type="button" className={button} onClick={() => { void overviewQuery.refetch(); }}>{t("nativeFoundation.retry")}</button></section>}
       {user.onboardingRequired && <p>{t("nativeFoundation.onboardingNote")}</p>}
       <NativeTodayView key={`${user.id}:${dataRuntime.getSnapshot()}:${contentStamp}`} state={overview} coursesEnabled={features.includes("courses-overview-v1")} mediaEnabled={features.includes("study-media-v1")} actions={features.includes("today-actions-v1") ? (() => {

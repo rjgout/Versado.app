@@ -44,6 +44,15 @@ public class NativeAccessTransportTest {
             for(String suffix : new String[]{"/","?x=1","/complete","%2f","/../me"}) assertFalse(NativeAccessTransport.routeAllowed(path+suffix,"GET"));
         }
     }
+    @Test public void playbackMetadataIsExactlyReadOnlyAndNeverAStreamProxy() {
+        for(String kind:new String[]{"steps","chapters"}) {
+            String path="courses/c/read/"+kind+"/t/audio/playback";
+            assertTrue(NativeAccessTransport.routeAllowed(path,"GET"));
+            for(String method:new String[]{"POST","PUT","PATCH","DELETE","HEAD"})assertFalse(NativeAccessTransport.routeAllowed(path,method));
+            for(String suffix:new String[]{"/","?url=other","/stream","/../me","\n"})assertFalse(NativeAccessTransport.routeAllowed(path+suffix,"GET"));
+            assertFalse(NativeAccessTransport.routeAllowed("courses/c/read/"+kind+"/t/audio/"+String.join("",java.util.Collections.nCopies(64,"a"))+"/stream","GET"));
+        }
+    }
     @Test public void readerPositionIsExactAndSeparate() {
         for(String path : new String[]{"courses/c/read/steps/s", "courses/c/read/chapters/ch"}) {
             assertTrue(NativeAccessTransport.routeAllowed(path+"/resume","GET"));
