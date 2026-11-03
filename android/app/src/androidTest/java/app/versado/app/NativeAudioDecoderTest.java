@@ -65,4 +65,14 @@ public class NativeAudioDecoderTest {
   }finally{instrumentation.runOnMainSync(()->{if(player.get()!=null)player.get().destroy();});}
  }
 
+ @Test public void finalApkHasNoWakeLockMicrophoneOrBroadPackagePermission()throws Exception{
+  var app=InstrumentationRegistry.getInstrumentation().getTargetContext();
+  String[] requested=app.getPackageManager().getPackageInfo(app.getPackageName(),android.content.pm.PackageManager.GET_PERMISSIONS).requestedPermissions;
+  assertNotNull(requested);Set<String> permissions=new HashSet<>(Arrays.asList(requested));
+  assertTrue(permissions.contains("android.permission.INTERNET"));
+  Set<String> allowed=new HashSet<>(Arrays.asList("android.permission.INTERNET","android.permission.ACCESS_NETWORK_STATE","android.permission.VIBRATE",app.getPackageName()+".DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"));
+  assertTrue("Onverwachte APK-permissies: "+permissions,allowed.containsAll(permissions));
+  assertFalse(permissions.contains("android.permission.WAKE_LOCK"));assertFalse(permissions.contains("android.permission.RECORD_AUDIO"));assertFalse(permissions.contains("android.permission.QUERY_ALL_PACKAGES"));
+ }
+
 }

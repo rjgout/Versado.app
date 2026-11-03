@@ -302,3 +302,12 @@ faalde door wisselende JSON-sleutelvolgorde in herhaald geconstrueerde synthetis
 JWT's. De fixture gebruikt nu sortedKeys en toetst determinisme; de exacte
 productie-tokenbinding is behouden. De nieuwe PR-head moet opnieuw geheel groen
 worden. Deze tussenstand geldt niet als iOS-appcompilatie of fysieke acceptatie.
+
+
+Controle van de echte APK liet Media3's transitieve WAKE_LOCK-permissie zien.
+De voorgrondspeler gebruikt geen wakemode; deze permissie wordt expliciet uit
+het gemergde manifest verwijderd. Een emulatorproef controleert de werkelijk
+geïnstalleerde APK: uitsluitend INTERNET, netwerkstatus, bestaande haptics en de
+eigen signature-permissie voor niet-geëxporteerde receivers. Geen wakelock,
+microfoon- of algemene pakketinzage. Media3's netwerkstatuspermissie ondersteunt
+de bestaande netwerk-/streamingafhandeling; de TTS-query vraagt geen permissie.

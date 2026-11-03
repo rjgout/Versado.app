@@ -78,5 +78,7 @@ test("Android ontdekt uitsluitend toestel-TTS via de exacte servicequery, zonder
  assert.match(queries,/<action android:name="android\.intent\.action\.TTS_SERVICE"/);
  assert.equal([...queries.matchAll(/<action /g)].length,1);
  assert.equal(queries.includes("<package"),false);
- assert.deepEqual([...manifest.matchAll(/<uses-permission android:name="([^"]+)"/g)].map(match=>match[1]),["android.permission.INTERNET"]);
+ const permissions=[...manifest.matchAll(/<uses-permission android:name="([^"]+)"([^>]*)/g)];
+ assert.deepEqual(permissions.filter(match=>!match[2].includes('tools:node="remove"')).map(match=>match[1]),["android.permission.INTERNET"]);
+ assert.deepEqual(permissions.filter(match=>match[2].includes('tools:node="remove"')).map(match=>match[1]),["android.permission.WAKE_LOCK"]);
 });
