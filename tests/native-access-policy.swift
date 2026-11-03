@@ -48,6 +48,13 @@ private final class FakeAccessProtocol: URLProtocol {
             for method in ["POST", "PUT", "DELETE", "HEAD"] { require(!NativeAccessPolicy.routeAllowed(path, method), "CFM write enabled") }
         }
         for path in ["courses/c/weeks?x=1", "courses/c/weeks/e/steps/x", "courses/c/weeks/../steps"] { require(!NativeAccessPolicy.routeAllowed(path,"GET"), "broad CFM route enabled") }
+        for kind in ["steps","chapters"] {
+            let path="courses/c/read/"+kind+"/t/audio/playback"
+            require(NativeAccessPolicy.routeAllowed(path,"GET"),"playback metadata rejected")
+            for method in ["POST","PUT","PATCH","DELETE","HEAD"] { require(!NativeAccessPolicy.routeAllowed(path,method),"playback write enabled") }
+            for suffix in ["/","?url=other","/stream","/../me","\n"] { require(!NativeAccessPolicy.routeAllowed(path+suffix,"GET"),"broad playback route") }
+            require(!NativeAccessPolicy.routeAllowed("courses/c/read/"+kind+"/t/audio/"+String(repeating:"a",count:64)+"/stream","GET"),"binary stream through JSON")
+        }
         for path in ["courses/c/read/steps/s", "courses/c/read/chapters/ch"] {
             require(NativeAccessPolicy.routeAllowed(path,"GET"), "reader GET rejected")
             for method in ["POST","PUT","PATCH","DELETE","HEAD"] { require(!NativeAccessPolicy.routeAllowed(path,method), "reader write enabled") }

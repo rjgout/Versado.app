@@ -21,13 +21,20 @@ backend bijwerken maakt een eerder geïnstalleerde app niet geschikt.
 - Opnamekeuze begint bij de teksttaal; andere talen vragen een expliciete keuze.
   Computerstemmen komen uitsluitend uit de daadwerkelijk beschikbare native
   stemmenlijst en moeten bij de geopende teksttaal passen. Een ontbrekende
-  webstemvoorkeur wordt geen stem in een andere taal. Native tekst voor TTS
+  webstemvoorkeur wordt geen stem in een andere taal. Toestelstemvoorkeuren worden
+  per taal bewaard en overschrijven de bestaande Nederlandse webstem niet. Native tekst voor TTS
   komt uit de geautoriseerde serverresponse, nooit uit een JS-spreekcommando.
 - Alle vijf snelheden, verskeuze, vorige/volgende vers, pauze, hervatten en stop
   delen de bestaande bediening. iOS AVPlayer begrenst met forwardPlaybackEndTime;
   Android Media3/ExoPlayer met ClippingMediaSource. Geen UI-timer als stapgrens.
   De enige nieuwe Android-runtimeafhankelijkheid is Media3 exoplayer 1.11.1;
   deze gebruikt de bestaande begrensde transportadapter, geen eigen HTTP-stack.
+  Media3 kan vierbyte-peeks doen. De native decoder heeft daarom één tijdelijk
+  64KiB-read-aheadblok (maximaal vier tijdelijke fills), nooit een MP3-bestandscache.
+  Ook bufferaflevering loopt door de bestaande lifetime-/close-gate. Close annuleert
+  netwerk-I/O vóór het bufferlock en wist de bytes; netwerk-I/O houdt geen lock vast.
+  iOS vraagt circa 15 seconden voorwaartse buffering; AVFoundation beheert de
+  daadwerkelijke decoderbuffers. Werkelijk toestelgeheugen moet nog worden gemeten.
 - Deze fase is **uitsluitend voorgrond**. Achtergrond, schermslot, onderbreking,
   verlies van audiofocus, loskoppelen hoofdtelefoon en verlaten van de lezer
   stoppen en ruimen uitvoer/buffers op. Geen automatische hervatting, background
@@ -218,7 +225,7 @@ B3c, CFM, imports en publicaties blijven buiten scope.
 
 ## Verificatie deel 2 en bewijsgrenzen
 
-Lokaal uitgevoerd: TypeScript; 37 gerichte audio-/Access-/session-gatetests;
+Lokaal uitgevoerd: TypeScript; 39 gerichte audio-/Access-/session-gatetests;
 14 geïsoleerde PostgreSQL/Redis-audioproeven, inclusief drie leesmethoden × vijf
 talen, twee Node-processen, ingetrokken rechten tijdens vertraagde playback-GET,
 140 gelijktijdige catalogi en ongewijzigde gebruikers-/audiotabellen. De
@@ -249,3 +256,26 @@ luisteren zijn **PENDING PHYSICAL ACCEPTANCE**. Gebruik de bovenstaande checklis
 met hetzelfde testaccount op web/iPhone/Android. Controleer daarbij expliciet
 het stap-eindvers, geen voortgangswijziging door audio, behoud van een open
 notitieconcept en onmiddellijke stop bij logout of bron-/hoofdstukwisseling.
+
+
+### Gerichte regressies tijdens deze implementatie
+
+De eerste emulatorproef faalde met een bronfout. De synthetische Android-JWT
+bevatte base64url-padding; de bestaande transportregex weigert die terecht.
+De fixture gebruikt nu dezelfde paddingloze vorm als echte server-JWT's. De
+transportcontrole is niet versoepeld; de nieuwe OS-run moet de diagnose bevestigen.
+
+Een apart browserrepro leverde één ongewenste positie-opslag op bij scrollen in
+het portaal van de nieuwe stemkeuzelijst. Role=listbox/option telt daarom niet
+meer als leesinteractie; dezelfde proef verwacht en krijgt nu nul opslagacties.
+Ook toestelstemkeuze per taal en ontbrekende/mislukte eventregistratie hebben
+regressies: een webstem blijft behouden, en audio start pas met werkende native
+eventafhandeling. Een expliciete nieuwe poging kan die lokale koppeling herstellen.
+
+
+De eerste iOS-job kreeg volgens GitHub na meerdere pogingen geen ARM64-hosted
+runner, met expliciete capaciteitsmeldingen. Dezelfde bestaande job gebruikt nu
+`macos-26-intel` (officiële runner, dezelfde OS-generatie), zonder nieuwe workflow
+of signing/distributieroute. Simulator-/codecresultaten op deze host zijn geen
+bewijs van fysieke ARM64-iPhone-audio. De eigenaar blijft daarvoor de bestaande
+Mac → Capacitor → Xcode → iPhone-route gebruiken.

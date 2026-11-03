@@ -10642,7 +10642,7 @@
     },
     {
       "file": "src/components/ReadAloudPlayer.tsx",
-      "sha256": "039a2181755634538376078de8b6abd831af36c053528dcad29a0e7f342ecbc0",
+      "sha256": "ca8d15276d5e67916fe9293c9808fb0a60670d58554579d09cfee598440f7e0a",
       "boundary": "client",
       "imports": [
         "@/components/AppSelect",
@@ -13172,7 +13172,7 @@
     },
     {
       "file": "src/components/native/useNativeReaderPosition.ts",
-      "sha256": "a6c30bea2132004d672f0ca933268f138701922c2fe8424dfbc27b6cad65f56d",
+      "sha256": "eba11daa901430cf59a2ec20bca70e8e7fc7f51aacc64437b3770a47203a74b5",
       "boundary": "client",
       "imports": [
         "@/lib/native/readerContract",
@@ -21397,7 +21397,7 @@
     },
     {
       "file": "src/lib/native/audioOutput.ts",
-      "sha256": "a9ed37058eb2698c9491abfe5d988e21060c788a57768a3e999cd05ae38578e2",
+      "sha256": "b0c06158fcd59beeac8533a5a1ff918bd27e215ed949b8f8c6129eec9a8507b7",
       "boundary": "context-dependent",
       "imports": [
         "./audioBridge",
@@ -74513,7 +74513,7 @@
     },
     {
       "file": "src/components/ReadAloudPlayer.tsx",
-      "sha256": "039a2181755634538376078de8b6abd831af36c053528dcad29a0e7f342ecbc0",
+      "sha256": "ca8d15276d5e67916fe9293c9808fb0a60670d58554579d09cfee598440f7e0a",
       "boundary": "client",
       "imports": [
         "@/components/AppSelect",

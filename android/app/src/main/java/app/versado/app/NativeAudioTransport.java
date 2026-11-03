@@ -60,7 +60,10 @@ final class NativeAudioTransport implements AutoCloseable {
         observer = lifetime.observe(this::close);
     }
     private static IOException unavailable() { return new IOException("audio_transport_unavailable"); }
-    private void current() throws IOException { lifetime.deliver(() -> { if (closed.get()) throw unavailable(); return null; }); }
+    <T> T deliver(Lifetime.Delivery<T> delivery) throws IOException {
+        return lifetime.deliver(() -> { if (closed.get()) throw unavailable(); return delivery.run(); });
+    }
+    private void current() throws IOException { deliver(() -> null); }
     long size() throws IOException { current(); return total; }
     /** MediaDataSource mag gedeeltelijke reads ontvangen. Nooit meer dan één
      * begrensde range per readAt, ook bij een extreem grote decoder-aanvraag. */

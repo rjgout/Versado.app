@@ -118,7 +118,7 @@ function outputFixture(){
  let listener:(value:unknown)=>void=()=>{},epoch=1,foreground=true,owner=crypto.randomUUID();
  const commands:NativeAudioCommand[]=[],forgotten:string[]=[];let loads=0;
  const bridge:NativeAudioBridge={audioSession:async()=>{},audioContext:async options=>{if(options.forget)forgotten.push(options.ownerId);},audioStatus:async()=>({enabled:true,anchored:true,foreground,ownerId:owner,contextEpoch:epoch,validForMs:120000,readerHash:value.audio.readerHash}),audioVoices:async()=>({voices:[]}),audioCommand:async command=>{commands.push(command);},addListener:async(_event,callback)=>{listener=callback;return {remove:async()=>{listener=()=>{};}};}};
- const output=new NativeReadAloudOutput(client,bridge,true);
+ const output=new NativeReadAloudOutput(client,bridge,true);output.subscribe(()=>{});
  const target:NativeAudioTarget={ownerId:owner,sessionStamp:client.getSessionStamp(),scope:value.audio,sourceLanguage:"nl",current:()=>true,load:async()=>{loads++;return value;}};
  output.bind(target);
  const source={id:"chapter",title:"Synthetisch hoofdstuk",language:"nl",verses:value.reader.verses,native:{ownerId:owner,contextEpoch:epoch,readerHash:value.audio.readerHash,voiceId:"nl-local"}};
@@ -170,4 +170,18 @@ test("achtergrond en accountwissel tijdens metadataherstel starten geen extra re
   await assert.rejects(loadNativeAudioMetadata(f.output.bridge,f.target,async renew=>{calls.push(renew);if(!background)current=false;return nativePlaybackSchema.parse(fixture("nl","chapters"));}),/audio_(changed|unavailable)/);
   assert.deepEqual(calls,[false]);assert.equal(voices,0);
  }
+});
+
+test("een ontbrekende native eventkoppeling kan nooit audio zonder werkende bediening starten",async()=>{
+ const f=outputFixture();f.output.bridge.addListener=async()=>{throw Error("synthetic event bridge failure");};
+ const output=new NativeReadAloudOutput(f.client,f.output.bridge,true);output.subscribe(()=>{});output.bind(f.target);
+ await assert.rejects(output.start(f.source,0,1,crypto.randomUUID()),/synthetic event bridge failure/);assert.equal(f.commands.length,0);
+});
+
+test("expliciete retry herstelt een mislukte lokale eventkoppeling zonder losse of dubbele speler",async()=>{
+ const f=outputFixture();await new Promise(resolve=>setImmediate(resolve));let attempts=0;
+ const original=f.output.bridge.addListener;f.output.bridge.addListener=async(...args)=>{if(++attempts===1)throw Error("synthetic event failure");return original(...args);};
+ const output=new NativeReadAloudOutput(f.client,f.output.bridge,true);output.subscribe(()=>{});output.bind(f.target);
+ await assert.rejects(output.start(f.source,0,1,crypto.randomUUID()));assert.equal(f.commands.length,0);
+ await output.start(f.source,0,1,crypto.randomUUID());assert.equal(f.commands.length,1);assert.equal(attempts,2);
 });

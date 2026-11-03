@@ -24,13 +24,17 @@ export class NativeReadAloudOutput implements ReadAloudOutput {
   }
   private publish(event:ReadAloudOutputEvent){for(const listener of this.listeners)listener(event);}
   private clearLocal(failed:boolean){const action=this.active;this.active=null;if(action)this.publish({commandId:action.commandId,index:action.index,playing:false,stopped:true,failed});}
-  subscribe(listener:(event:ReadAloudOutputEvent)=>void){
-    this.listeners.add(listener);
-    if(this.enabled&&!this.listenerSlot){
+  private events(){
+    if(this.enabled&&this.listeners.size&&!this.listenerSlot){
       const slot={closed:false,ready:Promise.resolve({remove:async()=>{}})};
-      slot.ready=this.bridge.addListener("audioState",value=>{if(!slot.closed)this.received(value);});
-      void slot.ready.catch(()=>{if(!slot.closed)this.clearLocal(true);});this.listenerSlot=slot;
+      slot.ready=Promise.resolve().then(()=>this.bridge.addListener("audioState",value=>{if(!slot.closed)this.received(value);}));
+      this.listenerSlot=slot;
+      void slot.ready.catch(()=>{if(!slot.closed){slot.closed=true;if(this.listenerSlot===slot)this.listenerSlot=null;this.clearLocal(true);}});
     }
+    return this.listenerSlot;
+  }
+  subscribe(listener:(event:ReadAloudOutputEvent)=>void){
+    this.listeners.add(listener);this.events();
     return ()=>{this.listeners.delete(listener);if(!this.listeners.size&&this.listenerSlot){const slot=this.listenerSlot;slot.closed=true;this.listenerSlot=null;void slot.ready.then(handle=>handle.remove()).catch(()=>{});}};
   }
   bind(target:NativeAudioTarget){
@@ -85,8 +89,12 @@ export class NativeReadAloudOutput implements ReadAloudOutput {
     if(previous){previous.actionVersion++;void this.bridge.audioCommand(this.options(previous,"pause")).catch(()=>{});}
     const operation=++this.operation,action:Action={source,commandId,actionVersion:1,owner:target,contextEpoch:source.native.contextEpoch,index,speed};this.active=action;
     try {
+      const events=this.events();
+      if(!events||events.closed)throw new NativeClientError("audio_unavailable");
+      await events.ready;
+      if(events.closed||!this.isCurrent(target)||operation!==this.operation)throw new NativeClientError("audio_changed");
       const status=await this.prepare(target,source,operation);
-      if(this.active!==action)throw new NativeClientError("audio_changed");action.contextEpoch=status.contextEpoch;
+      if(this.active!==action||events.closed)throw new NativeClientError("audio_changed");action.contextEpoch=status.contextEpoch;
       await this.bridge.audioCommand({...this.options(action,"start"),index,speed,...(source.native.sourceId?{sourceId:source.native.sourceId}:{}),...(source.native.voiceId?{voiceId:source.native.voiceId}:{})});
     }catch(error){if(this.active===action){this.clearLocal(true);void this.bridge.audioContext({sessionStamp:target.sessionStamp,ownerId:target.ownerId,forget:true}).catch(()=>{});}throw error;}
   }

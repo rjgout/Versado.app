@@ -140,6 +140,8 @@ final class NativeAudioPlayer: NSObject, AVSpeechSynthesizerDelegate {
         observer = active.lifetime.observe { lifetime.invalidate() }
         let wrapper = NativeAudioAsset(source: try active.request(source.id), lifetime: lifetime); asset = wrapper
         let item = AVPlayerItem(asset: wrapper.asset)
+        item.preferredForwardBufferDuration = 15
+        item.canUseNetworkResourcesForLiveStreamingWhilePaused = false
         if let end = source.end { item.forwardPlaybackEndTime = CMTime(seconds: end, preferredTimescale: 1000000) }
         let output = AVPlayer(playerItem: item); player = output
         itemObservation = item.observe(\.status, options: [.initial,.new]) { [weak self, weak output] item, _ in DispatchQueue.main.async {

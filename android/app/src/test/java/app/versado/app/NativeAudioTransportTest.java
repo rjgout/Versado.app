@@ -94,6 +94,17 @@ public class NativeAudioTransportTest {
         assertFalse(edge.captured.url().toString().contains(credentials.secret));
         source.close(); assertThrows(IOException.class, source::getSize);
     }
+    @Test public void tinyExtractorReadsUseBoundedReadAheadAndKeepRevocationGate() throws Exception {
+        Edge edge=new Edge();NativeAudioTransport.Lifetime lifetime=life(120000);NativeAudioTransport transport=transport(edge,lifetime);
+        NativeAudioDataSource source=new NativeAudioDataSource(transport,()->false);byte[] target=new byte[4];
+        for(int position=0;position<4096;position+=4){assertEquals(4,source.readAt(position,target,0,4));assertArrayEquals(Arrays.copyOfRange(edge.bytes,position,position+4),target);}
+        assertEquals("Geen HTTP per MP3-header",1,edge.count);assertEquals("bytes=0-65535",edge.captured.header("Range"));
+        lifetime.invalidate();assertThrows(IOException.class,()->source.readAt(4,target,0,4));source.close();
+    }
+    @Test public void closingTransportAlsoRejectsAlreadyBufferedBytes() throws Exception {
+        Edge edge=new Edge();NativeAudioTransport.Lifetime lifetime=life(120000);NativeAudioTransport transport=transport(edge,lifetime);NativeAudioDataSource source=new NativeAudioDataSource(transport,()->false);byte[] target=new byte[4];
+        assertEquals(4,source.readAt(0,target,0,4));transport.close();assertThrows(IOException.class,()->source.readAt(4,target,0,4));source.close();
+    }
     @Test public void hostileResponsesNeverReturnBytes() throws Exception {
         for (int scenario = 0; scenario < 10; scenario++) {
             Edge edge = new Edge();

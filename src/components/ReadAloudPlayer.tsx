@@ -50,6 +50,7 @@ const LANGUAGE_KEY = "jehovaapp-read-aloud-language";
 
 export default function ReadAloudPlayer({ sourceId, title, verses, audio, startVerse = 0, subtitle, language, controlRef, onStatusChange, adapter }: Props) {
   const t = useT();
+  const textLanguage = language ?? "nl";
   const { source, start, stop, currentIndex } = useReadAloudPlayer();
   const [editions, setEditions] = useState<{ id: string; items: AudioEdition[] } | null>(null);
   const [preferredLanguage, setPreferredLanguage] = useState("");
@@ -58,8 +59,8 @@ export default function ReadAloudPlayer({ sourceId, title, verses, audio, startV
   const [mode,setMode]=useState("recording"),[voiceId,setVoiceId]=useState("");
 
   useEffect(() => {
-    try { if(!adapter)setPreferredLanguage(localStorage.getItem(LANGUAGE_KEY) ?? ""); setVoiceId(localStorage.getItem("jehovaapp-read-aloud-voice")??""); } catch { /* Opslag kan geblokkeerd zijn. */ }
-  }, [!!adapter]);
+    try { if(!adapter)setPreferredLanguage(localStorage.getItem(LANGUAGE_KEY) ?? ""); if(adapter)setVoiceId(localStorage.getItem(`jehovaapp-read-aloud-device-voice-${textLanguage}`)??(textLanguage==="nl"?localStorage.getItem("jehovaapp-read-aloud-voice"):null)??""); } catch { /* Opslag kan geblokkeerd zijn. */ }
+  }, [!!adapter,textLanguage]);
 
   useEffect(() => {
     if(adapter)return;
@@ -78,7 +79,6 @@ export default function ReadAloudPlayer({ sourceId, title, verses, audio, startV
   const available = (adapter?.editions ?? (editions?.id === sourceId ? editions.items : [])).filter((edition) =>
     verses.every((verse) => edition.verses.some((item) => item.number === verse.number))
   );
-  const textLanguage = language ?? "nl";
   const recording = available.find((edition) => edition.language === preferredLanguage)
     ?? available.find((edition) => edition.language === textLanguage);
   const deviceVoices=adapter?.voices.filter(voice=>voice.language.split(/[-_]/)[0]===textLanguage)??[];
@@ -139,7 +139,7 @@ export default function ReadAloudPlayer({ sourceId, title, verses, audio, startV
 
   return (
     <div className="space-y-2" data-read-aloud-controls>
-      {adapter&&<><label className="flex flex-wrap gap-2 text-sm font-semibold">{t("player.nativeOutput")}<AppSelect value={useTts?"tts":"recording"} onChange={value=>{stop();setMode(value);}} ariaLabel={t("player.nativeOutput")} options={[...(recording?[{value:"recording",label:t("player.nativeRecording")}]:[]),...(voice?[{value:"tts",label:t("player.nativeDeviceVoice")}]:[])]}/></label>{useTts&&voice&&<label className="flex flex-wrap gap-2 text-sm">{t("player.nativeDeviceVoice")}<AppSelect value={voice.id} onChange={value=>{stop();setVoiceId(value);try{localStorage.setItem("jehovaapp-read-aloud-voice",value);}catch{}}} ariaLabel={t("player.nativeDeviceVoice")} options={deviceVoices.map(item=>({value:item.id,label:item.name}))}/></label>}</>}
+      {adapter&&<><label className="flex flex-wrap gap-2 text-sm font-semibold">{t("player.nativeOutput")}<AppSelect value={useTts?"tts":"recording"} onChange={value=>{stop();setMode(value);}} ariaLabel={t("player.nativeOutput")} options={[...(recording?[{value:"recording",label:t("player.nativeRecording")}]:[]),...(voice?[{value:"tts",label:t("player.nativeDeviceVoice")}]:[])]}/></label>{useTts&&voice&&<label className="flex flex-wrap gap-2 text-sm">{t("player.nativeDeviceVoice")}<AppSelect value={voice.id} onChange={value=>{stop();setVoiceId(value);try{localStorage.setItem(`jehovaapp-read-aloud-device-voice-${textLanguage}`,value);}catch{}}} ariaLabel={t("player.nativeDeviceVoice")} options={deviceVoices.map(item=>({value:item.id,label:item.name}))}/></label>}</>}
       <label className="flex flex-wrap items-center gap-2 text-sm font-semibold">
         {t("player.audioLanguage")}
         <AppSelect className="input w-auto" value={selectedLanguage} onChange={changeLanguage} ariaLabel={t("player.audioLanguage")} options={[{ value: textLanguage, label: getLanguage(textLanguage).nativeName }, ...available.filter((edition) => edition.language !== textLanguage).map((edition) => ({ value: edition.language, label: getLanguage(edition.language).nativeName }))]} />
