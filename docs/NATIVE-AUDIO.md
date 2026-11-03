@@ -126,6 +126,13 @@ na lokale snapshotcorrectie. Beide platformadapters hebben nu een gedeelde
 aflever-/invalidatiegrens en gerichte concurrencytests. ReaderHash voorkomt ook
 hergebruik van een bron-ID na tekstwijziging bij onveranderde anderstalige audio.
 
+De eerste echte AVFoundation-duurproef ontdekte daarnaast dat de loader zijn
+laadverzoek uitsluitend via een weak callback vasthield. Apple vereist expliciet
+een sterke referentie bij asynchroon laden. De pending-tuple houdt het verzoek nu
+vast tot finish/cancel; dezelfde echte MP3-duurproef slaagt na die correctie.
+De native CI installeert ffmpeg/ffprobe net als de bestaande Audio V2-workflow,
+zodat de importer echte MP3-validatie uitvoert; geen mock of tests skippen.
+
 Swift/AVFoundation- en Android/JVM-proeven plus echte platformcompilatie worden
 in de bestaande GitHub Actions uitgevoerd. Hun actuele resultaat en definitieve
 SHA staan op de PR; lokale Linux-tests bewijzen die compilaties niet. De Swiftproef

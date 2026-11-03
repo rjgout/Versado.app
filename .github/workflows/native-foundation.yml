@@ -186,6 +186,8 @@ jobs:
           echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/versado-browser/node_modules/playwright" >> "$GITHUB_ENV"
       - name: Routefocus, selectie en mobiele CSS (320/375/390/400px, 100/200%, licht/donker)
         run: npm run test:native:focus
+      - name: Echte MP3-validatie voor geïsoleerde audio-importproeven
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - name: Migratie, sessies, Apple en lokale leesflow op geïsoleerde PostgreSQL
         run: npm run test:native:integration
       - name: CFM-herstel zonder externe downloads (bestaande geïsoleerde runner en webbuild)
