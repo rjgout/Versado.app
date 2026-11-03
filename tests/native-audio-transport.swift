@@ -87,7 +87,7 @@ private func read(_ source: NativeAudioSourceRequest, _ life: NativeAudioLifetim
         let wrapper = NativeAudioAsset(source: source, lifetime: assetLife, configuration: configuration)
         let duration = try await withThrowingTaskGroup(of: CMTime.self) { group in
             group.addTask { try await wrapper.asset.load(.duration) }
-            group.addTask { try await Task.sleep(nanoseconds: 20_000_000_000); wrapper.cancel(); throw NativeAudioFailure("fixture_timeout") }
+            group.addTask { try await Task.sleep(nanoseconds: 20_000_000_000); print("AVFoundation fixture timeout; aangevraagde ranges: \(AudioFixtureProtocol.requests.compactMap { $0.value(forHTTPHeaderField: "Range") })"); wrapper.cancel(); throw NativeAudioFailure("fixture_timeout") }
             defer { group.cancelAll() }; return try await group.next()!
         }
         precondition(duration.seconds > 29 && duration.seconds < 31)

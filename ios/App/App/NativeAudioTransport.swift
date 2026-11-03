@@ -106,7 +106,9 @@ final class NativeAudioAsset: NSObject, AVAssetResourceLoaderDelegate {
     private let source: NativeAudioSourceRequest, lifetime: NativeAudioLifetime
     private let configuration: () -> URLSessionConfiguration
     private let queue = DispatchQueue(label: "app.versado.audio.asset")
-    private var pending: [ObjectIdentifier: NativeAudioRangeRequest] = [:]
+    // De delegate houdt het laadverzoek vast tot finish/cancel; AVFoundation
+    // mag het na shouldWait niet afhankelijk van een weak callback laten leven.
+    private var pending: [ObjectIdentifier: (loading: AVAssetResourceLoadingRequest, range: NativeAudioRangeRequest)] = [:]
     private var observer: UUID?
     init(source: NativeAudioSourceRequest, lifetime: NativeAudioLifetime, configuration: @escaping () -> URLSessionConfiguration = { .ephemeral }) {
         self.source = source; self.lifetime = lifetime; self.configuration = configuration
@@ -114,7 +116,7 @@ final class NativeAudioAsset: NSObject, AVAssetResourceLoaderDelegate {
         super.init(); asset.resourceLoader.setDelegate(self, queue: queue)
         observer = lifetime.observe { [weak self] in self?.cancel() }
     }
-    func cancel() { lifetime.invalidate(); queue.async { let requests = Array(self.pending.values); self.pending.removeAll(); requests.forEach { $0.cancel() }; self.asset.cancelLoading() } }
+    func cancel() { lifetime.invalidate(); queue.async { let requests = Array(self.pending.values); self.pending.removeAll(); requests.forEach { $0.range.cancel() }; self.asset.cancelLoading() } }
     deinit { if let observer = observer { lifetime.remove(observer) } }
     func resourceLoader(_ resourceLoader: AVAssetResourceLoader, shouldWaitForLoadingOfRequestedResource request: AVAssetResourceLoadingRequest) -> Bool {
         guard lifetime.current, request.request.url == asset.url, pending.count < 4 else { request.finishLoading(with: NativeAudioFailure()); return false }
@@ -148,8 +150,8 @@ final class NativeAudioAsset: NSObject, AVAssetResourceLoaderDelegate {
                     }
                 }
             }
-            pending[id] = request; request.start(configuration: configuration())
+            pending[id] = (loading, request); request.start(configuration: configuration())
         } catch { pending.removeValue(forKey: id); loading.finishLoading(with: NativeAudioFailure()) }
     }
-    func resourceLoader(_ resourceLoader: AVAssetResourceLoader, didCancel loadingRequest: AVAssetResourceLoadingRequest) { pending.removeValue(forKey: ObjectIdentifier(loadingRequest))?.cancel() }
+    func resourceLoader(_ resourceLoader: AVAssetResourceLoader, didCancel loadingRequest: AVAssetResourceLoadingRequest) { pending.removeValue(forKey: ObjectIdentifier(loadingRequest))?.range.cancel() }
 }
