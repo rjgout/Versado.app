@@ -16,6 +16,7 @@ export default function ScriptureReaderView<V extends ScriptureVerse>({
   focus = false,
   focusVerse,
   readingVerse,
+  followReadingVerse=true,
   activeVerseId,
   language,
   colorForVerse,
@@ -32,6 +33,7 @@ export default function ScriptureReaderView<V extends ScriptureVerse>({
   focus?: boolean;
   focusVerse?: number;
   readingVerse?: number | null;
+  followReadingVerse?: boolean;
   activeVerseId?: string;
   language?: string;
   colorForVerse?: (id: string) => string | undefined;
@@ -63,11 +65,11 @@ export default function ScriptureReaderView<V extends ScriptureVerse>({
     return () => clearTimeout(timer);
   }, [focusVerse, restoreVerse]);
   useEffect(() => {
-    if (readingVerse)
+    if (readingVerse && followReadingVerse)
       document
         .getElementById(`vers-${readingVerse}`)
         ?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, [readingVerse]);
+  }, [readingVerse,followReadingVerse]);
   function changeScale(delta: number) {
     const next = Math.min(
       1.5,

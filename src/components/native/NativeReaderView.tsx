@@ -1,5 +1,8 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
+import NativeReadAloudPlayer from "./NativeReadAloudPlayer";
+import {useReadAloudPlayer} from "@/lib/readAloudPlayerContext";
+import type {ReadAloudControl,ReadAloudStatus} from "@/components/ReadAloudPlayer";
 import { useNativeReaderPosition } from "./useNativeReaderPosition";
 import { useVerseAnnotationMenu } from "@/components/annotations/useVerseAnnotationMenu";
 import AnnotationActionsView, { type AnnotationActionsAdapter } from "@/components/annotations/AnnotationActionsView";
@@ -24,6 +27,7 @@ export default function NativeReaderView({
   enabled,
   positionEnabled = false,
   annotationsEnabled = false,
+  audioEnabled = false,
   route,
   onError,
   parentError,
@@ -35,6 +39,7 @@ export default function NativeReaderView({
   enabled: boolean;
   positionEnabled?: boolean;
   annotationsEnabled?: boolean;
+  audioEnabled?: boolean;
   route: NonNullable<ReturnType<typeof nativeReaderRoute>>;
   onError: (e: unknown) => void;
   parentError?: unknown;
@@ -43,6 +48,9 @@ export default function NativeReaderView({
   const runtime = useNativeData(),
     navigation = useAppNavigation(),
     t = useT();
+  const audioPlayer=useReadAloudPlayer();
+  const audioControl=useRef<ReadAloudControl|null>(null);
+  const [audioStatus,setAudioStatus]=useState<ReadAloudStatus>("loading");
   const identity = `${userId}:${language}:${content?.picker.activeCollectionId}:${content?.picker.selectionVersion}:${route.courseId}:${route.kind}:${route.targetId}`;
   const queryKey = ["reader", identity, positionEnabled] as const;
   const query = useNativeLiveQuery(
@@ -65,7 +73,8 @@ export default function NativeReaderView({
   );
   // Bevestigde tekst blijft bij transportfouten gemount. Een echte blokkade
   // van reader óf leerpad heeft altijd voorrang, ook als de andere GET slaagt.
-  const blockingError = [parentError,query.error].find(error=>error && !nativeLearningTransientError(error));
+  const [audioDenied,setAudioDenied]=useState<unknown>(null);
+  const blockingError = [audioDenied,parentError,query.error].find(error=>error && !nativeLearningTransientError(error));
   const candidate = enabled && content && !blockingError ? query.data?.reader : undefined;
   const annotations=useNativeLiveQuery(candidate?nativeAnnotationQueryKey(candidate):["reader-annotations",identity],()=>runtime.readerAnnotations(candidate!),{enabled:annotationsEnabled&&!!candidate,scopes:["annotations","content","courses"],staleTime:60000});
   const [annotationDenied,setAnnotationDenied]=useState<unknown>(null);
@@ -140,6 +149,10 @@ export default function NativeReaderView({
         : null;
     });
   }, [startVerse]);
+  const retryReader=async()=>{
+    if(!audioDenied){void query.refetch();return;}
+    try {const fresh=await runtime.readerResume(userId,language,content!.picker,route.courseId,route.kind,route.targetId,positionEnabled);query.setData(fresh);setAudioDenied(null);}catch(error){onError(error);}
+  };
   const back = () => navigation.back(`/courses/${route.courseId}/pad`);
   if (!data)
     return (
@@ -160,7 +173,7 @@ export default function NativeReaderView({
           <button
             className="btn-secondary"
             disabled={query.isFetching}
-            onClick={() => { void query.refetch(); void retryAnnotations(); retryParent?.(); }}
+            onClick={() => { void retryReader(); void retryAnnotations(); retryParent?.(); }}
           >
             {t("nativeFoundation.retry")}
           </button>
@@ -182,6 +195,9 @@ export default function NativeReaderView({
           verses={verseState!}
           {...menu.props}
           focus
+          beforeVerses={audioEnabled?<NativeReadAloudPlayer reader={data} controlRef={audioControl} onStatusChange={setAudioStatus} onReadDenied={error=>{if(error instanceof NativeClientError&&error.code==="content_context_changed"){onError(error);}else{setAudioDenied(error);onError(error);}}}/>:undefined}
+          readingVerse={audioPlayer.source?.native&&audioPlayer.source.id===data.chapterId?audioPlayer.source.verses[audioPlayer.currentIndex]?.number:null}
+          followReadingVerse={false}
           focusVerse={data.focusVerse}
           language={data.sourceLanguage}
           restoreVerse={restoreVerse}
@@ -189,7 +205,7 @@ export default function NativeReaderView({
         {annotationsEnabled&&annotations.data&&!annotations.data.complete&&<p role="status">{t("annotations.incomplete")}</p>}
         {annotationsEnabled&&!!annotations.error&&<p role="alert">{t("annotations.failed")}</p>}
         {annotationsEnabled&&menu.target&&data.verses.some(verse=>verse.id===menu.target!.verseId)&&
-          <AnnotationActionsView key={menu.target.verseId} adapter={annotationAdapter} target={{type:"verse",verseId:menu.target.verseId}} returnFocus={menu.target.element} onClose={menu.close} onChanged={()=>{}}/>}
+          <AnnotationActionsView audio={audioEnabled?{label:t("player.readAloud"),status:audioStatus,onStart:()=>audioControl.current?.startAtVerse(data.verses.find(verse=>verse.id===menu.target!.verseId)!.number)??false,onRetry:()=>audioControl.current?.retry()}:undefined} key={menu.target.verseId} adapter={annotationAdapter} target={{type:"verse",verseId:menu.target.verseId}} returnFocus={menu.target.element} onClose={menu.close} onChanged={()=>{}}/>}
         {data.kind === "steps" && (
           <p role="note" className="text-sm text-vs-fg-2">
             {t("nativeReader.range", {

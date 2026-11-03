@@ -12,6 +12,7 @@ import { NativeClientError, type NativeSessionClient } from "@/lib/native/client
 
 import { nativeAnnotationList, nativeAnnotationResult, nativeAnnotationMutation, nativeAnnotationContext, type NativeAnnotationList } from "@/lib/native/annotationsContract";
 import type { AnnotationAction } from "@/lib/annotations/contract";
+import { nativePlaybackSchema, type NativePlayback } from "@/lib/native/audioPlaybackContract";
 import type { NativeReader } from "@/lib/native/readerContract";
 import { readerResumeSchema, readerPositionInput, readerPositionResult, type ReaderResume, type ReaderPositionInput } from "@/lib/native/readerPositionContract";
 import { nativeReaderSchema, nativeReaderKind, type NativeReaderKind } from "@/lib/native/readerContract";
@@ -28,6 +29,9 @@ export function nativeLearningTransientError(error: unknown): boolean {
   return error instanceof NativeClientError && (["network_unavailable", "access_network_unavailable"].includes(error.code) ||
     (["native_request_failed", "request_failed", "invalid_response"].includes(error.code) && error.status >= 500 && error.status < 600));
 }
+
+export const nativePlaybackQueryKey = (reader: NativeReader) =>
+  ["reader-audio",reader.userId,reader.activeCollectionId,reader.selectionVersion,reader.language,reader.sourceLanguage,reader.courseId,reader.kind,reader.targetId,reader.chapterId,reader.startVerse,reader.endVerse] as const;
 
 export const nativeAnnotationQueryKey = (reader: NativeReader) =>
   ["reader-annotations",reader.userId,reader.activeCollectionId,reader.selectionVersion,reader.language,reader.courseId,reader.kind,reader.targetId,reader.chapterId,reader.startVerse,reader.endVerse] as const;
@@ -71,6 +75,16 @@ export class NativeDataRuntime {
     const value=nativeReaderSchema.parse(await this.client.api(`courses/${nativeCourseId.parse(courseId)}/read/${nativeReaderKind.parse(kind)}/${nativeCourseId.parse(targetId)}`));
     if(value.courseId!==courseId||value.kind!==kind||value.targetId!==targetId)throw new NativeClientError("content_context_changed",409);
     return this.studyResponse(value,epoch,userId,language,expected);
+  }
+  async readerPlayback(reader:NativeReader, renew=false):Promise<NativePlayback> {
+    const epoch=this.epoch;
+    this.studyResponse(reader,epoch,reader.userId,reader.language,reader);
+    const path=`courses/${nativeCourseId.parse(reader.courseId)}/read/${nativeReaderKind.parse(reader.kind)}/${nativeCourseId.parse(reader.targetId)}/audio/playback`;
+    const result=nativePlaybackSchema.parse(await (renew?this.client.renewReaderAudio(path):this.client.api(path)));
+    const current=result.reader;
+    this.studyResponse(current,epoch,reader.userId,reader.language,reader);
+    if(current.courseId!==reader.courseId||current.kind!==reader.kind||current.targetId!==reader.targetId||current.chapterId!==reader.chapterId||current.startVerse!==reader.startVerse||current.endVerse!==reader.endVerse||current.sourceLanguage!==reader.sourceLanguage||current.verses.some((v,i)=>v.id!==reader.verses[i]?.id||v.text!==reader.verses[i]?.text||v.number!==reader.verses[i]?.number))throw new NativeClientError("content_context_changed",409);
+    return result;
   }
   async readerResume(userId:string,language:string,expected:{activeCollectionId:string|null;selectionVersion:number},courseId:string,kind:NativeReaderKind,targetId:string,positionEnabled:boolean):Promise<ReaderResume> {
     if(!positionEnabled)return {reader:await this.reader(userId,language,expected,courseId,kind,targetId),positionVersion:0,previous:null,next:null};

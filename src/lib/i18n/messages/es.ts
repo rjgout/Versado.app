@@ -3827,6 +3827,10 @@ export const es: PartialMessages = {
     "loadFailed": "No se pudieron cargar las personas."
   },
   "player": {
+    "nativeOutput": "Fuente de lectura",
+    "nativeRecording": "Audio grabado",
+    "nativeDeviceVoice": "Voz de este dispositivo",
+    "nativeUnavailable": "La lectura no está disponible. Comprueba tu conexión y las voces disponibles.",
     "audioLanguage": "Idioma de audio",
     "audioLanguageHint": "Lee y escucha en diferentes idiomas. Su elección se guarda en este dispositivo. Sin una grabación, se utiliza la voz de una computadora.",
     "retryLanguages": "No se pudieron cargar los idiomas de audio. Inténtalo de nuevo",

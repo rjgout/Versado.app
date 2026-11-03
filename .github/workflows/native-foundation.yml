@@ -190,6 +190,8 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - name: Migratie, sessies, Apple en lokale leesflow op geïsoleerde PostgreSQL
         run: npm run test:native:integration
+      - name: Gedeelde native audiospeler (gesimuleerde OS-uitvoer, geen externe bronnen)
+        run: node tests/native-audio-player.browser.mjs
       - name: CFM-herstel zonder externe downloads (bestaande geïsoleerde runner en webbuild)
         run: |
           npx tsx --test tests/cfm-recovery.test.ts
@@ -202,6 +204,7 @@ jobs:
         with:
           name: native-foundation-browser
           path: |
+            /tmp/versado-native-audio-player-browser
             /tmp/versado-native-browser
             /tmp/versado-reader-verse-menu-browser
             /tmp/versado-cfm-recovery-browser

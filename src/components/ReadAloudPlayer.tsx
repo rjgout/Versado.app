@@ -7,6 +7,7 @@ import { getLanguage } from "@/lib/languages";
 import { useReadAloudPlayer, type ReadAloudSource, type ReadAloudVerse } from "@/lib/readAloudPlayerContext";
 
 interface Props {
+  adapter?: ReadAloudAdapter;
   sourceId: string;
   title: string;
   verses: ReadAloudVerse[];
@@ -30,28 +31,38 @@ export interface ReadAloudControl {
   retry(): void;
 }
 
-interface AudioEdition {
+export interface AudioEdition {
   language: string;
   url: string | null;
   legacyFallback?: {url:string;starts:{number:number;audioStart:number|null}[]} | null;
   verses: ReadAloudVerse[];
+  native?: ReadAloudSource["native"];
+}
+export interface ReadAloudAdapter {
+  editions: AudioEdition[];
+  voices: {id:string;name:string;language:string}[];
+  native: NonNullable<ReadAloudSource["native"]>;
+  status: ReadAloudStatus;
+  retry():void;
 }
 
 const LANGUAGE_KEY = "jehovaapp-read-aloud-language";
 
-export default function ReadAloudPlayer({ sourceId, title, verses, audio, startVerse = 0, subtitle, language, controlRef, onStatusChange }: Props) {
+export default function ReadAloudPlayer({ sourceId, title, verses, audio, startVerse = 0, subtitle, language, controlRef, onStatusChange, adapter }: Props) {
   const t = useT();
   const { source, start, stop, currentIndex } = useReadAloudPlayer();
   const [editions, setEditions] = useState<{ id: string; items: AudioEdition[] } | null>(null);
   const [preferredLanguage, setPreferredLanguage] = useState("");
   const [failed, setFailed] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  const [mode,setMode]=useState("recording"),[voiceId,setVoiceId]=useState("");
 
   useEffect(() => {
-    try { setPreferredLanguage(localStorage.getItem(LANGUAGE_KEY) ?? ""); } catch { /* Opslag kan geblokkeerd zijn. */ }
-  }, []);
+    try { if(!adapter)setPreferredLanguage(localStorage.getItem(LANGUAGE_KEY) ?? ""); setVoiceId(localStorage.getItem("jehovaapp-read-aloud-voice")??""); } catch { /* Opslag kan geblokkeerd zijn. */ }
+  }, [!!adapter]);
 
   useEffect(() => {
+    if(adapter)return;
     const controller = new AbortController();
     setFailed(false);
     fetch(`/api/chapters/${encodeURIComponent(sourceId)}/audio-languages`, { signal: controller.signal })
@@ -62,14 +73,19 @@ export default function ReadAloudPlayer({ sourceId, title, verses, audio, startV
       })
       .catch(() => { if (!controller.signal.aborted) setFailed(true); });
     return () => controller.abort();
-  }, [sourceId, attempt]);
+  }, [sourceId, attempt, adapter]);
 
-  const available = editions?.id === sourceId ? editions.items.filter((edition) =>
+  const available = (adapter?.editions ?? (editions?.id === sourceId ? editions.items : [])).filter((edition) =>
     verses.every((verse) => edition.verses.some((item) => item.number === verse.number))
-  ) : [];
+  );
   const textLanguage = language ?? "nl";
-  const selected = available.find((edition) => edition.language === preferredLanguage)
+  const recording = available.find((edition) => edition.language === preferredLanguage)
     ?? available.find((edition) => edition.language === textLanguage);
+  const deviceVoices=adapter?.voices.filter(voice=>voice.language.split(/[-_]/)[0]===textLanguage)??[];
+  const voice=deviceVoices.find(voice=>voice.id===voiceId)??deviceVoices[0];
+  const useTts=!!adapter&&(mode==="tts"||!recording);
+  const selected=useTts?undefined:recording;
+  const selectedNative=adapter ? {...(selected?.native??adapter.native),...(useTts&&voice?{voiceId:voice.id}:{})} : undefined;
   const selectedLanguage = selected?.language ?? textLanguage;
   const spokenVerses = selected
     ? verses.map((verse) => selected.verses.find((item) => item.number === verse.number)!)
@@ -90,7 +106,7 @@ export default function ReadAloudPlayer({ sourceId, title, verses, audio, startV
     && source.verses.at(-1)?.number === verses.at(-1)?.number;
 
   // Een mislukte opvraag is geen "gereed": anders zou een gekozen audiotaal stilzwijgend door de tekstlaag vervangen worden.
-  const status: ReadAloudStatus = editions?.id === sourceId ? "ready" : failed ? "error" : "loading";
+  const status: ReadAloudStatus = adapter ? adapter.status!=="ready"?adapter.status:(!selected&&!voice)?"error":"ready" : editions?.id === sourceId ? "ready" : failed ? "error" : "loading";
   useEffect(() => {
     onStatusChange?.(status);
     return () => onStatusChange?.("loading");
@@ -104,11 +120,11 @@ export default function ReadAloudPlayer({ sourceId, title, verses, audio, startV
         if (status !== "ready") return false;
         const index = spokenVerses.findIndex((verse) => verse.number === number);
         if (index < 0) return false;
-        start({ id: sourceId, title, verses: spokenVerses, audio: selectedAudio, language: selectedLanguage }, index);
+        start({ id: sourceId, title, verses: spokenVerses, audio: selectedAudio, language: selectedLanguage, native:selectedNative }, index);
         return true;
       },
       retry() {
-        setAttempt((value) => value + 1);
+        if(adapter)adapter.retry();else setAttempt((value) => value + 1);
       },
     };
   });
@@ -117,24 +133,27 @@ export default function ReadAloudPlayer({ sourceId, title, verses, audio, startV
   function changeLanguage(value: string) {
     if (source?.id === sourceId) stop();
     setPreferredLanguage(value);
+    if(adapter)setMode("recording");
     try { localStorage.setItem(LANGUAGE_KEY, value); } catch { /* De keuze blijft voor deze pagina bruikbaar. */ }
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2" data-read-aloud-controls>
+      {adapter&&<><label className="flex flex-wrap gap-2 text-sm font-semibold">{t("player.nativeOutput")}<AppSelect value={useTts?"tts":"recording"} onChange={value=>{stop();setMode(value);}} ariaLabel={t("player.nativeOutput")} options={[...(recording?[{value:"recording",label:t("player.nativeRecording")}]:[]),...(voice?[{value:"tts",label:t("player.nativeDeviceVoice")}]:[])]}/></label>{useTts&&voice&&<label className="flex flex-wrap gap-2 text-sm">{t("player.nativeDeviceVoice")}<AppSelect value={voice.id} onChange={value=>{stop();setVoiceId(value);try{localStorage.setItem("jehovaapp-read-aloud-voice",value);}catch{}}} ariaLabel={t("player.nativeDeviceVoice")} options={deviceVoices.map(item=>({value:item.id,label:item.name}))}/></label>}</>}
       <label className="flex flex-wrap items-center gap-2 text-sm font-semibold">
         {t("player.audioLanguage")}
         <AppSelect className="input w-auto" value={selectedLanguage} onChange={changeLanguage} ariaLabel={t("player.audioLanguage")} options={[{ value: textLanguage, label: getLanguage(textLanguage).nativeName }, ...available.filter((edition) => edition.language !== textLanguage).map((edition) => ({ value: edition.language, label: getLanguage(edition.language).nativeName }))]} />
       </label>
       <p className="text-xs text-slate-500 dark:text-slate-400">{t("player.audioLanguageHint")}</p>
-      {failed && <button className="text-sm underline" onClick={() => setAttempt((value) => value + 1)}>{t("player.retryLanguages")}</button>}
-      {!failed && editions?.id !== sourceId && <p role="status" className="text-xs text-slate-500">{t("misc.loadingEllipsis")}</p>}
+      {(failed||adapter?.status==="error") && <button className="text-sm underline" onClick={() => adapter?adapter.retry():setAttempt((value) => value + 1)}>{t("player.retryLanguages")}</button>}
+      {status==="loading" && <p role="status" className="text-xs text-slate-500">{t("misc.loadingEllipsis")}</p>}
+      {adapter&&status==="error"&&<p role="status">{t("player.nativeUnavailable")}</p>}
       {!active && <button
-      disabled={!failed && editions?.id !== sourceId}
+      disabled={adapter?status!=="ready":!failed && editions?.id !== sourceId}
       onClick={() => {
         const currentNumber = source?.id === sourceId ? source.verses[currentIndex]?.number : undefined;
         const index = spokenVerses.findIndex((verse) => verse.number === currentNumber);
-        start({ id: sourceId, title, verses: spokenVerses, audio: selectedAudio, language: selectedLanguage }, index >= 0 ? index : startVerse);
+        start({ id: sourceId, title, verses: spokenVerses, audio: selectedAudio, language: selectedLanguage, native:selectedNative }, index >= 0 ? index : startVerse);
       }}
       className="w-full rounded-2xl bg-brand-50 dark:bg-slate-800 border border-brand-100 dark:border-slate-700 px-4 py-3 flex items-center gap-3 text-left disabled:opacity-50"
     >

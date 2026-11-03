@@ -45,14 +45,23 @@ shell uit #239 op een fysieke iPhone; de nieuwe contentkiezer vereist opnieuw fy
 
 Historische inventarisbasis: `origin/main` op `e76bc9f7c04b7b9e6faffb97c255184e0c5fb018`. Inventarisatie op 21 oktober 2026. Roadmap: [issue #163](https://github.com/rjgout/Versado.app/issues/163). Dit is implementatievoorbereiding en technische verificatie, geen onafhankelijke acceptatie-audit.
 
+## Native hoofdstukaudio — B3b-2c deel 2
+
+De gedeelde speler, mini-speler en provider gebruiken nu een native uitvoeradapter
+voor de interne Service Auth-build (`scripture-audio-v1`). Geautoriseerde opnamen
+en aanwezige toestelstemmen in de vijf teksttalen; geen voortgangsmutaties.
+Voorgrond-only: achtergrond, schermslot en routeverlaten stoppen. Andere
+distributieprofielen en fysieke audio-/onderbrekingsacceptatie blijven open.
+Zie [NATIVE-AUDIO.md](NATIVE-AUDIO.md) voor sessiebinding, herautorisatie en grenzen.
+
 ## Audio V2 — ontwikkelstatus
 
 De audiobibliotheek en de beheerroute `/adminbackend/content/audio` zijn toegevoegd op de webbackend.
 De nieuwe afspeelroutes blijven achter bestaande websessie- en contentrechten; er is geen algemene
-Bearer-bypass, token in URL of cookie-terugval voor native toegevoegd. De lokale native lezer mist
-nog veilige media-/Range-integratie en dezelfde spelerbediening. Dit blijft een expliciete ontbrekende
-functie; er is geen web-only uitzondering goedgekeurd en dit document claimt geen volledige native
-oplevering. Android-/iOS-compilatie is uitsluitend een regressiecontrole. Fysieke toestellen,
+Bearer-bypass, token in URL of cookie-terugval voor native toegevoegd. De interne lokale native
+lezer gebruikt nu bovenstaande begrensde media-/Range-integratie en gedeelde spelerbediening.
+Dit claimt geen volledige native oplevering: andere distributieprofielen en fysieke acceptatie
+blijven open. Android-/iOS-compilatie is uitsluitend een regressiecontrole. Fysieke toestellen,
 achtergrondaudio, hoofdtelefoonbediening en herstel na lifecycle-wissels zijn niet hiermee bewezen.
 Zie [Audioarchitectuur V2](AUDIO-ARCHITECTUUR-V2.md).
 
@@ -334,7 +343,7 @@ De onafhankelijke review volgt door ChatGPT. #176 en #178 blijven ongemerged.
 <!-- BEGIN NATIVE PARITY INVENTORY -->
 ## Volledige broninventaris (gegenereerd)
 
-Gevonden: **143 pagina's**, **244 fysieke routehandlers**, **467 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
+Gevonden: **143 pagina's**, **244 fysieke routehandlers**, **468 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
 
 De JSON-bijlage bevat per route alle transitief bereikbare lokale modules, clientgrenzen en statische requestpaden. Dat is een afhankelijkheidsinventaris, geen autorisatiebewijs; voorwaarden per HTTP-methode blijven apart te controleren. Een Client Component kan via een gedeelde helper nog een serverafhankelijkheid hebben. Een module zonder eigen `use client` is contextafhankelijk, niet automatisch browsergeschikt.
 
@@ -1079,6 +1088,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/native/NativeLearningView.tsx](../src/components/native/NativeLearningView.tsx) | use client | NativeLearningView
 [src/components/native/NativeNavigationProvider.tsx](../src/components/native/NativeNavigationProvider.tsx) | use client | NativeNavigationProvider
 [src/components/native/NativePasswordReset.tsx](../src/components/native/NativePasswordReset.tsx) | use client | NativePasswordReset
+[src/components/native/NativeReadAloudPlayer.tsx](../src/components/native/NativeReadAloudPlayer.tsx) | use client | NativeReadAloudPlayer
 [src/components/native/NativeReaderView.tsx](../src/components/native/NativeReaderView.tsx) | use client | NativeReaderView
 [src/components/native/NativeShellHeader.tsx](../src/components/native/NativeShellHeader.tsx) | use client | NativeShellHeader
 [src/components/native/NativeStudyImage.tsx](../src/components/native/NativeStudyImage.tsx) | use client | NativeStudyImage, NativeStudyMediaProvider

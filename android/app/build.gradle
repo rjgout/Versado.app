@@ -44,6 +44,7 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    sourceSets { androidTest { assets.srcDirs = ["../../tests/fixtures/native-audio"] } }
     signingConfigs {
         release {
             if (uploadKeystorePath) {
@@ -80,6 +81,8 @@ repositories {
 }
 
 dependencies {
+    // Decoder-side leesstapgrenzen; I/O blijft de bestaande NativeAudioDataSource.
+    implementation "androidx.media3:media3-exoplayer:1.11.1"
     implementation "com.squareup.okhttp3:okhttp:5.5.1"
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"

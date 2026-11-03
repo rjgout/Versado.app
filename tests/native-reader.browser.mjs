@@ -27,12 +27,12 @@ assert.ok(
 );
 assert.equal(
   inputs.some((f) =>
-    /node_modules\/(?:next|@prisma)\/|\.server\.ts$|components\/LessonFlow\.tsx$|components\/ReadAloudPlayer\.tsx$/.test(
+    /node_modules\/(?:next|@prisma)\/|\.server\.ts$|components\/LessonFlow\.tsx$/.test(
       f,
     ),
   ),
   false,
-  "Web-/server- en audioadapters mogen niet in de lokale bundel",
+  "Web-/serveradapters mogen niet in de lokale bundel",
 );
 const osBoundary = {
   name: "reader-os-events-only",

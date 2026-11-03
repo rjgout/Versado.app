@@ -64,19 +64,20 @@ export function useNativeReaderPosition(reader: NativeReader | undefined, versio
       },Math.max(1000,8000-(performance.now()-lastSent)));
     }
     const interact=(event:Event)=>{
-      if(!event.isTrusted||document.querySelector("dialog[open]"))return;
+      if(!event.isTrusted||document.querySelector("dialog[open]")||(event.target instanceof Element&&event.target.closest("[data-read-aloud-controls]")))return;
       if(event instanceof KeyboardEvent&&!['ArrowDown','ArrowUp','PageDown','PageUp','Home','End',' '].includes(event.key))return;
       armed=true;settle();
     };
     const scrolled=()=>{if(armed)settle();};
     const visibility=()=>{cancel();armed=false;queued=null;};
+    window.addEventListener("versado:read-aloud-interaction",visibility);
     const events=["wheel","touchmove","keydown"] as const;
     for(const event of events)window.addEventListener(event,interact,{passive:true});
     window.addEventListener("scroll",scrolled,{passive:true});
     document.addEventListener("visibilitychange",visibility);
     reset.current=()=>{failed=null;queued=null;lastVerse=null;lastVersion=null;armed=false;cancel();setStatus("idle");};
     retry.current=()=>{if(failed&&!busy&&!disposed){const input=failed;failed=null;void send(input);}};
-    return ()=>{disposed=true;cancel();retry.current=()=>{};for(const event of events)window.removeEventListener(event,interact);window.removeEventListener("scroll",scrolled);document.removeEventListener("visibilitychange",visibility);};
+    return ()=>{window.removeEventListener("versado:read-aloud-interaction",visibility);disposed=true;cancel();retry.current=()=>{};for(const event of events)window.removeEventListener(event,interact);window.removeEventListener("scroll",scrolled);document.removeEventListener("visibilitychange",visibility);};
     // De reader-identiteit komt van de gemounte route; cacheverversing mag geen
     // observaties, focus, pending intentie of opgeloste versie terugzetten.
   },[enabled,reader?.userId,reader?.activeCollectionId,reader?.selectionVersion,reader?.language,reader?.courseId,reader?.kind,reader?.targetId,reader?.chapterId,reader?.startVerse,reader?.endVerse]); // eslint-disable-line react-hooks/exhaustive-deps

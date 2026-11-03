@@ -18,7 +18,7 @@ import { nativeReaderAnnotations, mutateNativeReaderAnnotation } from "./annotat
 import { nativeAnnotationMutation } from "./annotationsContract";
 import { nativeReaderResume, saveNativeReaderPosition } from "./readerPosition.server";
 import { readerPositionInput } from "./readerPositionContract";
-import { nativeReaderAudio, streamNativeReaderAudio, nativeAudioPrepareBudget } from "./audio.server";
+import { nativeReaderAudio, nativeReaderPlayback, streamNativeReaderAudio, nativeAudioPrepareBudget } from "./audio.server";
 import { nativeScriptureReader } from "./reader.server";
 import { nativeReaderKind } from "./readerContract";
 import { nativeCourses, nativeCoursePath } from "./courses.server";
@@ -87,7 +87,7 @@ export async function nativeApi(req: NextRequest, parts: string[]): Promise<Next
   const ip = hashSecret(clientIp(req)), failureKey = `native-auth:${ip}`;
   try {
     if (mutation && req.headers.get("content-type")?.split(";")[0] !== "application/json") throw new NativeAuthError("json_required", 415);
-    if (req.method === "GET" && path === "capabilities") return json({ apiVersion: 1, apple: !!appleConfiguration(), registration: true, features: ["scripture-annotations-v1", "scripture-reading-position-v1", "scripture-reader-v1", "study-course-overview-v1", "courses-overview-v1", "study-media-v1", "today-actions-v1", "today-overview-v1", "content-picker-v1", "security-setup-v1", "account-password-v1", "password-reset-v1", "email-confirmation-v1", ...(nativeSocketEnabled() ? ["realtime-ticket-v1"] : [])] });
+    if (req.method === "GET" && path === "capabilities") return json({ apiVersion: 1, apple: !!appleConfiguration(), registration: true, features: ["scripture-audio-v1", "scripture-annotations-v1", "scripture-reading-position-v1", "scripture-reader-v1", "study-course-overview-v1", "courses-overview-v1", "study-media-v1", "today-actions-v1", "today-overview-v1", "content-picker-v1", "security-setup-v1", "account-password-v1", "password-reset-v1", "email-confirmation-v1", ...(nativeSocketEnabled() ? ["realtime-ticket-v1"] : [])] });
     if (req.method === "POST" && path === "login") {
       if (failureLockSeconds(failureKey, 30)) throw new NativeAuthError("too_many_attempts", 429);
       const input = z.object({ identifier: z.string().trim().min(1).max(320), ...credentials, supportsSecuritySetup: z.boolean().optional() }).strict().parse(await body(req));
@@ -184,11 +184,11 @@ export async function nativeApi(req: NextRequest, parts: string[]): Promise<Next
     }
     const user = await authenticated(req);
     if(parts[0]==="courses"&&parts[2]==="read"&&parts[5]==="audio"&&
-      ((parts.length===6&&req.method==="GET")||(parts.length===8&&parts[7]==="stream"&&["GET","HEAD"].includes(req.method)))) {
+      (((parts.length===6||(parts.length===7&&parts[6]==="playback"))&&req.method==="GET")||(parts.length===8&&parts[7]==="stream"&&["GET","HEAD"].includes(req.method)))) {
       if(req.nextUrl.search)throw new NativeAuthError("invalid_input",400);
       const token=req.headers.get("authorization")!.slice(7),identity=await nativeSessionIdentity(token);
       const courseId=nativeCourseId.parse(parts[1]),kind=nativeReaderKind.parse(parts[3]),targetId=nativeCourseId.parse(parts[4]);
-      if(parts.length===6){await nativeAudioPrepareBudget(user.id);const catalogue=await nativeReaderAudio(identity.binding,courseId,kind,targetId);await nativeSessionIdentity(token);return json(catalogue);}
+      if(parts.length<=7){await nativeAudioPrepareBudget(user.id);const catalogue=parts.length===7?await nativeReaderPlayback(identity.binding,courseId,kind,targetId):await nativeReaderAudio(identity.binding,courseId,kind,targetId);await nativeSessionIdentity(token);return json(catalogue);}
       const sourceId=z.string().regex(/^[a-f0-9]{64}$/).parse(parts[6]);
       const limited=await authBudget(authBudgetKey("native-audio-range",user.id),240,60000);
       if(limited)throw new NativeAuthError(limited.status===503?"security_check_unavailable":"too_many_attempts",limited.status);

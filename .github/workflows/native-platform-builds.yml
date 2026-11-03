@@ -63,6 +63,23 @@ jobs:
       - name: Native Access HTTP-/policyregressies op de JVM
         working-directory: android
         run: bash ./gradlew :app:testDebugUnitTest --no-daemon
+      - name: KVM uitsluitend op de wegwerp-CI-runner
+        run: |
+          sudo chown "$USER" /dev/kvm
+          sudo chmod u+rw /dev/kvm
+      - name: Echte Android-codec en stapgrens met synthetische MP3
+        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2
+        timeout-minutes: 8
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          cores: 2
+          ram-size: 2048M
+          emulator-boot-timeout: 180
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          working-directory: android
+          script: bash ./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=app.versado.app.NativeAudioDecoderTest --no-daemon
       - name: Controleer de assets in de APK
         run: |
           unzip -q android/app/build/outputs/apk/debug/app-debug.apk 'assets/*' -d "$RUNNER_TEMP/versado-android-artifact"
@@ -173,6 +190,8 @@ jobs:
           "$RUNNER_TEMP/versado-access-policy"
           swiftc -swift-version 5 -target "$(uname -m)-apple-macos14.0" ios/App/App/NativeAccessTransport.swift ios/App/App/NativeAudioTransport.swift tests/native-audio-transport.swift -o "$RUNNER_TEMP/versado-audio-transport"
           "$RUNNER_TEMP/versado-audio-transport" tests/fixtures/native-audio/synthetic.mp3
+          swiftc -swift-version 5 -target "$(uname -m)-apple-macos14.0" ios/App/App/NativeAccessTransport.swift ios/App/App/NativeAudioTransport.swift ios/App/App/NativeAudioContext.swift tests/native-audio-context.swift -o "$RUNNER_TEMP/versado-audio-context"
+          "$RUNNER_TEMP/versado-audio-context" tests/fixtures/native-audio/playback.json
       - name: Echte iOS-simulatorcompilatie zonder signing
         run: |
           xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath "$RUNNER_TEMP/versado-ios" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build

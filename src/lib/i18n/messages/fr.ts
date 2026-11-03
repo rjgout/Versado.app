@@ -3818,6 +3818,11 @@ export const fr: PartialMessages = {
     loadFailed: "Les personnes n’ont pas pu être chargées.",
   },
   player: {
+    nativeOutput: "Source de lecture",
+    nativeRecording: "Audio enregistré",
+    nativeDeviceVoice: "Voix sur cet appareil",
+    nativeUnavailable: "La lecture audio est indisponible. Vérifiez votre connexion et les voix disponibles.",
+
     audioLanguage: "Langue audio",
     audioLanguageHint: "Lis et écoute dans des langues différentes. Ton choix est enregistré sur cet appareil. Sans enregistrement, une voix de synthèse est utilisée.",
     retryLanguages: "Impossible de charger les langues audio. Réessayer",

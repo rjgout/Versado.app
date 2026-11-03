@@ -3818,6 +3818,11 @@ export const en: PartialMessages = {
     loadFailed: "The people couldn’t be loaded.",
   },
   player: {
+    nativeOutput: "Read-aloud source",
+    nativeRecording: "Recorded audio",
+    nativeDeviceVoice: "Voice on this device",
+    nativeUnavailable: "Read aloud is currently unavailable. Check your connection and available voices.",
+
     audioLanguage: "Audio language",
     audioLanguageHint: "Read and listen in different languages. Your choice is saved on this device. Without a recording, a computer voice is used.",
     retryLanguages: "Could not load audio languages. Try again",

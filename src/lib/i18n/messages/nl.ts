@@ -4320,6 +4320,11 @@ export const nl = {
     loadFailed: "De personages konden niet worden geladen.",
   },
   player: {
+    nativeOutput: "Voorleesbron",
+    nativeRecording: "Opgenomen audio",
+    nativeDeviceVoice: "Stem op dit toestel",
+    nativeUnavailable: "Voorlezen is nu niet beschikbaar. Controleer je verbinding en de beschikbare stemmen.",
+
     audioLanguage: "Audiotaal",
     audioLanguageHint: "Lees en luister in verschillende talen. Je keuze wordt op dit apparaat bewaard. Zonder opname wordt de computerstem gebruikt.",
     retryLanguages: "Audiotalen laden mislukt. Opnieuw proberen",
