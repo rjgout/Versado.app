@@ -18,6 +18,7 @@ import { nativeReaderAnnotations, mutateNativeReaderAnnotation } from "./annotat
 import { nativeAnnotationMutation } from "./annotationsContract";
 import { nativeReaderResume, saveNativeReaderPosition } from "./readerPosition.server";
 import { readerPositionInput } from "./readerPositionContract";
+import { nativeReaderAudio, streamNativeReaderAudio, nativeAudioPrepareBudget } from "./audio.server";
 import { nativeScriptureReader } from "./reader.server";
 import { nativeReaderKind } from "./readerContract";
 import { nativeCourses, nativeCoursePath } from "./courses.server";
@@ -75,14 +76,14 @@ async function authenticated(req: NextRequest) {
 export async function nativeApi(req: NextRequest, parts: string[]): Promise<NextResponse> {
   const origin = req.headers.get("origin");
   const headers: Record<string, string> = { "Cache-Control": "private, no-store", Vary: "Origin", "X-Content-Type-Options": "nosniff" };
-  if (nativeOriginAllowed(origin)) Object.assign(headers, { "Access-Control-Allow-Origin": origin!, "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS", "Access-Control-Allow-Headers": "Authorization, Content-Type, X-Versado-Client", "Access-Control-Max-Age": "600" });
+  if (nativeOriginAllowed(origin)) Object.assign(headers, { "Access-Control-Allow-Origin": origin!, "Access-Control-Allow-Methods": "GET, HEAD, POST, DELETE, OPTIONS", "Access-Control-Allow-Headers": "Authorization, Content-Type, X-Versado-Client, Range", "Access-Control-Max-Age": "600" });
   const json = (data: unknown, status = 200) => NextResponse.json(data, { status, headers });
   if (!nativeOriginAllowed(origin)) return json({ error: "origin_not_allowed" }, 403);
   if (process.env.NATIVE_API_ENABLED !== "1") return json({ error: "native_not_enabled" }, 503);
   if (!process.env.NATIVE_SESSION_SECRET || process.env.NATIVE_SESSION_SECRET.length < 32) return json({ error: "native_not_configured" }, 503);
   if (req.method === "OPTIONS") return new NextResponse(null, { status: 204, headers });
   if (req.headers.get("x-versado-client") !== "native-v1") return json({ error: "client_version_required" }, 400);
-  const path = parts.join("/"), mutation = req.method !== "GET";
+  const path = parts.join("/"), mutation = !["GET","HEAD"].includes(req.method);
   const ip = hashSecret(clientIp(req)), failureKey = `native-auth:${ip}`;
   try {
     if (mutation && req.headers.get("content-type")?.split(";")[0] !== "application/json") throw new NativeAuthError("json_required", 415);
@@ -182,6 +183,18 @@ export async function nativeApi(req: NextRequest, parts: string[]): Promise<Next
       return json(await issueSocketTicket(header.slice(7)));
     }
     const user = await authenticated(req);
+    if(parts[0]==="courses"&&parts[2]==="read"&&parts[5]==="audio"&&
+      ((parts.length===6&&req.method==="GET")||(parts.length===8&&parts[7]==="stream"&&["GET","HEAD"].includes(req.method)))) {
+      if(req.nextUrl.search)throw new NativeAuthError("invalid_input",400);
+      const token=req.headers.get("authorization")!.slice(7),identity=await nativeSessionIdentity(token);
+      const courseId=nativeCourseId.parse(parts[1]),kind=nativeReaderKind.parse(parts[3]),targetId=nativeCourseId.parse(parts[4]);
+      if(parts.length===6){await nativeAudioPrepareBudget(user.id);const catalogue=await nativeReaderAudio(identity.binding,courseId,kind,targetId);await nativeSessionIdentity(token);return json(catalogue);}
+      const sourceId=z.string().regex(/^[a-f0-9]{64}$/).parse(parts[6]);
+      const limited=await authBudget(authBudgetKey("native-audio-range",user.id),240,60000);
+      if(limited)throw new NativeAuthError(limited.status===503?"security_check_unavailable":"too_many_attempts",limited.status);
+      const response=await streamNativeReaderAudio(identity.binding,courseId,kind,targetId,sourceId,req.headers.get("range"),req.method==="GET",token);
+      return new NextResponse(response.body,{status:response.status,headers:{...headers,...Object.fromEntries(response.headers),"Content-Encoding":"identity","Cache-Control":"private, no-store, no-transform","Access-Control-Expose-Headers":"Content-Range, Content-Length, Accept-Ranges"}});
+    }
     if ((parts.length===6 || (parts.length===7 && req.method==="GET")) && parts[0]==="courses" && parts[2]==="read" && parts[5]==="annotations" && ["GET","POST"].includes(req.method)) {
       if(req.nextUrl.search)throw new NativeAuthError("invalid_input",400);
       const identity=await nativeSessionIdentity(req.headers.get("authorization")!.slice(7));

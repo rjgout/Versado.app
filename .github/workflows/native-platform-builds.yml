@@ -10,6 +10,8 @@ on:
       - 'capacitor.config.ts'
       - 'scripts/native/**'
       - 'tests/native-access-policy.swift'
+      - 'tests/native-audio*'
+      - 'tests/fixtures/native-audio/**'
       - 'tests/native-android-release*'
       - 'tests/native-ios-release*'
       - 'package*.json'
@@ -169,6 +171,8 @@ jobs:
         run: |
           swiftc -swift-version 5 ios/App/App/NativeAccessTransport.swift tests/native-access-policy.swift -o "$RUNNER_TEMP/versado-access-policy"
           "$RUNNER_TEMP/versado-access-policy"
+          swiftc -swift-version 5 -target "$(uname -m)-apple-macos14.0" ios/App/App/NativeAccessTransport.swift ios/App/App/NativeAudioTransport.swift tests/native-audio-transport.swift -o "$RUNNER_TEMP/versado-audio-transport"
+          "$RUNNER_TEMP/versado-audio-transport" tests/fixtures/native-audio/synthetic.mp3
       - name: Echte iOS-simulatorcompilatie zonder signing
         run: |
           xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath "$RUNNER_TEMP/versado-ios" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build

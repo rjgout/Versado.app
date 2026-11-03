@@ -4,6 +4,15 @@ on:
     branches: [main, develop, 'feat/native-*', 'fix/native-*']
     paths:
       - 'src/lib/native/**'
+      - 'src/lib/audio/**'
+      - 'src/lib/audioMirror.ts'
+      - 'src/components/ReadAloud*'
+      - 'src/lib/readAloud*'
+      - 'src/lib/speechAudioSession.ts'
+      - 'src/app/api/audio/**'
+      - 'src/app/api/chapters/**'
+      - 'tests/native-audio*'
+      - 'tests/fixtures/native-audio/**'
       - 'src/lib/annotations/**'
       - 'src/components/annotations/**'
       - 'tests/native-annotations*'
@@ -141,7 +150,8 @@ env:
 jobs:
   native-foundation:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    # Bestaande webbuild hergebruiken voor native én volledige audioregressies.
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
@@ -155,6 +165,7 @@ jobs:
           npm run db:generate
           npm run test:native
           npm run test:annotations
+          npm run test:audio
           npm run test:focus
           npm run test:profile
           npx tsx --test tests/hymns-sunday.test.ts tests/artwork.test.ts tests/streak-return.test.ts tests/generalConference.test.ts
@@ -181,6 +192,8 @@ jobs:
         run: |
           npx tsx --test tests/cfm-recovery.test.ts
           node scripts/content-architecture/test-access-isolated.mjs --focused --cfm-suite=cfm-recovery.integration.test.ts --browser
+      - name: Bestaande Audio V2-webregressies op eigen database, dezelfde webbuild
+        run: npm run test:audio:browser
       - name: Browserbewijs
         if: always()
         uses: actions/upload-artifact@v4
@@ -190,6 +203,9 @@ jobs:
             /tmp/versado-native-browser
             /tmp/versado-reader-verse-menu-browser
             /tmp/versado-cfm-recovery-browser
+            /tmp/versado-audio-browser
+            /tmp/versado-audio-official-browser
+            /tmp/versado-audio-legacy-browser
           retention-days: 7
       - name: Focusbewijs
         if: always()

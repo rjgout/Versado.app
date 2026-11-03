@@ -17,7 +17,7 @@ async function annotationRegression(env,browser) {
  if(browser)for(const file of ['annotation-actions','study-folder','study-folder-colors','annotation-recovery'])await run('npx',['tsx',`tests/${file}.browser.mjs`],env);
 }
 const port=await new Promise(resolve=>{const s=createServer();s.listen(0,'127.0.0.1',()=>{const p=s.address().port;s.close(()=>resolve(p));});});
-let server,mediaRoot;const socketServers=[];
+let server,mediaRoot,audioRoot;const socketServers=[];
 try{
  docker(['run','--rm','-d','--name',container,'-e','POSTGRES_PASSWORD=synthetic-only','-e','POSTGRES_DB=versado_content_access_test','-p','127.0.0.1::5432','postgres:16-alpine']);
  let ready=false;for(let i=0;i<60;i++){try{docker(['exec',container,'pg_isready','-h','127.0.0.1','-U','postgres']);ready=true;break;}catch{}await delay(250);}if(!ready)throw Error('Eigen Postgres start niet');
@@ -26,8 +26,9 @@ try{
  const redisPort=docker(['port',redisContainer,'6379/tcp']).split(':').at(-1);
  const dbPort=docker(['port',container,'5432/tcp']).split(':').at(-1),db=`postgresql://postgres:synthetic-only@127.0.0.1:${dbPort}/versado_content_access_test`,base=`http://127.0.0.1:${port}`;
  mediaRoot=mkdtempSync(join(tmpdir(),'versado-native-study-media-'));
+ audioRoot=mkdtempSync(join(tmpdir(),'versado-native-audio-'));
  writeFileSync(join(mediaRoot,'.versado-study-volume.json'),JSON.stringify({version:1,purpose:'versado-study-media',volumeId:randomUUID()}),{mode:0o600});
- const env={...process.env,STUDY_MEDIA_DIR:mediaRoot,STUDY_MEDIA_TEST_ROOT:mediaRoot,STUDY_PUBLICATION_PROFILE:'synthetic-test',REDIS_URL:`redis://127.0.0.1:${redisPort}`,DATABASE_URL:db,CONTENT_ACCESS_TEST_DATABASE_URL:db,CONTENT_ACCESS_TEST_BASE_URL:base,NATIVE_TEST_DATABASE_URL:db,LEARNING_TEST_DATABASE_URL:db,NATIVE_TEST_BASE_URL:base,APP_URL:base,SESSION_SECRET:'native-isolated-web-secret-at-least-32-chars',NATIVE_SESSION_SECRET:'native-isolated-only-secret-at-least-32-chars',NATIVE_API_ENABLED:'1',APPLE_SIGN_IN_ENABLED:'1',APPLE_TEAM_ID:'TESTTEAM01',APPLE_IOS_CLIENT_ID:'app.versado.synthetic',NODE_ENV:'production'};
+ const env={...process.env,AUDIO_DIR:audioRoot,AUDIO_TEST_ROOT:audioRoot,STUDY_MEDIA_DIR:mediaRoot,STUDY_MEDIA_TEST_ROOT:mediaRoot,STUDY_PUBLICATION_PROFILE:'synthetic-test',REDIS_URL:`redis://127.0.0.1:${redisPort}`,DATABASE_URL:db,CONTENT_ACCESS_TEST_DATABASE_URL:db,CONTENT_ACCESS_TEST_BASE_URL:base,NATIVE_TEST_DATABASE_URL:db,LEARNING_TEST_DATABASE_URL:db,NATIVE_TEST_BASE_URL:base,APP_URL:base,SESSION_SECRET:'native-isolated-web-secret-at-least-32-chars',NATIVE_SESSION_SECRET:'native-isolated-only-secret-at-least-32-chars',NATIVE_API_ENABLED:'1',APPLE_SIGN_IN_ENABLED:'1',APPLE_TEAM_ID:'TESTTEAM01',APPLE_IOS_CLIENT_ID:'app.versado.synthetic',NODE_ENV:'production'};
  // Gecontroleerde oude database: alle bestaande migraties zonder nieuwe auth-DDL.
  const migration='20261125120000_native_auth_foundation',setupMigration='20261127120000_native_security_setup',quizMigration='20261203120000_live_quiz_actions',work=mkdtempSync(join(tmpdir(),'versado-native-')),path=join(work,'migrations');
  cpSync('prisma/migrations',path,{recursive:true,filter:src=>![migration,setupMigration,quizMigration].some(name=>src.endsWith(name)||src.includes(`${name}/`))});
@@ -84,7 +85,9 @@ try{
  }finally{await client.end();}
  server=spawn('node',['scripts/content-architecture/test-server.mjs'],{env,stdio:'inherit',detached:true});
  let healthy=false;for(let i=0;i<100;i++){try{if((await fetch(`${base}/api/health`)).ok){healthy=true;break;}}catch{}if(server.exitCode!==null)throw Error('Testserver gestopt');await delay(500);}if(!healthy)throw Error('Productiebuild niet bereikbaar');
- if(process.argv.includes('--annotations-only')) {
+ if(process.argv.includes('--audio-only')) {
+  await run('npx',['tsx','--test','tests/native-audio.integration.test.ts'],env);
+ } else if(process.argv.includes('--annotations-only')) {
   await run('npx',['tsx','--test','tests/native-annotations.integration.test.ts'],env);
   if(!process.argv.includes('--no-browser'))await run('npx',['tsx','tests/native-reader.browser.mjs'],env);
   await annotationRegression(env,!process.argv.includes('--no-browser'));
@@ -105,7 +108,7 @@ try{
   await run('npx',['tsx','--test','--test-concurrency=1','tests/native-today.integration.test.ts','tests/today-continue-cards.test.ts','tests/native-study-media.integration.test.ts','tests/native-courses.integration.test.ts'],env);
   if(!process.argv.includes('--no-browser')){await run('npx',['tsx','tests/native-today.browser.mjs'],env);await run('npx',['tsx','tests/native-today-actions.browser.mjs'],env);await run('npx',['tsx','tests/native-study-media.browser.mjs'],env);await run('npx',['tsx','tests/native-courses.browser.mjs'],env);}
  } else {
- await run('npx',['tsx','--test','--test-concurrency=1','tests/native-foundation.integration.test.ts','tests/native-shell.integration.test.ts','tests/native-account.integration.test.ts','tests/registration.integration.test.ts','tests/native-access.integration.test.ts','tests/content-switch.integration.test.ts','tests/native-today.integration.test.ts','tests/today-continue-cards.test.ts','tests/native-study-media.integration.test.ts','tests/native-courses.integration.test.ts','tests/native-study-courses.integration.test.ts','tests/native-reader.integration.test.ts','tests/native-annotations.integration.test.ts'],env);
+ await run('npx',['tsx','--test','--test-concurrency=1','tests/native-foundation.integration.test.ts','tests/native-shell.integration.test.ts','tests/native-account.integration.test.ts','tests/registration.integration.test.ts','tests/native-access.integration.test.ts','tests/content-switch.integration.test.ts','tests/native-today.integration.test.ts','tests/today-continue-cards.test.ts','tests/native-study-media.integration.test.ts','tests/native-courses.integration.test.ts','tests/native-study-courses.integration.test.ts','tests/native-reader.integration.test.ts','tests/native-annotations.integration.test.ts','tests/native-audio.integration.test.ts'],env);
  // Twee onafhankelijke processen, dezelfde bestaande database/Redis-adapter.
  const available=()=>new Promise(resolve=>{const listener=createServer();listener.listen(0,'127.0.0.1',()=>{const chosen=listener.address().port;listener.close(()=>resolve(chosen));});});
  const socketA=`http://127.0.0.1:${await available()}`;let socketB;do{socketB=`http://127.0.0.1:${await available()}`;}while(socketB===socketA);
@@ -127,4 +130,5 @@ try{
  try{docker(['stop',container]);}catch{}
  try{docker(['stop',redisContainer]);}catch{}
  if(mediaRoot)rmSync(mediaRoot,{recursive:true,force:true});
+ if(audioRoot)rmSync(audioRoot,{recursive:true,force:true});
 }
