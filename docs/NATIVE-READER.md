@@ -9,6 +9,9 @@ annotatie-editor als web; zie [gedeelde annotaties](NATIVE-ANNOTATIONS.md) voor
 contracten, beveiliging, tests en de nog openstaande fysieke acceptatie.
 De historische secties hieronder blijven het bewijs van hun eigen fase.
 
+De B3b-2c-[audiofundering](NATIVE-AUDIO.md) is afzonderlijk voorbereid en nog inactief;
+speler, TTS en fysieke audioacceptatie zijn daarmee nog niet beschikbaar.
+
 ## B3b-1 — gedeelde schriftlezer, uitsluitend lezen
 
 Uitvoering van [issue #251](https://github.com/rjgout/Versado.app/issues/251), vanaf develop

@@ -2397,16 +2397,11 @@
     },
     {
       "file": "src/app/api/chapters/[chapterId]/audio-languages/route.ts",
-      "sha256": "65e1f209d81148f7fbc462c28d74f03e795e31956fb4953d19350732ead6a3ba",
+      "sha256": "7601a3c67460c4cfe0242de845f022e3a4986f87d02027962bc16628686dfad1",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
-        "@/lib/audio/library",
-        "@/lib/audioMirror",
-        "@/lib/contentAccess",
-        "@/lib/contentEdition",
-        "@/lib/db",
-        "@/lib/languages",
+        "@/lib/audio/editions",
         "@/lib/session",
         "next/server",
         "zod"
@@ -5789,7 +5784,7 @@
     },
     {
       "file": "src/app/api/v1/native/[...path]/route.ts",
-      "sha256": "062610fccff9b6c93340ecbcdef4e776358a745299cbd5020554c0849956e99d",
+      "sha256": "792b76a086e33eade1d761fa9ee4e023627d4948fbd3904f8c6b26e435fa2f84",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/native/api",
@@ -5798,6 +5793,7 @@
       "methods": [
         "DELETE",
         "GET",
+        "HEAD",
         "OPTIONS",
         "POST"
       ],
@@ -5808,6 +5804,7 @@
       "exports": [
         "DELETE",
         "GET",
+        "HEAD",
         "OPTIONS",
         "POST",
         "dynamic",
@@ -16517,6 +16514,25 @@
       ]
     },
     {
+      "file": "src/lib/audio/editions.ts",
+      "sha256": "a0090474e8c673e6ef2dc1e8d48a4ccfa92375213518331ee25cd7e768afd28e",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/lib/audio/library",
+        "@/lib/audioMirror",
+        "@/lib/contentAccess",
+        "@/lib/contentEdition",
+        "@/lib/db",
+        "@/lib/languages"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "chapterAudioEditions"
+      ]
+    },
+    {
       "file": "src/lib/audio/hiddenEditions.ts",
       "sha256": "69a8284072f70d6b5f9138d42bb74d957afd7217e237876b286ccab180378903",
       "boundary": "context-dependent",
@@ -16751,7 +16767,7 @@
     },
     {
       "file": "src/lib/audio/stream.ts",
-      "sha256": "94a66300225bcbc89126914338ce8c471ef0b65becbbe81cca6654fb6814652f",
+      "sha256": "256e89f53a2dd9057cfb1f231e813854b5be92453d90de5476a6911b0d2ff6b4",
       "boundary": "context-dependent",
       "imports": [
         "node:fs",
@@ -21067,7 +21083,7 @@
     },
     {
       "file": "src/lib/native/access.ts",
-      "sha256": "8681f94e821566577fd8e48711eb8e449ab5b1ee9d061de00d62508315cb74c0",
+      "sha256": "8a5a55795b82d9703ceb23eb377d4d77a716b323abf677e5f94b4ed1bcb1a8a8",
       "boundary": "context-dependent",
       "imports": [
         "./client",
@@ -21148,12 +21164,13 @@
     },
     {
       "file": "src/lib/native/api.ts",
-      "sha256": "eba913d3fb667aa8fc539c136c3f3495bcfe15f8e18108a1e092d23abf8319ef",
+      "sha256": "d48c6cbdacb9dfdfddd27b98f13096edbeda56688ac7178ebcb3381dd8dc78e9",
       "boundary": "context-dependent",
       "imports": [
         "./annotations.server",
         "./annotationsContract",
         "./apple",
+        "./audio.server",
         "./content.server",
         "./contract",
         "./courses.server",
@@ -21242,6 +21259,81 @@
         "finishAppleChallenge",
         "unlinkApple",
         "verifyAppleIdentity"
+      ]
+    },
+    {
+      "file": "src/lib/native/audio.server.ts",
+      "sha256": "2d99874256740fbd84758f7a886245d22d0123459b6bc1723a5fc6f5201a43d3",
+      "boundary": "context-dependent",
+      "imports": [
+        "./audioContract",
+        "./audioFile.server",
+        "./courses.server",
+        "./reader.server",
+        "./readerContract",
+        "./sessions",
+        "@/lib/audio/contract",
+        "@/lib/audio/editions",
+        "@/lib/audio/library",
+        "@/lib/audio/storage",
+        "@/lib/audio/stream",
+        "@/lib/audioCheck",
+        "@/lib/audioMirror",
+        "@/lib/authBudget",
+        "@/lib/contentAccess",
+        "@/lib/db",
+        "node:path",
+        "zod"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [
+        "verifyNativeAudioFile"
+      ],
+      "exports": [
+        "nativeAudioPrepareBudget",
+        "nativeReaderAudio",
+        "streamNativeReaderAudio"
+      ]
+    },
+    {
+      "file": "src/lib/native/audioContract.ts",
+      "sha256": "5a54f712da6a02f8bc33f39250bd477f781f9cbd5bd70738d115c51d38e5ee34",
+      "boundary": "context-dependent",
+      "imports": [
+        "./readerContract",
+        "zod"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NATIVE_AUDIO_CHUNK_BYTES",
+        "NATIVE_AUDIO_MAX_BYTES",
+        "nativeAudioCatalogue",
+        "nativeAudioRange",
+        "nativeAudioScope",
+        "nativeAudioSource"
+      ]
+    },
+    {
+      "file": "src/lib/native/audioFile.server.ts",
+      "sha256": "bdac536502a2dbf145c51824c8d6ad0d3c0eccb068be092c497a62d61815fc07",
+      "boundary": "context-dependent",
+      "imports": [
+        "./audioContract",
+        "node:crypto",
+        "node:fs",
+        "node:fs/promises"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [
+        "verifyNativeAudioFile"
+      ],
+      "exports": [
+        "nativeAudioFileIdentity",
+        "verifyNativeAudioFile"
       ]
     },
     {
@@ -36755,16 +36847,11 @@
     },
     {
       "file": "src/app/api/chapters/[chapterId]/audio-languages/route.ts",
-      "sha256": "65e1f209d81148f7fbc462c28d74f03e795e31956fb4953d19350732ead6a3ba",
+      "sha256": "7601a3c67460c4cfe0242de845f022e3a4986f87d02027962bc16628686dfad1",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
-        "@/lib/audio/library",
-        "@/lib/audioMirror",
-        "@/lib/contentAccess",
-        "@/lib/contentEdition",
-        "@/lib/db",
-        "@/lib/languages",
+        "@/lib/audio/editions",
         "@/lib/session",
         "next/server",
         "zod"
@@ -36786,6 +36873,7 @@
         "src/app/api/chapters/[chapterId]/audio-languages/route.ts",
         "src/lib/apiError.ts",
         "src/lib/audio/contract.ts",
+        "src/lib/audio/editions.ts",
         "src/lib/audio/legacyConversion.ts",
         "src/lib/audio/library.ts",
         "src/lib/audio/officialCatalogue.ts",
@@ -36818,12 +36906,7 @@
       ],
       "directModules": [
         "src/lib/apiError.ts",
-        "src/lib/audio/library.ts",
-        "src/lib/audioMirror.ts",
-        "src/lib/contentAccess.ts",
-        "src/lib/contentEdition.ts",
-        "src/lib/db.ts",
-        "src/lib/languages.ts",
+        "src/lib/audio/editions.ts",
         "src/lib/session.ts"
       ],
       "clientBoundaries": [],
@@ -50828,7 +50911,7 @@
     },
     {
       "file": "src/app/api/v1/native/[...path]/route.ts",
-      "sha256": "062610fccff9b6c93340ecbcdef4e776358a745299cbd5020554c0849956e99d",
+      "sha256": "792b76a086e33eade1d761fa9ee4e023627d4948fbd3904f8c6b26e435fa2f84",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/native/api",
@@ -50837,6 +50920,7 @@
       "methods": [
         "DELETE",
         "GET",
+        "HEAD",
         "OPTIONS",
         "POST"
       ],
@@ -50847,6 +50931,7 @@
       "exports": [
         "DELETE",
         "GET",
+        "HEAD",
         "OPTIONS",
         "POST",
         "dynamic",
@@ -50882,6 +50967,16 @@
         "src/lib/annotations/service.ts",
         "src/lib/apiError.ts",
         "src/lib/artwork.ts",
+        "src/lib/audio/contract.ts",
+        "src/lib/audio/editions.ts",
+        "src/lib/audio/legacyConversion.ts",
+        "src/lib/audio/library.ts",
+        "src/lib/audio/officialCatalogue.ts",
+        "src/lib/audio/officialGuard.ts",
+        "src/lib/audio/storage.ts",
+        "src/lib/audio/stream.ts",
+        "src/lib/audioCheck.ts",
+        "src/lib/audioMirror.ts",
         "src/lib/auth.ts",
         "src/lib/authBudget.ts",
         "src/lib/authTokens.ts",
@@ -50895,6 +50990,7 @@
         "src/lib/contentAccess.ts",
         "src/lib/contentCollectionIds.ts",
         "src/lib/contentCollections.ts",
+        "src/lib/contentEdition.ts",
         "src/lib/contentPickerContract.ts",
         "src/lib/contentRouting.ts",
         "src/lib/contentSwitch.ts",
@@ -51000,6 +51096,9 @@
         "src/lib/native/annotationsContract.ts",
         "src/lib/native/api.ts",
         "src/lib/native/apple.ts",
+        "src/lib/native/audio.server.ts",
+        "src/lib/native/audioContract.ts",
+        "src/lib/native/audioFile.server.ts",
         "src/lib/native/content.server.ts",
         "src/lib/native/contract.ts",
         "src/lib/native/courses.server.ts",
@@ -79361,6 +79460,8 @@
     "tests/native-android-release.test.mjs",
     "tests/native-annotations.integration.test.ts",
     "tests/native-annotations.test.ts",
+    "tests/native-audio.integration.test.ts",
+    "tests/native-audio.test.ts",
     "tests/native-content.browser.mjs",
     "tests/native-content.integration.test.ts",
     "tests/native-courses.browser.mjs",
