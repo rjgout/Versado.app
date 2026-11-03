@@ -185,3 +185,12 @@ test("expliciete retry herstelt een mislukte lokale eventkoppeling zonder losse 
  await assert.rejects(output.start(f.source,0,1,crypto.randomUUID()));assert.equal(f.commands.length,0);
  await output.start(f.source,0,1,crypto.randomUUID());assert.equal(f.commands.length,1);assert.equal(attempts,2);
 });
+
+test("een opdrachtloze toestelonderbreking annuleert ook een nog voorbereide audiostart",async()=>{
+ const f=outputFixture(),gate=deferred<Awaited<ReturnType<NativeAudioBridge["audioStatus"]>>>();
+ f.output.bridge.audioStatus=()=>gate.promise;
+ const pending=f.output.start(f.source,0,1,crypto.randomUUID());await new Promise(resolve=>setImmediate(resolve));
+ f.emit({interruption:true,contextEpoch:2});
+ gate.resolve({enabled:true,anchored:true,foreground:true,contextEpoch:2,validForMs:120000,ownerId:f.target.ownerId,readerHash:f.source.native.readerHash});
+ await assert.rejects(pending,/audio_changed/);assert.equal(f.commands.length,0);
+});

@@ -1,6 +1,6 @@
 import Foundation
 private func encoded(_ value: [String:Any]) throws -> String {
-    try JSONSerialization.data(withJSONObject:value).base64EncodedString().replacingOccurrences(of:"+",with:"-").replacingOccurrences(of:"/",with:"_").replacingOccurrences(of:"=",with:"")
+    try JSONSerialization.data(withJSONObject:value,options:[.sortedKeys]).base64EncodedString().replacingOccurrences(of:"+",with:"-").replacingOccurrences(of:"/",with:"_").replacingOccurrences(of:"=",with:"")
 }
 private func token(_ nonce:String, expiry:Int=1700000300) throws -> String {
     "e30." + (try encoded(["userId":"user","sid":"11111111-1111-4111-8111-111111111111","version":0,"purpose":"native-access","iss":"versado-native-v1","aud":"versado-native-v1","exp":expiry,"nonce":nonce])) + ".synthetic"
@@ -11,6 +11,7 @@ private func pair(_ identity:String, expiry:Int=1700000300) throws -> String {
 private func stored(_ refresh:String) -> String { "{\"refreshToken\":\"\(refresh)\"}" }
 @main struct NativeAudioContextTests {
  static func main() throws {
+    let stableToken=try token("one"), repeatedToken=try token("one"); precondition(stableToken==repeatedToken,"Synthetische JWT moet deterministisch zijn")
     let stamp="22222222-2222-4222-8222-222222222222", body=try String(contentsOfFile:CommandLine.arguments[1],encoding:.utf8)
     let scope=try JSONDecoder().decode(NativeAudioPlaybackPayload.self,from:Data(body.utf8)).reader.scope
     let credentials=try NativeAccessCredentials(id:"synthetic-client-id",secret:"synthetic-native-audio-secret-123456")

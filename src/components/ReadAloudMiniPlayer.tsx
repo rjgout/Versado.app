@@ -8,14 +8,14 @@ const SPEEDS = [0.75, 1, 1.25, 1.5, 2];
 
 export default function ReadAloudMiniPlayer() {
   const t = useT();
-  const { source, isPlaying, isPreparing, currentIndex, speed, togglePlay, previousVerse, nextVerse, stop, setSpeed } = useReadAloudPlayer();
+  const { source, output, isPlaying, isPreparing, currentIndex, speed, togglePlay, previousVerse, nextVerse, stop, setSpeed } = useReadAloudPlayer();
   if (!source) return null;
 
   const currentVerse = source.verses[currentIndex];
   const progress = ((currentIndex + (isPlaying ? 1 : 0)) / source.verses.length) * 100;
 
   return (
-    <div data-read-aloud-controls className="bg-brand-50 dark:bg-slate-800 border-b border-brand-100 dark:border-slate-700">
+    <div data-read-aloud-controls onPointerDown={()=>{if(output)window.dispatchEvent(new Event("versado:read-aloud-interaction"));}} onKeyDownCapture={()=>{if(output)window.dispatchEvent(new Event("versado:read-aloud-interaction"));}} className="bg-brand-50 dark:bg-slate-800 border-b border-brand-100 dark:border-slate-700">
       <div className="mx-auto max-w-5xl px-4 py-2 flex flex-wrap items-center gap-2">
         <button onClick={previousVerse} disabled={isPreparing||currentIndex === 0} className="shrink-0 w-8 h-8 rounded-full text-slate-500 dark:text-slate-300 disabled:opacity-30" aria-label={t("player.prevVerse")}>
           ⏪️

@@ -225,7 +225,7 @@ B3c, CFM, imports en publicaties blijven buiten scope.
 
 ## Verificatie deel 2 en bewijsgrenzen
 
-Lokaal uitgevoerd: TypeScript; 39 gerichte audio-/Access-/session-gatetests;
+Lokaal uitgevoerd: TypeScript; 41 gerichte audio-/Access-/session-gatetests;
 14 geïsoleerde PostgreSQL/Redis-audioproeven, inclusief drie leesmethoden × vijf
 talen, twee Node-processen, ingetrokken rechten tijdens vertraagde playback-GET,
 140 gelijktijdige catalogi en ongewijzigde gebruikers-/audiotabellen. De
@@ -249,8 +249,12 @@ Alleen HTTP-antwoorden zijn daarin gesimuleerd. Het geslaagde uitvoeren hiervan
 en de compilaties moet uit de GitHub-checks op de definitieve PR-head blijken;
 toegevoegde tests zijn op zichzelf geen geslaagd platformbewijs.
 
-De afzonderlijke gerichte securityreview vond tot dusver geen P0–P2-blokkades;
-platformresultaten blijven een voorwaarde vóór een mergeadvies. Fysieke
+De afzonderlijke securityreview vond een P2 in Android-audiofocus: na een
+geweigerde aanvraag kon hervatten de nieuwe focusaanvraag overslaan. De tijdelijke
+focuslease wordt nu alleen na OS-bevestiging verleend, wordt bij weigering,
+pauze en einde vrijgegeven en weigert callbacks van eerdere leases. Drie echte
+lokale JVM-tests slagen; de herreview vindt geen resterende P0–P2. Platformresultaten
+blijven een voorwaarde vóór een mergeadvies. Fysieke
 luidsprekeruitvoer, stemkwaliteit, schermslot, gesprekken, Bluetooth en langdurig
 luisteren zijn **PENDING PHYSICAL ACCEPTANCE**. Gebruik de bovenstaande checklist
 met hetzelfde testaccount op web/iPhone/Android. Controleer daarbij expliciet
@@ -279,3 +283,22 @@ runner, met expliciete capaciteitsmeldingen. Dezelfde bestaande job gebruikt nu
 of signing/distributieroute. Simulator-/codecresultaten op deze host zijn geen
 bewijs van fysieke ARM64-iPhone-audio. De eigenaar blijft daarvoor de bestaande
 Mac → Capacitor → Xcode → iPhone-route gebruiken.
+
+
+Android 11+ krijgt uitsluitend de exacte `android.intent.action.TTS_SERVICE`-
+zichtbaarheidsquery, zonder nieuwe permissies of algemene pakketinzage. Een
+emulatorproef inventariseert de werkelijk aanwezige lokale stemmen en controleert
+dat een ontbrekende/verkeerdtalige stem niet wordt uitgesproken. Geen engine of
+stem wordt automatisch geïnstalleerd of gedownload.
+
+Toestelonderbrekingen hebben ook een opdrachtloos epoch-event: headsetverlies of
+onderbreking tijdens de eerste autorisatie annuleert de pending start. Een later
+metadataantwoord kan niet alsnog audio activeren; de gerichte race-unit slaagt.
+
+Platformtussenstand op `9f08dea6304bfab7fa121377da150540383f9777`: Android-build,
+JVM-proeven en echte emulator-decoder/clipproef geslaagd; op macOS zijn Access-
+policy en echte AVFoundation-PCM-decodering geslaagd. De Swift-contextfixture
+faalde door wisselende JSON-sleutelvolgorde in herhaald geconstrueerde synthetische
+JWT's. De fixture gebruikt nu sortedKeys en toetst determinisme; de exacte
+productie-tokenbinding is behouden. De nieuwe PR-head moet opnieuw geheel groen
+worden. Deze tussenstand geldt niet als iOS-appcompilatie of fysieke acceptatie.

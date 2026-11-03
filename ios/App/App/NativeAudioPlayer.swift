@@ -67,7 +67,7 @@ final class NativeAudioPlayer: NSObject, AVSpeechSynthesizerDelegate {
         releaseOutput(); timer?.cancel(); timer = nil; playing = false; event(reason: reason, stopped: true, failed: failed)
         command = nil; active = nil; recording = nil; voice = nil; index = 0; renewalSignalled = false; finished = false
     }
-    func suspend() { context.suspend() }
+    func suspend() { context.suspend(); emit(["interruption":true,"contextEpoch":context.contextEpoch]) }
     func fail() { clear(reason: "unavailable", failed: true); context.invalidate() }
     private func valid() -> Bool { active?.lifetime.current == true && context.capsule?.lifetime.current == true && command != nil }
     private func startTimer() {

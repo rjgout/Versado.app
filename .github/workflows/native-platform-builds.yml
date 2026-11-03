@@ -189,6 +189,7 @@ jobs:
           node-version: 24
           cache: npm
       - name: Lokaal bundelen en synchroniseren
+        id: ios-bundle
         run: |
           npm ci
           npm run db:generate
@@ -204,6 +205,8 @@ jobs:
           swiftc -swift-version 5 -target "$(uname -m)-apple-macos14.0" ios/App/App/NativeAccessTransport.swift ios/App/App/NativeAudioTransport.swift ios/App/App/NativeAudioContext.swift tests/native-audio-context.swift -o "$RUNNER_TEMP/versado-audio-context"
           "$RUNNER_TEMP/versado-audio-context" tests/fixtures/native-audio/playback.json
       - name: Echte iOS-simulatorcompilatie zonder signing
+        # Verzamel ook compilebewijs wanneer een onafhankelijke policyproef faalt; job blijft rood.
+        if: ${{ !cancelled() && steps.ios-bundle.outcome == 'success' }}
         run: |
           xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath "$RUNNER_TEMP/versado-ios" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
       - name: Controleer de assets in de simulatorapp

@@ -42,4 +42,27 @@ public class NativeAudioDecoderTest {
   try{assertTrue("Decoder moet binnen 30s eindigen",ended.await(30,TimeUnit.SECONDS));if(error.get()!=null){StringBuilder causes=new StringBuilder();for(Throwable cause=error.get();cause!=null;cause=cause.getCause())causes.append(cause.getClass().getSimpleName()).append(": ").append(cause.getMessage()).append("; ");throw new AssertionError("Synthetic decoder: "+causes+" rangeRequests="+requests.get());}assertTrue("Echte PCM-outputbuffers",rendered.get()>0);assertEquals(1000,duration.get());assertTrue(requests.get()>0);assertTrue("Geen HTTP per MP3-header: "+requests.get(),requests.get()<=64);for(Request request:captured){assertEquals("dev.versado.app",request.url().host());assertNull(request.url().query());assertNull(request.header("Cookie"));assertEquals("Bearer "+token,request.header("Authorization"));}}
   finally{group.close();instrumentation.runOnMainSync(()->{if(player.get()!=null)player.get().release();});capsule.lifetime.invalidate();edge.dispatcher().executorService().shutdown();edge.connectionPool().evictAll();}
  }
+ @Test public void installedTtsVoicesStayLocalAndCannotFallbackToWrongLanguage()throws Exception{
+  var instrumentation=InstrumentationRegistry.getInstrumentation();String body;
+  try(var stream=instrumentation.getContext().getAssets().open("playback.json")){body=new String(stream.readAllBytes(),java.nio.charset.StandardCharsets.UTF_8);}
+  JSONObject audio=new JSONObject(body).getJSONObject("audio");
+  String token="e30."+ByteString.encodeUtf8(new JSONObject().put("userId","user").put("sid",audio.getString("sessionId")).put("version",0).put("purpose","native-access").put("iss","versado-native-v1").put("aud","versado-native-v1").put("exp",1700000300).toString()).base64Url().replace("=","")+".synthetic";
+  var credentials=new NativeAccessTransport.Credentials("synthetic-client-id","synthetic-native-audio-secret-123456");
+  var engines=instrumentation.getTargetContext().getPackageManager().queryIntentServices(new android.content.Intent(android.speech.tts.TextToSpeech.Engine.INTENT_ACTION_TTS_SERVICE),0);
+  AtomicReference<NativeAudioPlayer> player=new AtomicReference<>();AtomicReference<NativeAudioContext> context=new AtomicReference<>();AtomicReference<Throwable> error=new AtomicReference<>();AtomicReference<JSONArray> voices=new AtomicReference<>();CountDownLatch ready=new CountDownLatch(1);List<JSONObject> events=new ArrayList<>();
+  String snapshot=body,stamp=UUID.randomUUID().toString(),owner=UUID.randomUUID().toString();
+  instrumentation.runOnMainSync(()->{try{
+   NativeAudioContext c=new NativeAudioContext();context.set(c);c.reset(stamp);c.stage("login",200,new JSONObject().put("accessToken",token).put("refreshToken","synthetic").put("expiresIn",300).toString(),c.tag(stamp));c.saved("{\"refreshToken\":\"synthetic\"}",true);
+   var scope=new NativeAudioContext.Scope(new JSONObject(snapshot).getJSONObject("reader"));c.select(scope,owner);if(!c.capture(scope.path(),200,snapshot,"Bearer "+token,credentials,c.tag(stamp),SystemClock.elapsedRealtimeNanos()))throw new AssertionError("sealed fixture");
+   NativeAudioPlayer p=new NativeAudioPlayer(instrumentation.getTargetContext(),c);player.set(p);p.emit=events::add;p.voices(rows->{voices.set(rows);ready.countDown();});
+  }catch(Throwable failure){error.set(failure);ready.countDown();}});
+  try{
+   assertTrue("TTS-inventaris eindigt begrensd",ready.await(12,TimeUnit.SECONDS));if(error.get()!=null)throw new AssertionError(error.get());JSONArray rows=voices.get();assertNotNull(rows);if(engines.isEmpty())assertEquals("Geen verzonnen stemmen zonder engine",0,rows.length());
+   String wrong="unavailable-synthetic-voice";for(int i=0;i<rows.length();i++){JSONObject voice=rows.getJSONObject(i);assertTrue(voice.getBoolean("local"));String language=voice.getString("language").split("[-_]")[0];assertTrue(Arrays.asList("nl","en","de","fr","es").contains(language));if(!language.equals("nl"))wrong=voice.getString("id");}
+   String rejectedVoice=wrong;error.set(null);
+   instrumentation.runOnMainSync(()->{try{NativeAudioContext c=context.get();player.get().control(new JSONObject().put("action","start").put("sessionStamp",stamp).put("ownerId",owner).put("contextEpoch",c.epoch()).put("readerHash",audio.getString("readerHash")).put("commandId",UUID.randomUUID().toString()).put("actionVersion",1).put("index",0).put("speed",1).put("voiceId",rejectedVoice));}catch(Throwable expected){error.set(expected);}});
+   assertTrue("Geen ontbrekende/verkeerdtalige stem laten spreken",error.get() instanceof java.io.IOException);assertTrue(events.stream().noneMatch(event->event.optBoolean("playing")));
+  }finally{instrumentation.runOnMainSync(()->{if(player.get()!=null)player.get().destroy();});}
+ }
+
 }

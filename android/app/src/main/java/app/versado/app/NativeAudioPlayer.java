@@ -34,7 +34,7 @@ final class NativeAudioPlayer {
     private ExoPlayer player;
     private SourceGroup sourceGroup;
     private boolean destroyed;
-    private final BroadcastReceiver noisy = new BroadcastReceiver(){@Override public void onReceive(Context context,Intent intent){if(command!=null)NativeAudioPlayer.this.context.suspend();}};
+    private final BroadcastReceiver noisy = new BroadcastReceiver(){@Override public void onReceive(Context context,Intent intent){NativeAudioPlayer.this.suspend();}};
     private TextToSpeech speech;
     private boolean speechReady,ttsStarted;
     private final List<Consumer<JSONArray>> voiceWaiters=new ArrayList<>();
@@ -44,9 +44,24 @@ final class NativeAudioPlayer {
     private int index,ttsOffset;
     private float speed=1;
     private boolean playing,finished,renewSignalled,triedFallback;
+    private final NativeAudioFocusGate focusGate;
     private AudioFocusRequest focus;
     private AudioManager.OnAudioFocusChangeListener focusListener;
     NativeAudioPlayer(Context app,NativeAudioContext context){this.app=app.getApplicationContext();this.context=context;context.onInvalidated=()->clear("invalidated",false);
+        focusGate=new NativeAudioFocusGate(new NativeAudioFocusGate.Driver(){
+            @Override public boolean request(Runnable lost){
+                AudioManager manager=(AudioManager)NativeAudioPlayer.this.app.getSystemService(Context.AUDIO_SERVICE);
+                focusListener=change->{if(change!=AudioManager.AUDIOFOCUS_GAIN)main.post(lost);};
+                if(android.os.Build.VERSION.SDK_INT>=26){focus=new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN).setAudioAttributes(new android.media.AudioAttributes.Builder().setUsage(android.media.AudioAttributes.USAGE_MEDIA).setContentType(android.media.AudioAttributes.CONTENT_TYPE_SPEECH).build()).setOnAudioFocusChangeListener(focusListener,main).build();return manager.requestAudioFocus(focus)==AudioManager.AUDIOFOCUS_REQUEST_GRANTED;}
+                return manager.requestAudioFocus(focusListener,AudioManager.STREAM_MUSIC,AudioManager.AUDIOFOCUS_GAIN)==AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
+            }
+            @Override public void release(){
+                AudioManager manager=(AudioManager)NativeAudioPlayer.this.app.getSystemService(Context.AUDIO_SERVICE);
+                if(android.os.Build.VERSION.SDK_INT>=26&&focus!=null)manager.abandonAudioFocusRequest(focus);
+                else if(focusListener!=null)manager.abandonAudioFocus(focusListener);
+                focus=null;focusListener=null;
+            }
+        });
         IntentFilter filter=new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
         if(android.os.Build.VERSION.SDK_INT>=33)this.app.registerReceiver(noisy,filter,Context.RECEIVER_NOT_EXPORTED);else this.app.registerReceiver(noisy,filter);
     }
@@ -61,16 +76,14 @@ final class NativeAudioPlayer {
     private boolean valid(){return command!=null&&active!=null&&active.lifetime.current()&&context.capsule()!=null&&context.capsule().lifetime.current();}
     private void release(){
         generation++;if(sourceGroup!=null){sourceGroup.close();sourceGroup=null;}utterance=null;if(speech!=null)speech.stop();if(player!=null){player.release();player=null;}
-        AudioManager manager=(AudioManager)app.getSystemService(Context.AUDIO_SERVICE);
-        if(android.os.Build.VERSION.SDK_INT>=26&&focus!=null)manager.abandonAudioFocusRequest(focus);
-        else if(focusListener!=null)manager.abandonAudioFocus(focusListener);
-        focus=null;focusListener=null;
+        abandonFocus();
     }
+    private void abandonFocus(){focusGate.release();}
     private void clear(String reason,boolean failed){
         release();main.removeCallbacks(tick);playing=false;event(reason,true,failed);active=null;command=null;recording=null;voice=null;index=0;ttsOffset=0;finished=false;renewSignalled=false;
     }
     void fail(){clear("unavailable",true);context.invalidate();}
-    void suspend(){context.suspend();}
+    void suspend(){context.suspend();try{emit.accept(new JSONObject().put("interruption",true).put("contextEpoch",context.epoch()));}catch(JSONException ignored){}}
     void destroy(){if(destroyed)return;destroyed=true;context.reset(null);app.unregisterReceiver(noisy);if(speech!=null){speech.shutdown();speech=null;}voiceWaiters.clear();main.removeCallbacksAndMessages(null);}
     private final Runnable tick=new Runnable(){@Override public void run(){
         if(command==null)return;if(!valid()){clear("expired",true);context.invalidate();return;}
@@ -97,14 +110,14 @@ final class NativeAudioPlayer {
             try{if(source!=null)prepareRecording(null,true);else speak();main.post(tick);event(null,false,false);}catch(Exception error){fail();throw NativeAudioContext.invalid();}return;
         }
         if(!id.equals(command)||sequence<=actionVersion||!valid())throw NativeAudioContext.invalid();actionVersion=sequence;
-        switch(action){
+        try{switch(action){
             case "stop":context.invalidate();break;
-            case "pause":playing=false;if(player!=null)player.pause();else{utterance=null;if(speech!=null)speech.stop();ttsOffset=0;}event(null,false,false);break;
+            case "pause":playing=false;if(player!=null)player.pause();else{utterance=null;if(speech!=null)speech.stop();ttsOffset=0;abandonFocus();}event(null,false,false);break;
             case "resume":playing=true;if(player!=null){if(finished){finished=false;player.seekTo(0);}player.play();}else speak();event(null,false,false);break;
             case "seek":index=(int)NativeAudioContext.integer(value,"index",0,capsule.verses.size()-1);finished=false;if(player!=null){NativeAudioContext.Recording source=active.recording(recording);player.seekTo((long)((source.verses.get(index).start-source.start)*1000));}else{utterance=null;speech.stop();ttsOffset=0;if(playing)speak();}event(null,false,false);break;
             case "speed":double rate=NativeAudioContext.seconds(value,"speed");if(!Arrays.asList(.75,1d,1.25,1.5,2d).contains(rate))throw NativeAudioContext.invalid();speed=(float)rate;if(player!=null)player.setPlaybackParameters(new PlaybackParameters(speed));else{utterance=null;speech.stop();ttsOffset=0;if(playing)speak();}event(null,false,false);break;
             default:throw NativeAudioContext.invalid();
-        }
+        }}catch(Exception error){fail();throw NativeAudioContext.invalid();}
     }
     private void prepareRecording(Long position,boolean autoplay)throws Exception{
         NativeAudioContext.Recording source=active.recording(recording);long current=generation;
@@ -119,7 +132,7 @@ final class NativeAudioPlayer {
             private boolean current(){return generation==current&&player==output&&valid();}
             @Override public void onPlayerError(PlaybackException error){if(current())recordingFailed();}
             @Override public void onPlaybackStateChanged(int state){if(!current())return;if(state==Player.STATE_ENDED)finish();else event(null,false,false);}
-            @Override public void onPlayWhenReadyChanged(boolean ready,int reason){if(current()&&!ready&&(reason==Player.PLAY_WHEN_READY_CHANGE_REASON_AUDIO_FOCUS_LOSS||reason==Player.PLAY_WHEN_READY_CHANGE_REASON_AUDIO_BECOMING_NOISY))context.suspend();}
+            @Override public void onPlayWhenReadyChanged(boolean ready,int reason){if(current()&&!ready&&(reason==Player.PLAY_WHEN_READY_CHANGE_REASON_AUDIO_FOCUS_LOSS||reason==Player.PLAY_WHEN_READY_CHANGE_REASON_AUDIO_BECOMING_NOISY))suspend();}
         });
         output.setMediaSource(clipped);output.setPlaybackParameters(new PlaybackParameters(speed));output.prepare();
         output.seekTo(position==null?(long)((source.verses.get(index).start-source.start)*1000):Math.max(0,position));output.setPlayWhenReady(autoplay&&playing);
@@ -129,7 +142,7 @@ final class NativeAudioPlayer {
             triedFallback=true;release();recording=source.id;try{prepareRecording(null,playing);}catch(Exception ignored){fail();}return;
         }fail();
     }
-    private void finish(){if(player!=null)player.pause();playing=false;index=0;ttsOffset=0;finished=true;event(null,false,false);}
+    private void finish(){if(player!=null)player.pause();playing=false;abandonFocus();index=0;ttsOffset=0;finished=true;event(null,false,false);}
     static Uri sourceUri(NativeAudioContext.Recording source){return Uri.parse("versado-audio://source/"+source.id+".mp3");}
     /** Geen HTTP-library of URL-router: deze decoderadapter accepteert alleen
      * de geselecteerde opaque URI en delegeert alle reads aan PR261. */
@@ -193,12 +206,8 @@ final class NativeAudioPlayer {
         if(selected!=null||fallback==null)throw NativeAudioContext.invalid();return fallback;
     }
     private void focus()throws IOException{
-        if(focusListener!=null)return;AudioManager manager=(AudioManager)app.getSystemService(Context.AUDIO_SERVICE);long version=generation;
-        focusListener=change->main.post(()->{if(version==generation&&recording==null&&command!=null&&change!=AudioManager.AUDIOFOCUS_GAIN)context.suspend();});
-        int result;
-        if(android.os.Build.VERSION.SDK_INT>=26){focus=new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN).setAudioAttributes(new android.media.AudioAttributes.Builder().setUsage(android.media.AudioAttributes.USAGE_MEDIA).setContentType(android.media.AudioAttributes.CONTENT_TYPE_SPEECH).build()).setOnAudioFocusChangeListener(focusListener,main).build();result=manager.requestAudioFocus(focus);}
-        else result=manager.requestAudioFocus(focusListener,AudioManager.STREAM_MUSIC,AudioManager.AUDIOFOCUS_GAIN);
-        if(result!=AudioManager.AUDIOFOCUS_REQUEST_GRANTED)throw NativeAudioContext.invalid();
+        long version=generation;
+        focusGate.request(()->{if(version==generation&&recording==null&&command!=null)suspend();});
     }
     private void speak()throws Exception{
         if(!valid()||speech==null||!speechReady)throw NativeAudioContext.invalid();Voice selected=findVoice(voice,active);if(speech.setVoice(selected)!=TextToSpeech.SUCCESS||speech.setSpeechRate(speed)!=TextToSpeech.SUCCESS)throw NativeAudioContext.invalid();focus();ttsOffset=0;speakChunk();

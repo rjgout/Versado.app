@@ -71,3 +71,12 @@ test("bestaand webtransport behoudt 200/206/416, suffixranges en HEAD zonder nie
  const invalid=await streamAudio(file,`bytes=${bytes.length}-`,true);assert.equal(invalid.status,416);
  const head=await streamAudio(file,null,false);assert.equal(head.status,200);assert.equal(head.body,null);assert.equal(head.headers.get("Content-Length"),String(bytes.length));
 }));
+
+test("Android ontdekt uitsluitend toestel-TTS via de exacte servicequery, zonder extra permissies",()=>{
+ const manifest=readFileSync("android/app/src/main/AndroidManifest.xml","utf8");
+ const queries=manifest.match(/<queries>([\s\S]*?)<\/queries>/)?.[1]??"";
+ assert.match(queries,/<action android:name="android\.intent\.action\.TTS_SERVICE"/);
+ assert.equal([...queries.matchAll(/<action /g)].length,1);
+ assert.equal(queries.includes("<package"),false);
+ assert.deepEqual([...manifest.matchAll(/<uses-permission android:name="([^"]+)"/g)].map(match=>match[1]),["android.permission.INTERNET"]);
+});

@@ -2,7 +2,7 @@ import type { ReadAloudOutput, ReadAloudOutputEvent } from "@/lib/readAloudOutpu
 import type { ReadAloudSource } from "@/lib/readAloudPlayerContext";
 import { NativeClientError, type NativeSessionClient } from "./client";
 import type { NativePlayback } from "./audioPlaybackContract";
-import { nativeAudioEventSchema, nativeAudioLifecycleSchema, nativeAudioStatusSchema, nativeVoicesSchema, type NativeAudioBridge, type NativeAudioCommand, type NativeAudioSelector } from "./audioBridge";
+import { nativeAudioEventSchema, nativeAudioInterruptionSchema, nativeAudioLifecycleSchema, nativeAudioStatusSchema, nativeVoicesSchema, type NativeAudioBridge, type NativeAudioCommand, type NativeAudioSelector } from "./audioBridge";
 export interface NativeAudioTarget {
   ownerId:string;sessionStamp:string;scope:NativeAudioSelector;sourceLanguage:string;
   current():boolean;
@@ -47,6 +47,11 @@ export class NativeReadAloudOutput implements ReadAloudOutput {
     return !!target&&!!source.native&&source.native.ownerId===target.ownerId&&this.isCurrent(target)&&source.id===target.scope.chapterId&&source.verses.length===target.scope.endVerse-target.scope.startVerse+1&&source.verses.every((verse,index)=>verse.number===target.scope.startVerse+index)&& (!!source.native.sourceId||source.language===target.sourceLanguage);
   }
   private received(value:unknown){
+    const interruption=nativeAudioInterruptionSchema.safeParse(value);
+    if(interruption.success){
+      if(interruption.data.contextEpoch<this.latestNativeEpoch)return;
+      this.latestNativeEpoch=interruption.data.contextEpoch;this.operation++;this.clearLocal(false);return;
+    }
     const lifecycle=nativeAudioLifecycleSchema.safeParse(value);
     if(lifecycle.success){
       if(lifecycle.data.contextEpoch<this.latestNativeEpoch)return;

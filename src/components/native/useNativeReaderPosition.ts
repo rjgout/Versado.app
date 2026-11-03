@@ -64,7 +64,8 @@ export function useNativeReaderPosition(reader: NativeReader | undefined, versio
       },Math.max(1000,8000-(performance.now()-lastSent)));
     }
     const interact=(event:Event)=>{
-      if(!event.isTrusted||document.querySelector("dialog[open]")||(event.target instanceof Element&&event.target.closest("[data-read-aloud-controls],[role=listbox],[role=option]")))return;
+      if(!event.isTrusted||document.querySelector("dialog[open]"))return;
+      if(event.target instanceof Element&&event.target.closest("[data-read-aloud-controls],[role=listbox],[role=option]")){visibility();return;}
       if(event instanceof KeyboardEvent&&!['ArrowDown','ArrowUp','PageDown','PageUp','Home','End',' '].includes(event.key))return;
       armed=true;settle();
     };
