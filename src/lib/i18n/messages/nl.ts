@@ -6,6 +6,8 @@ import { kompasNl } from "./kompas/nl";
 
 export const nl = {
   nativeReader: {
+    annotationsEnabled: "Je kunt bladwijzers, markeringen en notities beheren. Audio, leespositie opslaan, vragen en afronden volgen later. Dit levert geen XP of leesafronding op.",
+    annotationsPositionEnabled: "Je leespositie wordt na rustig lezen bewaard. Bladwijzers, markeringen en notities worden met de website gedeeld. Audio, vragen en afronden volgen later. Dit levert geen XP of leesafronding op.",
     positionEnabled: "Je leespositie wordt bewaard na rustig lezen. Audio, annotaties, vragen en afronden volgen later. Lezen en bladeren leveren geen XP of leesafronding op.",
     saving: "Leespositie opslaan…",
     saved: "Leespositie opgeslagen.",

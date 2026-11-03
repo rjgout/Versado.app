@@ -63,6 +63,14 @@ private final class FakeAccessProtocol: URLProtocol {
                 require(!NativeAccessPolicy.routeAllowed(path + "/position" + suffix, "POST"), "broad position enabled")
             }
         }
+        for path in ["courses/c/read/steps/s/annotations", "courses/c/read/chapters/ch/annotations"] {
+            require(NativeAccessPolicy.routeAllowed(path,"GET"), "annotations GET rejected")
+            require(NativeAccessPolicy.routeAllowed(path+"/v","GET"), "verse annotations rejected")
+            require(NativeAccessPolicy.routeAllowed(path,"POST"), "annotation action rejected")
+            require(!NativeAccessPolicy.routeAllowed(path+"/v","POST"), "per-verse POST enabled")
+            for method in ["PUT","PATCH","DELETE","HEAD"] { require(!NativeAccessPolicy.routeAllowed(path,method), "broad annotation method") }
+            for suffix in ["/", "?user=B", "/v/extra", "/../v", "/%2f", "\n"] { require(!NativeAccessPolicy.routeAllowed(path+suffix,"GET"), "broad annotation route") }
+        }
         require(NativeAccessPolicy.routeAllowed("today-overview", "GET"), "today overview rejected")
         for method in ["POST", "PUT", "DELETE", "HEAD"] { require(!NativeAccessPolicy.routeAllowed("today-overview", method), "today overview write enabled") }
         for path in ["today-overview/", "today-overview?user=A", "today-overview/complete"] { require(!NativeAccessPolicy.routeAllowed(path, "GET"), "broad today route enabled") }

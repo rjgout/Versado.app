@@ -66,16 +66,17 @@ const bundle = await build({
 const secrets = new Map(),
   calls = [],
   held = [];
-let noPositionBackend = false, oldBackend = false,
+let noPositionBackend = false, noAnnotationsBackend=false, oldBackend = false,
   readFailure = 0,
   holdReader = false, proxyFailure = false, holdLearning = false, learningFailure = 0;
-const heldLearning=[];
+const heldLearning=[],heldAnnotations=[];
+let holdAnnotations=false,loseAnnotation=false;
 const front = createServer(async (req, res) => {
   try {
     const url = new URL(req.url, "http://127.0.0.1");
     if (url.pathname.startsWith("/api/v1/native/")) {
       const record={ path: url.pathname, method: req.method };calls.push(record);
-      const isReader = /\/courses\/[^/]+\/read\//.test(url.pathname);
+      const isReader = /\/courses\/[^/]+\/read\//.test(url.pathname) && !url.pathname.includes("/annotations");
       const isLearning=req.method === "GET" && (url.pathname.endsWith("/courses") || url.pathname.endsWith("/path"));
       if(isLearning && learningFailure){res.writeHead(learningFailure,{"Content-Type":"application/json"});res.end(JSON.stringify({error:"content_unavailable"}));return;}
       if (isReader && readFailure) {
@@ -85,6 +86,7 @@ const front = createServer(async (req, res) => {
       }
       const chunks = [];
       for await (const chunk of req) chunks.push(chunk);
+      if(req.method==="POST"&&url.pathname.endsWith("/annotations"))record.body=JSON.parse(Buffer.concat(chunks).toString());
       const response = await fetch(`${backend}${req.url}`, {
         method: req.method,
         headers: {
@@ -105,12 +107,19 @@ const front = createServer(async (req, res) => {
       record.status=response.status;
       let body = await response.text();
       if(url.pathname.endsWith("/position")){const value=JSON.parse(body);record.outcome=value.error??value.version;}
-      if (url.pathname.endsWith("/capabilities") && (oldBackend || noPositionBackend)) {
+      if (url.pathname.endsWith("/capabilities") && (oldBackend || noPositionBackend || noAnnotationsBackend)) {
         const value = JSON.parse(body);
         value.features = value.features.filter(
-          (f) => !(oldBackend && f === "scripture-reader-v1") && !(noPositionBackend && f === "scripture-reading-position-v1"),
+          (f) => !(oldBackend && f === "scripture-reader-v1") && !(noPositionBackend && f === "scripture-reading-position-v1") && !(noAnnotationsBackend && f === "scripture-annotations-v1"),
         );
         body = JSON.stringify(value);
+      }
+      if(record.body&&loseAnnotation){
+        // Een kale socket-close wordt door Chromium zelf transparant herhaald
+        // (bewezen: twee POSTs met dezelfde UUID). Een afgekapt JSON-antwoord
+        // ná echte commit is deterministisch onzeker, zonder browserretry.
+        loseAnnotation=false;assert.equal(response.status,200);
+        res.writeHead(200,{"Content-Type":"application/json","Cache-Control":"no-store"});res.end('{"');return;
       }
       const finish = () => {
         if (!res.destroyed) {
@@ -121,6 +130,7 @@ const front = createServer(async (req, res) => {
           res.end(body);
         }
       };
+      if(url.pathname.endsWith("/annotations")&&req.method==="GET"&&holdAnnotations){holdAnnotations=false;record.privateMarker=body.includes("PRIVE ACCOUNT A ANNOTATIE");heldAnnotations.push(finish);return;}
       if(isLearning && holdLearning){heldLearning.push(finish);return;}
       if (isReader && holdReader) {
         holdReader = false;
@@ -429,7 +439,7 @@ try {
       await page.getByText(t("nativeReader.saved"),{exact:true}).waitFor();
       assert.equal(writes(),untouched+4,"na bevestigde GET mag een nieuwe waarneming opslaan");
       noPositionBackend=true;await page.reload();await waitReader();
-      await page.getByText(t("nativeReader.readOnly"),{exact:true}).waitFor();
+      await page.getByText(t("nativeReader.annotationsEnabled"),{exact:true}).waitFor();
       assert.equal(await page.locator("[data-reader-save-status]").count(),0);
       await wheelAndWait(30,10000);
       assert.equal(writes(),untouched+4,"oude backend blijft uitsluitend lezen, zonder nieuwe POST");
@@ -583,7 +593,79 @@ try {
         .count(),
       expanded,
     );
+    // De bestaande gedeelde annotatiedialoog op alle drie routes en vijf talen.
+    const sheet=()=>page.locator("[data-annotation-dialog]");
+    const openMenu=async(number=1)=>{
+      await page.getByRole("button",{name:t("annotations.verseActions",{number}),exact:true}).click();
+      await sheet().locator("textarea:not([disabled])").waitFor();
+      assert.equal(await sheet().locator("[data-annotation-read-aloud]").count(),0,"audio blijft B3b-2c");
+    };
+    const closeMenu=async()=>{await sheet().getByRole("button",{name:t("annotations.close"),exact:true}).click();await sheet().waitFor({state:"detached"});};
+    const saveNote=async()=>{await sheet().getByRole("button",{name:t("annotations.save"),exact:true}).click();await sheet().getByText(`${t("annotations.note")}: ${t("annotations.saved")}`,{exact:true}).waitFor();};
+    for(const [index,course]of f.courses.entries()){
+      const href=route(course.id,course.type==="READING_LESSONS"?"steps":"chapters",course.type==="READING_LESSONS"?f.steps.lessons[1].id:f.chapters[1].id);
+      await go(href);await waitReader();await openMenu();
+      await sheet().getByRole("button",{name:t("annotations.bookmarkAdd"),exact:true}).click();
+      await sheet().getByRole("button",{name:t("annotations.bookmarkRemove"),exact:true}).waitFor();
+      const colors=index===0?["yellow","green","blue","pink","purple"]:["purple"];
+      for(const color of colors){await sheet().getByRole("button",{name:t(`annotations.${color}`),exact:true}).click();await sheet().locator('button[aria-pressed="true"]').filter({hasText:t(`annotations.${color}`)}).waitFor();assert.equal(await sheet().getByRole("button",{name:t(`annotations.${color}`),exact:true}).getAttribute("aria-pressed"),"true");}
+      const note=`${language}/${course.type} — volledige privénotitie 😀 `+"x".repeat(80);
+      await sheet().locator("textarea").fill(note);
+      const positions=calls.filter(c=>c.method==="POST"&&c.path.endsWith("/position")).length;
+      if(language==="nl"){await sheet().locator("textarea").press("Space");await page.clock.runFor(11000);assert.equal(calls.filter(c=>c.method==="POST"&&c.path.endsWith("/position")).length,positions,"notitietekst/toetsenbord is geen leesinteractie");}
+      const stored=await sheet().locator("textarea").inputValue();await saveNote();await closeMenu();
+      assert.equal(await page.locator("#vers-1").getAttribute("data-annotation-color"),"purple");
+      await web.goto(`${backend}/lesson/${f.chapters[1].id}`);await web.locator("[data-scripture-reader]").waitFor();
+      await web.getByRole("button",{name:t("annotations.verseActions",{number:1}),exact:true}).click();
+      const webSheet=web.locator("[data-annotation-dialog]");await webSheet.locator("textarea:not([disabled])").waitFor();
+      assert.equal(await webSheet.locator("textarea").inputValue(),stored.trim());
+      assert.equal(await webSheet.getByRole("button",{name:t("annotations.purple"),exact:true}).getAttribute("aria-pressed"),"true");
+      assert.equal(await webSheet.getByRole("button",{name:t("annotations.bookmarkRemove"),exact:true}).count(),1);
+      await openMenu();
+      await page.screenshot({path:`${out}/${language}-${course.type}-annotations-native.png`,fullPage:true});
+      await closeMenu();
+      await web.screenshot({path:`${out}/${language}-${course.type}-annotations-web.png`,fullPage:true});
+      await webSheet.locator("textarea").fill(stored.trim()+" — WEB");await webSheet.getByRole("button",{name:t("annotations.save"),exact:true}).click();
+      await webSheet.getByText(`${t("annotations.note")}: ${t("annotations.saved")}`,{exact:true}).waitFor();
+      await webSheet.getByRole("button",{name:t("annotations.close"),exact:true}).click();
+      await page.evaluate(()=>window.dispatchEvent(new Event("reader:test-resume")));await openMenu();
+      assert.equal(await sheet().locator("textarea").inputValue(),stored.trim()+" — WEB");
+      await sheet().getByRole("button",{name:t("annotations.noteRemove"),exact:true}).click();await sheet().getByRole("button",{name:t("annotations.noteRemove"),exact:true}).waitFor({state:"detached"});
+      await sheet().getByRole("button",{name:t("annotations.highlightRemove"),exact:true}).click();await sheet().getByRole("button",{name:t("annotations.highlightRemove"),exact:true}).waitFor({state:"detached"});
+      await sheet().getByRole("button",{name:t("annotations.bookmarkRemove"),exact:true}).click();await sheet().getByRole("button",{name:t("annotations.bookmarkAdd"),exact:true}).waitFor();await closeMenu();
+      assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
+    }
+    if(language==="nl"){
+      await go(stepRoute);await waitReader();await openMenu(2);
+      await sheet().locator("textarea").fill("Onzekere notitie na verloren respons");loseAnnotation=true;
+      await sheet().getByRole("button",{name:t("annotations.save"),exact:true}).click();
+      await sheet().getByText(t("annotations.failed"),{exact:true}).waitFor().catch(async error=>{
+        console.error("Onzekere annotatie",{view:await page.evaluate(()=>({sheet:document.querySelector("[data-annotation-dialog]")?.textContent,reader:document.querySelector("[data-native-reader-unavailable]")?.textContent})),calls:calls.slice(-8).map(({path,method,status,body})=>({path,method,status,actionId:body?.action?.actionId}))});
+        await page.screenshot({path:`${out}/uncertain-annotation-failure.png`,fullPage:true});throw error;
+      });
+      const writes=()=>calls.filter(c=>c.body&&c.path.endsWith("/annotations"));
+      const count=writes().length,last=writes().at(-1).body;
+      await page.evaluate(()=>window.dispatchEvent(new Event("reader:test-resume")));await page.waitForLoadState("networkidle");
+      assert.equal(writes().length,count,"geen automatische annotatie-POST na resume");
+      await sheet().getByRole("button",{name:t("annotations.retry"),exact:true}).click();
+      await sheet().getByText(`${t("annotations.note")}: ${t("annotations.saved")}`,{exact:true}).waitFor();
+      assert.equal(writes().length,count+1);assert.deepEqual(writes().at(-1).body,last,"handmatige retry bewaart actionId, expectedVersion en operatie");
+      // Reviewregressie: een eerder geblokkeerde deep link vervalt na opslaan.
+      await sheet().locator("textarea").fill("Concept een");await go("/courses");await sheet().getByText(t("annotations.unsaved"),{exact:true}).waitFor();
+      await saveNote();await sheet().getByText(t("annotations.unsaved"),{exact:true}).waitFor({state:"detached"});
+      await sheet().locator("textarea").fill("Concept twee");await sheet().getByRole("button",{name:t("annotations.close"),exact:true}).click();
+      await sheet().getByRole("button",{name:t("annotations.discard"),exact:true}).click();await sheet().waitFor({state:"detached"});
+      assert.equal(new URL(page.url()).hash,"#"+stepRoute,"oude navigatie wordt niet alsnog uitgevoerd");
+      await openMenu(2);assert.equal(await sheet().locator("textarea").inputValue(),"Concept een");
+      await sheet().locator("textarea").fill("Bewust niet bewaren");await go("/courses");await sheet().getByRole("button",{name:t("annotations.discard"),exact:true}).click();
+      await page.waitForFunction(()=>location.hash==="#/courses");
+      assert.equal(new URL(page.url()).hash,"#/courses");
+    }
     if (language === "nl") {
+      // De nieuwe conceptnavigatieproef eindigt bewust op /courses. Herstel
+      // de eigen beginsituatie van de bestaande reader-herstelregressies.
+      await go(pathUrl);await page.locator("[data-chapter-path]").waitFor();
+      if(!(await chapterLink.isVisible()))await page.locator("[data-chapter-path] button[aria-expanded]").filter({hasText:"Mosiah"}).click();
       await chapterLink.click();
       await waitReader();
       readFailure = 503;
@@ -613,6 +695,17 @@ try {
       await context.setOffline(false);
       await page.evaluate(() => window.dispatchEvent(new Event("online")));
       await waitReader();
+      // Stop de oude document-/storegeneratie vóór de capabilitygrens.
+      // Een geldige achtergrond-GET uit die generatie mag niet worden geteld
+      // als aanvraag van de hierna koud gestarte oude backend.
+      const readerUrl=page.url();await page.goto("about:blank");await page.waitForLoadState("networkidle");
+      noAnnotationsBackend=true;
+      const annCalls=calls.filter(c=>c.path.includes("/annotations")).length;
+      await page.goto(readerUrl);await waitReader();
+      await page.getByText(t("nativeReader.positionEnabled"),{exact:true}).waitFor();
+      assert.equal(await page.locator("[data-native-reader] [data-annotation-trigger]").count(),0);
+      assert.equal(calls.filter(c=>c.path.includes("/annotations")).length,annCalls,"oude backend krijgt geen annotatieverzoeken");
+      noAnnotationsBackend=false;await page.reload();await waitReader();
       oldBackend = true;
       const before = calls.filter((c) => /\/read\//.test(c.path)).length;
       await page.reload();
@@ -651,13 +744,17 @@ try {
         where: { chapterId: b.chapters[1].id },
         data: { text: "Uitsluitend account B: synthetische passage." },
       });
-      holdReader = true;
+      const oldVerse=await prisma.verse.findFirstOrThrow({where:{chapterId:extraChapter.id,number:1}});
+      await prisma.note.create({data:{userId:user.id,verseId:oldVerse.id,text:"PRIVE ACCOUNT A ANNOTATIE"}});
+      holdReader = true;holdAnnotations=true;
       await page.evaluate(() =>
         window.dispatchEvent(new Event("reader:test-resume")),
       );
       for (let i = 0; i < 100 && held.length === 0; i++)
         await new Promise((r) => setTimeout(r, 20));
       assert.equal(held.length, 1);
+      for(let i=0;i<100&&!heldAnnotations.length;i++)await new Promise(r=>setTimeout(r,20));
+      assert.equal(heldAnnotations.length,1);assert.ok(calls.some(c=>c.privateMarker),"vertraagd A-antwoord bevat werkelijk diens privénotitie");
       await go("/profile");
       await page
         .getByRole("button", {
@@ -682,7 +779,7 @@ try {
         ),
       );
       await waitReader();
-      for (const finish of held.splice(0)) finish();
+      for (const finish of [...held.splice(0),...heldAnnotations.splice(0)]) finish();
       await page.waitForLoadState("networkidle");
       assert.ok(
         (await page.locator("[data-native-reader]").innerText()).includes(
@@ -696,6 +793,8 @@ try {
         0,
         "Laat A-antwoord komt niet bij B in de reader",
       );
+      assert.equal(await page.getByText("PRIVE ACCOUNT A ANNOTATIE",{exact:false}).count(),0);
+      await openMenu();assert.equal(await sheet().locator("textarea").inputValue(),"");await closeMenu();
     }
     assert.equal(
       (await prisma.user.findUniqueOrThrow({ where: { id: user.id } })).xpTotal,
@@ -720,6 +819,11 @@ try {
       exactStepVerses: true,
       threePaths: true,
       sharedWebReader: true,
+      sharedAnnotationsThreePaths:true,
+      webNativeAnnotationCrud:true,
+      uncertainAnnotationRetry:language==="nl"?"PASS":"NOT TESTED",
+      staleDraftNavigationCleared:language==="nl"?"PASS":"NOT TESTED",
+      lateAnnotationAccountIsolation:language==="nl"?"PASS":"NOT TESTED",
       selectableText: true,
       capabilityFallback: language === "nl" ? "PASS" : "NOT TESTED",
       delayedAccountResponse: language === "nl" ? "PASS" : "NOT TESTED",
@@ -738,7 +842,7 @@ try {
   }
   assert.equal(
     calls.some(
-      (c) => c.method !== "GET" && !c.path.endsWith("/position") && /\/read\/|\/complete$|exercise/.test(c.path),
+      (c) => c.method !== "GET" && !c.path.endsWith("/position") && !c.path.endsWith("/annotations") && /\/read\/|\/complete$|exercise/.test(c.path),
     ),
     false,
     "Er worden geen leesafrondingen of oefensessies aangeroepen",
@@ -746,7 +850,7 @@ try {
   writeFileSync(`${out}/resultaten.json`, JSON.stringify(results, null, 2));
   console.log(JSON.stringify(results));
 } finally {
-  for (const finish of [...held,...heldLearning]) finish();
+  for (const finish of [...held,...heldLearning,...heldAnnotations]) finish();
   await browser.close();
   front.closeAllConnections?.();
   await new Promise((resolve) => front.close(resolve));

@@ -1,5 +1,6 @@
 "use client";
 
+import { useVerseAnnotationMenu } from "@/components/annotations/useVerseAnnotationMenu";
 import ScriptureReaderView from "@/components/reading/ScriptureReaderView";
 import type { ExerciseCheckpoint } from "@/lib/learning/exerciseCheckpoint";
 import AnnotationActions from "@/components/annotations/AnnotationActions";
@@ -27,7 +28,7 @@ import { ContentStatusLine, LongChapterNotice, type ReadState } from "@/componen
 import PersonalMascot from "@/components/versado/PersonalMascot";
 import FocusLayout from "@/components/versado/FocusLayout";
 import ExerciseFeedbackSheet from "@/components/ExerciseFeedbackSheet";
-import { Flag, CheckCircle2, XCircle, Bookmark, StickyNote, Highlighter } from "lucide-react";
+import { Flag, CheckCircle2, XCircle } from "lucide-react";
 import { exerciseProgress } from "@/lib/exerciseProgress";
 import type { ExerciseFeedbackContext } from "@/lib/exerciseFeedback";
 
@@ -382,7 +383,6 @@ export function ReaderView({
   preview?: boolean;
 }) {
   const t = useT();
-  const [annotationTarget,setAnnotationTarget] = useState<{verseId:string;element:HTMLElement}|null>(null);
   const annotations = useLiveQuery<AnnotationList>(["annotations","chapter",chapterId],()=>fetchJson(`/api/annotations?view=reader&chapterId=${encodeURIComponent(chapterId)}`),{scopes:["annotations"],contentScoped:true,enabled:!preview});
   const [confirmed,setConfirmed]=useState<Record<string,Partial<VerseView>>>({});
   const verseState = verses.map(verse=>{
@@ -396,20 +396,6 @@ export function ReaderView({
   const readingVerse = !preview && source && source.id === chapterId && isPlaying ? source.verses[currentIndex]?.number ?? null : null;
   const readAloud = useRef<ReadAloudControl | null>(null);
   const [audioStatus, setAudioStatus] = useState<ReadAloudStatus>("loading");
-  const pointerStart = useRef<{ x: number; y: number; hadSelection: boolean } | null>(null);
-  function rememberPointer(event: React.PointerEvent) {
-    pointerStart.current = { x: event.clientX, y: event.clientY, hadSelection: !(window.getSelection()?.isCollapsed ?? true) };
-  }
-  // Een tik opent het menu; selecteren, slepen en scrollen niet.
-  function tapVerse(event: React.MouseEvent<HTMLElement>, verseId: string) {
-    const start = pointerStart.current;
-    pointerStart.current = null;
-    if ((event.target as HTMLElement).closest("button, a, input, textarea, select")) return;
-    if (start?.hadSelection || !(window.getSelection()?.isCollapsed ?? true)) return;
-    if (start && Math.hypot(event.clientX - start.x, event.clientY - start.y) > 10) return;
-    const number = event.currentTarget.querySelector<HTMLElement>("[data-annotation-trigger]");
-    setAnnotationTarget({ verseId, element: number ?? event.currentTarget });
-  }
   function startReading(number: number) {
     return readAloud.current?.startAtVerse(number) ?? false;
   }
@@ -425,30 +411,8 @@ export function ReaderView({
   }
 
   const colorForVerse = (id:string) => annotations.data?.annotations.find(row=>row.kind==='highlight'&&row.target.type==='verse'&&row.target.verseId===id)?.color;
-  return <ScriptureReaderView bookName={bookName} chapterNumber={chapterNumber} verses={verseState} focus={focus} focusVerse={focusVerse} readingVerse={readingVerse} activeVerseId={annotationTarget?.verseId} language={language}
-    colorForVerse={colorForVerse} onPointerDown={preview?undefined:rememberPointer} onVerseClick={preview?undefined:tapVerse}
-    renderVerseNumber={preview?undefined:(v)=>(
-                <button
-                  type="button"
-                  data-annotation-trigger
-                  aria-haspopup="dialog"
-                  aria-label={t("annotations.verseActions", { number: v.number })}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    setAnnotationTarget({ verseId: v.id, element: event.currentTarget });
-                  }}
-                  className="mr-2 inline cursor-pointer select-none align-baseline font-bold text-brand-400 dark:text-brand-500 rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-vs-accent"
-                >
-                  {v.number}
-                  {(v.bookmarked || v.note || colorForVerse(v.id)) && (
-                    <span className="ml-0.5 inline-flex gap-0.5 align-[-0.1em] text-vs-accent">
-                      {colorForVerse(v.id) && <Highlighter aria-hidden className="h-[0.8em] w-[0.8em]" style={{ color: "rgb(var(--m))" }} />}
-                      {v.bookmarked && <Bookmark aria-hidden className="h-[0.8em] w-[0.8em] fill-current" />}
-                      {v.note && <StickyNote aria-hidden className="h-[0.8em] w-[0.8em]" />}
-                    </span>
-                  )}
-                </button>
-    )} beforeVerses={<>
+  const menu=useVerseAnnotationMenu(!preview,colorForVerse),annotationTarget=menu.target;
+  return <ScriptureReaderView bookName={bookName} chapterNumber={chapterNumber} verses={verseState} focus={focus} focusVerse={focusVerse} readingVerse={readingVerse} language={language} {...menu.props} beforeVerses={<>
       {!preview && <ReadAloudPlayer
           sourceId={chapterId}
           title={`${bookName} ${chapterNumber}`}
@@ -463,7 +427,7 @@ export function ReaderView({
       {!preview && annotations.data && !annotations.data.complete && <p role="status">{t("annotations.incomplete")}</p>}
       {!preview && !!annotations.error && <p role="alert">{t("annotations.failed")}</p>}
     </>} afterVerses={<>
-      {!preview && annotationTarget && verses.some(v=>v.id===annotationTarget.verseId) && <AnnotationActions key={annotationTarget.verseId} target={{type:'verse',verseId:annotationTarget.verseId}} returnFocus={annotationTarget.element} onClose={()=>setAnnotationTarget(null)} onChanged={annotationChanged} audio={audioFor(annotationTarget.verseId)}/>}    </>}/>;
+      {!preview && annotationTarget && verses.some(v=>v.id===annotationTarget.verseId) && <AnnotationActions key={annotationTarget.verseId} target={{type:'verse',verseId:annotationTarget.verseId}} returnFocus={annotationTarget.element} onClose={menu.close} onChanged={annotationChanged} audio={audioFor(annotationTarget.verseId)}/>}    </>}/>;
 }
 
 function formatCorrectAnswer(type: Exercise["type"], correctAnswer: string[], t: TFunction): string {

@@ -1,6 +1,9 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNativeReaderPosition } from "./useNativeReaderPosition";
+import { useVerseAnnotationMenu } from "@/components/annotations/useVerseAnnotationMenu";
+import AnnotationActionsView, { type AnnotationActionsAdapter } from "@/components/annotations/AnnotationActionsView";
+import { nativeAnnotationQueryKey } from "@/lib/data/native";
 import ScriptureReaderView from "@/components/reading/ScriptureReaderView";
 import FocusLayout from "@/components/versado/FocusLayout";
 import { useAppNavigation } from "@/components/navigation/AppNavigation";
@@ -20,6 +23,7 @@ export default function NativeReaderView({
   content,
   enabled,
   positionEnabled = false,
+  annotationsEnabled = false,
   route,
   onError,
   parentError,
@@ -30,6 +34,7 @@ export default function NativeReaderView({
   content?: NativeContentState;
   enabled: boolean;
   positionEnabled?: boolean;
+  annotationsEnabled?: boolean;
   route: NonNullable<ReturnType<typeof nativeReaderRoute>>;
   onError: (e: unknown) => void;
   parentError?: unknown;
@@ -61,11 +66,48 @@ export default function NativeReaderView({
   // Bevestigde tekst blijft bij transportfouten gemount. Een echte blokkade
   // van reader óf leerpad heeft altijd voorrang, ook als de andere GET slaagt.
   const blockingError = [parentError,query.error].find(error=>error && !nativeLearningTransientError(error));
-  const data = enabled && content && !blockingError ? query.data?.reader : undefined;
+  const candidate = enabled && content && !blockingError ? query.data?.reader : undefined;
+  const annotations=useNativeLiveQuery(candidate?nativeAnnotationQueryKey(candidate):["reader-annotations",identity],()=>runtime.readerAnnotations(candidate!),{enabled:annotationsEnabled&&!!candidate,scopes:["annotations","content","courses"],staleTime:60000});
+  const [annotationDenied,setAnnotationDenied]=useState<unknown>(null);
+  const annotationError=annotationsEnabled ? annotationDenied??annotations.error : null;
+  const annotationBlocked=annotationError&&!nativeLearningTransientError(annotationError);
+  const data=candidate&&!annotationBlocked?candidate:undefined;
+  const annotationRows=annotations.data?.annotations.filter(row=>!row.deleted)??[];
+  const colorForVerse=(id:string)=>annotationRows.find(row=>row.kind==="highlight"&&row.target.verseId===id)?.color;
+  const menu=useVerseAnnotationMenu(annotationsEnabled&&!!data,colorForVerse);
+  const annotationFailure=(error:unknown)=>{
+    if(error instanceof NativeClientError && error.code!=="annotation_conflict" && !nativeLearningTransientError(error) && ([401,403,404,409].includes(error.status)||error.code.startsWith("access_"))) {
+      setAnnotationDenied(error);
+      if(error.status===401||error.code==="content_context_changed"||error.code.startsWith("access_"))onError(error);
+    }
+  };
+  const annotationAdapter:AnnotationActionsAdapter={
+    async load(target,signal){
+      if(!data||target.type!=="verse")throw new NativeClientError("content_unavailable",404);
+      try {const result=await runtime.readerAnnotations(data,target.verseId);if(signal?.aborted)throw new NativeClientError("session_changed",409);return result;}
+      catch(error){if(!signal?.aborted)annotationFailure(error);throw error;}
+    },
+    async mutate(action,method){
+      if(!data)throw new NativeClientError("content_unavailable",404);
+      try{return await runtime.mutateReaderAnnotation(data,action,method);}catch(error){annotationFailure(error);throw error;}
+    },
+    status(error){return error instanceof NativeClientError?error.status:undefined;},
+    registerNavigationGuard:navigation.registerNavigationGuard,
+  };
+  const retryAnnotations=async()=>{
+    if(!candidate||!annotationsEnabled)return;
+    try {const fresh=await runtime.readerAnnotations(candidate);annotations.setData(fresh);setAnnotationDenied(null);}
+    catch(error){annotationFailure(error);}
+  };
+  const verseState=data?.verses.map(verse=>({...verse,
+    bookmarked:annotationRows.some(row=>row.kind==="bookmark"&&row.target.verseId===verse.id),
+    note:annotationRows.find(row=>row.kind==="note"&&row.target.verseId===verse.id)?.text??"",
+  }));
   useEffect(() => {
-    if (blockingError instanceof NativeClientError &&
-      (blockingError.status === 401 || blockingError.code.startsWith("access_") || blockingError.code === "content_context_changed"))onError(blockingError);
-  },[blockingError,onError]);
+    const error=blockingError??(annotationBlocked?annotationError:null);
+    if (error instanceof NativeClientError &&
+      (error.status === 401 || error.code.startsWith("access_") || error.code === "content_context_changed"))onError(error);
+  },[blockingError,annotationError,annotationBlocked,onError]);
   const [conflict,setConflict] = useState(false);
   const writePosition=query.data ? runtime.readerPositionWriter(query.data,queryKey) : null;
   const position = useNativeReaderPosition(data,query.data?.positionVersion ?? 0,positionEnabled,
@@ -109,7 +151,7 @@ export default function NativeReaderView({
           {t(
             !enabled
               ? "nativeReader.unsupported"
-              : blockingError || query.error
+              : blockingError || annotationError || query.error
                 ? "nativeLearning.pathUnavailable"
                 : "nativeFoundation.loading",
           )}
@@ -118,7 +160,7 @@ export default function NativeReaderView({
           <button
             className="btn-secondary"
             disabled={query.isFetching}
-            onClick={() => { void query.refetch(); retryParent?.(); }}
+            onClick={() => { void query.refetch(); void retryAnnotations(); retryParent?.(); }}
           >
             {t("nativeFoundation.retry")}
           </button>
@@ -137,12 +179,17 @@ export default function NativeReaderView({
         <ScriptureReaderView
           bookName={data.bookName}
           chapterNumber={data.chapterNumber}
-          verses={data.verses}
+          verses={verseState!}
+          {...menu.props}
           focus
           focusVerse={data.focusVerse}
           language={data.sourceLanguage}
           restoreVerse={restoreVerse}
         />
+        {annotationsEnabled&&annotations.data&&!annotations.data.complete&&<p role="status">{t("annotations.incomplete")}</p>}
+        {annotationsEnabled&&!!annotations.error&&<p role="alert">{t("annotations.failed")}</p>}
+        {annotationsEnabled&&menu.target&&data.verses.some(verse=>verse.id===menu.target!.verseId)&&
+          <AnnotationActionsView key={menu.target.verseId} adapter={annotationAdapter} target={{type:"verse",verseId:menu.target.verseId}} returnFocus={menu.target.element} onClose={menu.close} onChanged={()=>{}}/>}
         {data.kind === "steps" && (
           <p role="note" className="text-sm text-vs-fg-2">
             {t("nativeReader.range", {
@@ -152,7 +199,7 @@ export default function NativeReaderView({
           </p>
         )}
         <p role="note" className="text-sm text-vs-fg-2">
-          {t(positionEnabled ? "nativeReader.positionEnabled" : "nativeReader.readOnly")}
+          {t(annotationsEnabled ? positionEnabled ? "nativeReader.annotationsPositionEnabled" : "nativeReader.annotationsEnabled" : positionEnabled ? "nativeReader.positionEnabled" : "nativeReader.readOnly")}
         </p>
         {positionEnabled && <div aria-live="polite" className="text-sm text-vs-fg-2" data-reader-save-status>
           {position.status === "saving" && t("nativeReader.saving")}

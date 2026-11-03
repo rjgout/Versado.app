@@ -4,6 +4,8 @@ import { kompasFr } from "./kompas/fr";
 // Ontbrekende teksten vallen terug volgens fallbackChain (src/lib/languages.ts).
 export const fr: PartialMessages = {
   nativeReader: {
+    annotationsEnabled: "Vous pouvez gérer les signets, surlignages et notes. Audio, enregistrement de la position, questions et validation viendront plus tard. Ces actions ne donnent ni XP ni validation de lecture.",
+    annotationsPositionEnabled: "Votre position est enregistrée après une lecture stable. Les signets, surlignages et notes sont partagés avec le site web. Audio, questions et validation viendront plus tard. Ces actions ne donnent ni XP ni validation de lecture.",
     positionEnabled: "Votre position est enregistrée après une lecture stable. Audio, annotations, questions et validation viendront plus tard. Lire et feuilleter ne donnent ni XP ni validation.",
     saving: "Enregistrement de la position…",
     saved: "Position enregistrée.",

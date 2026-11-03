@@ -10097,7 +10097,7 @@
     },
     {
       "file": "src/components/LessonFlow.tsx",
-      "sha256": "f1b0ad481ec345e80e9c491bf78a6eeea7a568d40eda71d9c406eb866cc5740c",
+      "sha256": "4924139b83d47336e36185438ecb4aaaa7db2aa5b981d3643e13790cdf0d086e",
       "boundary": "client",
       "imports": [
         "@/components/ExerciseFeedbackSheet",
@@ -10105,6 +10105,7 @@
         "@/components/ReadAloudPlayer",
         "@/components/StreakContinuation",
         "@/components/annotations/AnnotationActions",
+        "@/components/annotations/useVerseAnnotationMenu",
         "@/components/learning/ContentStatus",
         "@/components/reading/ScriptureReaderView",
         "@/components/versado/AchievementIcon",
@@ -11860,7 +11861,29 @@
     },
     {
       "file": "src/components/annotations/AnnotationActions.tsx",
-      "sha256": "11d6f264f514c35d4367f26a72042a102a5ad99b4b646771a2902155db3b242d",
+      "sha256": "ef4f01405c19ec5aa17bef5941a5cef2ce00f24585f4779f5a4fe8a2a2480e20",
+      "boundary": "client",
+      "imports": [
+        "./AnnotationActionsView",
+        "@/lib/annotations/clientContract",
+        "@/lib/data/fetchJson",
+        "@/lib/data/mutation"
+      ],
+      "methods": [],
+      "requests": [
+        "/api/annotations",
+        "/api/annotations?view=reader&targetKey=${encodeURIComponent(await clientTargetKey(target))}"
+      ],
+      "checks": [],
+      "exports": [
+        "AnnotationActions",
+        "AnnotationTrigger",
+        "StudyAnnotationContext"
+      ]
+    },
+    {
+      "file": "src/components/annotations/AnnotationActionsView.tsx",
+      "sha256": "e7f68b09318ccca697de43d9f2991867c4ad72de50d34e9aeb72686d7f23c07b",
       "boundary": "client",
       "imports": [
         "./MarkSwatch",
@@ -11868,20 +11891,15 @@
         "@/components/versado/styles",
         "@/lib/annotations/clientContract",
         "@/lib/annotations/contract",
-        "@/lib/data/fetchJson",
-        "@/lib/data/mutation",
         "lucide-react",
         "react",
         "react-dom"
       ],
       "methods": [],
-      "requests": [
-        "/api/annotations",
-        "/api/annotations?view=reader&targetKey=${encodeURIComponent(key)}"
-      ],
+      "requests": [],
       "checks": [],
       "exports": [
-        "AnnotationActions",
+        "AnnotationActionsView",
         "AnnotationTrigger",
         "StudyAnnotationContext"
       ]
@@ -11949,6 +11967,22 @@
       "checks": [],
       "exports": [
         "StudyAnnotations"
+      ]
+    },
+    {
+      "file": "src/components/annotations/useVerseAnnotationMenu.tsx",
+      "sha256": "680665717d2cc02e25d887443dc37165dbc64a4958789fabea5cb0827139758a",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "lucide-react",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "useVerseAnnotationMenu"
       ]
     },
     {
@@ -12849,7 +12883,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "a93e2b2e0130328a356c3102c34497d8f8782c1ceb5cb84b4d4e4caf3c48303c",
+      "sha256": "0850115d81cd345d25209a5d951d56d759c964f967b39bcf13fdaf4e21a3bba3",
       "boundary": "client",
       "imports": [
         "./NativeContentPicker",
@@ -12902,7 +12936,7 @@
     },
     {
       "file": "src/components/native/NativeLearningView.tsx",
-      "sha256": "18d738d8a8995f9c227ccaba471c75957db1435a5510622bff07abe6d651b7f2",
+      "sha256": "9ee9cf4cf902fac53be9555cbf47ef89e69b07387db26fd0e44ac9abbab6cb76",
       "boundary": "client",
       "imports": [
         "./NativeCfmCourseView",
@@ -12935,7 +12969,7 @@
     },
     {
       "file": "src/components/native/NativeNavigationProvider.tsx",
-      "sha256": "8be6c84d7e59c1a882ae6e9d416009b5f048dc1f2635767659e7be1b7c4d3d18",
+      "sha256": "5048c16abbf054f89f08dcbe3dfbde2a9aab5611759336613d735a68690f6bed",
       "boundary": "client",
       "imports": [
         "@/components/navigation/AppNavigation",
@@ -12978,11 +13012,13 @@
     },
     {
       "file": "src/components/native/NativeReaderView.tsx",
-      "sha256": "64e81b3bcc2e1880848172d9f4376900b516c2db335263e8a80c3e9190b49dc0",
+      "sha256": "9f0ae65f613e8e76a635379a8cfcb14bb85f561c4a231bbafa1efac07e676ad4",
       "boundary": "client",
       "imports": [
         "./useNativeReaderPosition",
         "@/components/I18nProvider",
+        "@/components/annotations/AnnotationActionsView",
+        "@/components/annotations/useVerseAnnotationMenu",
         "@/components/navigation/AppNavigation",
         "@/components/reading/ScriptureReaderView",
         "@/components/versado/FocusLayout",
@@ -13106,7 +13142,7 @@
     },
     {
       "file": "src/components/native/useNativeReaderPosition.ts",
-      "sha256": "9abe63b1a8a8ca25a3fd1c161203e67bdeecb3997cec687e13a38b8085d67654",
+      "sha256": "afde2817869ca87928aa3a7307ef5ed694a0ee95d8428e7e840068b755176b2c",
       "boundary": "client",
       "imports": [
         "@/lib/native/readerContract",
@@ -13124,7 +13160,7 @@
     },
     {
       "file": "src/components/navigation/AppNavigation.tsx",
-      "sha256": "02f2281a4ca4059133020ec8dfdf81affe9791f35c2cb12a9c745e1b7f41648c",
+      "sha256": "3adfc2fb8a415d864cc83333c36486cfd98868792d73a9cd3ff7a233bfb8f1c0",
       "boundary": "client",
       "imports": [
         "react"
@@ -16333,7 +16369,7 @@
     },
     {
       "file": "src/lib/annotations/service.ts",
-      "sha256": "4fb27b0b53276e1f2da6b09cbbcfcef1f5c578bf1a273dfaff23298f6df2315c",
+      "sha256": "efb159f7528e4af66cf27a1582cfbe82a15db7b46f3ba415c10459ec5f7d36dc",
       "boundary": "context-dependent",
       "imports": [
         "./contract",
@@ -17759,11 +17795,13 @@
     },
     {
       "file": "src/lib/data/native.ts",
-      "sha256": "30faf89306587ccbc0f757d9cadacd41fd76fe77298bea064e01f672efd760e4",
+      "sha256": "f84b6fad8688e48b949deb28da9653a81fd12d2d3521335fc9d01b77a3a7d86c",
       "boundary": "context-dependent",
       "imports": [
         "./scopes",
         "./store",
+        "@/lib/annotations/contract",
+        "@/lib/native/annotationsContract",
         "@/lib/native/client",
         "@/lib/native/contract",
         "@/lib/native/coursesContract",
@@ -17792,6 +17830,7 @@
         "cancelTick"
       ],
       "exports": [
+        "nativeAnnotationQueryKey",
         "nativeContentQueryKey",
         "nativeLearningQueryKey",
         "nativeLearningTransientError",
@@ -19507,7 +19546,7 @@
     },
     {
       "file": "src/lib/i18n/messages/de.ts",
-      "sha256": "911944aa9d65ac120b38014a1ebb40f6ee3e19875aecade10c7d00825f9c0a4c",
+      "sha256": "d1244a06c04948c477e246edfd88b2b81c5c4c1ee4099d2c383227d126eb8c36",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19522,7 +19561,7 @@
     },
     {
       "file": "src/lib/i18n/messages/en.ts",
-      "sha256": "1fe0373caf6e6f2bcfbb98f940406d5d129c2f94850d981795b9773c1e7ef9fd",
+      "sha256": "75e3323d6d379ae15e24270fb3bbc255e9c3c3d46cb0b48772149db8f75714ff",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19537,7 +19576,7 @@
     },
     {
       "file": "src/lib/i18n/messages/es.ts",
-      "sha256": "fdb2b071c38cd2be312d43cb5503b4fc6c9b12adc8315016a3323435f6928bd0",
+      "sha256": "1ab140b7340f34e0bf5b10ef12647f92d3f370e300ae1e7b508f48845a5845a6",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19552,7 +19591,7 @@
     },
     {
       "file": "src/lib/i18n/messages/fr.ts",
-      "sha256": "9447aae39a4b9f4d8826c270daeed15719a191422cd46704ea2c74880ed226a9",
+      "sha256": "3cb675c9c27db3f3a892484a3e28526de13071ea42741ed36bb891d0d3cba3e2",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19635,7 +19674,7 @@
     },
     {
       "file": "src/lib/i18n/messages/nl.ts",
-      "sha256": "0b08db0f04ae7393afaf986ec63d728bef4241e38a822a3b9aefcffca8483c9f",
+      "sha256": "6b2e0fc5ed5597396a867029249709508ea36934300fd4a798d4512c2d9b2f00",
       "boundary": "context-dependent",
       "imports": [
         "./kompas/nl"
@@ -21028,7 +21067,7 @@
     },
     {
       "file": "src/lib/native/access.ts",
-      "sha256": "02c3c71782623237ead15aa775e40b170740d1cda69899ecff1528ceb013386e",
+      "sha256": "8681f94e821566577fd8e48711eb8e449ab5b1ee9d061de00d62508315cb74c0",
       "boundary": "context-dependent",
       "imports": [
         "./client",
@@ -21063,10 +21102,57 @@
       ]
     },
     {
-      "file": "src/lib/native/api.ts",
-      "sha256": "4d72fb0b6d26aeb9738bccd7b4e6547349efcd25b86ccdc632e072b7250ecb0d",
+      "file": "src/lib/native/annotations.server.ts",
+      "sha256": "e00e6972f564372702bab674a24ac8949eb38cb728095c8f518a4fda2475de7f",
       "boundary": "context-dependent",
       "imports": [
+        "./annotationsContract",
+        "./courses.server",
+        "./reader.server",
+        "./readerContract",
+        "./sessions",
+        "@/generated/prisma/client",
+        "@/lib/account/mutation",
+        "@/lib/annotations/service",
+        "@/lib/db"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "mutateNativeReaderAnnotation",
+        "nativeReaderAnnotations"
+      ]
+    },
+    {
+      "file": "src/lib/native/annotationsContract.ts",
+      "sha256": "8fd4b2d22c30aa50594e430cc8b577ca8f8c4c28f212012b9e6d2d3ee3fc85e3",
+      "boundary": "context-dependent",
+      "imports": [
+        "./readerContract",
+        "@/lib/annotations/clientContract",
+        "@/lib/annotations/contract",
+        "zod"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "nativeAnnotationContext",
+        "nativeAnnotationList",
+        "nativeAnnotationMutation",
+        "nativeAnnotationResult",
+        "nativeAnnotationScope",
+        "nativeAnnotationView"
+      ]
+    },
+    {
+      "file": "src/lib/native/api.ts",
+      "sha256": "eba913d3fb667aa8fc539c136c3f3495bcfe15f8e18108a1e092d23abf8319ef",
+      "boundary": "context-dependent",
+      "imports": [
+        "./annotations.server",
+        "./annotationsContract",
         "./apple",
         "./content.server",
         "./contract",
@@ -21094,6 +21180,7 @@
         "@/lib/account/emailConfirmation",
         "@/lib/account/password",
         "@/lib/account/passwordReset",
+        "@/lib/annotations/service",
         "@/lib/auth",
         "@/lib/authBudget",
         "@/lib/authTokens",
@@ -21306,7 +21393,7 @@
     },
     {
       "file": "src/lib/native/navigation.ts",
-      "sha256": "f0c7988c5f6dff430b93967713e378edcea7e4f7dfece249f5d9c7a0e2522a36",
+      "sha256": "3187eaa701dd7465b7861a735b41e7305644e2d761869eaf252fa72516cf10cf",
       "boundary": "context-dependent",
       "imports": [],
       "methods": [],
@@ -27809,7 +27896,9 @@
         "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
+        "src/components/annotations/AnnotationActionsView.tsx",
         "src/components/annotations/MarkSwatch.tsx",
+        "src/components/annotations/useVerseAnnotationMenu.tsx",
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ScriptureReaderView.tsx",
@@ -27984,6 +28073,8 @@
         "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
+        "src/components/annotations/AnnotationActionsView.tsx",
+        "src/components/annotations/useVerseAnnotationMenu.tsx",
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ScriptureReaderView.tsx",
@@ -28008,7 +28099,7 @@
       "requestEvidence": [
         "/api/annotations",
         "/api/annotations?view=reader&chapterId=${encodeURIComponent(chapterId)}",
-        "/api/annotations?view=reader&targetKey=${encodeURIComponent(key)}",
+        "/api/annotations?view=reader&targetKey=${encodeURIComponent(await clientTargetKey(target))}",
         "/api/chapters/${chapterId}/read",
         "/api/chapters/${chapterId}/submit",
         "/api/chapters/${encodeURIComponent(sourceId)}/audio-languages",
@@ -50785,6 +50876,10 @@
         "src/lib/activityFeed.ts",
         "src/lib/alleskenner/content.ts",
         "src/lib/alleskenner/validate.ts",
+        "src/lib/annotations/clientContract.ts",
+        "src/lib/annotations/contract.ts",
+        "src/lib/annotations/revisionResolution.ts",
+        "src/lib/annotations/service.ts",
         "src/lib/apiError.ts",
         "src/lib/artwork.ts",
         "src/lib/auth.ts",
@@ -50901,6 +50996,8 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/native/annotations.server.ts",
+        "src/lib/native/annotationsContract.ts",
         "src/lib/native/api.ts",
         "src/lib/native/apple.ts",
         "src/lib/native/content.server.ts",
@@ -55780,6 +55877,7 @@
         "src/components/FsyLessonView.tsx",
         "src/components/I18nProvider.tsx",
         "src/components/annotations/AnnotationActions.tsx",
+        "src/components/annotations/AnnotationActionsView.tsx",
         "src/components/annotations/AnnotationRecovery.tsx",
         "src/components/annotations/MarkSwatch.tsx",
         "src/components/annotations/StudyAnnotations.tsx",
@@ -55968,6 +56066,7 @@
         "src/components/FsyLessonView.tsx",
         "src/components/I18nProvider.tsx",
         "src/components/annotations/AnnotationActions.tsx",
+        "src/components/annotations/AnnotationActionsView.tsx",
         "src/components/annotations/AnnotationRecovery.tsx",
         "src/components/annotations/StudyAnnotations.tsx",
         "src/components/study/ImageViewer.tsx",
@@ -55997,7 +56096,7 @@
         "/api/annotations",
         "/api/annotations/resolve",
         "/api/annotations?view=reader&lessonEditionId=${encodeURIComponent(editionId)}&revisionId=${encodeURIComponent(revisionId)}",
-        "/api/annotations?view=reader&targetKey=${encodeURIComponent(key)}",
+        "/api/annotations?view=reader&targetKey=${encodeURIComponent(await clientTargetKey(target))}",
         "/api/content-context?view=picker",
         "/api/reading-position",
         "/api/reading-position?lessonEditionId=${encodeURIComponent(data.lesson.editionId)}",
@@ -56643,7 +56742,9 @@
         "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
+        "src/components/annotations/AnnotationActionsView.tsx",
         "src/components/annotations/MarkSwatch.tsx",
+        "src/components/annotations/useVerseAnnotationMenu.tsx",
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ScriptureReaderView.tsx",
@@ -56829,6 +56930,8 @@
         "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
+        "src/components/annotations/AnnotationActionsView.tsx",
+        "src/components/annotations/useVerseAnnotationMenu.tsx",
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ScriptureReaderView.tsx",
@@ -56854,7 +56957,7 @@
       "requestEvidence": [
         "/api/annotations",
         "/api/annotations?view=reader&chapterId=${encodeURIComponent(chapterId)}",
-        "/api/annotations?view=reader&targetKey=${encodeURIComponent(key)}",
+        "/api/annotations?view=reader&targetKey=${encodeURIComponent(await clientTargetKey(target))}",
         "/api/chapters/${chapterId}",
         "/api/chapters/${chapterId}/read",
         "/api/chapters/${chapterId}/submit",
@@ -58040,7 +58143,9 @@
         "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
+        "src/components/annotations/AnnotationActionsView.tsx",
         "src/components/annotations/MarkSwatch.tsx",
+        "src/components/annotations/useVerseAnnotationMenu.tsx",
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ScriptureReaderView.tsx",
@@ -58224,6 +58329,8 @@
         "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
+        "src/components/annotations/AnnotationActionsView.tsx",
+        "src/components/annotations/useVerseAnnotationMenu.tsx",
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ScriptureReaderView.tsx",
@@ -58249,7 +58356,7 @@
       "requestEvidence": [
         "/api/annotations",
         "/api/annotations?view=reader&chapterId=${encodeURIComponent(chapterId)}",
-        "/api/annotations?view=reader&targetKey=${encodeURIComponent(key)}",
+        "/api/annotations?view=reader&targetKey=${encodeURIComponent(await clientTargetKey(target))}",
         "/api/chapters/${chapterId}/read",
         "/api/chapters/${chapterId}/submit",
         "/api/chapters/${encodeURIComponent(sourceId)}/audio-languages",
@@ -58654,7 +58761,9 @@
         "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
+        "src/components/annotations/AnnotationActionsView.tsx",
         "src/components/annotations/MarkSwatch.tsx",
+        "src/components/annotations/useVerseAnnotationMenu.tsx",
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ScriptureReaderView.tsx",
@@ -58869,6 +58978,8 @@
         "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
+        "src/components/annotations/AnnotationActionsView.tsx",
+        "src/components/annotations/useVerseAnnotationMenu.tsx",
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ScriptureReaderView.tsx",
@@ -58895,7 +59006,7 @@
       "requestEvidence": [
         "/api/annotations",
         "/api/annotations?view=reader&chapterId=${encodeURIComponent(chapterId)}",
-        "/api/annotations?view=reader&targetKey=${encodeURIComponent(key)}",
+        "/api/annotations?view=reader&targetKey=${encodeURIComponent(await clientTargetKey(target))}",
         "/api/chapters/${chapterId}/read",
         "/api/chapters/${chapterId}/submit",
         "/api/chapters/${encodeURIComponent(sourceId)}/audio-languages",
@@ -59111,7 +59222,9 @@
         "src/components/alleskenner/AlleskennerGame.tsx",
         "src/components/alleskenner/AlleskennerRoom.tsx",
         "src/components/annotations/AnnotationActions.tsx",
+        "src/components/annotations/AnnotationActionsView.tsx",
         "src/components/annotations/MarkSwatch.tsx",
+        "src/components/annotations/useVerseAnnotationMenu.tsx",
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ScriptureReaderView.tsx",
@@ -59309,6 +59422,8 @@
         "src/components/alleskenner/AlleskennerGame.tsx",
         "src/components/alleskenner/AlleskennerRoom.tsx",
         "src/components/annotations/AnnotationActions.tsx",
+        "src/components/annotations/AnnotationActionsView.tsx",
+        "src/components/annotations/useVerseAnnotationMenu.tsx",
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ScriptureReaderView.tsx",
@@ -59338,7 +59453,7 @@
         "/api/alleskenner/solo",
         "/api/annotations",
         "/api/annotations?view=reader&chapterId=${encodeURIComponent(chapterId)}",
-        "/api/annotations?view=reader&targetKey=${encodeURIComponent(key)}",
+        "/api/annotations?view=reader&targetKey=${encodeURIComponent(await clientTargetKey(target))}",
         "/api/chapters",
         "/api/chapters/${chapterId}/read",
         "/api/chapters/${chapterId}/submit",
@@ -63986,7 +64101,9 @@
         "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
+        "src/components/annotations/AnnotationActionsView.tsx",
         "src/components/annotations/MarkSwatch.tsx",
+        "src/components/annotations/useVerseAnnotationMenu.tsx",
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ScriptureReaderView.tsx",
@@ -64170,6 +64287,8 @@
         "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
+        "src/components/annotations/AnnotationActionsView.tsx",
+        "src/components/annotations/useVerseAnnotationMenu.tsx",
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ScriptureReaderView.tsx",
@@ -64195,7 +64314,7 @@
       "requestEvidence": [
         "/api/annotations",
         "/api/annotations?view=reader&chapterId=${encodeURIComponent(chapterId)}",
-        "/api/annotations?view=reader&targetKey=${encodeURIComponent(key)}",
+        "/api/annotations?view=reader&targetKey=${encodeURIComponent(await clientTargetKey(target))}",
         "/api/chapters/${chapterId}/read",
         "/api/chapters/${chapterId}/submit",
         "/api/chapters/${encodeURIComponent(sourceId)}/audio-languages",
@@ -64249,7 +64368,9 @@
         "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
+        "src/components/annotations/AnnotationActionsView.tsx",
         "src/components/annotations/MarkSwatch.tsx",
+        "src/components/annotations/useVerseAnnotationMenu.tsx",
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ScriptureReaderView.tsx",
@@ -64421,6 +64542,8 @@
         "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
+        "src/components/annotations/AnnotationActionsView.tsx",
+        "src/components/annotations/useVerseAnnotationMenu.tsx",
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ScriptureReaderView.tsx",
@@ -64445,7 +64568,7 @@
       "requestEvidence": [
         "/api/annotations",
         "/api/annotations?view=reader&chapterId=${encodeURIComponent(chapterId)}",
-        "/api/annotations?view=reader&targetKey=${encodeURIComponent(key)}",
+        "/api/annotations?view=reader&targetKey=${encodeURIComponent(await clientTargetKey(target))}",
         "/api/chapters/${chapterId}/read",
         "/api/chapters/${chapterId}/submit",
         "/api/chapters/${encodeURIComponent(sourceId)}/audio-languages",
@@ -64877,7 +65000,9 @@
         "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
+        "src/components/annotations/AnnotationActionsView.tsx",
         "src/components/annotations/MarkSwatch.tsx",
+        "src/components/annotations/useVerseAnnotationMenu.tsx",
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ScriptureReaderView.tsx",
@@ -65083,6 +65208,8 @@
         "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
+        "src/components/annotations/AnnotationActionsView.tsx",
+        "src/components/annotations/useVerseAnnotationMenu.tsx",
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ScriptureReaderView.tsx",
@@ -65108,7 +65235,7 @@
       "requestEvidence": [
         "/api/annotations",
         "/api/annotations?view=reader&chapterId=${encodeURIComponent(chapterId)}",
-        "/api/annotations?view=reader&targetKey=${encodeURIComponent(key)}",
+        "/api/annotations?view=reader&targetKey=${encodeURIComponent(await clientTargetKey(target))}",
         "/api/chapters/${chapterId}/read",
         "/api/chapters/${chapterId}/submit",
         "/api/chapters/${encodeURIComponent(sourceId)}/audio-languages",
@@ -65509,7 +65636,9 @@
         "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
+        "src/components/annotations/AnnotationActionsView.tsx",
         "src/components/annotations/MarkSwatch.tsx",
+        "src/components/annotations/useVerseAnnotationMenu.tsx",
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ScriptureReaderView.tsx",
@@ -65686,6 +65815,8 @@
         "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
+        "src/components/annotations/AnnotationActionsView.tsx",
+        "src/components/annotations/useVerseAnnotationMenu.tsx",
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ScriptureReaderView.tsx",
@@ -65713,7 +65844,7 @@
       "requestEvidence": [
         "/api/annotations",
         "/api/annotations?view=reader&chapterId=${encodeURIComponent(chapterId)}",
-        "/api/annotations?view=reader&targetKey=${encodeURIComponent(key)}",
+        "/api/annotations?view=reader&targetKey=${encodeURIComponent(await clientTargetKey(target))}",
         "/api/chapters/${chapterId}/read",
         "/api/chapters/${chapterId}/submit",
         "/api/chapters/${encodeURIComponent(sourceId)}/audio-languages",
@@ -66491,6 +66622,7 @@
         "src/app/study-folder/page.tsx",
         "src/components/I18nProvider.tsx",
         "src/components/annotations/AnnotationActions.tsx",
+        "src/components/annotations/AnnotationActionsView.tsx",
         "src/components/annotations/MarkSwatch.tsx",
         "src/components/study-folder/StudyFolderClient.tsx",
         "src/components/versado/PageIntro.tsx",
@@ -66570,6 +66702,7 @@
       "clientBoundaries": [
         "src/components/I18nProvider.tsx",
         "src/components/annotations/AnnotationActions.tsx",
+        "src/components/annotations/AnnotationActionsView.tsx",
         "src/components/study-folder/StudyFolderClient.tsx",
         "src/lib/data/client.ts",
         "src/lib/data/hooks.ts",
@@ -66580,7 +66713,7 @@
       ],
       "requestEvidence": [
         "/api/annotations",
-        "/api/annotations?view=reader&targetKey=${encodeURIComponent(key)}",
+        "/api/annotations?view=reader&targetKey=${encodeURIComponent(await clientTargetKey(target))}",
         "/api/study-folder?${apiQuery(filters, { cursor: nextCursor })}",
         "/api/study-folder?${filterKey}",
         "/api/study-folder?item=${encodeURIComponent(itemParam)}",
@@ -66622,6 +66755,7 @@
         "src/components/I18nProvider.tsx",
         "src/components/ReaderBackTarget.tsx",
         "src/components/annotations/AnnotationActions.tsx",
+        "src/components/annotations/AnnotationActionsView.tsx",
         "src/components/annotations/AnnotationRecovery.tsx",
         "src/components/annotations/MarkSwatch.tsx",
         "src/components/annotations/StudyAnnotations.tsx",
@@ -66804,6 +66938,7 @@
         "src/components/I18nProvider.tsx",
         "src/components/ReaderBackTarget.tsx",
         "src/components/annotations/AnnotationActions.tsx",
+        "src/components/annotations/AnnotationActionsView.tsx",
         "src/components/annotations/AnnotationRecovery.tsx",
         "src/components/annotations/StudyAnnotations.tsx",
         "src/components/study/ImageViewer.tsx",
@@ -66832,7 +66967,7 @@
         "/api/annotations",
         "/api/annotations/resolve",
         "/api/annotations?view=reader&lessonEditionId=${encodeURIComponent(editionId)}&revisionId=${encodeURIComponent(revisionId)}",
-        "/api/annotations?view=reader&targetKey=${encodeURIComponent(key)}",
+        "/api/annotations?view=reader&targetKey=${encodeURIComponent(await clientTargetKey(target))}",
         "/api/content-context?view=picker",
         "/api/reading-position",
         "/api/reading-position?lessonEditionId=${encodeURIComponent(data.lesson.editionId)}",
@@ -66988,6 +67123,7 @@
         "src/components/I18nProvider.tsx",
         "src/components/ReaderBackTarget.tsx",
         "src/components/annotations/AnnotationActions.tsx",
+        "src/components/annotations/AnnotationActionsView.tsx",
         "src/components/annotations/AnnotationRecovery.tsx",
         "src/components/annotations/MarkSwatch.tsx",
         "src/components/annotations/StudyAnnotations.tsx",
@@ -67168,6 +67304,7 @@
         "src/components/I18nProvider.tsx",
         "src/components/ReaderBackTarget.tsx",
         "src/components/annotations/AnnotationActions.tsx",
+        "src/components/annotations/AnnotationActionsView.tsx",
         "src/components/annotations/AnnotationRecovery.tsx",
         "src/components/annotations/StudyAnnotations.tsx",
         "src/components/study/ImageViewer.tsx",
@@ -67196,7 +67333,7 @@
         "/api/annotations",
         "/api/annotations/resolve",
         "/api/annotations?view=reader&lessonEditionId=${encodeURIComponent(editionId)}&revisionId=${encodeURIComponent(revisionId)}",
-        "/api/annotations?view=reader&targetKey=${encodeURIComponent(key)}",
+        "/api/annotations?view=reader&targetKey=${encodeURIComponent(await clientTargetKey(target))}",
         "/api/content-context?view=picker",
         "/api/reading-position",
         "/api/reading-position?lessonEditionId=${encodeURIComponent(data.lesson.editionId)}",
@@ -67251,7 +67388,9 @@
         "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
+        "src/components/annotations/AnnotationActionsView.tsx",
         "src/components/annotations/MarkSwatch.tsx",
+        "src/components/annotations/useVerseAnnotationMenu.tsx",
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ScriptureReaderView.tsx",
@@ -67456,6 +67595,8 @@
         "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
+        "src/components/annotations/AnnotationActionsView.tsx",
+        "src/components/annotations/useVerseAnnotationMenu.tsx",
         "src/components/learning/ContentStatus.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ScriptureReaderView.tsx",
@@ -67483,7 +67624,7 @@
       "requestEvidence": [
         "/api/annotations",
         "/api/annotations?view=reader&chapterId=${encodeURIComponent(chapterId)}",
-        "/api/annotations?view=reader&targetKey=${encodeURIComponent(key)}",
+        "/api/annotations?view=reader&targetKey=${encodeURIComponent(await clientTargetKey(target))}",
         "/api/chapters/${chapterId}/read",
         "/api/chapters/${chapterId}/submit",
         "/api/chapters/${encodeURIComponent(sourceId)}/audio-languages",
@@ -73498,7 +73639,7 @@
     },
     {
       "file": "src/components/LessonFlow.tsx",
-      "sha256": "f1b0ad481ec345e80e9c491bf78a6eeea7a568d40eda71d9c406eb866cc5740c",
+      "sha256": "4924139b83d47336e36185438ecb4aaaa7db2aa5b981d3643e13790cdf0d086e",
       "boundary": "client",
       "imports": [
         "@/components/ExerciseFeedbackSheet",
@@ -73506,6 +73647,7 @@
         "@/components/ReadAloudPlayer",
         "@/components/StreakContinuation",
         "@/components/annotations/AnnotationActions",
+        "@/components/annotations/useVerseAnnotationMenu",
         "@/components/learning/ContentStatus",
         "@/components/reading/ScriptureReaderView",
         "@/components/versado/AchievementIcon",
@@ -75261,7 +75403,29 @@
     },
     {
       "file": "src/components/annotations/AnnotationActions.tsx",
-      "sha256": "11d6f264f514c35d4367f26a72042a102a5ad99b4b646771a2902155db3b242d",
+      "sha256": "ef4f01405c19ec5aa17bef5941a5cef2ce00f24585f4779f5a4fe8a2a2480e20",
+      "boundary": "client",
+      "imports": [
+        "./AnnotationActionsView",
+        "@/lib/annotations/clientContract",
+        "@/lib/data/fetchJson",
+        "@/lib/data/mutation"
+      ],
+      "methods": [],
+      "requests": [
+        "/api/annotations",
+        "/api/annotations?view=reader&targetKey=${encodeURIComponent(await clientTargetKey(target))}"
+      ],
+      "checks": [],
+      "exports": [
+        "AnnotationActions",
+        "AnnotationTrigger",
+        "StudyAnnotationContext"
+      ]
+    },
+    {
+      "file": "src/components/annotations/AnnotationActionsView.tsx",
+      "sha256": "e7f68b09318ccca697de43d9f2991867c4ad72de50d34e9aeb72686d7f23c07b",
       "boundary": "client",
       "imports": [
         "./MarkSwatch",
@@ -75269,20 +75433,15 @@
         "@/components/versado/styles",
         "@/lib/annotations/clientContract",
         "@/lib/annotations/contract",
-        "@/lib/data/fetchJson",
-        "@/lib/data/mutation",
         "lucide-react",
         "react",
         "react-dom"
       ],
       "methods": [],
-      "requests": [
-        "/api/annotations",
-        "/api/annotations?view=reader&targetKey=${encodeURIComponent(key)}"
-      ],
+      "requests": [],
       "checks": [],
       "exports": [
-        "AnnotationActions",
+        "AnnotationActionsView",
         "AnnotationTrigger",
         "StudyAnnotationContext"
       ]
@@ -75350,6 +75509,22 @@
       "checks": [],
       "exports": [
         "StudyAnnotations"
+      ]
+    },
+    {
+      "file": "src/components/annotations/useVerseAnnotationMenu.tsx",
+      "sha256": "680665717d2cc02e25d887443dc37165dbc64a4958789fabea5cb0827139758a",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "lucide-react",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "useVerseAnnotationMenu"
       ]
     },
     {
@@ -76161,7 +76336,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "a93e2b2e0130328a356c3102c34497d8f8782c1ceb5cb84b4d4e4caf3c48303c",
+      "sha256": "0850115d81cd345d25209a5d951d56d759c964f967b39bcf13fdaf4e21a3bba3",
       "boundary": "client",
       "imports": [
         "./NativeContentPicker",
@@ -76214,7 +76389,7 @@
     },
     {
       "file": "src/components/native/NativeLearningView.tsx",
-      "sha256": "18d738d8a8995f9c227ccaba471c75957db1435a5510622bff07abe6d651b7f2",
+      "sha256": "9ee9cf4cf902fac53be9555cbf47ef89e69b07387db26fd0e44ac9abbab6cb76",
       "boundary": "client",
       "imports": [
         "./NativeCfmCourseView",
@@ -76247,7 +76422,7 @@
     },
     {
       "file": "src/components/native/NativeNavigationProvider.tsx",
-      "sha256": "8be6c84d7e59c1a882ae6e9d416009b5f048dc1f2635767659e7be1b7c4d3d18",
+      "sha256": "5048c16abbf054f89f08dcbe3dfbde2a9aab5611759336613d735a68690f6bed",
       "boundary": "client",
       "imports": [
         "@/components/navigation/AppNavigation",
@@ -76290,11 +76465,13 @@
     },
     {
       "file": "src/components/native/NativeReaderView.tsx",
-      "sha256": "64e81b3bcc2e1880848172d9f4376900b516c2db335263e8a80c3e9190b49dc0",
+      "sha256": "9f0ae65f613e8e76a635379a8cfcb14bb85f561c4a231bbafa1efac07e676ad4",
       "boundary": "client",
       "imports": [
         "./useNativeReaderPosition",
         "@/components/I18nProvider",
+        "@/components/annotations/AnnotationActionsView",
+        "@/components/annotations/useVerseAnnotationMenu",
         "@/components/navigation/AppNavigation",
         "@/components/reading/ScriptureReaderView",
         "@/components/versado/FocusLayout",
@@ -76418,7 +76595,7 @@
     },
     {
       "file": "src/components/navigation/AppNavigation.tsx",
-      "sha256": "02f2281a4ca4059133020ec8dfdf81affe9791f35c2cb12a9c745e1b7f41648c",
+      "sha256": "3adfc2fb8a415d864cc83333c36486cfd98868792d73a9cd3ff7a233bfb8f1c0",
       "boundary": "client",
       "imports": [
         "react"
@@ -79182,6 +79359,8 @@
     "tests/native-access.test.ts",
     "tests/native-account.integration.test.ts",
     "tests/native-android-release.test.mjs",
+    "tests/native-annotations.integration.test.ts",
+    "tests/native-annotations.test.ts",
     "tests/native-content.browser.mjs",
     "tests/native-content.integration.test.ts",
     "tests/native-courses.browser.mjs",

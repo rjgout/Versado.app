@@ -81,6 +81,6 @@ export default function NativeNavigationProvider({ children }: { children: React
       window.removeEventListener("touchstart", stop); window.removeEventListener("wheel", stop); window.removeEventListener("keydown", stop); window.removeEventListener("pointerdown", stop);
     };
   }, [snapshot]);
-  const adapter = useMemo(() => ({ pathname: snapshot.href, contentDeparture: router.contentDeparture, push: router.push, replace: router.replace, back: router.back, canGoBack: router.canGoBack, refresh: router.refresh, Link: NativeLink }), [router, snapshot]);
+  const adapter = useMemo(() => ({ pathname: snapshot.href, registerNavigationGuard:router.registerNavigationGuard, contentDeparture: router.contentDeparture, push: router.push, replace: router.replace, back: router.back, canGoBack: router.canGoBack, refresh: router.refresh, Link: NativeLink }), [router, snapshot]);
   return <AppNavigationProvider adapter={adapter}>{children}</AppNavigationProvider>;
 }

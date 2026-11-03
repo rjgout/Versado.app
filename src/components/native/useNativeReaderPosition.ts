@@ -22,6 +22,7 @@ export function useNativeReaderPosition(reader: NativeReader | undefined, versio
     let armed=false, timer:ReturnType<typeof setTimeout>|undefined, lastSent=-Infinity, lastVerse:number|null=null, lastVersion:number|null=null;
     const cancel=()=>{clearTimeout(timer);timer=undefined;};
     const visibleVerse=()=>{
+      if(document.querySelector("dialog[open]"))return null;
       const header=document.querySelector("[data-sticky-header]")?.getBoundingClientRect().bottom??0;
       const top=Math.max(header,0), bottom=innerHeight;
       const candidates=reader.verses.map(v=>({number:v.number,rect:document.getElementById(`vers-${v.number}`)?.getBoundingClientRect()}))
@@ -63,7 +64,7 @@ export function useNativeReaderPosition(reader: NativeReader | undefined, versio
       },Math.max(1000,8000-(performance.now()-lastSent)));
     }
     const interact=(event:Event)=>{
-      if(!event.isTrusted)return;
+      if(!event.isTrusted||document.querySelector("dialog[open]"))return;
       if(event instanceof KeyboardEvent&&!['ArrowDown','ArrowUp','PageDown','PageUp','Home','End',' '].includes(event.key))return;
       armed=true;settle();
     };

@@ -10,6 +10,9 @@ import { DATA_EVENT_SOCKET_NAME, SOCKET_EVENT_TO_DATA_EVENT, dataEventsForSocket
 import { nativeAccountSchema, nativeTodaySchema, nativeChapterSchema, nativeContentStateSchema, nativeContentResultSchema, nativeContentSelectionSchema, type NativeContentState, type NativeContentSelection } from "@/lib/native/contract";
 import { NativeClientError, type NativeSessionClient } from "@/lib/native/client";
 
+import { nativeAnnotationList, nativeAnnotationResult, nativeAnnotationMutation, nativeAnnotationContext, type NativeAnnotationList } from "@/lib/native/annotationsContract";
+import type { AnnotationAction } from "@/lib/annotations/contract";
+import type { NativeReader } from "@/lib/native/readerContract";
 import { readerResumeSchema, readerPositionInput, readerPositionResult, type ReaderResume, type ReaderPositionInput } from "@/lib/native/readerPositionContract";
 import { nativeReaderSchema, nativeReaderKind, type NativeReaderKind } from "@/lib/native/readerContract";
 import { nativeStudyCourseSchema, nativeStudyStepsSchema } from "@/lib/native/studyCoursesContract";
@@ -24,6 +27,12 @@ export const nativeLearningQueryKey = (userId: string, language: string, context
 export function nativeLearningTransientError(error: unknown): boolean {
   return error instanceof NativeClientError && (["network_unavailable", "access_network_unavailable"].includes(error.code) ||
     (["native_request_failed", "request_failed", "invalid_response"].includes(error.code) && error.status >= 500 && error.status < 600));
+}
+
+export const nativeAnnotationQueryKey = (reader: NativeReader) =>
+  ["reader-annotations",reader.userId,reader.activeCollectionId,reader.selectionVersion,reader.language,reader.courseId,reader.kind,reader.targetId,reader.chapterId,reader.startVerse,reader.endVerse] as const;
+function annotationPath(reader: NativeReader) {
+  return `courses/${nativeCourseId.parse(reader.courseId)}/read/${nativeReaderKind.parse(reader.kind)}/${nativeCourseId.parse(reader.targetId)}/annotations`;
 }
 
 export const nativeContentQueryKey = (userId: string | null) => ["content-context", userId] as const;
@@ -90,6 +99,44 @@ export class NativeDataRuntime {
       this.store.setData<ReaderResume>(["native",epoch,...queryKey],previous=>previous && previous.positionVersion<=result.version ? {...previous,positionVersion:result.version,reader:{...previous.reader,focusVerse:result.verse}}:previous);
       return result;
     };
+  }
+  private annotationResponse(value:NativeAnnotationList,reader:NativeReader,epoch:number) {
+    this.studyResponse(value,epoch,reader.userId,reader.language,reader);
+    if(value.courseId!==reader.courseId||value.kind!==reader.kind||value.targetId!==reader.targetId||value.chapterId!==reader.chapterId||value.startVerse!==reader.startVerse||value.endVerse!==reader.endVerse||value.annotations.some(row=>!reader.verses.some(verse=>verse.id===row.target.verseId)))throw new NativeClientError("content_context_changed",409);
+    return value;
+  }
+  async readerAnnotations(reader:NativeReader,verseId?:string) {
+    const epoch=this.epoch;
+    this.studyResponse(reader,epoch,reader.userId,reader.language,reader);
+    if(verseId&&!reader.verses.some(verse=>verse.id===verseId))throw new NativeClientError("content_unavailable",404);
+    const result=nativeAnnotationList.parse(await this.client.api(annotationPath(reader)+(verseId?`/${nativeCourseId.parse(verseId)}`:"")));
+    this.annotationResponse(result,reader,epoch);
+    if(verseId&&result.annotations.some(row=>row.target.verseId!==verseId))throw new NativeClientError("invalid_response");
+    return result;
+  }
+  async mutateReaderAnnotation(reader:NativeReader,action:AnnotationAction,method:"PUT"|"DELETE") {
+    const epoch=this.epoch;
+    this.studyResponse(reader,epoch,reader.userId,reader.language,reader);
+    const input=nativeAnnotationMutation.parse({operation:method==="DELETE"?"delete":"put",context:nativeAnnotationContext.parse(reader),action});
+    if(input.action.target.type!=="verse")throw new NativeClientError("content_unavailable",404);
+    const verseId=input.action.target.verseId;
+    if(!reader.verses.some(verse=>verse.id===verseId))throw new NativeClientError("content_unavailable",404);
+    if(!this.environment.isOnline())throw new NativeClientError("network_unavailable");
+    const account=await this.account();
+    this.studyResponse(reader,epoch,reader.userId,reader.language,reader);
+    if(account.id!==reader.userId)throw new NativeClientError("session_changed",409);
+    const result=nativeAnnotationResult.parse(await this.client.actionOnce(annotationPath(reader),input));
+    this.annotationResponse({...result,annotations:[result.annotation],complete:true},reader,epoch);
+    if(result.actionId!==input.action.actionId||result.annotation.kind!==input.action.kind||result.annotation.targetKey!==`verse:${input.action.target.verseId}`||result.annotation.mutationVersion!==input.action.expectedVersion+1||result.annotation.deleted!==(method==="DELETE"))throw new NativeClientError("invalid_response");
+    // Alleen bevestigde serverdata; writeVersion beschermt tegen oudere GETs.
+    this.store.setData<NativeAnnotationList>(["native",epoch,...nativeAnnotationQueryKey(reader)],old=>{
+      if(!old)return old;
+      const current=old.annotations.find(row=>row.kind===result.annotation.kind&&row.targetKey===result.annotation.targetKey);
+      if(current&&current.mutationVersion>result.annotation.mutationVersion)return old;
+      return {...old,annotations:[...old.annotations.filter(row=>row.kind!==result.annotation.kind||row.targetKey!==result.annotation.targetKey),result.annotation]};
+    });
+    this.store.invalidate("annotationsChanged");
+    return result;
   }
   async studyCourse(userId:string,language:string,expected:{activeCollectionId:string|null;selectionVersion:number},courseId:string,scope:"weeks"|"archive") {
     const epoch=this.epoch;

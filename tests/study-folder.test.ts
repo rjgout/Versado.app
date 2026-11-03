@@ -106,6 +106,6 @@ test("kleurweergave: tokens voor licht en donker, swatch en niet-kleurkenmerken 
   assert.match(css, /\[data-annotation-color\] \{[^}]*linear-gradient/, "kleurbalk als niet-kleurkenmerk");
   assert.match(read("src/components/annotations/StudyAnnotations.tsx"), /text-decoration:underline/);
   assert.match(read("src/components/annotations/MarkSwatch.tsx"), /aria-hidden/);
-  assert.match(read("src/components/annotations/AnnotationActions.tsx"), /<MarkSwatch color=\{color\} checked=/);
+  assert.match(read("src/components/annotations/AnnotationActionsView.tsx"), /<MarkSwatch color=\{color\} checked=/);
   assert.match(read("src/components/study-folder/StudyFolderClient.tsx"), /data-folder-color=/);
 });

@@ -10,6 +10,7 @@ function browser(hash = "", state: unknown = null) {
     get state() { return entries[cursor].state; },
     replaceState(state: unknown, _unused: string, url?: string | URL | null) { entries[cursor] = { state, hash: String(url) }; },
     pushState(state: unknown, _unused: string, url?: string | URL | null) { entries.splice(cursor + 1); entries.push({ state, hash: String(url) }); cursor++; },
+    go(delta:number) { const next=cursor+delta;if(next>=0&&next<entries.length){cursor=next;for(const notify of listeners)notify();} },
     back() { if (cursor) { cursor--; for (const notify of listeners) notify(); } },
   };
   return { location, history, addEventListener(_type: "popstate", listener: () => void) { listeners.add(listener); }, removeEventListener(_type: "popstate", listener: () => void) { listeners.delete(listener); }, entries };
@@ -79,4 +80,18 @@ test("contentkiezer onthoudt alleen de lokale vertrekroute en wist die bij afmel
   assert.equal(nativeDeepLink("https://dev.versado.app/diagnostics", "https://dev.versado.app"), null);
   assert.equal(nativeDeepLink("https://dev.versado.app/content", "https://dev.versado.app"), "/content");
   assert.ok(window.entries.every(entry => !JSON.stringify(entry.state).includes("chapter-a") || entry.hash === "#/lesson/chapter-a"));
+});
+
+
+test("een conceptguard bewaart route/history bij push, replace en browserterug; expliciet verwerpen hervat eenmaal",()=>{
+ const window=browser(),router=new NativeNavigator(window);router.listen();router.push("/courses/c/pad");router.push("/courses/c/read/chapters/ch");
+ let proceed:(()=>void)|undefined;
+ const release=router.registerNavigationGuard(next=>{proceed=next;return false;});
+ const before=router.getSnapshot();router.push("/profile");assert.equal(router.getSnapshot(),before);assert.equal(window.entries.length,3);
+ proceed!();assert.equal(router.getSnapshot().href,"/profile");
+ router.replace("/content");assert.equal(router.getSnapshot().href,"/profile");
+ window.history.back();assert.equal(router.getSnapshot().href,"/profile");assert.equal(window.location.hash,"#/profile");
+ proceed!();assert.equal(router.getSnapshot().href,"/courses/c/read/chapters/ch");
+ router.replace("/login");assert.equal(router.getSnapshot().href,"/login","authenticatie-intrekking kan een conceptguard nooit blokkeren");
+ release();router.back();assert.equal(router.getSnapshot().href,"/courses/c/pad","normale historie blijft gelijk; geen fix van #259");
 });
