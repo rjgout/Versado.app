@@ -27,6 +27,14 @@ test("een te grote header blijft niet vast staan", () => {
   assert.equal(isHeaderTall(100, 0), false);
 });
 
+test("actieve spelerbediening blijft bereikbaar bij grote tekst; zonder bediening geldt de gewone tall-headerregel", () => {
+  assert.equal(isHeaderTall(429, 844), true);
+  assert.equal(isHeaderTall(429, 844, true), false);
+  assert.equal(isHeaderTall(429, 844, false), true);
+  assert.equal(isHeaderTall(429, 568, true), false);
+  assert.equal(isHeaderTall(900, 568, true), true, "Te hoge bediening mag de leesruimte niet volledig blokkeren");
+});
+
 test("grote tekst wordt herkend vanaf 140% en decoratieve beelden wijken dan", () => {
   assert.equal(isLargeText(1), false);
   assert.equal(isLargeText(1.25), false);

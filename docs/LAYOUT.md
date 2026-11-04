@@ -46,7 +46,11 @@ zet op `<html>`:
 | `data-keyboard` | schermtoetsenbord open: onderbalk verdwijnt | CSS in `globals.css` |
 
 Vóór de eerste meting gelden `--header-default` en `--nav-default` (in
-`globals.css`, per shellmodus), zodat de inhoud niet verspringt. Pure regels
+`globals.css`, per shellmodus), zodat de inhoud niet verspringt. Actieve native voorleesbediening mag bij grote tekst vast blijven zolang de
+hele balk maximaal 80% van de viewport inneemt (`data-shell-persistent-controls`).
+De webspeler zet die marker niet; voor een hogere balk geldt de scrollende
+fallback. De native speler staat net als web na de terugbalk, zodat Focus de
+veilige bovenrand vóór alle bediening vrijhoudt. Pure regels
 staan in `src/lib/shellMetrics.ts` (getest). Geen component meet of zet deze
 variabelen zelf (`tests/shell-layout.test.ts` controleert dat).
 
