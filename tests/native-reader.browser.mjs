@@ -559,6 +559,10 @@ try {
         await page.waitForFunction(()=>!document.querySelector("[data-native-reader] .reader-text"));
         assert.equal(await page.locator("[data-native-reader] .reader-text").count(),0,"ingetrokken collectierechten verbergen oude tekst");
       }finally{await prisma.contentCollection.update({where:{id:f.collection.id},data:{visibleToUsers:true}});}
+      // Deze afzonderlijke heropenproef begint pas na de lopende bootstrap/
+      // refresh en HTTP-geëmuleerde Keychain-opslag van reader:test-resume.
+      // Alleen verdwenen tekst bewijst de weigering, niet voltooid sessieherstel.
+      await page.waitForLoadState("networkidle");
       await page.reload();await waitReader();
     }
     // Werkelijke padlink en terugnavigatie: de React-padpresentatie blijft gemount, geen tweede UI-cache.

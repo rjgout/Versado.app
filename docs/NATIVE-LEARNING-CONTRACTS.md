@@ -126,8 +126,10 @@ Fysieke vragenbediening hoort bij B3c-2 en is niet uitgevoerd in B3c-1.
 - Historische `courseLessonId`-remaps uit `applyLessonPlan` blijven mogelijk; de
   oorspronkelijke native context/resultaten worden niet naar een nieuwe route herschreven.
 - Bij een krimpende vraagset blijven `answered` en `rewardCorrect` monotone historische
-  tellers. Dezelfde XP-tarieven blijven gelden; verdiende basis-XP wordt niet afgetrokken
-  of na heruitbreiding nogmaals uitgekeerd. Pure én echte transactietests dekken dit.
+  tellers. Dezelfde XP-tarieven blijven gelden; een negatieve `baseXp`-uitkomst en verlaging van `baseXpEarned`/historische
+  credits worden voorkomen. `User.xpTotal` werd in het bestaande pad niet negatief
+  bijgeboekt, omdat `awardXp` alleen positieve bedragen verwerkt. De historische
+  tellerverlaging kon wel heruitbetaling na heruitbreiding mogelijk maken. Pure én echte transactietests dekken dit.
 - De onafhankelijke code-/securityreview gaf GO zonder resterende P0–P2-bevindingen,
   onder voorwaarde van groene definitieve CI en platformcompilaties.
 
@@ -138,3 +140,18 @@ pariteitscontrole (6/6), interne native bundel, Capacitor-sync en distributiecon
 voor iOS/Android. Migratiebehoud/foutrollback en bestaande constraintbescherming
 zijn uitsluitend op wegwerpdatabases/schema's getest. De PR geeft de CI-status
 op de definitieve SHA; Linux-compilatie geldt niet als iOS-/Android-apparaatacceptatie.
+
+
+### Afbakening browserheropening
+
+De eerste volledige CI-run stopte in de bestaande readerbrowser bij herladen na
+het intrekken en herstellen van collectierechten. Dezelfde ongewijzigde proef
+passeerde dat punt lokaal. De proef wachtte op verdwenen tekst, terwijl het
+`reader:test-resume`-event ook bootstrap/refresh en de HTTP-geëmuleerde Keychain
+activeert. Vóór de afzonderlijke heropenproef wordt nu op `networkidle` gewacht.
+De onafhankelijke reviewer bevestigde deze minimale testafbakening; alle negatieve
+rechten-/tekstasserties blijven staan. Er is geen authenticatiecode gewijzigd,
+geen verse sessie gesimuleerd en geen test verwijderd of versoepeld. De precieze
+interne refresh/storage-interleaving van de eerste CI-fout is zonder extra
+requestcorrelatie niet volledig bewezen; de definitieve PR-checks tonen het
+resultaat na de expliciete synchronisatie.
