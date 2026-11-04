@@ -17666,7 +17666,7 @@
     },
     {
       "file": "src/lib/courses.ts",
-      "sha256": "69a6b3189bc02a27e4ff7169e3815099850ba23c516cf945bfccd5ad275733b6",
+      "sha256": "4ddda0e6ae631916633a2aaed3c41e2380157505b49ca51f2eacd6b00f911355",
       "boundary": "context-dependent",
       "imports": [
         "./chapterTerm",
@@ -20124,7 +20124,7 @@
     },
     {
       "file": "src/lib/learning/contentProgress.ts",
-      "sha256": "25fe58d1abf497af784bc527c6617ef12b801a3dbc0978dc93de093ddbeb275e",
+      "sha256": "cd52210aa12ab93c160b9ee55cb125049a7f39970a33278b5e40bd2107c1d0eb",
       "boundary": "context-dependent",
       "imports": [
         "@/generated/prisma/client",
@@ -20155,6 +20155,7 @@
         "getChapterStates",
         "getExercisePlan",
         "getExercisePlans",
+        "getReadingStepExercisePart",
         "issueExerciseSession",
         "issueStudyExerciseSession",
         "markChapterRead",
@@ -20328,7 +20329,7 @@
     },
     {
       "file": "src/lib/learning/rewards.ts",
-      "sha256": "487c3a0865c1273032ea860e383014fe3953c79b385ce4e31d6759bf971d087f",
+      "sha256": "5b11cb0c90bf4b4501b6bbb0df55a38a76c0fd65b1a45d1a34d110ef2f2279d1",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/xpRules"
@@ -21118,7 +21119,7 @@
     },
     {
       "file": "src/lib/native/access.ts",
-      "sha256": "e436c440d85ff33df968b235e0fe5fc04aea7ba2ac4e21837fabce28dac61d7b",
+      "sha256": "affdc0bcbbd467ccc1248ff69e2cdf5871c46fc0101147d63637ac6cfcbe9f53",
       "boundary": "context-dependent",
       "imports": [
         "./client",
@@ -21199,7 +21200,7 @@
     },
     {
       "file": "src/lib/native/api.ts",
-      "sha256": "4e6089308f6a9b6a5991f650fe83da97106c173a552cfece27427564adfbbb25",
+      "sha256": "2365675b687322d974b5a08e0720c600a99880187d4d991c42729a22f799c2dc",
       "boundary": "context-dependent",
       "imports": [
         "./annotations.server",
@@ -21210,6 +21211,8 @@
         "./contract",
         "./courses.server",
         "./coursesContract",
+        "./learning.server",
+        "./learningContract",
         "./origin",
         "./password",
         "./reader.server",
@@ -21588,6 +21591,75 @@
       "exports": [
         "confirmNativeEmail",
         "emailConfirmationStatus"
+      ]
+    },
+    {
+      "file": "src/lib/native/learning.server.ts",
+      "sha256": "437818c23092dc8387b3885e8eb4dcb8266473961888f038440a60868efcc93f",
+      "boundary": "context-dependent",
+      "imports": [
+        "./learningContract",
+        "./reader.server",
+        "./readerContract",
+        "./sessions",
+        "@/generated/prisma/client",
+        "@/lib/account/mutation",
+        "@/lib/courses",
+        "@/lib/db",
+        "@/lib/exerciseGen",
+        "@/lib/learning/contentProgress",
+        "@/lib/notify",
+        "@/lib/readingLessons",
+        "@/lib/realtime",
+        "node:crypto",
+        "zod"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "checkNativeLearning",
+        "completeNativeReading",
+        "nativeLearningSession",
+        "startNativeLearning",
+        "submitNativeLearning"
+      ]
+    },
+    {
+      "file": "src/lib/native/learningClient.ts",
+      "sha256": "9d3bc87c5a4a705bea157791d706a49dd8547fd5e9f7e2c1bf44fa160cb34499",
+      "boundary": "context-dependent",
+      "imports": [
+        "./client",
+        "./coursesContract",
+        "./learningContract",
+        "./readerContract",
+        "zod"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "nativeLearningClient"
+      ]
+    },
+    {
+      "file": "src/lib/native/learningContract.ts",
+      "sha256": "7bab8d620c944d37d2ae44290862e97d90c4f6f8a3857c8eb868e33c557a4d51",
+      "boundary": "context-dependent",
+      "imports": [
+        "./coursesContract",
+        "zod"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NATIVE_LEARNING_CAPABILITY",
+        "nativeLearningCheck",
+        "nativeLearningScope",
+        "nativeLearningStart",
+        "nativeLearningSubmit"
       ]
     },
     {
@@ -23363,7 +23435,7 @@
     },
     {
       "file": "src/lib/readingLessons.ts",
-      "sha256": "9ebd32baaeee673e0d36d1af1fc0f815a533286eec22a070ad52bfbd9490345b",
+      "sha256": "67326c4a16aa987bc0447b67c9b2ca3beeeaef0f87528efc14052ee961270ca1",
       "boundary": "context-dependent",
       "imports": [
         "@/generated/prisma/client",
@@ -51234,6 +51306,8 @@
         "src/lib/native/contract.ts",
         "src/lib/native/courses.server.ts",
         "src/lib/native/coursesContract.ts",
+        "src/lib/native/learning.server.ts",
+        "src/lib/native/learningContract.ts",
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/password.ts",
@@ -79739,6 +79813,8 @@
     "tests/native-foundation.integration.test.ts",
     "tests/native-foundation.test.ts",
     "tests/native-ios-release.test.mjs",
+    "tests/native-learning.integration.test.ts",
+    "tests/native-learning.test.ts",
     "tests/native-navigation.test.ts",
     "tests/native-parity.test.mjs",
     "tests/native-reader.browser.mjs",

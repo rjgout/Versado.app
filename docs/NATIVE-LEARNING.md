@@ -135,3 +135,9 @@ Foundation-hoofdstukafronding wordt vanuit deze nieuwe app niet meer aangeboden.
 
 Duurzame hervatpositie en hoofdstuknavigatie staan beschreven in
 [NATIVE-READER.md](NATIVE-READER.md#b3b-2a--duurzame-hervatpositie-en-hoofdstuknavigatie).
+
+
+B3c-1 voegt de [veilige schriftvragen- en afrondingscontracten](NATIVE-LEARNING-CONTRACTS.md)
+toe, zonder vrageninterface. De huidige gedeelde lezer blijft leespositie,
+annotaties en audio gebruiken zonder impliciete afronding. B3c-2 sluit de bestaande
+vragencomponenten pas na afzonderlijke goedkeuring aan.
