@@ -123,7 +123,7 @@ export interface ReadingLessonResult extends ContentExerciseResult {
 }
 
 /** Levert de vragen van een stap in (zie submitExerciseSession). */
-export async function completeReadingLesson(userId: string, lessonId: string, sessionId: string, answers: SubmittedAnswer[]): Promise<ReadingLessonResult> {
+export async function completeReadingLesson(userId: string, lessonId: string, sessionId: string, answers: SubmittedAnswer[], tx?: Prisma.TransactionClient): Promise<ReadingLessonResult> {
   let nextLessonId: string | null = null;
   const hooks: SessionHooks = {
     validate: async (tx, session) => {
@@ -136,7 +136,7 @@ export async function completeReadingLesson(userId: string, lessonId: string, se
       nextLessonId = await recordStepDone(tx, userId, lessonId, lesson.courseId, outcome.scorePercent, outcome.xpEarned);
     },
   };
-  const result = await submitExerciseSession(userId, sessionId, answers, hooks);
+  const result = await submitExerciseSession(userId, sessionId, answers, hooks, tx);
   return { ...result, nextLessonId };
 }
 
@@ -145,15 +145,18 @@ export async function completeReadingLesson(userId: string, lessonId: string, se
  * gelezen. Dit levert geen XP op, maar de uitdrukkelijk afgeronde stap telt
  * wel (één keer per stap) als activiteit voor de reeks.
  */
-export async function completeReadingOnlyStep(userId: string, lessonId: string): Promise<{ nextLessonId: string | null }> {
-  const { nextLessonId, streak } = await prisma.$transaction(async (tx) => {
+export async function completeReadingOnlyStep(userId: string, lessonId: string, transaction?: Prisma.TransactionClient): Promise<{ nextLessonId: string | null }> {
+  const run = async (tx: Prisma.TransactionClient) => {
+    // Web en native nemen dezelfde lockvolgorde, ook bij gelijktijdig afronden.
+    await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${userId} FOR UPDATE`;
     const { courseId, available } = await stepAvailable(tx, userId, lessonId);
     if (!available) throw new ExerciseSessionError("LOCKED");
     await markStepRead(tx, userId, lessonId);
     const nextLessonId = await recordStepDone(tx, userId, lessonId, courseId, 100, 0);
     const streak = await recordLearningActivity(tx, userId, { kind: "READING", answered: 1, required: 1, key: `read-step:${lessonId}` });
     return { nextLessonId, streak };
-  });
-  if (streak.counted) emitToUser(userId, "streak_changed", { dayEarned: streak.dayEarned, currentStreak: streak.currentStreak });
+  };
+  const { nextLessonId, streak } = transaction ? await run(transaction) : await prisma.$transaction(run);
+  if (!transaction && streak.counted) emitToUser(userId, "streak_changed", { dayEarned: streak.dayEarned, currentStreak: streak.currentStreak });
   return { nextLessonId };
 }

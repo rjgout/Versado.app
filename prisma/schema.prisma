@@ -1856,6 +1856,8 @@ model ExerciseSession {
   chapterId      String?
   chapter        Chapter?      @relation(fields: [chapterId], references: [id], onDelete: Cascade)
   studyContext   Json?
+  // Immutable native autorisatie-/uitdeelcontext; resultaat uitsluitend na submit.
+  nativeContext  Json?
   result         Json?
   contentKey     String
   // JSON-array met de uitgedeelde Exercise-id's.

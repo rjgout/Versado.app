@@ -1263,3 +1263,16 @@ Socket-events (web; native handshake nog niet aanwezig):
 - `use_hint`
 
 <!-- END NATIVE PARITY INVENTORY -->
+
+
+## B3c-1 — schriftvragen- en afrondingscontracten (nog zonder native vragen-UI)
+
+De versiegebonden capability `scripture-learning-v1` sluit uitsluitend de bestaande
+serverdiensten aan: uitgedeelde schriftvragen, directe controle, inleveren,
+expliciet lezen en herstel van het oorspronkelijke resultaat. De native lezer
+start deze acties nog niet; de gedeelde vragen-/resultaatpresentatie volgt in B3c-2.
+Geen volledige functiepariteit of fysieke toestelacceptatie geclaimd.
+Zie [contracten en commitgrens](NATIVE-LEARNING-CONTRACTS.md). De additieve
+`nativeContext`-migratie bewaart de bestaande result-check en alle bestaande data.
+Account-/bron-/sessiegrenzen, read-only GET en veilige replay zijn onderdeel van
+de geïsoleerde technische acceptatie. Geen nieuwe XP- of voortgangsregels.

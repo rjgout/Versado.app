@@ -65,6 +65,20 @@ public class NativeAccessTransportTest {
             }
         }
     }
+    @Test public void learningIsExplicitAndExactlyScoped() {
+        for(String kind:new String[]{"steps","chapters"}) {
+            String prefix="courses/c/read/"+kind+"/t/learning/";
+            String status=prefix+"sessions/00112233-4455-4677-8899-aabbccddeeff";
+            assertTrue(NativeAccessTransport.routeAllowed(status,"GET"));
+            assertFalse(NativeAccessTransport.routeAllowed(status,"POST"));
+            for(String action:new String[]{"start","submit","read","check"}) {
+                assertTrue(NativeAccessTransport.routeAllowed(prefix+action,"POST"));
+                assertFalse(NativeAccessTransport.routeAllowed(prefix+action,"GET"));
+                for(String suffix:new String[]{"/x","?a=1","#x","\n","%2f"}) assertFalse(NativeAccessTransport.routeAllowed(prefix+action+suffix,"POST"));
+            }
+        }
+    }
+
     @Test public void annotationsAreExactlyScopedToExistingReaderTargets() {
         for(String path:new String[]{"courses/c/read/steps/s/annotations","courses/c/read/chapters/ch/annotations"}) {
             assertTrue(NativeAccessTransport.routeAllowed(path,"GET"));

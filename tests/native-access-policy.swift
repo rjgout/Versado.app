@@ -70,6 +70,19 @@ private final class FakeAccessProtocol: URLProtocol {
                 require(!NativeAccessPolicy.routeAllowed(path + "/position" + suffix, "POST"), "broad position enabled")
             }
         }
+        for kind in ["steps", "chapters"] {
+            let prefix = "courses/c/read/"+kind+"/t/learning/"
+            let status = prefix+"sessions/00112233-4455-4677-8899-aabbccddeeff"
+            require(NativeAccessPolicy.routeAllowed(status,"GET"), "learning resume rejected")
+            require(!NativeAccessPolicy.routeAllowed(status,"POST"), "learning resume write")
+            for action in ["start", "submit", "read", "check"] {
+                require(NativeAccessPolicy.routeAllowed(prefix+action,"POST"), "learning POST rejected")
+                require(!NativeAccessPolicy.routeAllowed(prefix+action,"GET"), "learning GET mutates")
+                for suffix in ["/x", "?a=1", "#x", "\n", "%2f"] {
+                    require(!NativeAccessPolicy.routeAllowed(prefix+action+suffix,"POST"), "broad learning route")
+                }
+            }
+        }
         for path in ["courses/c/read/steps/s/annotations", "courses/c/read/chapters/ch/annotations"] {
             require(NativeAccessPolicy.routeAllowed(path,"GET"), "annotations GET rejected")
             require(NativeAccessPolicy.routeAllowed(path+"/v","GET"), "verse annotations rejected")
