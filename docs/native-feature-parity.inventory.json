@@ -10626,7 +10626,7 @@
     },
     {
       "file": "src/components/ReadAloudMiniPlayer.tsx",
-      "sha256": "8af0160a62fb8b47cb2b655e69d314d4472478c4f6a77fcb3f6704e594b05038",
+      "sha256": "1b0254839968f037d693be461d2b597ee910bc127d02db5cbd1f9d0c5b1520ed",
       "boundary": "client",
       "imports": [
         "@/components/AppSelect",
@@ -12880,7 +12880,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "b97e83a2c35f862b90c64f1b6f932878642cd1dbf462d62c9316d03b1ef4d7d7",
+      "sha256": "0448bb6e25cc0fa320d1d317ceea2efe4e6b907e3d095c1db6ead6b2db679a19",
       "boundary": "client",
       "imports": [
         "./NativeContentPicker",
@@ -13900,7 +13900,7 @@
     },
     {
       "file": "src/components/shell/ShellMetrics.tsx",
-      "sha256": "bb6b970eeaabc221e611f63d34c753288ce736b7051c358c8aece3a2bc1c96bc",
+      "sha256": "575f85b51bb1b5dd3d5f828cb75dcf57410a0369d3cfd213f7441dd157fe7610",
       "boundary": "client",
       "imports": [
         "@/lib/shellMetrics",
@@ -24176,7 +24176,7 @@
     },
     {
       "file": "src/lib/shellMetrics.ts",
-      "sha256": "abb698ba46c4d30b84d3acbb3f6e007de7f4f6348890cb6b82f38e7b8a17e347",
+      "sha256": "fdab5da0a35f38cb9788761ee54fec9c75e0e72188facceb9a13cc320635bd65",
       "boundary": "context-dependent",
       "imports": [],
       "methods": [],
@@ -74572,7 +74572,7 @@
     },
     {
       "file": "src/components/ReadAloudMiniPlayer.tsx",
-      "sha256": "8af0160a62fb8b47cb2b655e69d314d4472478c4f6a77fcb3f6704e594b05038",
+      "sha256": "1b0254839968f037d693be461d2b597ee910bc127d02db5cbd1f9d0c5b1520ed",
       "boundary": "client",
       "imports": [
         "@/components/AppSelect",
@@ -76737,7 +76737,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "b97e83a2c35f862b90c64f1b6f932878642cd1dbf462d62c9316d03b1ef4d7d7",
+      "sha256": "0448bb6e25cc0fa320d1d317ceea2efe4e6b907e3d095c1db6ead6b2db679a19",
       "boundary": "client",
       "imports": [
         "./NativeContentPicker",
@@ -77711,7 +77711,7 @@
     },
     {
       "file": "src/components/shell/ShellMetrics.tsx",
-      "sha256": "bb6b970eeaabc221e611f63d34c753288ce736b7051c358c8aece3a2bc1c96bc",
+      "sha256": "575f85b51bb1b5dd3d5f828cb75dcf57410a0369d3cfd213f7441dd157fe7610",
       "boundary": "client",
       "imports": [
         "@/lib/shellMetrics",
@@ -79798,6 +79798,7 @@
     "tests/native-annotations.test.ts",
     "tests/native-audio-player.browser.mjs",
     "tests/native-audio-player.test.ts",
+    "tests/native-audio-shell.browser.mjs",
     "tests/native-audio.integration.test.ts",
     "tests/native-audio.test.ts",
     "tests/native-content.browser.mjs",

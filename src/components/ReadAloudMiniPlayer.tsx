@@ -15,7 +15,7 @@ export default function ReadAloudMiniPlayer() {
   const progress = ((currentIndex + (isPlaying ? 1 : 0)) / source.verses.length) * 100;
 
   return (
-    <div data-read-aloud-controls onPointerDown={()=>{if(output)window.dispatchEvent(new Event("versado:read-aloud-interaction"));}} onKeyDownCapture={()=>{if(output)window.dispatchEvent(new Event("versado:read-aloud-interaction"));}} className="bg-brand-50 dark:bg-slate-800 border-b border-brand-100 dark:border-slate-700">
+    <div data-read-aloud-mini-player data-shell-persistent-controls={output ? "" : undefined} role="region" aria-label={t("player.readAloud")} data-read-aloud-controls onPointerDown={()=>{if(output)window.dispatchEvent(new Event("versado:read-aloud-interaction"));}} onKeyDownCapture={()=>{if(output)window.dispatchEvent(new Event("versado:read-aloud-interaction"));}} className="bg-brand-50 dark:bg-slate-800 border-b border-brand-100 dark:border-slate-700">
       <div className="mx-auto max-w-5xl px-4 py-2 flex flex-wrap items-center gap-2">
         <button onClick={previousVerse} disabled={isPreparing||currentIndex === 0} className="shrink-0 w-8 h-8 rounded-full text-slate-500 dark:text-slate-300 disabled:opacity-30" aria-label={t("player.prevVerse")}>
           ⏪️
@@ -27,8 +27,8 @@ export default function ReadAloudMiniPlayer() {
           ⏩️
         </button>
         <div className="min-w-0 flex-1 basis-24">
-          <p className="text-xs font-bold text-brand-700 dark:text-brand-300 truncate">
-            {t("player.verse", { title: source.title, n: currentVerse?.number ?? "" })}
+          <p role={isPreparing ? "status" : undefined} className="text-xs font-bold text-brand-700 dark:text-brand-300 truncate">
+            {isPreparing ? t("misc.loadingEllipsis") : t("player.verse", { title: source.title, n: currentVerse?.number ?? "" })}
           </p>
           <div className="flex items-center gap-2 mt-1">
             <span className="text-[10px] text-slate-400 dark:text-slate-500 tabular-nums shrink-0">{currentIndex + 1}/{source.verses.length}</span>

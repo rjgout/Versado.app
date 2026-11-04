@@ -54,6 +54,13 @@ Voorgrond-only: achtergrond, schermslot en routeverlaten stoppen. Andere
 distributieprofielen en fysieke audio-/onderbrekingsacceptatie blijven open.
 Zie [NATIVE-AUDIO.md](NATIVE-AUDIO.md) voor sessiebinding, herautorisatie en grenzen.
 
+De eigenaar bevestigde toestel-TTS op iPhone-build 2497, maar meldde een ontbrekende
+mini-speler bij 100% tekst. De gerichte UI-reparatie plaatst dezelfde mini na de
+Focus-terugbalk en veilige bovenrand. Extra volledige-shellproeven toetsen de
+werkelijke bedieningspositie, grote tekst en voorbereiding. De nieuwe reparatie
+vereist opnieuw fysieke acceptatie; officiële opnameweergave, Android en iPad
+worden hiermee niet fysiek goedgekeurd.
+
 ## Audio V2 — ontwikkelstatus
 
 De audiobibliotheek en de beheerroute `/adminbackend/content/audio` zijn toegevoegd op de webbackend.

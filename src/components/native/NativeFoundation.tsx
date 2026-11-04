@@ -241,8 +241,12 @@ function NativeFoundationContent({ audioOutput, client, termsUrl = null, onLangu
   const detail = !!readerRoute || (learningPage && navigation.pathname !== "/courses") || diagnostics || pickerPage || legal || profile || passwordPage || resetPage || confirmationPage || !!chapterId;
   const shellAccount = user && !setup && !recoveryCodes ? user : null;
   return <AccountActionsProvider actions={accountActions}><AppShellFrame
-    header={<><NativeShellHeader account={shellAccount} onError={report} content={content} buildIndicator={buildIndicator} destinations={destinations} /><ReadAloudMiniPlayer /></>}
-    headerExtras={detail && <SubpageBackBarView title={diagnostics ? t("nativeDiagnostics.title") : pickerPage ? t("contentSwitcher.picker.title") : profile ? t("nav.profile") : readerRoute ? t("pages.lesson") : learningPage ? t("pages.course") : chapterId ? t("pages.lesson") : t("common.back")} onBack={() => navigation.back(readerRoute ? `/courses/${readerRoute.courseId}/pad` : learningPage ? navigation.pathname.endsWith("/archief") ? navigation.pathname.replace(/archief$/, "pad") : "/courses" : "/dashboard")} />}
+    header={<NativeShellHeader account={shellAccount} onError={report} content={content} buildIndicator={buildIndicator} destinations={destinations} />}
+    headerExtras={<>
+      {detail && <SubpageBackBarView title={diagnostics ? t("nativeDiagnostics.title") : pickerPage ? t("contentSwitcher.picker.title") : profile ? t("nav.profile") : readerRoute ? t("pages.lesson") : learningPage ? t("pages.course") : chapterId ? t("pages.lesson") : t("common.back")} onBack={() => navigation.back(readerRoute ? `/courses/${readerRoute.courseId}/pad` : learningPage ? navigation.pathname.endsWith("/archief") ? navigation.pathname.replace(/archief$/, "pad") : "/courses" : "/dashboard")} />}
+      {/* De terugbalk reserveert in Focus de veilige bovenrand, ook voor de speler eronder. */}
+      <ReadAloudMiniPlayer />
+    </>}
     showNavigation={!!shellAccount} destinations={destinations}
     mainClassName="native-foundation flex min-h-dvh w-full flex-col gap-5 bg-vs-bg text-vs-fg"
   >

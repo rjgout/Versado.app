@@ -26,6 +26,12 @@ try{
  }
  const page=await browser.newPage({viewport:{width:390,height:844}});
  await page.goto(`http://127.0.0.1:${server.address().port}/?platform=web&language=nl`);await page.locator('[data-scripture-reader]').waitFor();await page.screenshot({path:`${out}/web-nl-390-light.png`,fullPage:true});
+ // Alleen spraakuitvoer gesimuleerd; de echte webprovider/mini blijft actief zonder native layoutmarker.
+ await page.evaluate(()=>{window.speechSynthesis.speak=()=>{};});
+ await page.locator('button.w-full:not(:disabled)').click();await page.locator('[data-read-aloud-mini-player]').waitFor();
+ assert.equal(await page.locator('[data-read-aloud-mini-player]').getAttribute('data-shell-persistent-controls'),null,'Web houdt het bestaande tall-headerbeleid');
+ await page.locator('[data-read-aloud-mini-player] button').last().click();
+
  await page.goto(`http://127.0.0.1:${server.address().port}/?language=nl`);await page.locator('[data-native-read-aloud] button.w-full:not(:disabled)').waitFor();await page.screenshot({path:`${out}/native-nl-390-light.png`,fullPage:true});
  await page.goto(`http://127.0.0.1:${server.address().port}/?mode=tts&voices=none`);await page.locator('[data-native-read-aloud] [role=status]').waitFor();assert.equal(await page.locator('[data-native-read-aloud] button.w-full').isDisabled(),true);assert.equal(await page.evaluate(()=>window.audioEvidence.commands.length),0);await page.close();
  const delayed=await browser.newPage({viewport:{width:390,height:844}});
@@ -34,3 +40,6 @@ try{
  await delayed.locator('header button').last().click();await delayed.evaluate(()=>window.releaseAudio());await delayed.waitForTimeout(100);assert.equal(await delayed.evaluate(()=>window.audioEvidence.commands.length),0);await delayed.close();
  console.log('PASS: echte gedeelde speler/lezer/mini, 5 talen × opname/TTS, 320px/200% donker, geen voortgangswrite, ontbrekende stem, webpreview. OS-uitvoer gesimuleerd; geen fysieke acceptatie.');
 }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}
+
+// De oorspronkelijke componentproef blijft behouden; de echte shell is aanvullend verplicht.
+await import("./native-audio-shell.browser.mjs");

@@ -311,3 +311,94 @@ geïnstalleerde APK: uitsluitend INTERNET, netwerkstatus, bestaande haptics en d
 eigen signature-permissie voor niet-geëxporteerde receivers. Geen wakelock,
 microfoon- of algemene pakketinzage. Media3's netwerkstatuspermissie ondersteunt
 de bestaande netwerk-/streamingafhandeling; de TTS-query vraagt geen permissie.
+
+
+## Herstel mini-speler in de native Focus-shell (build 2497)
+
+De eigenaar bevestigde op een fysieke iPhone 17 Pro Max bij 100% tekst dat
+Nederlandse toestel-TTS speelt, ook vanuit een versmenu, maar de mini-speler
+ontbreekt. Dat bewijst nog geen defect in officiële opgenomen audio. De nieuwe
+reparatie zelf is **PENDING PHYSICAL ACCEPTANCE**.
+
+### Aantoonbare compositie- en meetfouten
+
+De volledige `NativeFoundation` rendert één `ReadAloudPlayerProvider` met de
+werkelijke `NativeReaderView`, `NativeReadAloudOutput`, router, `AppShellFrame`,
+`StickyHeader`, `FocusModeController` en `ShellMetrics`. De mini was gemount,
+`source` bleef geldig en TTS gaf afspeelmeldingen terug. Focus verbergt uitsluitend
+de globale header; React-status of een ontbrekende provider verklaarde de
+reproductie niet.
+
+1. **Veilige bovenrand bij normale tekst.** Native plaatste de mini vóór de
+   terugbalk. De veilige bovenrand wordt in Focus op die terugbalk vrijgehouden,
+   waardoor de speler zelf op y=0 stond. De falende browserproef op 440×956/100%
+   met een gesimuleerde safe-top van 62px mat de gehele mini op y=0–53px. Dat is
+   binnen de voor iOS-systeemweergave vrij te houden rand. Dezelfde mini staat nu
+   net als op web ná de terugbalk, binnen dezelfde gemeten wrapper. De DOM van de
+   fysieke iPhone is niet op afstand uitgelezen; dit is reproduceerbaar
+   compositiebewijs en verklaart het gemelde ontbreken zonder TTS uit te schakelen.
+2. **Afzonderlijk grote-tekstgeval.** Op 320×844/200% werd de 429px hoge balk
+   volgens de gewone 34%-regel scrollend. Na starten lager op de pagina stond
+   de mini op y=-577–-312px. Alleen actieve native bediening markeert nu dat zij
+   bereikbaar moet blijven; `ShellMetrics` blijft de enige meetplek. Vastzetten
+   gebeurt uitsluitend zolang minstens 20% van de viewport buiten de balk blijft.
+   Voor een uitzonderlijk hogere balk blijft de bestaande scrollende fallback
+   gelden. Web zet deze native marker niet en behoudt zijn bestaande beleid.
+
+Voorbereiding toont de bestaande vertaalde laadtekst in dezelfde titelregel,
+met `role=status` en uitgeschakelde afspeelknoppen; stoppen blijft mogelijk.
+Een extra laadregel maakte een kort scherm bij 200% opnieuw te hoog. De
+onafhankelijke reviewer vond dat geval; de compacte rij en een aanvullende
+320×568/200%-proef voorkomen die regressie. Geen tweede speler, provider of
+positioneringsmodel; geen wijziging van sessies, transport, lifecycle, rechten,
+annotaties, leespositie, READ, XP of afronding.
+
+### Waarom het eerdere browserbewijs onvoldoende was
+
+`player-client.tsx` had een eigen header zonder Focus-shell of safe-area-meting.
+Het bewees de gedeelde speler en adapter, maar niet de echte appcompositie. Die
+oorspronkelijke proeven blijven staan. Hun bestaande runner importeert nu
+aanvullend `native-audio-shell.browser.mjs`; geen extra workflow of CI-build.
+HTTP-contractantwoorden en OS-uitvoer zijn synthetisch. De echte React-componenten,
+router, client, sessiepoort, LiveDataStore en native uitvoeradapter worden gebruikt.
+De proef controleert DOM-stijlen, volledige knoprechthoeken, hit-tests, safe areas,
+headerhoogte en vrijgehouden hoofdruimte; alleen `isVisible()` is onvoldoende.
+
+De matrix omvat 320/375/390/440/768/1024px, 100/200% tekst, licht/donker,
+iPhone- en Android-achtige veilige randen en een korte 568px viewport.
+Opname en TTS starten zowel via de grote knop als het versmenu. Pauze/hervatten,
+vorig/volgend vers, vijf snelheden, voorbereiding/annuleren, vijf talen,
+eindstatus, geldige late callbacks en stoppen bij route-/account-/bronwisseling
+en achtergrond worden afzonderlijk gecontroleerd. Alle POST-aanvragen blijven
+beperkt tot synthetische login/refresh/logout; audio start geen voortgangswrite.
+De bestaande native transport-/authenticatieproeven blijven verplicht.
+
+Voorbeelden van de **browserweergave**, geen fysieke screenshots:
+
+- [Standaard iPhone-breedte, 100%, TTS](screenshots/native-audio/focus-440-100-tts.png).
+- [Korte telefoon, 320×568, 200%, TTS](screenshots/native-audio/focus-320-200-tts.png).
+
+De werkelijk uitgevoerde lokale tests, onafhankelijke eindreview en CI op de
+definitieve commit worden in de PR vastgelegd. Toegepaste productiemigraties,
+backendconfiguratie, audioregistratie en publicaties vallen buiten deze reparatie.
+
+### Hertest op de iPhone — PENDING PHYSICAL ACCEPTANCE
+
+Bouw na afzonderlijke mergegoedkeuring via de bestaande Mac → develop → native
+bundel → Capacitor-sync → Xcode → iPhone-route. Een eerdere installatie krijgt
+de gewijzigde lokale React-bundel niet automatisch.
+
+1. Open een schriftlezer bij 100% tekst. Start Nederlandse TTS via Voorlezen en
+   vervolgens vanuit een versmenu. Verwacht direct bediening onder de terugbalk,
+   geheel onder de statusbalk/Dynamic Island, ook als je al verder hebt gescrold.
+2. Pauzeer, hervat, wissel vers en snelheid en stop. Verwacht het juiste vers,
+   hoorbare reactie en verdwijnen na stoppen; geen dubbele afspeelbron.
+3. Herhaal met grote tekst en licht/donker; alle knoppen blijven bereikbaar,
+   zonder horizontaal schuiven of overlappende navigatie.
+4. Verlaat de lezer, wissel bron/account en onderbreek de app. Verwacht onmiddellijke
+   stop, geen oude titel en geen automatische herstart bij terugkeer.
+5. Officiële opgenomen audio afzonderlijk testen als een toegestane opname
+   beschikbaar is. De eerdere fysieke TTS-proef bewijst die opname niet.
+
+Android en iPad vereisen eveneens afzonderlijke fysieke acceptatie. Geslaagde
+browser-, simulator- of compilatieproeven vervangen die controles niet.
