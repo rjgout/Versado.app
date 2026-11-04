@@ -168,3 +168,17 @@ en dat de nieuwe migratie daadwerkelijk voltooid is. Dit is geen skip van de
 nieuwe migratie en wijzigt geen bestaande migratie of CFM-importfunctionaliteit.
 De exacte bestaande CI-opdracht wordt lokaal met een eigen wegwerpdatabase en
 synthetische CFM-fixtures gecontroleerd, zonder externe downloads of productie.
+
+### Atomische audiotestbesturing
+
+De derde CI-run bereikte de bestaande Audio V2-regressies. De rolintrekkingsproef
+kreeg `AUDIO_TASK_FAILED` in plaats van de vereiste `FORBIDDEN`. Een gerichte
+reproductie bewijst dat de gedeelde JSON-testbesturing tijdens `writeFile` tijdelijk
+leeg kan zijn: de aparte worker krijgt dan een `SyntaxError`, die als
+`AUDIO_TASK_FAILED` wordt geclassificeerd. De fixture schrijft voortaan naar een
+uniek tijdelijk bestand en publiceert dat met een atomische rename. Een tweede
+proef controleert gelijktijdige coherente bestandslezingen. Ongeldige JSON blijft
+falen; de strikte `FORBIDDEN`-assertie blijft behouden. Een `finally` herstelt de
+testbeheerrol ook bij een assertionfout, zodat latere onafhankelijke proeven niet
+cascaderend mislukken. Alleen testbesturing en tests zijn aangepast; geen
+productie-audiologica, importer, publicatie of beveiligingscontrole is gewijzigd.

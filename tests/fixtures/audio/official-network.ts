@@ -1,9 +1,19 @@
 import { promises as fs } from "node:fs";
+import { randomUUID } from "node:crypto";
 import type { OfficialSource } from "../../../src/lib/audio/officialCatalogue";
 import type { OfficialNetwork } from "../../../src/lib/audio/officialDownload";
 import type { officialPage } from "./official-source";
 import { setTimeout as delay } from "node:timers/promises";
 export interface OfficialMock { sources:OfficialSource[];pages:Record<string,ReturnType<typeof officialPage>>;audio:Record<string,string>;logFile:string;controlFile:string }
+/** Test-IPC: lezende workers zien uitsluitend de oude of nieuwe complete JSON,
+ * nooit de truncate/write-tussenstand van writeFile op een gedeeld bestand. */
+export async function writeOfficialControl(file: string, control: {pauseUrl?:string;failUrl?:string;corruptUrl?:string;wrongPage?:string}) {
+  const temporary = `${file}.${randomUUID()}.tmp`;
+  try {
+    await fs.writeFile(temporary, JSON.stringify(control), {flag:"wx",mode:0o600});
+    await fs.rename(temporary,file);
+  } finally { await fs.unlink(temporary).catch(error=>{if(error.code!=="ENOENT")throw error;}); }
+}
 export function mockOfficialNetwork(config:OfficialMock):OfficialNetwork {
   return {resolve:async()=>[{address:"8.8.8.8",family:4}],transport:async(url)=>{
     await fs.appendFile(config.logFile,url.href+"\n");
