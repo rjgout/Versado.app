@@ -706,7 +706,7 @@ try {
       noAnnotationsBackend=true;
       const annCalls=calls.filter(c=>c.path.includes("/annotations")).length;
       await page.goto(readerUrl);await waitReader();
-      await page.getByText(t("nativeReader.positionEnabled"),{exact:true}).waitFor();
+      await page.getByText(t("nativeLearningFlow.ready"),{exact:true}).waitFor();
       assert.equal(await page.locator("[data-native-reader] [data-annotation-trigger]").count(),0);
       assert.equal(calls.filter(c=>c.path.includes("/annotations")).length,annCalls,"oude backend krijgt geen annotatieverzoeken");
       noAnnotationsBackend=false;await page.reload();await waitReader();

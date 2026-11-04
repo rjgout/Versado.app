@@ -85,8 +85,9 @@ try{
  }finally{await client.end();}
  server=spawn('node',['scripts/content-architecture/test-server.mjs'],{env,stdio:'inherit',detached:true});
  let healthy=false;for(let i=0;i<100;i++){try{if((await fetch(`${base}/api/health`)).ok){healthy=true;break;}}catch{}if(server.exitCode!==null)throw Error('Testserver gestopt');await delay(500);}if(!healthy)throw Error('Productiebuild niet bereikbaar');
- if(process.argv.includes('--learning-only')) {
-  await run('npx',['tsx','--test','tests/native-learning.integration.test.ts'],env);
+ if(process.argv.includes('--learning-only')||process.argv.includes('--learning-ui-only')) {
+  if(!process.argv.includes('--learning-ui-only'))await run('npx',['tsx','--test','tests/native-learning.integration.test.ts'],env);
+  if(!process.argv.includes('--no-browser'))await run('npx',['tsx','tests/native-learning-flow.integration.browser.mjs'],env);
  } else if(process.argv.includes('--audio-only')) {
   await run('npx',['tsx','--test','tests/native-audio.integration.test.ts'],env);
  } else if(process.argv.includes('--annotations-only')) {
@@ -122,7 +123,7 @@ try{
  let socketFailure;
  try{await run('npx',['tsx','--test','--test-concurrency=1','tests/native-socket.integration.test.ts','tests/native-content.integration.test.ts','tests/native-today-actions.integration.test.ts'],socketEnv);}catch(error){socketFailure=error;}
  for(const child of socketServers){try{process.kill(-child.pid,'SIGTERM');}catch{}}
- if(!process.argv.includes('--no-browser')){await run('npx',['tsx','tests/native-foundation.browser.mjs'],env);await run('npx',['tsx','tests/native-access.browser.mjs'],env);await run('npx',['tsx','tests/native-data.browser.mjs'],env);await run('npx',['tsx','tests/native-shell.browser.mjs'],env);await run('npx',['tsx','tests/native-content.browser.mjs'],env);await run('npx',['tsx','tests/native-foundation-apple.browser.mjs'],env);await run('npx',['tsx','tests/native-today.browser.mjs'],env);await run('npx',['tsx','tests/native-today-actions.browser.mjs'],env);await run('npx',['tsx','tests/native-study-media.browser.mjs'],env);await run('npx',['tsx','tests/native-courses.browser.mjs'],env);await run('npx',['tsx','tests/native-study-courses.browser.mjs'],env);await run('npx',['tsx','tests/native-reader.browser.mjs'],env);await run('npx',['tsx','tests/reader-verse-menu.browser.mjs'],env);}
+ if(!process.argv.includes('--no-browser')){await run('npx',['tsx','tests/native-foundation.browser.mjs'],env);await run('npx',['tsx','tests/native-access.browser.mjs'],env);await run('npx',['tsx','tests/native-data.browser.mjs'],env);await run('npx',['tsx','tests/native-shell.browser.mjs'],env);await run('npx',['tsx','tests/native-content.browser.mjs'],env);await run('npx',['tsx','tests/native-foundation-apple.browser.mjs'],env);await run('npx',['tsx','tests/native-today.browser.mjs'],env);await run('npx',['tsx','tests/native-today-actions.browser.mjs'],env);await run('npx',['tsx','tests/native-study-media.browser.mjs'],env);await run('npx',['tsx','tests/native-courses.browser.mjs'],env);await run('npx',['tsx','tests/native-study-courses.browser.mjs'],env);await run('npx',['tsx','tests/native-reader.browser.mjs'],env);await run('npx',['tsx','tests/reader-verse-menu.browser.mjs'],env);await run('npx',['tsx','tests/native-learning-flow.integration.browser.mjs'],env);}
  if(socketFailure)throw socketFailure;
  await annotationRegression(env,!process.argv.includes('--no-browser')); // Browserbewijs verzamelen wist nooit een falende beveiligingstest.
  }

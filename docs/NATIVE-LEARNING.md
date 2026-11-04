@@ -141,3 +141,12 @@ B3c-1 voegt de [veilige schriftvragen- en afrondingscontracten](NATIVE-LEARNING-
 toe, zonder vrageninterface. De huidige gedeelde lezer blijft leespositie,
 annotaties en audio gebruiken zonder impliciete afronding. B3c-2 sluit de bestaande
 vragencomponenten pas na afzonderlijke goedkeuring aan.
+
+## B3c-2 — gedeelde schriftvragen en expliciete afronding
+
+De lokale reader gebruikt met `scripture-learning-v1` nu de bestaande
+vraagkaarten, leesafrondings- en resultaatpresentatie. De drie schriftmethoden
+volgen hun bestaande servercursor; alleen expliciete acties schrijven.
+[Architectuur, herstelcontract, testbewijs en fysieke checklist](NATIVE-LEARNING-FLOW.md).
+Werkgeheugencheckpoint is door de eigenaar goedgekeurd; geen permanente outbox.
+CFM-studielezer en -vragen vallen hierbuiten. Fysieke B3c-2-acceptatie staat open.

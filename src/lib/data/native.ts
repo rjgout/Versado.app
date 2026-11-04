@@ -13,6 +13,7 @@ import { NativeClientError, type NativeSessionClient } from "@/lib/native/client
 import { nativeAnnotationList, nativeAnnotationResult, nativeAnnotationMutation, nativeAnnotationContext, type NativeAnnotationList } from "@/lib/native/annotationsContract";
 import type { AnnotationAction } from "@/lib/annotations/contract";
 import { nativePlaybackSchema, type NativePlayback } from "@/lib/native/audioPlaybackContract";
+import {NativeLearningFlow} from "@/lib/native/learningFlow";
 import type { NativeReader } from "@/lib/native/readerContract";
 import { readerResumeSchema, readerPositionInput, readerPositionResult, type ReaderResume, type ReaderPositionInput } from "@/lib/native/readerPositionContract";
 import { nativeReaderSchema, nativeReaderKind, type NativeReaderKind } from "@/lib/native/readerContract";
@@ -47,12 +48,25 @@ export const nativeTodayQueryKey = (state: Pick<NativeTodayOverview, "userId" | 
 export class NativeDataRuntime {
   readonly store: LiveDataStore;
   private epoch = 0;
+  private activeLearning: NativeLearningFlow | null = null;
   private pendingTodayActions = new Set<string>();
   private listeners = new Set<() => void>();
   constructor(readonly client: NativeSessionClient, private readonly environment: LiveEnvironment) { this.store = new LiveDataStore(environment); }
   getSnapshot = () => this.epoch;
   subscribe = (listener: () => void) => { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; };
-  reset = () => { this.epoch++; this.store.reset(); for (const listener of this.listeners) listener(); };
+  reset = () => { this.activeLearning?.dispose(); this.activeLearning=null; this.epoch++; this.store.reset(); for (const listener of this.listeners) listener(); };
+  learningFlow(reader:NativeReader) {
+    const epoch=this.epoch,stamp=this.client.getSessionStamp();
+    const key=["native",epoch,"scripture-learning-flow",stamp,reader.userId,reader.activeCollectionId,reader.selectionVersion,reader.language,reader.courseId,reader.kind,reader.targetId,reader.chapterId,reader.startVerse,reader.endVerse] as const;
+    if(this.activeLearning?.identity===serializeKey(key)&&this.activeLearning.matches(reader))return this.activeLearning;
+    this.activeLearning?.dispose();
+    this.activeLearning=new NativeLearningFlow({client:this.client,store:this.store,key,reader,
+      current:()=>{try{if(this.client.getSessionStamp()!==stamp)return false;this.studyResponse(reader,epoch,reader.userId,reader.language,reader);return true;}catch{return false;}},
+      authorize:async()=>{const fresh=await this.reader(reader.userId,reader.language,reader,reader.courseId,reader.kind,reader.targetId);if(JSON.stringify(fresh.verses)!==JSON.stringify(reader.verses)||fresh.sourceLanguage!==reader.sourceLanguage)throw new NativeClientError("content_context_changed",409);},
+      confirmed:()=>this.store.invalidate("activityCompleted"),
+    });
+    return this.activeLearning;
+  }
   async account() { return nativeAccountSchema.parse(await this.client.api("me")); }
   async learning(userId: string, expected: { activeCollectionId: string | null; selectionVersion: number }, courseId?: string) {
     const epoch = this.epoch;
@@ -234,13 +248,14 @@ export class NativeDataRuntime {
     // Een GET van vóór een bevestigde keuze mag de bestaande gedeelde cache
     // nooit terugzetten. Geen tweede cache: lees uitsluitend de actieve store-entry.
     const current = this.store.getSnapshot<NativeContentState>(serializeKey(["native", epoch, ...nativeContentQueryKey(userId)])).data;
-    if (current && state.picker.selectionVersion >= current.picker.selectionVersion && (current.picker.selectionVersion !== state.picker.selectionVersion || current.picker.activeCollectionId !== state.picker.activeCollectionId)) this.store.invalidate(["studyContent"]);
+    if (current && state.picker.selectionVersion >= current.picker.selectionVersion && (current.picker.selectionVersion !== state.picker.selectionVersion || current.picker.activeCollectionId !== state.picker.activeCollectionId)) { this.activeLearning?.dispose(); this.activeLearning=null; this.store.invalidate(["studyContent"]); }
     return current?.userId === userId && current.picker.selectionVersion > state.picker.selectionVersion ? current : state;
   }
   async selectContent(userId: string, input: NativeContentSelection) {
     return this.mutation(async () => {
       const result = nativeContentResultSchema.parse(await this.client.api("content-context", nativeContentSelectionSchema.parse(input)));
       if (result.state.userId !== userId) throw new NativeClientError("session_changed", 409);
+      this.activeLearning?.dispose(); this.activeLearning=null;
       return result;
     }, "contentChanged");
   }

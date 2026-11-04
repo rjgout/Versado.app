@@ -136,7 +136,7 @@ Functie en webroutes | Backend / gedeeld domein | Native bestemming | Authentica
 Vandaag, acties, dagelijkse doelen, beloningen, CFM, kaartvoorkeuren (`/dashboard`, `/acties`, `/xp`, `/streak`, `/shop`) | `today.ts`, courseSummaries, activeGames, dailyTargets, list-order; bestaande actor-/beloningsservices | Dezelfde routes en bestaande kaarten | A; eigen account, bronrechten, serverbepaalde beloning | S; voorkeuren en voortgang server-side | O; geen offline XP/reeks | P | Gedeelde TodayView + versioned read-only overview; exacte resultaten in B2a-PR | B2a presentatie; B2b-1 bevestigde acties; B2b-2 beveiligde studiemedia; doelroutes en fysieke acceptatie open | B2-vervolg mutatie-/mediapoorten; B3–B5 doelroutes en apparaattests
 Contentkiezer, bron en taal (`/content`) | contentCollections/contentSwitch/contentRouting; `/api/content-context` | `/content` met dezelfde veilige wissel | A; beschikbare editie/collectie, geen UI-only beveiliging | S; activeContentCollectionId/contentLanguage, bestaande koers behouden | O; onbeschikbare wissel slaat niets op | P | content-switch, native-content integratie/browser, native-data en Access | Gedeelde kiezer en exact sessiebeveiligd selectiecontract; fysieke acceptatie B1 open | Overige activiteitbestemmingen en volledige realtime onder Access ontbreken; contextpoll 15s + maximaal één klokseconde/netwerkduur
 Cursusbeheer en leerpaden (`/courses/**`) | courses, courseProgress, readingCourses, cfmCourses; subscribe/unsubscribe en list-order | Zelfde cursus-/pad-URL's met gedeelde kaarten | A; ingeschreven/zichtbare cursus, geen implicitiete activatie bij toevoegen | S; bestaande UserCourseProgress, geen duplicaten; CFM-identiteit per collectie | O; schrijfuitval zichtbaar; geen automatische dubbele inschrijving | P | cards, course-sync/identity, reading-path, CFM-integratie, native-study-courses SQL/browser | Gedeeld overzicht, drie schriftelijke paden; B3a-2 CFM-weken/archief/zes read-only stappen | Cursusbeheer, overige lezers, vragen en fysieke CFM-/Android-acceptatie open
-Lezen en oefenen (`/lesson/**`, `/scripture/**`, `/reading-lesson/**`, `/practice`) | contentProgress, learning, oefeningen/antwoordvalidatie, referenties; hoofdstuk/audio-API's | Zelfde lees-/lesroutes met gedeelde lezer en completion-flow | A; contentAccess, eigen voortgang, servercorrectheid | S; bestaande leesposities/markeringen/XP; replaybescherming | O; tekstproef start lokaal maar haalt tekst online; geen offline beloningen | P; audio lifecycle, grote tekst | Native reader GET-/integratie-/browser-/Access-tests; bestaande webreader-/audio-/annotatietests | Gedeelde read-only Boek-van-Mormon-lezer: stapbereik en gekozen hoofdstukken; oude Foundation-afrondings-UI verwijderd | B3b-2a: duurzame hervatpositie en hoofdstuknavigatie; B3b-2b: gedeelde bladwijzers, markeringen/notities; B3b-2c: [inactieve transportfundering](NATIVE-AUDIO.md), speler/TTS ontbreken; B3c: vragen/afronding; fysieke 2a/2b-acceptatie en #258/#259 open
+Lezen en oefenen (`/lesson/**`, `/scripture/**`, `/reading-lesson/**`, `/practice`) | contentProgress, learning, oefeningen/antwoordvalidatie, referenties; hoofdstuk/audio-API's | Zelfde lees-/lesroutes met gedeelde lezer en completion-flow | A; contentAccess, eigen voortgang, servercorrectheid | S; bestaande leesposities/markeringen/XP; replaybescherming | O; tekstproef start lokaal maar haalt tekst online; geen offline beloningen | P; audio lifecycle, grote tekst | Native reader GET-/integratie-/browser-/Access-tests; bestaande webreader-/audio-/annotatietests | Gedeelde Boek-van-Mormon-lezer, duurzame positie, annotaties en beveiligde audio/TTS; B3c-2 gedeelde schriftvragen, expliciet lezen en bevestigde serverresultaten voor drie leesmethoden | Native hints/oefenfeedback, CFM-vragen, overige werken en procesduurzaam vragencheckpoint ontbreken; fysieke B3c-2-acceptatie en #258/#259 blijven open
 CFM, FSY en studiemap (`/study-lesson/**`, `/fsy/**`, `/study-folder`, `/bookmarks`) | studiecatalogus/publicaties/revisies, StudyAnnotations, StudyStepProgress, studyOrigin | Zelfde routes, herkomst en zes stappen | A; publicatie-/collectiegrens, eigendom van annotaties | S; gedeelde annotaties, geen tweede systeem; stappen geven geen XP/READ | O; geen schrijfwachtrij zonder conflictcontract | P; selecteren/annoteren, keyboard en terug | study-/annotation-/CFM-tests en browserflows | Ontbreekt | Versiecontracten voor revisies/annotaties/lezen en gedeelde route-/data-laag
 Introductie, kinderverhalen en podcasts (`/intro/**`, `/kids/**`, `/podcast/**`) | bestaande intro/kids/episode-/cursusservices, eigen audio-/afbeeldingsrechten | Zelfde routes en modes | A; cursus-/bronrechten | S; bestaande voltooiings- en oefenrecords | O; grote media niet impliciet meebundelen; fout/herstart zichtbaar | P; beeld, audio, lifecycle | lesson-flow, kids, podcast/audio-/cursustests | Ontbreekt | Native les-/media-/oefencontracten; toegestane mediatoken-/streamstrategie
 Woordzoeker en Woord van de Dag (`/word-search/**`, `/word-game`) | bestaande create/find/give-up/answer/hints, serverprijzen en scores | Zelfde spel- en hervatroutes | A; gameAvailability + eigen game; beloningen uitsluitend server | S; één spelstaat en betaalde hints | O; geen offline hints/score; gecontroleerde replay | P; touch, letterselectie, focus | word-search, word-game-hints en browser-/integratietests | Ontbreekt | Native spelcontracten en gedeelde geautoriseerde transportlaag
@@ -350,7 +350,7 @@ De onafhankelijke review volgt door ChatGPT. #176 en #178 blijven ongemerged.
 <!-- BEGIN NATIVE PARITY INVENTORY -->
 ## Volledige broninventaris (gegenereerd)
 
-Gevonden: **143 pagina's**, **244 fysieke routehandlers**, **468 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
+Gevonden: **143 pagina's**, **244 fysieke routehandlers**, **472 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
 
 De JSON-bijlage bevat per route alle transitief bereikbare lokale modules, clientgrenzen en statische requestpaden. Dat is een afhankelijkheidsinventaris, geen autorisatiebewijs; voorwaarden per HTTP-methode blijven apart te controleren. Een Client Component kan via een gedeelde helper nog een serverafhankelijkheid hebben. Een module zonder eigen `use client` is contextafhankelijk, niet automatisch browsergeschikt.
 
@@ -967,7 +967,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/KidsLessonFlow.tsx](../src/components/KidsLessonFlow.tsx) | use client | KidsLessonFlow
 [src/components/LanguageSettings.tsx](../src/components/LanguageSettings.tsx) | use client | LanguageSettings
 [src/components/LeaderboardClient.tsx](../src/components/LeaderboardClient.tsx) | use client | LeaderboardClient
-[src/components/LessonFlow.tsx](../src/components/LessonFlow.tsx) | use client | ExerciseCard, ExerciseSessionQuestions, LessonFlow, LessonResultMascot, ReaderView, SummaryScreen
+[src/components/LessonFlow.tsx](../src/components/LessonFlow.tsx) | use client | Exercise, ExerciseCard, ExerciseSessionQuestions, ExerciseType, LessonFlow, LessonResultMascot, ReaderView, SummaryResult, SummaryScreen
 [src/components/LiveDataProvider.tsx](../src/components/LiveDataProvider.tsx) | use client | LiveDataProvider
 [src/components/LiveLobbyForm.tsx](../src/components/LiveLobbyForm.tsx) | use client | LiveLobbyForm
 [src/components/LiveRefresh.tsx](../src/components/LiveRefresh.tsx) | use client | LiveRefresh
@@ -1079,6 +1079,9 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/kompas/TourButton.tsx](../src/components/kompas/TourButton.tsx) | use client | TourButton
 [src/components/kompas/TourOverlay.tsx](../src/components/kompas/TourOverlay.tsx) | use client | TourOverlay
 [src/components/learning/ContentStatus.tsx](../src/components/learning/ContentStatus.tsx) | use client | ContentStatusInline, ContentStatusLine, LongChapterNotice, SharedProgressHint
+[src/components/learning/ExerciseSessionQuestions.tsx](../src/components/learning/ExerciseSessionQuestions.tsx) | use client | ExerciseCard, ExerciseSessionQuestions, LessonResultMascot
+[src/components/learning/LessonSummary.tsx](../src/components/learning/LessonSummary.tsx) | use client | SummaryScreen
+[src/components/learning/ReadingCompletionSummary.tsx](../src/components/learning/ReadingCompletionSummary.tsx) | use client | ReadingCompletionSummary
 [src/components/legal/ContactContent.tsx](../src/components/legal/ContactContent.tsx) | use client | ContactContent
 [src/components/legal/CookiesContent.tsx](../src/components/legal/CookiesContent.tsx) | use client | CookiesContent
 [src/components/legal/DisclaimerContent.tsx](../src/components/legal/DisclaimerContent.tsx) | use client | DisclaimerContent
@@ -1092,6 +1095,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/native/NativeContentPicker.tsx](../src/components/native/NativeContentPicker.tsx) | use client | NativeContentPicker
 [src/components/native/NativeEmailConfirmation.tsx](../src/components/native/NativeEmailConfirmation.tsx) | use client | NativeEmailConfirmation
 [src/components/native/NativeFoundation.tsx](../src/components/native/NativeFoundation.tsx) | use client | NativeFoundation
+[src/components/native/NativeLearningPanel.tsx](../src/components/native/NativeLearningPanel.tsx) | use client | NativeLearningPanel, nativeLearningNext, useNativeLearningFlow
 [src/components/native/NativeLearningView.tsx](../src/components/native/NativeLearningView.tsx) | use client | NativeLearningView
 [src/components/native/NativeNavigationProvider.tsx](../src/components/native/NativeNavigationProvider.tsx) | use client | NativeNavigationProvider
 [src/components/native/NativePasswordReset.tsx](../src/components/native/NativePasswordReset.tsx) | use client | NativePasswordReset
@@ -1283,3 +1287,18 @@ Zie [contracten en commitgrens](NATIVE-LEARNING-CONTRACTS.md). De additieve
 `nativeContext`-migratie bewaart de bestaande result-check en alle bestaande data.
 Account-/bron-/sessiegrenzen, read-only GET en veilige replay zijn onderdeel van
 de geïsoleerde technische acceptatie. Geen nieuwe XP- of voortgangsregels.
+
+## B3c-2 — lokale schriftvragen/resultaatflow
+
+`ExerciseSessionQuestions`/`ExerciseCard`, `LessonSummary` en
+`ReadingCompletionSummary` zijn gedeelde React-presentaties voor web en native.
+De drie schriftmethoden gebruiken de bestaande `scripture-learning-v1`-contracten,
+geen nieuwe vragenbank of beloningsregels. Native start/check/submit/read zijn
+expliciet; statusherstel gebruikt GET, herhalen van een onzekere POST vraagt
+handmatige actie met oorspronkelijke UUID/antwoorden. Checkpoints blijven
+uitsluitend in de bestaande account-/brongebonden LiveDataStore.
+
+Native hints en oefenfeedback blijven afgeschermd zonder eigen contract.
+CFM-vragen, procesduurzame vragencheckpoints en fysieke B3c-2-acceptatie ontbreken.
+De eerdere fysieke audiobevestiging van build 2498 (8/8 PASS, eigenaar) geldt
+alleen voor #264. Zie [B3c-2 inclusief toestelchecklist](NATIVE-LEARNING-FLOW.md).

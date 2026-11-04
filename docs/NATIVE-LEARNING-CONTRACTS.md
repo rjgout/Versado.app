@@ -182,3 +182,10 @@ falen; de strikte `FORBIDDEN`-assertie blijft behouden. Een `finally` herstelt d
 testbeheerrol ook bij een assertionfout, zodat latere onafhankelijke proeven niet
 cascaderend mislukken. Alleen testbesturing en tests zijn aangepast; geen
 productie-audiologica, importer, publicatie of beveiligingscontrole is gewijzigd.
+
+## B3c-2-clientaansluiting
+
+De bestaande vijf contracten worden nu door de lokale gedeelde schriftflow
+gebruikt. API, allowlists en serverregels blijven gelijk; geen nieuwe migratie.
+Zie [gedeelde vragen, resultaat, GET-herstel en fysieke acceptatie](NATIVE-LEARNING-FLOW.md).
+De B3c-1-migratie blijft een afzonderlijk goed te keuren developmenthandeling.
