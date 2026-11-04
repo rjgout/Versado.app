@@ -312,20 +312,21 @@ try {
       const web = await browser.newPage({
         viewport: { width: 390, height: 844 },
       });
-      await web
-        .context()
-        .addCookies([
-          {
-            name: SESSION_COOKIE,
-            value: await createSessionToken(user.id),
-            url: backend,
-          },
-        ]);
+      await web.context().addCookies([
+        {
+          name: SESSION_COOKIE,
+          value: await createSessionToken(user.id),
+          url: backend,
+        },
+      ]);
       await web.goto(
         `${backend}/lesson/${f.chapters[1].id}?cursus=${course.id}`,
       );
       await web
-        .getByRole("button", { name: t("progress.practiceAgain",{n:expected}), exact: true })
+        .getByRole("button", {
+          name: t("progress.practiceAgain", { n: expected }),
+          exact: true,
+        })
         .click();
       await web
         .getByRole("button", { name: t("lesson.check"), exact: true })
@@ -336,12 +337,33 @@ try {
       });
       await web.close();
     }
-    await page
-      .getByRole("button", {
-        name: t("nativeLearningFlow.toPath"),
-        exact: true,
-      })
-      .click();
+    if (index === 0) {
+      await page
+        .getByRole("button", { name: t("readingLesson.nextStep"), exact: true })
+        .click();
+      await page.waitForFunction(
+        (id) => location.hash.endsWith("/" + id),
+        outcome.nextLessonId,
+      );
+      await page.locator("[data-native-reader]").waitFor();
+      assert.equal(await page.locator("#vers-1,#vers-2").count(), 0);
+      assert.equal(await page.locator("#vers-3,#vers-4").count(), 2);
+      assert.equal(
+        (await prisma.user.findUniqueOrThrow({ where: { id: user.id } }))
+          .xpTotal - before.xpTotal,
+        outcome.xpEarned,
+        "vervolg opent zonder nieuwe beloning",
+      );
+      await page.locator("[data-subpage-back-bar] button").click();
+    } else {
+      await page
+        .getByRole("button", {
+          name: t("nativeLearningFlow.toPath"),
+          exact: true,
+        })
+        .click();
+      await page.waitForFunction(() => location.hash.endsWith("/pad"));
+    }
     await page.waitForFunction(() => location.hash.endsWith("/pad"));
     await page.close();
   }

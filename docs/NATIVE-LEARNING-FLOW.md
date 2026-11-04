@@ -51,8 +51,9 @@ Bearer-/Service Auth-bridge zijn ongewijzigd. Geen nieuwe endpoint of migratie.
 Eén actieve UI-poging staat in de bestaande LiveDataStore, gekoppeld aan
 sessie-epoch/stamp, gebruiker, bron, selectieversie, taal, cursus, leesmethode,
 doel, hoofdstuk en versbereik. De echte readertekst wordt tevens vergeleken.
-Een gewone remount bewaart vragen/antwoorden; bron- of accountwisseling wist
-ze. De eigenaar heeft expliciet **werkgeheugen** gekozen. Een volledig door het
+Een gewone remount bewaart de vragenset, vraagindex, reeds bevestigde antwoorden
+en bevroren inzending; bron- of accountwisseling wist ze. Een nog niet
+gecontroleerde losse selectie is geen bevestigd antwoord. De eigenaar heeft expliciet **werkgeheugen** gekozen. Een volledig door het
 OS beëindigd appproces bewaart dus geen UI-checkpoint. Er is geen nieuwe
 Keychain-opslag, tweede cache, voortgangstabel of offline outbox.
 

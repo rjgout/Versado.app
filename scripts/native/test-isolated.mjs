@@ -16,6 +16,15 @@ async function annotationRegression(env,browser) {
  await run('npx',['tsx','--test','--test-concurrency=1','tests/annotation-foundation.integration.test.mjs','tests/study-folder.integration.test.mjs','tests/annotation-recovery.integration.test.mjs','tests/annotation-resolution-migration.test.mjs'],env);
  if(browser)for(const file of ['annotation-actions','study-folder','study-folder-colors','annotation-recovery'])await run('npx',['tsx',`tests/${file}.browser.mjs`],env);
 }
+// Eén suite-inventaris voor CI en gerichte lokale browserherhaling. Geen skips in de standaardketen.
+async function nativeBrowsers(env){
+ const suites=['native-foundation', 'native-access', 'native-data', 'native-shell', 'native-content', 'native-foundation-apple', 'native-today', 'native-today-actions', 'native-study-media', 'native-courses', 'native-study-courses', 'native-reader', 'reader-verse-menu', 'native-learning-flow.integration'];
+ // Alleen expliciete lokale herhaling; de gewone CI-aanroep start altijd bij suite0.
+ const from=process.argv.find(arg=>arg.startsWith('--browsers-from='))?.slice('--browsers-from='.length);
+ const index=from===undefined?0:suites.indexOf(from);assert.ok(index>=0,'Onbekende browsersuite');
+ for(const file of suites.slice(index))await run('npx',['tsx',`tests/${file}.browser.mjs`],env);
+}
+
 const port=await new Promise(resolve=>{const s=createServer();s.listen(0,'127.0.0.1',()=>{const p=s.address().port;s.close(()=>resolve(p));});});
 let server,mediaRoot,audioRoot;const socketServers=[];
 try{
@@ -88,6 +97,9 @@ try{
  if(process.argv.includes('--learning-only')||process.argv.includes('--learning-ui-only')) {
   if(!process.argv.includes('--learning-ui-only'))await run('npx',['tsx','--test','tests/native-learning.integration.test.ts'],env);
   if(!process.argv.includes('--no-browser'))await run('npx',['tsx','tests/native-learning-flow.integration.browser.mjs'],env);
+ } else if(process.argv.includes('--browsers-only')) {
+  await nativeBrowsers(env);
+  await annotationRegression(env,true);
  } else if(process.argv.includes('--audio-only')) {
   await run('npx',['tsx','--test','tests/native-audio.integration.test.ts'],env);
  } else if(process.argv.includes('--annotations-only')) {
@@ -123,7 +135,7 @@ try{
  let socketFailure;
  try{await run('npx',['tsx','--test','--test-concurrency=1','tests/native-socket.integration.test.ts','tests/native-content.integration.test.ts','tests/native-today-actions.integration.test.ts'],socketEnv);}catch(error){socketFailure=error;}
  for(const child of socketServers){try{process.kill(-child.pid,'SIGTERM');}catch{}}
- if(!process.argv.includes('--no-browser')){await run('npx',['tsx','tests/native-foundation.browser.mjs'],env);await run('npx',['tsx','tests/native-access.browser.mjs'],env);await run('npx',['tsx','tests/native-data.browser.mjs'],env);await run('npx',['tsx','tests/native-shell.browser.mjs'],env);await run('npx',['tsx','tests/native-content.browser.mjs'],env);await run('npx',['tsx','tests/native-foundation-apple.browser.mjs'],env);await run('npx',['tsx','tests/native-today.browser.mjs'],env);await run('npx',['tsx','tests/native-today-actions.browser.mjs'],env);await run('npx',['tsx','tests/native-study-media.browser.mjs'],env);await run('npx',['tsx','tests/native-courses.browser.mjs'],env);await run('npx',['tsx','tests/native-study-courses.browser.mjs'],env);await run('npx',['tsx','tests/native-reader.browser.mjs'],env);await run('npx',['tsx','tests/reader-verse-menu.browser.mjs'],env);await run('npx',['tsx','tests/native-learning-flow.integration.browser.mjs'],env);}
+ if(!process.argv.includes('--no-browser'))await nativeBrowsers(env);
  if(socketFailure)throw socketFailure;
  await annotationRegression(env,!process.argv.includes('--no-browser')); // Browserbewijs verzamelen wist nooit een falende beveiligingstest.
  }
