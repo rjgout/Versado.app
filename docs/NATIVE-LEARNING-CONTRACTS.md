@@ -155,3 +155,16 @@ geen verse sessie gesimuleerd en geen test verwijderd of versoepeld. De precieze
 interne refresh/storage-interleaving van de eerste CI-fout is zonder extra
 requestcorrelatie niet volledig bewezen; de definitieve PR-checks tonen het
 resultaat na de expliciete synchronisatie.
+
+
+### Historische migratieproef
+
+De bestaande `test-access-isolated.mjs` bouwt bewust eerst een oudere database
+zonder `study_exercise_sessions`. Die historische selectie sluit daarom ook de
+nieuwe afhankelijke `native_learning_context` uit. De latere ongewijzigde volledige
+upgrade past beide migraties alsnog in volgorde toe. Extra SQL-asserties bewijzen
+dat de drie context-/resultaatkolommen vóór die upgrade ontbreken, daarna bestaan,
+en dat de nieuwe migratie daadwerkelijk voltooid is. Dit is geen skip van de
+nieuwe migratie en wijzigt geen bestaande migratie of CFM-importfunctionaliteit.
+De exacte bestaande CI-opdracht wordt lokaal met een eigen wegwerpdatabase en
+synthetische CFM-fixtures gecontroleerd, zonder externe downloads of productie.

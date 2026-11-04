@@ -54,15 +54,28 @@ try {
   writeFileSync(join(mediaRoot,".versado-study-volume.json"),JSON.stringify({version:1,purpose:"versado-study-media",volumeId:randomUUID()}),{mode:0o600});
   const env = { ...process.env, NODE_ENV: "production", ...(process.argv.includes("--cfm-import") ? { CFM_AUTO_PUBLISH: "off", CFM_IMPORT_YEARS: "2026" } : {}), DATABASE_URL: database, CONTENT_ACCESS_TEST_DATABASE_URL: database,
     CONTENT_ACCESS_TEST_BASE_URL: base, LEARNING_TEST_DATABASE_URL: database, CONTENT_MIGRATION_TEST_STATE: join(temporary, "proof.json"), APP_URL: base, REDIS_URL: "", STUDY_MEDIA_DIR: mediaRoot, STUDY_MEDIA_TEST_ROOT: mediaRoot, STUDY_PUBLICATION_PROFILE: "synthetic-test", SESSION_SECRET: "content-access-isolated-secret-only", NEXT_TELEMETRY_DISABLED: "1" };
+  async function assertNativeLearningStage(upgraded) {
+    const client = new pg.Client({ connectionString: database }); await client.connect();
+    try {
+      const { rows } = await client.query(`SELECT column_name FROM information_schema.columns WHERE table_schema='public' AND table_name='ExerciseSession' AND column_name IN ('studyContext','result','nativeContext') ORDER BY column_name`);
+      assert.deepEqual(rows.map(row=>row.column_name), upgraded ? ['nativeContext','result','studyContext'] : []);
+      const applied = await client.query(`SELECT finished_at IS NOT NULL AND rolled_back_at IS NULL AS applied FROM "_prisma_migrations" WHERE migration_name='20261209120000_native_learning_context'`);
+      assert.deepEqual(applied.rows, upgraded ? [{applied:true}] : []);
+      console.log(JSON.stringify({nativeLearningMigrationStage:upgraded?'complete':'historical',dependencyOrder:true,productionMutation:false}));
+    } finally { await client.end(); }
+  }
   // Eerst dezelfde 133 historische migraties via Prisma op de eigen lege DB.
   // Daarna synthetische bestaande records vóór de nieuwe additieve migratie.
   const migrationPath = join(temporary, "migrations");
   // Audio en de afhankelijke beheertaken verwijzen naar latere tabellen: pas met de volledige keten toepassen.
-  for (const name of readdirSync("prisma/migrations")) if (!["20261020120000_content_work_publication", "20261021120000_user_study_context", "20261027120000_quick_missionary_source", "20261028120000_mystery_attempt", "20261029120000_study_identity", "20261030120000_study_import_publication", "20261031120000_reading_position", "20261101120000_content_selection_version", "20261102120000_hymns_content_visibility", "20261103120000_study_publication_audit_actions", "20261104120000_annotation_targets", "20261117120000_annotation_resolution", "20261118120000_fsy_study_handover", "20261119120000_word_search_source_context", "20261121120000_study_step_progress", "20261123120000_study_step_plan_version", "20261204120000_audio_library_v2", "20261206120000_official_audio_tasks", "20261206120000_study_exercise_sessions", "20261207120000_legacy_audio_conversion"].includes(name)) cpSync(join("prisma/migrations",name),join(migrationPath,name),{recursive:true});
+  // Native learning context vereist study_exercise_sessions. Beide horen pas
+  // bij de volledige upgrade hieronder, nooit bij de historische beginsituatie.
+  for (const name of readdirSync("prisma/migrations")) if (!["20261020120000_content_work_publication", "20261021120000_user_study_context", "20261027120000_quick_missionary_source", "20261028120000_mystery_attempt", "20261029120000_study_identity", "20261030120000_study_import_publication", "20261031120000_reading_position", "20261101120000_content_selection_version", "20261102120000_hymns_content_visibility", "20261103120000_study_publication_audit_actions", "20261104120000_annotation_targets", "20261117120000_annotation_resolution", "20261118120000_fsy_study_handover", "20261119120000_word_search_source_context", "20261121120000_study_step_progress", "20261123120000_study_step_plan_version", "20261204120000_audio_library_v2", "20261206120000_official_audio_tasks", "20261206120000_study_exercise_sessions", "20261207120000_legacy_audio_conversion", "20261209120000_native_learning_context"].includes(name)) cpSync(join("prisma/migrations",name),join(migrationPath,name),{recursive:true});
   const config = join(temporary,"prisma.config.mjs");
   const require = createRequire(import.meta.url);
   writeFileSync(config, `import {defineConfig} from ${JSON.stringify(require.resolve("prisma/config"))}; export default defineConfig({schema:${JSON.stringify(resolve("prisma/schema.prisma"))},migrations:{path:${JSON.stringify(migrationPath)}},datasource:{url:process.env.DATABASE_URL}});`);
   await run("npx", ["prisma", "migrate", "deploy", "--config", config], env);
+  await assertNativeLearningStage(false);
   await run("node", ["tests/content-work-migration.mjs", "prepare"], env);
   cpSync("prisma/migrations/20261020120000_content_work_publication",join(migrationPath,"20261020120000_content_work_publication"),{recursive:true});
   await run("npx", ["prisma", "migrate", "deploy", "--config", config], env);
@@ -110,6 +123,7 @@ try {
   await run("node", ["tests/game-resolver-migration.mjs", "prepare"], env);
   await run("node", ["tests/cfm-exercises-migration.mjs", "prepare"], env);
   await run("npm", ["run", "db:migrate:deploy"], env);
+  await assertNativeLearningStage(true);
   await run("node", ["tests/game-resolver-migration.mjs", "verify"], env);
   await run("node", ["tests/cfm-exercises-migration.mjs", "verify"], env);
   await run("npm", ["run", "db:migrate:deploy"], env);
