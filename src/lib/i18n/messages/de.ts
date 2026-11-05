@@ -3,6 +3,20 @@ import { kompasDe } from "./kompas/de";
 
 // Ontbrekende teksten vallen terug volgens fallbackChain (src/lib/languages.ts).
 export const de: PartialMessages = {
+  nativeLearningFlow: {
+    "questions": "Fragen",
+    "result": "Ergebnis",
+    "next": "Nächster Schritt",
+    "toPath": "Zurück zum Lernpfad",
+    "error": "Das hat nicht funktioniert. Deine Antwort wurde behalten. Versuche es erneut.",
+    "uncertain": "Der Abschluss wurde noch nicht bestätigt. Prüfe zuerst das gespeicherte Ergebnis; nichts wird automatisch erneut gesendet.",
+    "recover": "Ergebnis prüfen und sicher erneut versuchen",
+    "pendingNavigation": "Prüfe zuerst den unklaren Abschluss, damit derselbe Versuch und dieselben Antworten erhalten bleiben.",
+    "ready": "Öffnen, Scrollen, Vorlesen und Anmerkungen schließen nichts ab. Fahre nur mit der ausdrücklichen Schaltfläche fort.",
+    "streakOne": "{n} Tag in Folge",
+    "streak": "{n} Tage in Folge",
+    "noQuestions": "Für diesen Abschnitt sind keine Fragen verfügbar."
+},
   nativeReader: {
     annotationsEnabled: "Du kannst Lesezeichen, Markierungen und Notizen verwalten. Audio, das Speichern der Leseposition, Fragen und Abschließen folgen später. Diese Aktionen vergeben keine XP und schließen keine Lektüre ab.",
     annotationsPositionEnabled: "Deine Leseposition wird nach ruhigem Lesen gespeichert. Lesezeichen, Markierungen und Notizen werden mit der Website geteilt. Audio, Fragen und Abschließen folgen später. Diese Aktionen vergeben keine XP und schließen keine Lektüre ab.",

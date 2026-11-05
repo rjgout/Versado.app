@@ -93,11 +93,12 @@ try{
     await page.getByLabel(t('nativeFoundation.email')).fill(user.email);await page.getByLabel(t('nativeFoundation.password'),{exact:true}).fill(password);await page.getByRole('button',{name:t('nativeFoundation.login'),exact:true}).click();await page.getByRole('heading',{name:t('nativeFoundation.today')+', '+user.handle,exact:true}).waitFor();
     const openChapter=chapter=>page.evaluate(path=>window.dispatchEvent(new CustomEvent('wp6:test-open',{detail:'https://dev.versado.app/'+path})),readerPath(chapter));
     const openProfile=()=>page.evaluate(()=>window.dispatchEvent(new CustomEvent('wp6:test-open',{detail:'https://dev.versado.app/profile'})));
-    const completions=()=>gate.calls.filter(call=>call.method==='POST'&&/^chapters\/[^/]+\/complete$/.test(call.path)).length;
+    const completions=()=>gate.calls.filter(call=>call.method==='POST'&&(/^chapters\/[^/]+\/complete$/.test(call.path)||/\/learning\/(?:start|read|submit|check)$/.test(call.path))).length;
     await openChapter(chapters[0]);await page.getByText('Synthetische WP6-passage 1.',{exact:false}).waitFor();
     await page.evaluate(()=>window.dispatchEvent(new Event('wp6:test-resume')));await page.locator('[data-native-reader]').waitFor();
     await page.reload();await page.getByText('Synthetische WP6-passage 1.',{exact:false}).waitFor();
-    assert.equal(await page.getByRole('button',{name:t('nativeFoundation.complete'),exact:true}).count(),0,'De Access-lezer heeft geen afrondingsknop');
+    assert.equal(await page.locator('[data-native-learning-actions]').count(),1,'De nieuwe capability biedt uitsluitend expliciete lees-/oefenacties');
+    assert.equal(completions(),0,'Openen en hervatten versturen geen legacy- of learning-POST');
     const completedBefore=completions();
     holdNextChapterRead=true;await page.evaluate(()=>window.dispatchEvent(new Event('wp6:test-resume')));
     for(let attempt=0;heldReads.length===0&&attempt<100;attempt++)await delay(10);

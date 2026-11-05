@@ -3,6 +3,20 @@ import { kompasEs } from "./kompas/es";
 
 // Spaanse app-teksten; ontbrekende teksten vallen terug volgens fallbackChain.
 export const es: PartialMessages = {
+  nativeLearningFlow: {
+    "questions": "Preguntas",
+    "result": "Resultado",
+    "next": "Siguiente paso",
+    "toPath": "Volver al itinerario",
+    "error": "No se ha podido completar. Tu respuesta se ha conservado. Inténtalo de nuevo.",
+    "uncertain": "La finalización aún no está confirmada. Consulta primero el resultado guardado; no se volverá a enviar nada automáticamente.",
+    "recover": "Consultar el resultado y volver a intentarlo con seguridad",
+    "pendingNavigation": "Comprueba primero la finalización pendiente para conservar el mismo intento y las mismas respuestas.",
+    "ready": "Abrir, desplazarse, escuchar y anotar no completan nada. Continúa solo con el botón correspondiente.",
+    "streakOne": "Racha de {n} día",
+    "streak": "Racha de {n} días",
+    "noQuestions": "No hay preguntas disponibles para este pasaje."
+},
   nativeReader: {
     annotationsEnabled: "Puedes gestionar marcadores, resaltados y notas. El audio, guardar la posición de lectura, las preguntas y la finalización llegarán más adelante. Estas acciones no otorgan XP ni completan la lectura.",
     annotationsPositionEnabled: "Tu posición se guarda tras una lectura estable. Los marcadores, resaltados y notas se comparten con el sitio web. El audio, las preguntas y la finalización llegarán más adelante. Estas acciones no otorgan XP ni completan la lectura.",

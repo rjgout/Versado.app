@@ -3,6 +3,20 @@ import { kompasFr } from "./kompas/fr";
 
 // Ontbrekende teksten vallen terug volgens fallbackChain (src/lib/languages.ts).
 export const fr: PartialMessages = {
+  nativeLearningFlow: {
+    "questions": "Questions",
+    "result": "Résultat",
+    "next": "Étape suivante",
+    "toPath": "Revenir au parcours",
+    "error": "Cela n’a pas fonctionné. Votre réponse a été conservée. Réessayez.",
+    "uncertain": "La validation n’est pas encore confirmée. Vérifiez d’abord le résultat enregistré ; rien ne sera renvoyé automatiquement.",
+    "recover": "Vérifier le résultat et réessayer en toute sécurité",
+    "pendingNavigation": "Vérifiez d’abord la validation incertaine pour conserver la même tentative et les mêmes réponses.",
+    "ready": "Ouvrir, défiler, écouter et annoter ne valident rien. Continuez uniquement avec le bouton prévu.",
+    "streakOne": "Série de {n} jour",
+    "streak": "Série de {n} jours",
+    "noQuestions": "Aucune question n’est disponible pour ce passage."
+},
   nativeReader: {
     annotationsEnabled: "Vous pouvez gérer les signets, surlignages et notes. Audio, enregistrement de la position, questions et validation viendront plus tard. Ces actions ne donnent ni XP ni validation de lecture.",
     annotationsPositionEnabled: "Votre position est enregistrée après une lecture stable. Les signets, surlignages et notes sont partagés avec le site web. Audio, questions et validation viendront plus tard. Ces actions ne donnent ni XP ni validation de lecture.",

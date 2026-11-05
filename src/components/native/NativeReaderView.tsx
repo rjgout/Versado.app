@@ -1,4 +1,5 @@
 "use client";
+import NativeLearningPanel,{useNativeLearningFlow} from "./NativeLearningPanel";
 import { useCallback, useEffect, useRef, useState } from "react";
 import NativeReadAloudPlayer from "./NativeReadAloudPlayer";
 import {useReadAloudPlayer} from "@/lib/readAloudPlayerContext";
@@ -28,6 +29,8 @@ export default function NativeReaderView({
   positionEnabled = false,
   annotationsEnabled = false,
   audioEnabled = false,
+  learningEnabled = false,
+  learningMode,
   route,
   onError,
   parentError,
@@ -40,6 +43,8 @@ export default function NativeReaderView({
   positionEnabled?: boolean;
   annotationsEnabled?: boolean;
   audioEnabled?: boolean;
+  learningEnabled?: boolean;
+  learningMode?: "steps"|"FREE_CHOICE"|"FRONT_TO_BACK";
   route: NonNullable<ReturnType<typeof nativeReaderRoute>>;
   onError: (e: unknown) => void;
   parentError?: unknown;
@@ -81,6 +86,8 @@ export default function NativeReaderView({
   const annotationError=annotationsEnabled ? annotationDenied??annotations.error : null;
   const annotationBlocked=annotationError&&!nativeLearningTransientError(annotationError);
   const data=candidate&&!annotationBlocked?candidate:undefined;
+  const learning=useNativeLearningFlow(data,learningEnabled&&!!learningMode);
+  const reading=!learning.state||learning.state.phase==="read";
   const annotationRows=annotations.data?.annotations.filter(row=>!row.deleted)??[];
   const colorForVerse=(id:string)=>annotationRows.find(row=>row.kind==="highlight"&&row.target.verseId===id)?.color;
   const menu=useVerseAnnotationMenu(annotationsEnabled&&!!data,colorForVerse);
@@ -119,7 +126,7 @@ export default function NativeReaderView({
   },[blockingError,annotationError,annotationBlocked,onError]);
   const [conflict,setConflict] = useState(false);
   const writePosition=query.data ? runtime.readerPositionWriter(query.data,queryKey) : null;
-  const position = useNativeReaderPosition(data,query.data?.positionVersion ?? 0,positionEnabled,
+  const position = useNativeReaderPosition(reading?data:undefined,query.data?.positionVersion ?? 0,positionEnabled,
     async input => {if(!writePosition)throw new NativeClientError("content_context_changed",409);return writePosition(input);},
     error => {
       if(error instanceof NativeClientError && error.status === 409)setConflict(true);
@@ -183,6 +190,7 @@ export default function NativeReaderView({
         </button>
       </section>
     );
+  if(learning.flow&&learning.state&&!reading&&learningMode)return <NativeLearningPanel flow={learning.flow} state={learning.state} reader={data} mode={learningMode} onError={onError}/>;
   return (
     <FocusLayout>
       <div className="flex min-w-0 flex-col gap-5" data-native-reader>
@@ -215,7 +223,7 @@ export default function NativeReaderView({
           </p>
         )}
         <p role="note" className="text-sm text-vs-fg-2">
-          {t(annotationsEnabled ? positionEnabled ? "nativeReader.annotationsPositionEnabled" : "nativeReader.annotationsEnabled" : positionEnabled ? "nativeReader.positionEnabled" : "nativeReader.readOnly")}
+          {t(learning.flow ? "nativeLearningFlow.ready" : annotationsEnabled ? positionEnabled ? "nativeReader.annotationsPositionEnabled" : "nativeReader.annotationsEnabled" : positionEnabled ? "nativeReader.positionEnabled" : "nativeReader.readOnly")}
         </p>
         {positionEnabled && <div aria-live="polite" className="text-sm text-vs-fg-2" data-reader-save-status>
           {position.status === "saving" && t("nativeReader.saving")}
@@ -230,6 +238,7 @@ export default function NativeReaderView({
         {!!query.error && position.status !== "error" && (
           <p role="status">{t("nativeLearning.refreshFailed")}</p>
         )}
+        {learning.flow&&learning.state&&learningMode&&<NativeLearningPanel flow={learning.flow} state={learning.state} reader={data} mode={learningMode} onError={onError}/>}
         <button className="btn-secondary self-start" onClick={back}>
           {t("common.back")}
         </button>

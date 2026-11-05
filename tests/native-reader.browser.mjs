@@ -439,7 +439,7 @@ try {
       await page.getByText(t("nativeReader.saved"),{exact:true}).waitFor();
       assert.equal(writes(),untouched+4,"na bevestigde GET mag een nieuwe waarneming opslaan");
       noPositionBackend=true;await page.reload();await waitReader();
-      await page.getByText(t("nativeReader.annotationsEnabled"),{exact:true}).waitFor();
+      await page.getByText(t("nativeLearningFlow.ready"),{exact:true}).waitFor();
       assert.equal(await page.locator("[data-reader-save-status]").count(),0);
       await wheelAndWait(30,10000);
       assert.equal(writes(),untouched+4,"oude backend blijft uitsluitend lezen, zonder nieuwe POST");
@@ -706,7 +706,7 @@ try {
       noAnnotationsBackend=true;
       const annCalls=calls.filter(c=>c.path.includes("/annotations")).length;
       await page.goto(readerUrl);await waitReader();
-      await page.getByText(t("nativeReader.positionEnabled"),{exact:true}).waitFor();
+      await page.getByText(t("nativeLearningFlow.ready"),{exact:true}).waitFor();
       assert.equal(await page.locator("[data-native-reader] [data-annotation-trigger]").count(),0);
       assert.equal(calls.filter(c=>c.path.includes("/annotations")).length,annCalls,"oude backend krijgt geen annotatieverzoeken");
       noAnnotationsBackend=false;await page.reload();await waitReader();

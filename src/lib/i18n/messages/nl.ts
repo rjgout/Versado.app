@@ -5,6 +5,20 @@
 import { kompasNl } from "./kompas/nl";
 
 export const nl = {
+  nativeLearningFlow: {
+    "questions": "Vragen",
+    "result": "Resultaat",
+    "next": "Volgende stap",
+    "toPath": "Terug naar het leerpad",
+    "error": "Dat is niet gelukt. Je antwoord is bewaard. Probeer het opnieuw.",
+    "uncertain": "De afronding is nog niet bevestigd. Controleer eerst het opgeslagen resultaat; er wordt niets automatisch opnieuw ingestuurd.",
+    "recover": "Resultaat controleren en veilig opnieuw proberen",
+    "pendingNavigation": "Controleer eerst de onzekere afronding. Zo blijven dezelfde poging en antwoorden behouden.",
+    "ready": "Openen, scrollen, voorlezen en annotaties ronden niets af. Ga alleen verder met de expliciete knop.",
+    "streakOne": "{n} dag reeks",
+    "streak": "{n} dagen reeks",
+    "noQuestions": "Voor dit gedeelte zijn geen vragen beschikbaar."
+},
   nativeReader: {
     annotationsEnabled: "Je kunt bladwijzers, markeringen en notities beheren. Audio, leespositie opslaan, vragen en afronden volgen later. Dit levert geen XP of leesafronding op.",
     annotationsPositionEnabled: "Je leespositie wordt na rustig lezen bewaard. Bladwijzers, markeringen en notities worden met de website gedeeld. Audio, vragen en afronden volgen later. Dit levert geen XP of leesafronding op.",
