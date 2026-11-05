@@ -1,0 +1,40 @@
+name: CFM externe bronintegriteit
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 6 * * 1'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - '.github/workflows/cfm-source-integrity.yml'
+      - 'scripts/study-content/cfm-test-assets.mjs'
+      - 'scripts/study-content/prepare-cfm-test-assets.mjs'
+      - 'data/study-content/cfm-2026-nl/media-lock.json'
+      - 'data/study-content/cfm-2027-nl/media-lock.json'
+      - 'data/study-content/cfm-2026-nl/otb-index.json'
+permissions:
+  contents: read
+concurrency:
+  group: cfm-source-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+jobs:
+  cfm-source-integrity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CFM_TEST_ASSETS: /tmp/versado-cfm-upstream-check
+      CFM_ASSET_REPORT: /tmp/cfm-source-integrity.json
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Alle unieke officiële bestanden, zonder cache of automatische repin
+        run: node scripts/study-content/prepare-cfm-test-assets.mjs --verify-upstream
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cfm-source-integrity-${{ github.sha }}
+          path: /tmp/cfm-source-integrity.json
+          retention-days: 7
+          if-no-files-found: error
