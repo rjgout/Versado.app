@@ -25,6 +25,8 @@ const API_VERSION = 1;
 const COMPILE_PROBE_ORIGIN = "https://example.invalid";
 const DEFAULT_BUNDLE_DIR = "dist/native";
 const ORIGINS_FILE = "scripts/native/distribution-origins.json";
+const INTERNAL_ACCESS_ORIGIN = "https://dev.versado.app";
+const INTERNAL_ACCESS_FILE = "internal-access.json";
 
 const PROFILE_IDS = ["remote-preview", "local-development", "local-internal", "local-store-test"];
 const DISTRIBUTION_PROFILE_IDS = ["local-internal", "local-store-test"];
@@ -37,6 +39,20 @@ const DISTRIBUTION_PROFILES = {
 
 class ProfileError extends Error {
   constructor(message) { super(message); this.name = "ProfileError"; }
+}
+
+// De vlag is openbaar; echte servicecredentials mogen nooit bouwinvoer zijn.
+function internalAccessEnabled(resolved, env = process.env) {
+  for (const name of ["CF_ACCESS_CLIENT_ID", "CF_ACCESS_CLIENT_SECRET", "CF-Access-Client-Id", "CF-Access-Client-Secret", "CLOUDFLARE_ACCESS_CLIENT_SECRET"]) {
+    if (Object.hasOwn(env, name)) throw new ProfileError("Cloudflare-servicecredentials zijn verboden als bouwinvoer; gebruik native enrollment.");
+  }
+  const flag = env.NATIVE_INTERNAL_ACCESS;
+  if (flag === undefined || flag === "0") return false;
+  if (flag !== "1") throw new ProfileError("NATIVE_INTERNAL_ACCESS accepteert uitsluitend 0 of 1.");
+  if (resolved.profile !== "local-internal" || resolved.channel !== "internal" || resolved.apiOrigin !== INTERNAL_ACCESS_ORIGIN || resolved.compileProbe !== false) {
+    throw new ProfileError("Cloudflare Access is uitsluitend beschikbaar voor een expliciete local-internal-build voor https://dev.versado.app.");
+  }
+  return true;
 }
 
 const value = (env, key) => { const raw = env[key]; return raw === undefined || raw.trim() === "" ? undefined : raw.trim(); };
@@ -301,6 +317,9 @@ function findSecrets(text) {
 }
 
 module.exports = {
+  INTERNAL_ACCESS_ORIGIN,
+  INTERNAL_ACCESS_FILE,
+  internalAccessEnabled,
   APP_ID,
   SCHEMA_VERSION,
   API_VERSION,

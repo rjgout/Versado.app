@@ -13,7 +13,7 @@ import { requestOfficialAudio as requestProduction,runOfficialAudioTick,official
 import { assertOfficialPublication } from "../src/lib/audio/officialGuard";
 import { publishAudio,importAudioPackage,scanAudioPackages } from "../src/lib/audio/library";
 import { officialSeed,officialPage } from "./fixtures/audio/official-source";
-import { mockOfficialNetwork,type OfficialMock } from "./fixtures/audio/official-network";
+import { mockOfficialNetwork,writeOfficialControl,type OfficialMock } from "./fixtures/audio/official-network";
 const url=new URL(process.env.AUDIO_TEST_DATABASE_URL??"http://invalid");
 if(url.hostname!=="127.0.0.1"||url.pathname!=="/versado_audio_test"||process.env.DATABASE_URL!==url.href)throw Error("Eigen audiorunner vereist");
 const root=process.env.AUDIO_TEST_ROOT!,configFile=path.join(root,"official-mock.json");
@@ -127,33 +127,39 @@ test("echt procesverlies tijdens download hervat veilig zonder bestaande cache t
  const stable=await fs.readFile(cache);await fs.rename(cache,path.join(root,"official-saved-cache.mp3"));
  await fs.rename(path.join(root,"objects",source.sha256+".mp3"),path.join(root,"official-saved-object.mp3"));
  await prisma.officialAudioTask.update({where:{id:source.id},data:{status:"QUEUED",phase:"DOWNLOAD",leaseToken:null,leaseUntil:null}});
- await fs.writeFile(config.controlFile,JSON.stringify({pauseUrl:source.url}));const launched=worker();
+ await writeOfficialControl(config.controlFile,{pauseUrl:source.url});const launched=worker();
  let waiting=false;for(let i=0;i<100;i++){const task=await prisma.officialAudioTask.findUniqueOrThrow({where:{id:source.id}});if(task.status==="RUNNING"&&task.bytesDownloaded===1){waiting=true;break;}await delay(50);}
  assert.equal(waiting,true);launched.child.kill("SIGKILL");await launched.done;
- await fs.writeFile(config.controlFile,"{}");await prisma.officialAudioTask.update({where:{id:source.id},data:{leaseUntil:new Date(0)}});
+ await writeOfficialControl(config.controlFile,{});await prisma.officialAudioTask.update({where:{id:source.id},data:{leaseUntil:new Date(0)}});
  await worker().done;assert.equal((await prisma.officialAudioTask.findUniqueOrThrow({where:{id:source.id}})).status,"REGISTERED");assert.deepEqual(await fs.readFile(cache),stable);
  assert.equal(await prisma.audioRecording.count({where:{packageId:prefix+source.id}}),1);assert.deepEqual(await snapshot(),baseline);
 });
 test("foute SHA en verkeerde bronpagina worden niet vastgezet; expliciet hervatten kan de nieuwe cache herstellen",async()=>{
  const source=config.sources[0],cache=path.join(root,"official-cache",source.id,"audio.mp3"),object=path.join(root,"objects",source.sha256+".mp3");
  await fs.rename(cache,path.join(root,"checksum-saved-cache.mp3"));await fs.rename(object,path.join(root,"checksum-saved-object.mp3"));
- await fs.writeFile(config.controlFile,JSON.stringify({corruptUrl:source.url}));await requestOfficialAudio(actor,"download",[source.id]);await tick();
+ await writeOfficialControl(config.controlFile,{corruptUrl:source.url});await requestOfficialAudio(actor,"download",[source.id]);await tick();
  let task=await prisma.officialAudioTask.findUniqueOrThrow({where:{id:source.id}});assert.equal(task.status,"FAILED");assert.equal(task.errorCode,"AUDIO_CHECKSUM");
  await assert.rejects(fs.access(cache));await assert.rejects(fs.access(object));
- const calls=await audioCalls();await fs.writeFile(config.controlFile,JSON.stringify({wrongPage:source.pageUrl}));await requestOfficialAudio(actor,"resume",[source.id]);await tick();
+ const calls=await audioCalls();await writeOfficialControl(config.controlFile,{wrongPage:source.pageUrl});await requestOfficialAudio(actor,"resume",[source.id]);await tick();
  task=await prisma.officialAudioTask.findUniqueOrThrow({where:{id:source.id}});assert.equal(task.errorCode,"SOURCE_IDENTITY");assert.equal(await audioCalls(),calls);
- await fs.writeFile(config.controlFile,"{}");await requestOfficialAudio(actor,"resume",[source.id]);await tick();
+ await writeOfficialControl(config.controlFile,{});await requestOfficialAudio(actor,"resume",[source.id]);await tick();
  assert.equal((await prisma.officialAudioTask.findUniqueOrThrow({where:{id:source.id}})).status,"REGISTERED");assert.equal(await prisma.audioRecording.count({where:{packageId:prefix+source.id}}),1);assert.deepEqual(await snapshot(),baseline);
 });
 test("rolintrekking tijdens een vertraagde actie blokkeert commit en publicatie",async()=>{
  const source=config.sources[3],cache=path.join(root,"official-cache",source.id,"audio.mp3"),object=path.join(root,"objects",source.sha256+".mp3");
  await fs.rename(cache,path.join(root,"role-saved-cache.mp3"));await fs.rename(object,path.join(root,"role-saved-object.mp3"));
- await fs.writeFile(config.controlFile,JSON.stringify({pauseUrl:source.url}));await requestOfficialAudio(actor,"download",[source.id]);const launched=worker();
- let paused=false;for(let i=0;i<100;i++){const task=await prisma.officialAudioTask.findUniqueOrThrow({where:{id:source.id}});if(task.status==="RUNNING"&&task.bytesDownloaded===1){paused=true;break;}await delay(50);}
- assert.equal(paused,true);await prisma.user.update({where:{id:actor.id},data:{isAdmin:false}});await fs.writeFile(config.controlFile,"{}");await launched.done;
- const task=await prisma.officialAudioTask.findUniqueOrThrow({where:{id:source.id}});assert.equal(task.status,"FAILED");assert.equal(task.errorCode,"FORBIDDEN");
- await assert.rejects(requestOfficialAudio(actor,"resume",[source.id]),/FORBIDDEN/);
- await prisma.user.update({where:{id:actor.id},data:{isAdmin:true}});await requestOfficialAudio(actor,"resume",[source.id]);
+ await writeOfficialControl(config.controlFile,{pauseUrl:source.url});await requestOfficialAudio(actor,"download",[source.id]);const launched=worker();
+ try {
+  let paused=false;for(let i=0;i<100;i++){const task=await prisma.officialAudioTask.findUniqueOrThrow({where:{id:source.id}});if(task.status==="RUNNING"&&task.bytesDownloaded===1){paused=true;break;}await delay(50);}
+  assert.equal(paused,true);await prisma.user.update({where:{id:actor.id},data:{isAdmin:false}});await writeOfficialControl(config.controlFile,{});await launched.done;
+  const task=await prisma.officialAudioTask.findUniqueOrThrow({where:{id:source.id}});assert.equal(task.status,"FAILED");assert.equal(task.errorCode,"FORBIDDEN");
+  await assert.rejects(requestOfficialAudio(actor,"resume",[source.id]),/FORBIDDEN/);
+ } finally {
+  // Ook een falende assertion mag latere onafhankelijke proeven niet ontregelen.
+  try { await writeOfficialControl(config.controlFile,{}); await launched.done; }
+  finally { await prisma.user.update({where:{id:actor.id},data:{isAdmin:true}}); }
+ }
+ await requestOfficialAudio(actor,"resume",[source.id]);
  assert.equal(await prisma.audioRecording.count({where:{packageId:prefix+source.id}}),1);assert.deepEqual(await snapshot(),baseline);
 });
 test("tekstwijziging tijdens wachten op de commitlock rolt de registratie terug; scanner omzeilt FAILED niet",async()=>{

@@ -3,14 +3,12 @@ import WeeklyResultCelebration from "@/components/WeeklyResultCelebration";
 import { StreakContinuationProvider } from "@/components/StreakContinuation";
 import { ConfirmProvider } from "@/components/ConfirmProvider";
 import type { Metadata, Viewport } from "next";
-import Link from "next/link";
 import { Fragment, Suspense } from "react";
 import "./globals.css";
 import { getCurrentUser, navigationSessionKey } from "@/lib/session";
 import { getBranding } from "@/lib/branding";
 import { getAppUrl } from "@/lib/baseUrl";
 import NavUserBadges from "@/components/NavUserBadges";
-import PrimaryNav from "@/components/shell/PrimaryNav";
 import HeaderAvatar from "@/components/shell/HeaderAvatar";
 import SocialTabs from "@/components/shell/SocialTabs";
 import { prisma } from "@/lib/db";
@@ -22,22 +20,18 @@ import KompasProvider from "@/components/kompas/KompasProvider";
 import ContextOffer from "@/components/kompas/ContextOffer";
 import { workOf } from "@/lib/contentRouting";
 import ThemeScript from "@/components/ThemeScript";
-import BottomNav from "@/components/BottomNav";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import NativeAppBridge from "@/components/NativeAppBridge";
 import NotificationCenter from "@/components/NotificationCenter";
 import EdgeSwipeGuard from "@/components/EdgeSwipeGuard";
 import SubpageBackBar from "@/components/SubpageBackBar";
 import NavigationScroll from "@/components/shell/NavigationScroll";
-import FocusModeController from "@/components/shell/FocusModeController";
 import PodcastMiniPlayer from "@/components/PodcastMiniPlayer";
 import HeaderInstallHint from "@/components/HeaderInstallHint";
 import PublicLanguageSwitcher from "@/components/PublicLanguageSwitcher";
 import ContentSwitcher from "@/components/ContentSwitcher";
 import LiveDataProvider from "@/components/LiveDataProvider";
 import { getContentContext } from "@/lib/contentCollections";
-import StickyHeader from "@/components/StickyHeader";
-import ShellMetrics from "@/components/shell/ShellMetrics";
 import { PodcastPlayerProvider } from "@/lib/podcastPlayerContext";
 import { ReadAloudPlayerProvider } from "@/lib/readAloudPlayerContext";
 import ReadAloudMiniPlayer from "@/components/ReadAloudMiniPlayer";
@@ -49,6 +43,8 @@ import { companionToMascot } from "@/lib/companion";
 import { messagesFor } from "@/lib/i18n";
 import { requestLanguage } from "@/lib/requestLanguage";
 import { APP_TAGLINE, resolveAppName } from "@/lib/brand";
+import AppShellFrame from "@/components/shell/AppShellFrame";
+import AppShellHeader from "@/components/shell/AppShellHeader";
 import NextNavigationProvider from "@/components/navigation/NextNavigationProvider";
 
 // PWA: manifest + icons zijn wat een browser nodig heeft om "toevoegen aan
@@ -161,78 +157,38 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <KompasProvider>
         <PodcastPlayerProvider>
         <ReadAloudPlayerProvider>
-        <FocusModeController>
-        {/* Header + mini-player samen in één vaste wrapper (i.p.v. sticky —
-            zie StickyHeader.tsx voor waarom) zodat ze bij het scrollen als
-            één geheel bovenaan blijven staan, ongeacht de exacte hoogte van
-            de header — zie PodcastMiniPlayer.tsx. */}
-        <ShellMetrics />
-        <StickyHeader>
-        {/* Compacte header (vaste hoogte, geen groot logo): links de
-            contentkiezer, op desktop de primaire navigatie in het midden,
-            rechts reeks, XP en divisie, meldingen en de avatar (ingang naar
-            profiel). Op telefoon en tablet staat de navigatie onderaan
-            (BottomNav). Zie docs/VERSADO-DESIGN.md. */}
-        <header data-app-global-header className="border-b border-vs-line bg-vs-elevated pt-[var(--vs-safe-area-top)]">
-          {/* Vanaf xl iets breder dan de pagina: logo, contentkiezer, navigatie en
-            status passen anders niet naast elkaar. */}
-          {/* Minstens 3,5 rem hoog maar nooit een vaste hoogte, en de onderdelen mogen
-              wrappen: bij grotere tekst loopt de header over meerdere regels in
-              plaats van breder te worden dan het scherm (docs/LAYOUT.md). */}
-          <div className="relative mx-auto flex min-h-14 max-w-5xl min-w-0 flex-wrap items-center gap-x-2 gap-y-1 px-4 py-1 sm:min-h-16 sm:gap-x-3 xl:max-w-6xl">
-            <Link
-              href={user ? "/dashboard" : "/"}
-              className={`${user ? "hidden xl:flex mr-3" : "flex"} shrink-0 items-center gap-2 text-lg font-extrabold text-vs-accent`}
-            >
-              {logoDataUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={logoDataUrl} alt={displayName} className="h-7 w-auto" />
-              ) : (
-                displayName
-              )}
-            </Link>
-
-            {user && contentContext && (
-              <ContentSwitcher
-                enabled={contentContext.switcherEnabled || user.isAdmin}
-                active={contentContext.active}
-                sessionKey={sessionKey}
-                showLanguage
-              />
-            )}
-
-            {!user && <div className="ml-auto"><PublicLanguageSwitcher language={uiLanguage} /></div>}
-
-            {user ? (
-              <>
-                <div className="hidden min-w-[min(100%,18rem)] flex-[1_1_18rem] justify-center lg:flex">
-                  <PrimaryNav />
-                </div>
-                <div className="ml-auto flex min-w-0 max-w-full flex-wrap items-center justify-end gap-0.5 sm:gap-1">
-                  <div className="hidden xl:block"><HeaderInstallHint /></div>
-                  <NavUserBadges
-                    streak={user.currentStreak}
-                    xp={user.xpTotal}
-                    studiedToday={hasStudiedToday(user)}
-                    tier={tier}
-                  />
-                  <NotificationCenter />
-                  <HeaderAvatar id={user.id} handle={user.handle} avatarEmoji={user.avatarEmoji} avatarCharacterId={user.avatarCharacterId} avatarBackgroundId={user.avatarBackgroundId} avatarFrameId={user.avatarFrameId} avatarDecorationId={user.avatarDecorationId} avatarLightAccentId={user.avatarLightAccentId} />
-                </div>
-              </>
-            ) : null}
-          </div>
-        </header>
-        {/* Eerst de terugbalk, dan de spelers: de navigatie blijft zo op een
-            vaste plek direct onder de header, ook als er een speler bij komt. */}
-        {user && <Suspense fallback={null}><SubpageBackBar /></Suspense>}
-        {user && <PodcastMiniPlayer />}
-        {user && <ReadAloudMiniPlayer />}
-        {user && <ActivityTracker />}
-        {user && <TimeZoneSync known={user.timeZone} />}
-        </StickyHeader>
-        <Suspense fallback={null}><NavigationScroll /></Suspense>
-        <main className="mx-auto max-w-5xl pb-[var(--main-pad-bottom)] pl-[max(1rem,var(--vs-safe-area-left))] pr-[max(1rem,var(--vs-safe-area-right))] pt-[var(--main-pad-top)]">
+        <AppShellFrame
+          showNavigation={!!user}
+          header={<AppShellHeader authenticated={!!user} homeHref={user ? "/dashboard" : "/"}
+            brand={logoDataUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={logoDataUrl} alt={displayName} className="h-7 w-auto" />
+            ) : displayName}
+            leading={user && contentContext && <ContentSwitcher enabled={contentContext.switcherEnabled || user.isAdmin} active={contentContext.active} sessionKey={sessionKey} showLanguage />}
+            anonymousActions={<PublicLanguageSwitcher language={uiLanguage} />}
+            installHint={<HeaderInstallHint />}
+            status={user && <NavUserBadges streak={user.currentStreak} xp={user.xpTotal} studiedToday={hasStudiedToday(user)} tier={tier} />}
+            notifications={user && <NotificationCenter />}
+            profile={user && <HeaderAvatar id={user.id} handle={user.handle} avatarEmoji={user.avatarEmoji} avatarCharacterId={user.avatarCharacterId} avatarBackgroundId={user.avatarBackgroundId} avatarFrameId={user.avatarFrameId} avatarDecorationId={user.avatarDecorationId} avatarLightAccentId={user.avatarLightAccentId} />}
+          />}
+          headerExtras={<>
+            {user && <Suspense fallback={null}><SubpageBackBar /></Suspense>}
+            {user && <PodcastMiniPlayer />}
+            {user && <ReadAloudMiniPlayer />}
+            {user && <ActivityTracker />}
+            {user && <TimeZoneSync known={user.timeZone} />}
+          </>}
+          beforeMain={<Suspense fallback={null}><NavigationScroll /></Suspense>}
+          afterMain={<>
+            {user && <InviteListener />}
+            {user && <ChangelogPopup />}
+            {user && <FreezeGiftPopup />}
+            {user && contentContext && <ContextOffer work={workOf(contentContext.active)} />}
+            <ServiceWorkerRegister />
+            <NativeAppBridge />
+            <EdgeSwipeGuard />
+          </>}
+        >
           {user && <SocialTabs />}
           {/* De sleutel is de gekozen content + contenttaal. Wisselt een van beide, dan
               begint alles hieronder opnieuw en haalt het zijn data opnieuw op, ook
@@ -241,16 +197,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <Fragment key={contentContext ? `${contentContext.active.id}:${contentContext.contentLanguage}` : "anonymous"}>
             {children}
           </Fragment>
-        </main>
-        {user && <BottomNav />}
-        {user && <InviteListener />}
-        {user && <ChangelogPopup />}
-        {user && <FreezeGiftPopup />}
-        {user && contentContext && <ContextOffer work={workOf(contentContext.active)} />}
-        <ServiceWorkerRegister />
-        <NativeAppBridge />
-        <EdgeSwipeGuard />
-        </FocusModeController>
+        </AppShellFrame>
         </ReadAloudPlayerProvider>
         </PodcastPlayerProvider>
         </KompasProvider>

@@ -5,6 +5,8 @@ import path from "node:path";
 import { createHash, randomUUID } from "node:crypto";
 import { prisma } from "../src/lib/db";
 import { importCfmDrafts } from "../src/lib/studyContent/cfm2026Import";
+import { studyProgramReview } from "../src/lib/studyContent/programReview";
+import { publishStudyProgram } from "../src/lib/studyContent/programPublication";
 import { autoPublishCfmVolume } from "../src/lib/studyContent/cfmAutoPublish";
 import { CFM_SOURCE_2026 } from "../src/lib/studyContent/cfmSources";
 import { getStudyCatalogue } from "../src/lib/studyContent/catalogue";
@@ -106,11 +108,16 @@ test("95 video-revisies en archivering raken voortgang, abonnement, annotaties e
   const counts = await tableCounts();
   const deeplinkBefore = await Promise.all(before.map(async (e) => (await getPublishedStudyLesson(member, e.lessonId, collectionId))?.lessonId));
 
-  // 3. Nu: de nieuwe revisies met video's worden ingeladen en automatisch gepubliceerd.
+  // 3. Een nieuwe revisie wordt voorbereid; automatische publicatie mag bestaande publicaties niet vervangen.
   await importCfmDrafts(actor, CFM_SOURCE_2026, options);
   const second = await autoPublishCfmVolume(actor, CFM_SOURCE_2026);
-  assert.equal(second.status, "done", JSON.stringify({ blocked: second.blocked, failed: second.failed, publishedNow: second.publishedNow }).slice(0, 900));
-  assert.equal(second.publishedNow, targets.length, "alleen lessen met video's krijgen een nieuwe revisie");
+  assert.equal(second.publishedNow, 0);
+  assert.equal(second.blocked.filter(l=>l.codes.includes("EXPLICIT_REVISION_REQUIRED")).length, targets.length);
+  for(const e of targets) assert.equal((await prisma.studyLessonEdition.findUniqueOrThrow({where:{id:e.id}})).publishedRevisionId,e.publishedRevisionId);
+  const review = await studyProgramReview(actor, collectionId);
+  const approved = await publishStudyProgram(actor, { collectionId, reviewToken:review.reviewToken, batchId:randomUUID(), confirmReviewed:true }, prisma, {budgetMs:300_000});
+  assert.equal(approved.done,true,JSON.stringify(approved.failed));
+  assert.equal(approved.failed.length,0);
   const after = await prisma.studyLessonEdition.findMany({ where: { collectionId }, include: { publishedRevision: true }, orderBy: { lesson: { order: "asc" } } });
   assert.deepEqual(after.map((e) => e.id), before.map((e) => e.id), "dezelfde edities (lesidentiteit)");
   assert.equal(after.reduce((n, e) => n + countVideos(e.publishedRevision!.body), 0), 95, "alle 95 video's staan nu in de gepubliceerde revisies");

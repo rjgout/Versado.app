@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import Link from "next/link";
+import { AppLink as Link } from "@/components/navigation/AppNavigation";
 import { ArrowRight, Check, Music2, Quote } from "lucide-react";
 import { getT } from "@/lib/i18n";
 import MediaArtwork from "@/components/versado/MediaArtwork";

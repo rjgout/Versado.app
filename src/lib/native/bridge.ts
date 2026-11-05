@@ -1,6 +1,8 @@
 import { registerPlugin } from "@capacitor/core";
 import { NativeClientError, type SecureSessionStore } from "./client";
-interface NativeBridge {
+import type { NativeAudioBridge } from "./audioBridge";
+import type { NativeAccessBridge } from "./access";
+interface NativeBridge extends NativeAccessBridge, NativeAudioBridge {
   readSession(): Promise<{ value?: string }>;
   writeSession(options: { value: string }): Promise<void>;
   clearSession(): Promise<void>;

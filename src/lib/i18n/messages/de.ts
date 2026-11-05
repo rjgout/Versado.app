@@ -3,6 +3,42 @@ import { kompasDe } from "./kompas/de";
 
 // Ontbrekende teksten vallen terug volgens fallbackChain (src/lib/languages.ts).
 export const de: PartialMessages = {
+  nativeLearningFlow: {
+    "questions": "Fragen",
+    "result": "Ergebnis",
+    "next": "Nächster Schritt",
+    "toPath": "Zurück zum Lernpfad",
+    "error": "Das hat nicht funktioniert. Deine Antwort wurde behalten. Versuche es erneut.",
+    "uncertain": "Der Abschluss wurde noch nicht bestätigt. Prüfe zuerst das gespeicherte Ergebnis; nichts wird automatisch erneut gesendet.",
+    "recover": "Ergebnis prüfen und sicher erneut versuchen",
+    "pendingNavigation": "Prüfe zuerst den unklaren Abschluss, damit derselbe Versuch und dieselben Antworten erhalten bleiben.",
+    "ready": "Öffnen, Scrollen, Vorlesen und Anmerkungen schließen nichts ab. Fahre nur mit der ausdrücklichen Schaltfläche fort.",
+    "streakOne": "{n} Tag in Folge",
+    "streak": "{n} Tage in Folge",
+    "noQuestions": "Für diesen Abschnitt sind keine Fragen verfügbar."
+},
+  nativeReader: {
+    annotationsEnabled: "Du kannst Lesezeichen, Markierungen und Notizen verwalten. Audio, das Speichern der Leseposition, Fragen und Abschließen folgen später. Diese Aktionen vergeben keine XP und schließen keine Lektüre ab.",
+    annotationsPositionEnabled: "Deine Leseposition wird nach ruhigem Lesen gespeichert. Lesezeichen, Markierungen und Notizen werden mit der Website geteilt. Audio, Fragen und Abschließen folgen später. Diese Aktionen vergeben keine XP und schließen keine Lektüre ab.",
+    positionEnabled: "Deine Leseposition wird nach ruhigem Lesen gespeichert. Audio, Anmerkungen, Fragen und Abschließen folgen später. Lesen und Blättern vergeben keine XP und schließen nichts ab.",
+    saving: "Leseposition wird gespeichert…",
+    saved: "Leseposition gespeichert.",
+    saveFailed: "Leseposition nicht gespeichert. Bitte erneut versuchen.",
+    conflict: "Die Leseposition wurde anderswo geändert. Lade die bestätigte Position neu und lies dann weiter.",
+    previous: "Vorheriges Kapitel",
+    next: "Nächstes Kapitel",
+    "unsupported": "Dieses Backend unterstützt den gemeinsamen Leser noch nicht. Kehre zu Lernen zurück.",
+    "readOnly": "Hier kannst du lesen und Text kopieren. Audio, Anmerkungen, das Speichern der Leseposition, Fragen und Abschluss folgen später. Öffnen und Scrollen bringen keine XP oder Fortschritte.",
+    "range": "Leseschritt: Verse {start}–{end}.",
+    "legacy": "Öffne dieses Kapitel über den richtigen Lernpfad unter Lernen. Diese alte Testroute schließt nichts mehr ab."
+},
+  nativeLearning: {
+    catalogueTruncated: "Diese Übersicht ist unvollständig. Es werden höchstens 600 Lektionen angezeigt.",
+    refreshFailed: "Die Aktualisierung ist vorübergehend fehlgeschlagen. Du siehst die zuletzt bestätigten Daten.",
+    "readOnly": "Du kannst Kurse und Lernpfade ansehen. Hinzufügen, Ausblenden und Lektionen folgen in einer späteren App-Version. Dein Fortschritt bleibt erhalten.",
+    "unsupported": "Dieser Server unterstützt die Kursübersicht noch nicht.",
+    "pathUnavailable": "Dieser Lernpfad ist in dieser App-Version noch nicht verfügbar."
+},
   mailLog: {
     "title": "Versendete E-Mails",
     "intro": "Verlauf ab Aktivierung; Aufbewahrung höchstens 90 Tage. Neue Nachrichten erscheinen automatisch.",
@@ -219,6 +255,22 @@ export const de: PartialMessages = {
   "active": "Aktuelle Aufnahme",
   "legacy": "Registrierungen; bestehende Kapitelaudiodateien bleiben erhalten."
 },
+  nativeAccess: {
+  "title": "Interner Gerätezugang",
+  "help": "Füge den Cloudflare-Zugang für dieses Testgerät im sicheren Systemdialog hinzu. Ersetzen oder Löschen meldet dich bei Versado ab.",
+  "missing": "Der Gerätezugang fehlt. Füge die vom Eigentümer bereitgestellten Daten hinzu.",
+  "configured": "Der Gerätezugang ist gespeichert. Die Gültigkeit wird bei jeder Anfrage geprüft.",
+  "enroll": "Zugang hinzufügen oder ersetzen",
+  "clear": "Zugang löschen",
+  "busy": "Gerätezugang wird aktualisiert…",
+  "error": "Der Gerätezugang konnte nicht verwendet werden. Prüfe die Verbindung und bitte den Eigentümer, den Zugang zu prüfen.",
+  "denied": "Der Gerätezugang wurde verweigert oder widerrufen. Bitte den Eigentümer um neue Daten.",
+  "disabled": "Dieser Build erlaubt keinen internen Gerätezugang. Erstelle die richtige interne Version.",
+  "realtime": "Echtzeitverbindungen sind in diesem internen Access-Build noch nicht verfügbar."
+},
+  nativeToday: { unavailable: "Dieses Ziel oder diese Aktion ist in dieser App-Version noch nicht verfügbar. Dein Fortschritt bleibt erhalten. Nutze dafür vorerst die Website." },
+  nativeContentFallback: { unsupported: "Dieser Server unterstützt die Inhaltsauswahl in der App noch nicht. Du kannst zu Heute zurückkehren.", signIn: "Melde dich an, um deine Inhalte auszuwählen." },
+  nativeDiagnostics: {"title": "Interne Diagnose", "open": "Interne Diagnose", "internalBadge": "Intern", "testBadge": "Testversion", "recovery": "Verbindung und Wiederherstellung"},
   nativeFoundation: {
   "welcome": "Willkommen bei Versado",
   "login": "Anmelden",
@@ -1375,6 +1427,9 @@ export const de: PartialMessages = {
     },
   },
   today: {
+    actionFailed: "Die Aktion wurde nicht bestätigt. Versuche es erneut, wenn du verbunden bist.",
+    friendAccepted: "Freundschaftsanfrage angenommen",
+    friendDeclined: "Freundschaftsanfrage abgelehnt",
     greeting: {
       morning: "Guten Morgen, {name}",
       afternoon: "Guten Tag, {name}",
@@ -3777,6 +3832,11 @@ export const de: PartialMessages = {
     loadFailed: "Die Personen konnten nicht geladen werden.",
   },
   player: {
+    nativeOutput: "Vorlesequelle",
+    nativeRecording: "Audioaufnahme",
+    nativeDeviceVoice: "Stimme auf diesem Gerät",
+    nativeUnavailable: "Vorlesen ist derzeit nicht verfügbar. Prüfe deine Verbindung und die verfügbaren Stimmen.",
+
     audioLanguage: "Audiosprache",
     audioLanguageHint: "Lies und höre in verschiedenen Sprachen. Deine Auswahl wird auf diesem Gerät gespeichert. Ohne Aufnahme wird eine Computerstimme verwendet.",
     retryLanguages: "Audiosprachen konnten nicht geladen werden. Erneut versuchen",
@@ -3982,9 +4042,27 @@ export const de: PartialMessages = {
       failed_critical: "Fehlgeschlagen — Eingriff nötig",
     },
   },
+  cfmRecovery: {
+    "title": "CFM 2026 sicher wiederherstellen",
+    "description": "Die Prüfung liest nur Daten. Validierte Importschnappschüsse haben für Originaldateien Vorrang. Die Vorbereitung kann nur diese Originalmedien wiederherstellen und Entwürfe erstellen. Veröffentlichungen und Fortschritt bleiben erhalten.",
+    "check": "1. Wiederherstellungsplan ansehen (nur lesen)",
+    "published": "Veröffentlicht",
+    "source": "Offizielle Quelle ansehen",
+    "original": "Ursprüngliche Prüfsumme",
+    "candidate": "Geprüfter Ersatz",
+    "snapshot": "Ursprünglicher Importschnappschuss",
+    "ORIGINAL_VALID": "Original auf Volume gültig",
+    "ORIGINAL_SNAPSHOT": "Original in validiertem Schnappschuss",
+    "REVIEW_REQUIRED": "Original nicht gefunden — Medienprüfung erforderlich",
+    "review": "Ich habe offizielle Bilder, Zuordnung zu Lektionen, Prüfsummen und Abmessungen geprüft. Ich genehmige nur diese Ersatzmedien als Entwürfe. Ohne alte Dateien ist die Pixelgleichheit nicht belegbar.",
+    "prepare": "2. Originale wiederherstellen und Entwürfe vorbereiten",
+    "confirm": "Wiederherstellungsplan für CFM 2026 ausführen? Originalmedien können wiederhergestellt werden; Ersatzmedien werden nur als Entwürfe registriert. Nichts wird veröffentlicht oder sichtbar gemacht.",
+    "after": "Danach die Entwürfe unter Studienlektionen-Veröffentlichungen prüfen. Veröffentlichen, Sammlung freigeben und sichtbar machen sind separate Verwaltungsaktionen. Ein Fehler kann vorbereitete Teilentwürfe hinterlassen; vor manuellem Fortsetzen den Plan aktualisieren.",
+    "publications": "Zu Studienlektionen-Veröffentlichungen"
+},
   adminReseed: {
     title: "Neue Inhalte abrufen",
-    text: "Ruft neue Podcast-Folgen, FSY-Inhalte, CFM-Entwürfe und andere neue Inhalte ab. Schrifttexte, ihre Übungen und das vorgelesene Audio bleiben unberührt: Diese aktualisierst du mit „Schriftquellen aktualisieren“. Studienlektionen werden nie automatisch veröffentlicht oder sichtbar gemacht. Bestehende Nutzer, Fortschritt, Serien und Punkte bleiben erhalten. Du kannst diese Seite verlassen und den Fortschritt später ansehen.",
+    text: "Ruft neue Podcasts, FSY-Inhalte und weitere neue Inhalte ab. CFM ergänzt nur fehlende Lektionen; vollständige Lektionen bleiben unverändert. Neue offizielle CFM-Lektionen können bei aktivierter Einstellung nach Prüfung automatisch veröffentlicht werden. Medienwiederherstellung und Revisionen erfordern die separate Prüfung unten. Schrifttexte, Übungen und Kapitel-Audio laufen über Schriftquellen aktualisieren. Benutzer und Fortschritt bleiben erhalten.",
     failed: "Neue Inhalte abzurufen ist fehlgeschlagen.",
     done: "Fertig – neue Inhalte wurden abgerufen.",
   },

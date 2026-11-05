@@ -11,8 +11,11 @@
  */
 export const TALL_HEADER_RATIO = 0.34;
 
-export function isHeaderTall(headerPx: number, viewportPx: number): boolean {
-  return viewportPx > 0 && headerPx / viewportPx > TALL_HEADER_RATIO;
+export function isHeaderTall(headerPx: number, viewportPx: number, persistentControls = false): boolean {
+  // Native bediening blijft bereikbaar zolang minstens 20% leesruimte overblijft.
+  // Een te hoge balk blijft de bestaande scrollende fallback gebruiken.
+  const keepControls = persistentControls && headerPx <= viewportPx * 0.8;
+  return !keepControls && viewportPx > 0 && headerPx / viewportPx > TALL_HEADER_RATIO;
 }
 
 /** Vanaf deze tekstschaal (1 = standaard) maken decoratieve beelden plaats voor de tekst. */

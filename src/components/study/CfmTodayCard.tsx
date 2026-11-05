@@ -1,13 +1,12 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
+import { AppLink as Link, AppImage as Image, useAppImageSource } from "@/components/navigation/AppNavigation";
 import { BookOpen } from "lucide-react";
 import { useT, useUiLanguage } from "@/components/I18nProvider";
 import { focusRing, primaryButton, secondaryButton } from "@/components/versado/styles";
 import { weekLabelKey } from "@/lib/studyContent/weekLabels";
 import type { ResumeReason } from "@/lib/studyContent/weekSelection";
-import { formatWeekPeriod, lessonBase } from "./PersonalStudyParts";
+import { formatWeekPeriod, lessonBase } from "@/lib/studyContent/presentation";
 
 export interface TodayWeek {
   lessonId: string;
@@ -51,7 +50,7 @@ export default function CfmTodayCard({
   const period = week ? formatWeekPeriod(week.startsOn, week.endsOnExclusive, language) : null;
   const base = week ? lessonBase(week.lessonId, week.collectionId) : null;
   const studyHref = base ? (mode === "STEPS" ? `${base}/stappen` : base) : null;
-  const imageSrc = week?.imageMediaId ? `/api/study-media/${encodeURIComponent(week.imageMediaId)}` : null;
+  const imageSrc = useAppImageSource(week?.imageMediaId ? `/api/study-media/${encodeURIComponent(week.imageMediaId)}` : undefined);
   const heading = week ? week.title : t("cfmToday.noWeekTitle");
   return (
     <section data-cfm-today aria-label={t("cfmToday.brand")} className="min-w-0 overflow-hidden rounded-2xl border border-vs-line bg-vs-surface">

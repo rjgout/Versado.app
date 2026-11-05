@@ -4,6 +4,7 @@
  * niet per feature met losse verberg-classes hoeven te worden beheerd.
  */
 const FOCUS_ROUTES = [
+  /^\/courses\/[A-Za-z0-9_-]{1,128}\/read\/(?:steps|chapters)\/[A-Za-z0-9_-]{1,128}$/,
   /^\/content$/,
   // Mijn studiemap: accountbreed overzicht dat bij de contentkiezer hoort, geen activiteit.
   /^\/study-folder$/,

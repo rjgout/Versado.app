@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { SYSTEM_ICON_SOURCES, EMPTY_STREAK_SOURCE } from "@/lib/systemIcons";
 
 export type SystemIconKind = "streak" | "xp" | "freeze";
 
@@ -7,11 +8,6 @@ export type SystemIconKind = "streak" | "xp" | "freeze";
 // bij het oude lijnicoon, de "lege" vlam: vandaag nog niet gestudeerd. Elk
 // bestand is strak om de figuur uitgesneden, zodat dezelfde maat (uit
 // className, bv. h-4 w-4) overal even groot oogt.
-const SOURCES: Record<SystemIconKind, string> = {
-  streak: "/icons/streak-flame.webp",
-  xp: "/icons/xp.webp",
-  freeze: "/icons/freeze.webp",
-};
 
 interface SystemIconProps {
   kind: SystemIconKind;
@@ -26,7 +22,7 @@ interface SystemIconProps {
 
 /** Centrale bron voor de systeemiconen: reeks, XP en reeksbevriezing. */
 export default function SystemIcon({ kind, className = "", style, fill }: SystemIconProps) {
-  const src = kind === "streak" && fill === "none" ? "/icons/streak-flame-empty.webp" : SOURCES[kind];
+  const src = kind === "streak" && fill === "none" ? EMPTY_STREAK_SOURCE : SYSTEM_ICON_SOURCES[kind];
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img

@@ -631,13 +631,13 @@ test("de layout draagt Kompas: provider rond de app, uitnodiging naast de andere
   const layout = read("src/app/layout.tsx");
   assert.match(layout, /<KompasProvider>/);
   assert.match(layout, /<ContextOffer work=\{workOf\(contentContext\.active\)\} \/>/);
-  assert.match(read("src/components/ContentSwitcher.tsx"), /data-kompas-target="content-switcher"/);
+  assert.match(read("src/components/content/ContentSwitcherView.tsx"), /data-kompas-target="content-switcher"/);
   assert.match(read("src/components/SubpageBackBar.tsx"), /pathname === "\/kompas"/);
 });
 
 test("de ingang staat op Vandaag en op het profiel", () => {
-  assert.match(read("src/app/dashboard/page.tsx"), /<KompasEntryCard \/>/);
-  assert.match(read("src/components/ProfileClient.tsx"), /<KompasEntryCard \/>/);
+  assert.match(read("src/app/dashboard/page.tsx"), /<KompasEntryCard\s*\/>/);
+  assert.match(read("src/components/ProfileClient.tsx"), /<KompasEntryCard\s*\/>/);
 });
 
 test("elke visuele Kompas-pagina gebruikt de semantische Versado-tokens en geen vaste Nederlandse UI-tekst", () => {
@@ -678,7 +678,7 @@ test("de algemene uitleg belooft geen schriftwerk-specifieke functies en bronuit
 });
 
 test("bestaande accounts: één rustig label en één eenmalige vraag, geen pop-up en geen nieuwe onboarding", () => {
-  const entry = read("src/components/kompas/KompasEntryCard.tsx");
+  const entry = read("src/components/kompas/KompasEntryCardView.tsx");
   assert.match(entry, /kompas\.entry\.new/);
   const hub = read("src/app/kompas/page.tsx");
   assert.match(hub, /firstVisit && !user\.kompasOffersEnabled/);

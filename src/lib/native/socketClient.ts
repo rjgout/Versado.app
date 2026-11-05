@@ -16,6 +16,7 @@ export class NativeSocketConnection {
   private retry: ReturnType<typeof setTimeout> | undefined;
   private unsubscribe: () => void;
   constructor(private client: NativeSessionClient, private onError?: (error: unknown) => void, factory: SocketFactory = io) {
+    if (client.realtimeSupported === false) throw new NativeClientError("access_realtime_unavailable");
     this.socket = factory(client.baseUrl, { path: "/socket.io", forceNew: true, autoConnect: false, reconnection: false, transports: ["websocket"], withCredentials: false, auth: {}, timeout: 15_000 });
     this.unsubscribe = client.onSessionChange(() => this.dispose());
     this.socket.on("connect", () => { this.socket.auth = {}; this.retries = 0; });

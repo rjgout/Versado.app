@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+import { AppImage as Image, useAppImageSource } from "@/components/navigation/AppNavigation";
 import { BookOpen, Brain, Gamepad2, GraduationCap, Headphones, Sparkles, Users, type LucideIcon } from "lucide-react";
 import { artworkFor, type ArtworkAsset, type ArtworkKeys, type ArtworkKind } from "@/lib/artwork";
 
@@ -60,10 +60,11 @@ export default function MediaArtwork({
   children?: React.ReactNode;
 }) {
   const image = asset ?? artworkFor(artworkKey);
+  const source = useAppImageSource(image?.src);
   const [state, setState] = useState<"loading" | "loaded" | "error">("loading");
   const tone = TONES[kind];
   const Icon = tone.icon;
-  const showImage = image !== null && state !== "error";
+  const showImage = image !== null && source !== null && state !== "error";
 
   return (
     <div
@@ -79,7 +80,7 @@ export default function MediaArtwork({
       )}
       {showImage && (
         <Image
-          src={image.src}
+          src={source!}
           alt={image.alt ?? ""}
           fill
           sizes={sizes}
