@@ -31,6 +31,19 @@ export const officialErrorCode = (error: unknown) => {
   if(code==="ENOENT")return "STORAGE_UNAVAILABLE";
   return error instanceof Error && /^[A-Z_]{2,80}$/.test(error.message) ? error.message : "AUDIO_TASK_FAILED";
 };
+// Alleen PostgreSQL-fouten die de volledige poging hebben teruggedraaid.
+// De tweede poging herhaalt alle beheer-/policy-/taakcontroles met dezelfde deadlines.
+async function prepareWithLockRetry<T>(run: () => Promise<T>): Promise<T> {
+  for (let attempt = 0; ; attempt++) {
+    try { return await run(); }
+    catch (error) {
+      const value = error as { code?: string; meta?: { code?: string; driverAdapterError?: { cause?: { originalCode?: string } } } };
+      const sql = value.meta?.code ?? value.meta?.driverAdapterError?.cause?.originalCode;
+      const rolledBack = value.code === "P2034" || (["P2010", "P2039"].includes(value.code ?? "") && ["55P03", "40P01"].includes(sql ?? ""));
+      if (attempt !== 0 || !rolledBack) throw error;
+    }
+  }
+}
 async function target(source: OfficialSource, db: DB) {
   if (source.quality !== "VALIDATED") throw Error("SOURCE_PROTECTED");
   if(source.legacyProtected)await assertLegacyAllowed(db,source);
@@ -66,7 +79,7 @@ export async function requestOfficialAudio(actor: Actor, action: "download" | "r
         if(cachePresent)try{await verifyObject(source.sha256,source.bytes);present=true;}
         catch(error){if((error as NodeJS.ErrnoException).code!=="ENOENT")throw error;}
       }
-      await db.$transaction(async tx=>{
+      await prepareWithLockRetry(() => db.$transaction(async tx=>{
         // Prisma's deadline annuleert een lopende PostgreSQL-lockquery niet vanzelf.
         await tx.$executeRawUnsafe("SET LOCAL lock_timeout = '1500ms'");
         await tx.$executeRawUnsafe("SET LOCAL statement_timeout = '4000ms'");
@@ -99,7 +112,7 @@ export async function requestOfficialAudio(actor: Actor, action: "download" | "r
         if(action==="resume"&&(!task||!officialTaskRecoverable(task)))throw Error("RESUME_NOT_ALLOWED");
         const phase=action==="register"?"REGISTER":action==="resume"?task!.phase:"DOWNLOAD";
         await tx.officialAudioTask.upsert({where:{id:source.id},create:{id:source.id,actorId:actor.id,actorSessionVersion:actor.sessionVersion},update:{actorId:actor.id,actorSessionVersion:actor.sessionVersion,phase,status:"QUEUED",errorCode:null,leaseUntil:null,leaseToken:null,...(phase==="REGISTER"?{registrationApprovedAt:new Date()}:{})}});
-      },{timeout:5000,maxWait:2000});
+      },{timeout:5000,maxWait:2000}));
       accepted++;
     }catch(error){
       if(!accepted)throw error;
