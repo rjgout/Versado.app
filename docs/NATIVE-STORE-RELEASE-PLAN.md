@@ -148,7 +148,7 @@ er geen credentials in git komen.
 | `release-profile-blocked` | Het profiel komt uitsluitend uit `scripts/native/profiles.cjs`; `PROFILE_IDS` bevat geen `release` en geen enkele omgevingsvariabele opent het; `release` blijft geweigerd |
 | `bundle-never-release-approved` | De lokale bundel schrijft altijd `releaseApproved:false` |
 | `android-signing-refuses-probe` | Gradle en `android-release-guard.mjs` tekenen alleen een niet-compileproef `local-store-test`/`play-test`-bundel; de release-workflow is alleen handmatig en bevat geen Play-upload |
-| `ios-signing-refuses-probe` | `ios-release-guard.mjs` archiveert alleen een niet-compileproef `local-store-test`/`testflight`-bundel; de iOS-workflow is alleen handmatig en exporteert zonder App Store Connect-upload |
+| `ios-signing-refuses-probe` | `ios-release-guard.mjs` archiveert alleen een niet-compileproef `local-store-test`/`testflight`-bundel; de iOS-workflow is alleen handmatig vanaf develop en uploadt uitsluitend na expliciete keuze en IPA-validatie |
 | `bundle-identity-consistent` | Eén bundle-/applicatie-ID `app.versado.app` in Capacitor, Android en iOS |
 | `phones-portrait` | Telefoons portrait-only (iPhone via Info.plist, Android via `MainActivity`) |
 | `android-target-sdk` | `targetSdkVersion` ≥ 36 (Google Play, vanaf 31 augustus 2026) |
@@ -444,14 +444,17 @@ Alles wat zonder eigenaarsbeslissing kan, is gebouwd; wat een beslissing of acco
 - `scripts/native/ios-release-guard.mjs before|after`: archiveert alleen een niet-compileproef `local-store-test`/`testflight`-bundel met echte
   HTTPS-origin, versie en buildnummer gelijk aan `NATIVE_APP_VERSION`/`NATIVE_BUILD_NUMBER` en `sourceCommit` = `GITHUB_SHA`; achteraf
   controle van het archief (`CFBundleIdentifier`, `CFBundleShortVersionString`, `CFBundleVersion`, `public/build.json`, privacy manifest, geen `CAPACITOR_DEBUG`).
-- `.github/workflows/native-ios-release.yml`: alleen `workflow_dispatch`, alleen vanaf `main`, omgeving `ios-testflight`; controleert SDK ≥ 26 en pint optioneel
-  Xcode via variabele `IOS_XCODE_APP`; archiveert met `MARKETING_VERSION`/`CURRENT_PROJECT_VERSION`/`DEVELOPMENT_TEAM` als argumenten (nooit in git) en
-  ondertekent via de App Store Connect API-sleutel (tijdelijk bestand met `umask 077`, altijd verwijderd); exporteert met `destination export`.
-  **Geen upload naar App Store Connect.**
-- CI (`native-platform-builds`): de poort weigert het compileproef-archief, en het echte archief bevat de juiste versie, het bundel-ID en het privacy manifest.
+- `.github/workflows/native-ios-release.yml`: handmatige **iOS TestFlight** vanaf uitsluitend `develop`,
+  environment `testflight`, exacte geselecteerde SHA. Upload standaard uit en alleen na onafhankelijke
+  IPA-validatie; publieke release blijft geblokkeerd. SDK ≥ 26, Node 24, tijdelijke API-sleutel,
+  automatische signing en expliciete Apple Distribution-export. Signing en upload zijn nog niet echt getest.
+- CI (`native-platform-builds`): de poort weigert het compileproef-archief; bestaande compileproeven blijven afzonderlijk.
 
-**Secrets en variabelen (omgeving `ios-testflight`, door de eigenaar):** `APPLE_TEAM_ID`, `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_P8` (base64);
-variabelen `NATIVE_STORE_TEST_API_ORIGIN` en optioneel `IOS_XCODE_APP`. Het buildnummer is het workflow-runnummer (oplopend per upload).
+**Secrets/variabelen en eigenaarshandleiding:** zie [iOS TestFlight](IOS-TESTFLIGHT.md).
+Environment `testflight`: `IOS_TEAM_ID`, `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_API_KEY_P8_BASE64`;
+variabelen `NATIVE_STORE_TEST_API_ORIGIN` en optioneel `IOS_XCODE_APP`.
+De lege `store-test`-allowlist en de alleen interne Access-bridge blokkeren de eerste echte build.
+Geen backendvrijgave door deze wijziging; afzonderlijk architectuur-/uitrolbesluit nodig.
 
 **Open voor de eigenaar (bewust niet ingevuld):**
 - `ITSAppUsesNonExemptEncryption`: de eigenaar bevestigt het exportantwoord (de app gebruikt uitsluitend HTTPS/standaardversleuteling van het systeem; de sleutel in Info.plist is een juridische verklaring en wordt niet door code gekozen).

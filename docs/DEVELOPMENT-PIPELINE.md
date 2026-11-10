@@ -142,3 +142,14 @@ container selecteren; geen deploy-agent of Docker-socket toevoegen.
    seed of herstel naar productie gebruiken. Wijzig geen historische migraties.
 
 De GitHub-workflow start geen Portainer-actie, migratie, import, container of NAS-download.
+
+## iOS TestFlight vanaf develop
+
+De afzonderlijke handmatige workflow **iOS TestFlight** gebruikt uitsluitend
+`develop`, de exacte gekozen commit en environment `testflight`. Upload staat
+standaard uit. Zie [eigenaarshandleiding en blokkades](IOS-TESTFLIGHT.md) voor de
+vier Apple-secrets, backendvariabele, branchbescherming en bewuste uploadstap.
+De lege `store-test`-allowlist en de alleen interne Access-toegang blijven
+blokkeren totdat een afzonderlijk architectuur-/uitrolbesluit en bewijs bestaan.
+`main`, productie/NAS en publieke release blijven afzonderlijk; `releaseApproved`
+blijft false en `release` blijft geblokkeerd. Geen lokale Xcode-handelingen nodig.

@@ -88,3 +88,96 @@ test("workflowinvoer wordt nooit in shelltekst geïnterpoleerd (alleen via env),
   }
   assert.match(text, /\^\[0-9\]\+\\\.\[0-9\]\+\\\.\[0-9\]\+\$/);
 });
+
+import { distributionProblems, ipaProblems } from '../scripts/native/ios-release-guard.mjs';
+import { createRequire } from 'node:module';
+import { spawnSync } from 'node:child_process';
+const require = createRequire(import.meta.url);
+const workflow = require('yaml').parse(readFileSync('.github/workflows/native-ios-release.yml', 'utf8'));
+const job = workflow.jobs['testflight-archive'];
+
+test('dispatch, develop, exacte commit, environment en upload opt-in zijn verplicht', () => {
+  assert.deepEqual(Object.keys(workflow.on), ['workflow_dispatch']);
+  assert.equal(workflow.on.workflow_dispatch.inputs.upload.default, false);
+  assert.equal(job.environment, 'testflight');
+  assert.equal(job.needs, 'branch-check');
+  assert.match(job.if, /refs\/heads\/develop/);
+  assert.doesNotMatch(JSON.stringify(workflow), /refs\/heads\/main|environment: ios-testflight|secrets\.APPLE_TEAM_ID|secrets\.ASC_KEY_P8/);
+  const checkout = job.steps.find(s => s.uses?.startsWith('actions/checkout'));
+  assert.equal(checkout.with.ref, '${{ github.sha }}');
+  assert.equal(checkout.with['persist-credentials'], false);
+  const branch = workflow.jobs['branch-check'].steps[0];
+  for (const [ref, event, ok] of [['develop','workflow_dispatch',true], ['main','workflow_dispatch',false], ['develop','push',false]]) {
+    const run = spawnSync('bash', ['-c', branch.run], { env: { ...process.env, SELECTED_REF: `refs/heads/${ref}`, EVENT_NAME: event } });
+    assert.equal(run.status === 0, ok);
+  }
+  const distribution = job.steps.find(s => s.id === 'distribution');
+  assert.match(distribution.run, /ios-release-guard.mjs ipa/);
+  assert.ok(distribution.run.indexOf('ios-release-guard.mjs ipa') < distribution.run.indexOf('if [ "$UPLOAD" = true ]'));
+  assert.match(distribution.run, /trap .*EXIT/);
+  assert.match(distribution.run, /manageAppVersionAndBuildNumber<\/key><false\/>/);
+  assert.match(job.steps.at(-1).if, /always/);
+});
+
+test('ontbrekende secrets melden uitsluitend hun namen', () => {
+  const step = job.steps.find(s => s.env?.HAS_TEAM);
+  for (const name of ['IOS_TEAM_ID', 'ASC_KEY_ID', 'ASC_ISSUER_ID', 'ASC_API_KEY_P8_BASE64']) assert.ok(JSON.stringify(step.env).includes(`secrets.${name}`));
+  const run = spawnSync('bash', ['-c', step.run], { env: { ...process.env, HAS_TEAM:'false', HAS_KEY_ID:'false', HAS_ISSUER:'false', HAS_KEY:'false', HAS_ORIGIN:'false' }, encoding:'utf8' });
+  assert.notEqual(run.status, 0);
+  for (const name of ['IOS_TEAM_ID', 'ASC_KEY_ID', 'ASC_ISSUER_ID', 'ASC_API_KEY_P8_BASE64']) assert.ok(run.stdout.includes(name));
+});
+
+const team = 'ABCDEFGHIJ';
+const ent = { 'application-identifier': `${team}.app.versado.app`, 'com.apple.developer.team-identifier': team, 'get-task-allow': false, 'beta-reports-active': true };
+const signed = () => ({ entitlements: { ...ent }, profile: { TeamIdentifier:[team], ExpirationDate:'2099-01-01', Entitlements:{ ...ent } }, authorities:['Apple Distribution: Example'], team, identifier:'app.versado.app' });
+test('IPA signing weigert debug, verlopen/ad-hoc/enterprise-profielen, verkeerde identiteit en capabilities', () => {
+  assert.deepEqual(distributionProblems(signed(), team), []);
+  const mutations = [
+    s => s.entitlements['get-task-allow'] = true,
+    s => s.entitlements['aps-environment'] = 'production',
+    s => s.entitlements['com.apple.developer.applesignin'] = ['Default'],
+    s => s.entitlements['com.apple.developer.associated-domains'] = ['applinks:example.com'],
+    s => s.profile.ProvisionedDevices = [], s => s.profile.ProvisionsAllDevices = true,
+    s => s.profile.ExpirationDate = '2020-01-01', s => s.profile = null,
+    s => s.authorities = ['Apple Development: Example'], s => s.team = '',
+    s => s.identifier = 'nl.ringapeldoorn.ringtools', s => s.profile.TeamIdentifier = ['OTHER'],
+    s => s.entitlements['application-identifier'] = `${team}.*`,
+  ];
+  for (const mutate of mutations) { const s = signed(); mutate(s); assert.ok(distributionProblems(s,team).length); }
+  assert.ok(ipaProblems('/tmp/versado-nonexistent-app').length);
+});
+
+test('Apple-preflight weigert ontbrekende configuratie zonder sleutelmateriaal te loggen', () => {
+  const run = spawnSync(process.execPath, ['scripts/native/asc-testflight-preflight.mjs'], { env:{ PATH:process.env.PATH }, encoding:'utf8' });
+  assert.notEqual(run.status,0);
+  assert.match(run.stderr, /Apple-preflight mislukt/);
+  assert.doesNotMatch(run.stderr, /BEGIN|eyJ/);
+});
+
+test('uploadkeuze en uploadfout worden daadwerkelijk fail-closed uitgevoerd', () => {
+  const step = job.steps.find(s => s.id === 'distribution');
+  const tail = step.run.slice(step.run.indexOf('if [ "$UPLOAD" = true ]'));
+  const root = mkdtempSync(join(tmpdir(), 'versado-upload-gate-'));
+  try {
+    for (const [upload, ref, result, accepted] of [['false','develop',0,false], ['true','main',0,false], ['true','develop',1,false], ['true','develop',0,true]]) {
+      const summary = join(root, 'summary');
+      writeFileSync(summary, '');
+      const script = `set -euo pipefail\nxcrun() { return ${result}; }\n${tail}`;
+      const run = spawnSync('bash', ['-c', script], { encoding:'utf8', env:{ ...process.env, UPLOAD:upload, GITHUB_REF:`refs/heads/${ref}`, GITHUB_STEP_SUMMARY:summary, GITHUB_OUTPUT:join(root,'outputs'), keydir:root, ipa:'example.ipa', ASC_KEY_ID:'EXAMPLE', ASC_ISSUER_ID:'EXAMPLE' } });
+      assert.equal(readFileSync(summary,'utf8').includes('succesvol door Apple geaccepteerd'), accepted);
+      if (upload === 'false') assert.match(readFileSync(summary,'utf8'), /overgeslagen/);
+      if (upload === 'true' && !accepted) assert.notEqual(run.status,0);
+    }
+  } finally { rmSync(root,{recursive:true,force:true}); }
+});
+
+test('nieuwe Apple- en Cloudflare-geheimnamen worden in bundels geweigerd', () => {
+  const { findSecrets } = require('../scripts/native/profiles.cjs');
+  for (const name of ['ASC_API_KEY_P8_BASE64','CF_ACCESS_CLIENT_ID','CF_ACCESS_CLIENT_SECRET']) assert.ok(findSecrets(name).length);
+});
+
+test('iOS-poort weigert ongeldige versies, buildnummers en onvolledige commits ook zonder GitHub', () => {
+  for (const buildNumber of [0, -1, 10000, '01', '1.2', 'not-a-number']) assert.ok(signingProblems({ ...good, buildNumber }, { ...env, NATIVE_BUILD_NUMBER:String(buildNumber) }).some(s => /Apple-buildnummer/.test(s)));
+  for (const version of ['1.0', '01.0.0', '1.0.0-beta', '10000.0.0']) assert.ok(signingProblems({ ...good,version },{ ...env,NATIVE_APP_VERSION:version }).some(s => /appversie/.test(s)));
+  assert.ok(signingProblems({ ...good,sourceCommit:'abc123' },{ ...env,GITHUB_SHA:undefined }).some(s => /broncommit/.test(s)));
+});
