@@ -91,7 +91,7 @@ werd terecht overgeslagen. Dit bewijst geen echte Apple-signing of upload.
 verwijdering) en #205 (voorbereiding verwijderpagina/native scherm/inventaris)
 staan open, hebben **main** als doel en bevatten conflicten. Die PR's mogen niet
 blind worden gemerged, geretarget of dubbel toegepast. Laat de bestaande WP4-
-implementatie eerst gecontroleerd naar actuele develop brengen: herauthenticatie,
+implementatie via draft-PR #269 gecontroleerd naar actuele develop brengen: herauthenticatie,
 verwijderingssemantiek/sessie-intrekking, native scherm, inventaris en tests samen
 beoordelen. De proxy laat `DELETE /api/v1/native/account` door, maar maakt geen
 ontbrekende backendfunctionaliteit en publiceert geen capability namens WP4.
