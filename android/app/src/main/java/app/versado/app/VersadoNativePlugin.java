@@ -53,7 +53,7 @@ public class VersadoNativePlugin extends Plugin {
         getActivity().runOnUiThread(() -> { audio.reset(stamp); call.resolve(); });
     }
     @PluginMethod public void audioContext(PluginCall call) {
-        if (!accessOnly(call)) return;
+        if (!networkOnly(call)) return;
         getActivity().runOnUiThread(() -> {
             try {
                 if (!audio.matchesStamp(call.getString("sessionStamp"))) throw NativeAudioContext.invalid();
@@ -70,17 +70,17 @@ public class VersadoNativePlugin extends Plugin {
         if (!localOnly(call)) return;
         getActivity().runOnUiThread(() -> {
             try {
-                if (!accessEnabled()) { call.resolve(new JSObject().put("enabled", false).put("anchored", false).put("foreground", false).put("contextEpoch", 0).put("validForMs", 0)); return; }
+                if (!networkEnabled()) { call.resolve(new JSObject().put("enabled", false).put("anchored", false).put("foreground", false).put("contextEpoch", 0).put("validForMs", 0)); return; }
                 JSONObject state = player().status().put("enabled", true); call.resolve(JSObject.fromJSONObject(state));
             } catch (Exception ignored) { call.reject("audio_unavailable"); }
         });
     }
     @PluginMethod public void audioVoices(PluginCall call) {
-        if (!accessOnly(call)) return;
+        if (!networkOnly(call)) return;
         getActivity().runOnUiThread(() -> { if (!audio.foreground()) { call.reject("audio_unavailable"); return; } player().voices(voices -> { JSObject value = new JSObject(); value.put("voices", voices); call.resolve(value); }); });
     }
     @PluginMethod public void audioCommand(PluginCall call) {
-        if (!accessOnly(call)) return;
+        if (!networkOnly(call)) return;
         getActivity().runOnUiThread(() -> { try { player().control(call.getData()); call.resolve(); } catch (Exception ignored) { call.reject("audio_unavailable"); } });
     }
     private static final String ALIAS = "versado-native-session-v1";
@@ -103,6 +103,21 @@ public class VersadoNativePlugin extends Plugin {
             return accessAsset("internal-access.json").getBoolean("enabled") && NativeAccessTransport.profileAllowed(
                 getConfig().getBoolean("internalAccessEnabled", false), metadata.getString("profile"), metadata.getString("channel"), metadata.getString("apiOrigin"), metadata.getBoolean("compileProbe"), metadata.getBoolean("releaseApproved"));
         } catch (Exception ignored) { return false; }
+    }
+    private boolean directEnabled() {
+        try {
+            if (getConfig().getBoolean("internalAccessEnabled", false)) return false;
+            String[] files = getContext().getAssets().list("public");
+            if (files == null || java.util.Arrays.asList(files).contains("internal-access.json")) return false;
+            JSONObject m = accessAsset("build.json");
+            return NativeAccessTransport.directAllowed(m.getString("appId"), m.getString("profile"), m.getString("channel"), m.getString("apiOrigin"), m.getBoolean("distribution"), m.getBoolean("compileProbe"), m.getBoolean("releaseApproved"));
+        } catch (Exception ignored) { return false; }
+    }
+    private boolean networkEnabled() { return accessEnabled() || directEnabled(); }
+    private boolean networkOnly(PluginCall call) {
+        if (!localOnly(call)) return false;
+        if (!networkEnabled()) { call.reject("access_disabled"); return false; }
+        return true;
     }
     @Override public void load() {
         if (!accessEnabled()) { accessPreferences().edit().clear().commit(); }
@@ -202,9 +217,9 @@ public class VersadoNativePlugin extends Plugin {
         });
     }
     @PluginMethod public void accessRequest(PluginCall call) {
-        if (!accessOnly(call)) return;
+        if (!networkOnly(call)) return;
         String path = call.getString("path"), method = call.getString("method"), authorization = call.getString("authorization"), body = call.getString("body");
-        if (!NativeAccessTransport.routeAllowed(path, method)) { call.reject("access_request_invalid"); return; }
+        if (!NativeAccessTransport.requestRouteAllowed(path, method, directEnabled())) { call.reject("access_request_invalid"); return; }
         final NativeAudioContext.Tag audioTag = audio.tag(call.getString("sessionStamp"));
         final long audioStarted = android.os.SystemClock.elapsedRealtimeNanos();
         final long requestedEpoch;
@@ -214,7 +229,7 @@ public class VersadoNativePlugin extends Plugin {
                 final NativeAccessTransport.Credentials pair; final long epoch;
                 try { synchronized (accessLock) {
                     if (requestedEpoch != accessEpoch) { call.reject("access_changed"); return; }
-                    pair = readAccess(); epoch = accessEpoch;
+                    pair = accessEnabled() ? readAccess() : null; epoch = accessEpoch;
                 } }
                 catch (NativeAccessTransport.Failure error) { getActivity().runOnUiThread(() -> { audio.accessFailed(audioTag); call.reject(error.code); }); return; }
                 catch (Exception ignored) { getActivity().runOnUiThread(() -> { audio.accessFailed(audioTag); call.reject("access_storage_unavailable"); }); return; }
@@ -223,7 +238,7 @@ public class VersadoNativePlugin extends Plugin {
                         synchronized (accessLock) { return epoch == accessEpoch; }
                     });
                     getActivity().runOnUiThread(() -> {
-                        if (!accessOnly(call)) return;
+                        if (!networkOnly(call)) return;
                         synchronized (accessLock) {
                             if (epoch != accessEpoch) { call.reject("access_changed"); return; }
                             // State/capture alleen op de eigenaarqueue; geen codecwerk onder accessLock.

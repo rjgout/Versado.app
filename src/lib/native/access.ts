@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { NativeClientError, type NativeSessionRequestInit } from "./client";
 
+export const TEST_API_ORIGIN = "https://api-test.versado.app";
 export const INTERNAL_ACCESS_ORIGIN = "https://dev.versado.app";
 export interface NativeAccessBridge {
   accessStatus(): Promise<{ enabled: boolean; configured: boolean }>;
@@ -21,15 +22,15 @@ export function accessRouteAllowed(path: string, method: string): boolean {
   return method === "DELETE" && ["apple", "account"].includes(path); // WP4-accountendpoint blijft afzonderlijk werk.
 }
 /** Alleen pad/body/Bearer gaan naar native. Geen servicecredential komt uit de bridge terug. */
-export function nativeAccessTransport(bridge: NativeAccessBridge, beforeRequest?: (stamp: string | undefined) => Promise<void>): typeof fetch {
+export function nativeAccessTransport(bridge: NativeAccessBridge, beforeRequest?: (stamp: string | undefined) => Promise<void>, direct = false): typeof fetch {
   return async (input, init) => {
-    const prefix = `${INTERNAL_ACCESS_ORIGIN}/api/v1/native/`;
+    const prefix = `${direct ? TEST_API_ORIGIN : INTERNAL_ACCESS_ORIGIN}/api/v1/native/`;
     if (typeof input !== "string" || !input.startsWith(prefix)) throw new NativeClientError("access_request_invalid");
     const path = input.slice(prefix.length), method = init?.method ?? "GET";
     const headers = new Headers(init?.headers);
     const sessionStamp=(init as NativeSessionRequestInit|undefined)?.nativeSessionStamp;
     if(sessionStamp!==undefined&&!z.uuid().safeParse(sessionStamp).success)throw new NativeClientError("access_request_invalid");
-    if (!accessRouteAllowed(path, method) || [...headers.keys()].some(key => !["authorization", "content-type", "x-versado-client"].includes(key)) ||
+    if (!(accessRouteAllowed(path, method) || direct && method === "POST" && path === "realtime/session") || [...headers.keys()].some(key => !["authorization", "content-type", "x-versado-client"].includes(key)) ||
       (init?.credentials && init.credentials !== "omit") || (init?.redirect && init.redirect !== "error") ||
       (init?.body !== undefined && typeof init.body !== "string") || (method === "GET" && init?.body !== undefined) ||
       (typeof init?.body === "string" && new TextEncoder().encode(init.body).byteLength > 16_384)) throw new NativeClientError("access_request_invalid");
@@ -53,4 +54,10 @@ export function nativeAccessTransport(bridge: NativeAccessBridge, beforeRequest?
     if (value.status === 401 && ["refresh", "logout"].includes(path) && !["session_expired", "session_changed", "web_security_setup_required"].includes(data?.error)) throw new NativeClientError("access_denied");
     return new Response(value.body, { status: value.status, headers: { "Content-Type": "application/json" } });
   };
+}
+
+/** Dezelfde begrensde native JSON-route observeert sessies voor de bestaande audiolaag.
+ * Native selecteert zelf host en credentialmodus uit build.json, nooit uit een JS-URL. */
+export function nativeDirectTransport(bridge: NativeAccessBridge, beforeRequest?: (stamp: string | undefined) => Promise<void>): typeof fetch {
+  return nativeAccessTransport(bridge, beforeRequest, true);
 }

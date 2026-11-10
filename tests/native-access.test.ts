@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import * as profiles from "../scripts/native/profiles.cjs";
 import { NativeClientError, NativeSessionClient, type SecureSessionStore } from "../src/lib/native/client";
 import { NativeSocketConnection } from "../src/lib/native/socketClient";
-import { INTERNAL_ACCESS_ORIGIN, accessRouteAllowed, nativeAccessTransport, type NativeAccessBridge } from "../src/lib/native/access";
+import { INTERNAL_ACCESS_ORIGIN, TEST_API_ORIGIN, nativeDirectTransport, accessRouteAllowed, nativeAccessTransport, type NativeAccessBridge } from "../src/lib/native/access";
 
 const buildEnv = (values: Record<string, string> = {}): NodeJS.ProcessEnv => ({ NODE_ENV: "test", ...values });
 const base = `${INTERNAL_ACCESS_ORIGIN}/api/v1/native/`;
@@ -135,3 +135,19 @@ test("contentcontext krijgt uitsluitend de exacte GET/POST-poort in TypeScript, 
  for(const method of ["POST","PUT","DELETE","HEAD"]) assert.equal(accessRouteAllowed("today-overview", method), false);
  for(const path of ["today-overview/","today-overview?userId=A","today-overview/complete","../today-overview","today-overview\n"]) assert.equal(accessRouteAllowed(path,"GET"), false);
  });
+
+
+test("directe test-API hergebruikt native JSON-route zonder interne toegang of productie-URL", async () => {
+  const calls: Parameters<NativeAccessBridge["accessRequest"]>[0][] = [];
+  const transport = nativeDirectTransport(bridge(async request => { calls.push(request); return {status:200,body:'{"ok":true}'}; }));
+  const headers = {Authorization:"Bearer synthetic.native", "X-Versado-Client":"native-v1", "Content-Type":"application/json"};
+  const response = await transport(`${TEST_API_ORIGIN}/api/v1/native/realtime/session`,{method:"POST",headers,body:"{}",credentials:"omit",redirect:"error"});
+  assert.deepEqual(await response.json(),{ok:true});
+  assert.equal(calls[0].path,"realtime/session"); assert.equal(calls[0].authorization,"Bearer synthetic.native");
+  assert.deepEqual(Object.keys(calls[0]).sort(),["authorization","body","method","path"]);
+  for (const url of ["https://versado.app/api/v1/native/me",`${INTERNAL_ACCESS_ORIGIN}/api/v1/native/me`,`${TEST_API_ORIGIN}/api/admin`,`${TEST_API_ORIGIN}/api/v1/native/me?token=secret`]) {
+    await assert.rejects(transport(url,{headers}),/access_request_invalid/);
+  }
+  assert.equal(calls.length,1);
+  await assert.rejects(nativeAccessTransport(bridge(async () => { throw Error("not reached"); }))(`${base}realtime/session`,{method:"POST",headers,body:"{}"}),/access_request_invalid/);
+});

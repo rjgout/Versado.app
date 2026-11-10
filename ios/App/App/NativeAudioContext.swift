@@ -81,11 +81,11 @@ struct NativeAudioClaims: Decodable, Equatable {
     func sameSession(_ other: NativeAudioClaims) -> Bool { userId == other.userId && sid == other.sid && version == other.version }
 }
 final class NativeAudioCapsule {
-    let payload: NativeAudioPlaybackPayload, sourceAuthorization: String, credentials: NativeAccessCredentials, lifetime: NativeAudioLifetime
+    let payload: NativeAudioPlaybackPayload, sourceAuthorization: String, credentials: NativeAccessCredentials?, lifetime: NativeAudioLifetime
     let startedAt: TimeInterval, validFor: TimeInterval
     private let clock: () -> TimeInterval
     var remaining: TimeInterval { max(0, validFor - (clock() - startedAt)) }
-    init(payload: NativeAudioPlaybackPayload, token: String, credentials: NativeAccessCredentials, startedAt: TimeInterval, now: TimeInterval, clock: @escaping () -> TimeInterval = { NativeAudioLifetime.continuousTime() }) throws {
+    init(payload: NativeAudioPlaybackPayload, token: String, credentials: NativeAccessCredentials?, startedAt: TimeInterval, now: TimeInterval, clock: @escaping () -> TimeInterval = { NativeAudioLifetime.continuousTime() }) throws {
         let claims = try NativeAudioClaims.parse(token)
         guard claims.userId == payload.audio.scope.userId, claims.sid == payload.audio.sessionId else { throw NativeAudioFailure() }
         let remaining = min(300, claims.exp - payload.audio.serverTime / 1000) - max(0, now - startedAt) - 3
@@ -173,7 +173,7 @@ final class NativeAudioContext {
             if let capsule = capsule, reader.sourceLanguage != capsule.payload.reader.sourceLanguage || reader.verses.map({$0.id + "\u{0}" + $0.text}) != capsule.payload.reader.verses.map({$0.id + "\u{0}" + $0.text}) { invalidate() }
         }
     }
-    @discardableResult func capture(path: String, status: Int, body: String, authorization: String?, credentials: NativeAccessCredentials, tag: Tag?, startedAt: TimeInterval) throws -> Bool {
+    @discardableResult func capture(path: String, status: Int, body: String, authorization: String?, credentials: NativeAccessCredentials?, tag: Tag?, startedAt: TimeInterval) throws -> Bool {
         guard foreground, let tag = tag, current(tag), tag.context == contextEpoch, let expected = expected,
               path == expected.path, let anchor = anchor, authorization == "Bearer " + anchor.token else { return false }
         guard status == 200 else { invalidate(); return false }

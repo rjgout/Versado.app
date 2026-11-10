@@ -402,3 +402,27 @@ de gewijzigde lokale React-bundel niet automatisch.
 
 Android en iPad vereisen eveneens afzonderlijke fysieke acceptatie. Geslaagde
 browser-, simulator- of compilatieproeven vervangen die controles niet.
+
+## Directe store-test-API (voorbereid, nog geen uitrol)
+
+Voor de voorgestelde `https://api-test.versado.app` hergebruikt `local-store-test`
+de bestaande native JSON-, sessieobservatie-, audiocapsule- en Range-laag. iOS
+accepteert alleen kanaal `testflight`, Android alleen `play-test`; appidentiteit,
+origin, distributiemetadata, geen compileproef en `releaseApproved=false` zijn
+native voorwaarden. De interne Access-vlag en `internal-access.json` moeten afwezig
+zijn. Geen nieuwe URL- of credentialsetter vanuit JavaScript.
+
+Dezelfde legacy genaamde `accessRequest`-pluginmethode handelt beide modi af.
+In de directe modus zijn de CF-credentials afwezig, wordt nooit Keychain/Keystore
+voor Service Auth gelezen en gebruikt de native code uitsluitend de vaste
+voorgestelde API-origin. Alleen dan is de bestaande route voor eenmalige
+realtimetickets beschikbaar. Alle streambytes blijven buiten de JS-JSON-brug;
+bronrechten, Bearer, sessie-/contextbinding, deadline, Range en intrekking blijven
+dezelfde controles gebruiken. `local-internal` en zijn enrollment blijven intact.
+Productie/release wordt niet geactiveerd.
+
+De `store-test`-allowlist blijft leeg. Eerst review van de native implementatie
+en [proxyvoorbereiding #267](https://github.com/rjgout/Versado.app/pull/267),
+uitroltoestemming, volledige backendcheck (inclusief WP4) en echte iPhone-tests.
+Dit codepad is geen bewijs voor een uitgerolde Cloudflare/NAS-keten of een werkende
+fysieke iPhone. Beide platformcompilaties en native regressies blijven vereist.
