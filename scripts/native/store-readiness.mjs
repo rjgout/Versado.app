@@ -104,13 +104,15 @@ export const GUARDS = [
   },
   {
     id: "ios-signing-refuses-probe",
-    title: "iOS-archivering voor distributie weigert compileproef-, intern- en niet-testflight-bundels, en er is geen automatische App Store Connect-upload",
+    title: "iOS-archivering voor distributie weigert compileproef-, intern- en niet-testflight-bundels, en upload vereist een expliciete keuze vanaf develop",
     check: (fs) => {
       const guard = fs.read("scripts/native/ios-release-guard.mjs");
       const release = fs.read(".github/workflows/native-ios-release.yml");
       const guardOk = /compileProbe !== false/.test(guard) && /local-store-test/.test(guard) && /testflight/.test(guard);
-      const noUpload = /<string>export<\/string>/.test(release) && !/(altool|iTMSTransporter|upload-testflight|testflight-upload|app-store-connect-upload|destination<\/key><string>upload)/i.test(release) && /workflow_dispatch/.test(release) && !/\n\s+(push|pull_request|schedule):/.test(release);
-      return { ok: guardOk && noUpload, evidence: "scripts/native/ios-release-guard.mjs, .github/workflows/native-ios-release.yml" };
+      const controlledUpload = /<string>export<\/string>/.test(release) && /workflow_dispatch/.test(release) && !/\n\s+(push|pull_request|schedule):/.test(release)
+        && /default: false/.test(release) && /if \[ "\$UPLOAD" = true \]/.test(release) && /refs\/heads\/develop/.test(release)
+        && /ios-release-guard.mjs ipa/.test(release);
+      return { ok: guardOk && controlledUpload, evidence: "scripts/native/ios-release-guard.mjs, .github/workflows/native-ios-release.yml" };
     },
   },
   {
@@ -141,8 +143,8 @@ export const BLOCKERS = [
     check: (fs) => ({ ok: /CODE_SIGN_ENTITLEMENTS/.test(fs.read("ios/App/App.xcodeproj/project.pbxproj")), evidence: "project.pbxproj" }) },
   { id: "ios-export-compliance", area: "iOS", wp: "WP2", title: "ITSAppUsesNonExemptEncryption beantwoord in Info.plist (eigenaar bevestigt het antwoord)",
     check: (fs) => ({ ok: fs.read("ios/App/App/Info.plist").includes("ITSAppUsesNonExemptEncryption"), evidence: "ios/App/App/Info.plist" }) },
-  { id: "ios-testflight-workflow", area: "iOS", wp: "WP2", title: "Beschermde handmatige workflow die een ondertekende TestFlight-IPA exporteert (geen upload, alleen vanaf main, omgeving ios-testflight)",
-    check: (fs) => { const text = fs.read(".github/workflows/native-ios-release.yml"); return { ok: /workflow_dispatch/.test(text) && /environment:\s*ios-testflight/.test(text) && /refs\/heads\/main/.test(text) && /-exportArchive/.test(text), evidence: ".github/workflows/native-ios-release.yml" }; } },
+  { id: "ios-testflight-workflow", area: "iOS", wp: "WP2", title: "Beschermde handmatige workflow die een ondertekende TestFlight-IPA exporteert (upload opt-in, alleen vanaf develop, omgeving testflight)",
+    check: (fs) => { const text = fs.read(".github/workflows/native-ios-release.yml"); return { ok: /workflow_dispatch/.test(text) && /environment:\s*testflight/.test(text) && /refs\/heads\/develop/.test(text) && /-exportArchive/.test(text), evidence: ".github/workflows/native-ios-release.yml" }; } },
   { id: "ios-ci-archive", area: "iOS", wp: "WP0", title: "CI bewijst een iOS-archive voor echte apparaten (zonder signing)",
     check: (fs) => ({ ok: workflows(fs).some((text) => /xcodebuild[^\n]*\barchive\b/.test(text)), evidence: ".github/workflows/*.yml" }) },
   { id: "android-version-injectable", area: "Android", wp: "WP0", title: "versionCode en versionName worden per build geïnjecteerd, niet hard gecodeerd",

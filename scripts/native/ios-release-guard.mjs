@@ -5,6 +5,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { join, resolve } from "node:path";
+import { verifyBundle } from "./verify-distribution.mjs";
 import { APP_ID } from "./profiles.cjs";
 
 const BUILD_JSON = "dist/native/build.json";
@@ -21,6 +22,9 @@ export function signingProblems(metadata, env) {
   if (typeof metadata.apiOrigin !== "string" || !/^https:\/\/[^/\s*@?#]+$/.test(metadata.apiOrigin) || metadata.apiOrigin.endsWith(".invalid")) problems.push("apiOrigin is geen exacte, echte HTTPS-origin");
   if (String(metadata.buildNumber) !== String(env.NATIVE_BUILD_NUMBER ?? "")) problems.push(`buildNumber ${metadata.buildNumber} wijkt af van NATIVE_BUILD_NUMBER ${env.NATIVE_BUILD_NUMBER ?? "(leeg)"}`);
   if (metadata.version !== env.NATIVE_APP_VERSION) problems.push(`version ${metadata.version} wijkt af van NATIVE_APP_VERSION ${env.NATIVE_APP_VERSION ?? "(leeg)"}`);
+  if (!/^(0|[1-9]\d{0,3})\.(0|[1-9]\d{0,3})\.(0|[1-9]\d{0,3})$/.test(metadata.version ?? "")) problems.push("ongeldige appversie");
+  if (!/^[1-9]\d{0,3}$/.test(String(metadata.buildNumber ?? ""))) problems.push("ongeldig Apple-buildnummer (1..9999 vereist)");
+  if (!/^[0-9a-f]{40}$/.test(metadata.sourceCommit ?? "")) problems.push("ongeldige volledige broncommit");
   if (env.GITHUB_SHA && metadata.sourceCommit !== env.GITHUB_SHA) problems.push("sourceCommit wijkt af van de gebouwde commit (GITHUB_SHA)");
   return problems;
 }
@@ -56,7 +60,62 @@ export function afterProblems(appDirectory, { root = process.cwd() } = {}) {
   if (!existsSync(join(appDirectory, "PrivacyInfo.xcprivacy"))) problems.push("PrivacyInfo.xcprivacy ontbreekt in de app");
   const source = resolve(root, BUILD_JSON);
   if (existsSync(source) && readFileSync(source, "utf8") !== readFileSync(metadataPath, "utf8")) problems.push("build.json in de app wijkt af van dist/native");
-  if (plist.CAPACITOR_DEBUG === "true") problems.push("CAPACITOR_DEBUG staat aan in de app");
+  if ([true, "true", "YES", "1", 1].includes(plist.CAPACITOR_DEBUG)) problems.push("CAPACITOR_DEBUG staat aan in de app");
+  return problems;
+}
+
+// Strikte allowlist: Versado vraagt nu geen Apple-login, push of Associated Domains aan.
+export function distributionProblems({ entitlements: ent = {}, profile, authorities = [], team, identifier }, expectedTeam) {
+  const problems = [];
+  if (!/^[A-Z0-9]{10}$/.test(expectedTeam ?? "") || team !== expectedTeam) problems.push("signingteam ontbreekt of wijkt af");
+  if (identifier !== APP_ID) problems.push("codesign-identiteit wijkt af");
+  if (!authorities[0]?.startsWith("Apple Distribution:")) problems.push("Apple Distribution-signing ontbreekt");
+  const allowed = ["application-identifier", "com.apple.developer.team-identifier", "keychain-access-groups", "get-task-allow", "beta-reports-active"];
+  const check = (values, label, profileValues = false) => {
+    for (const key of Object.keys(values)) if (!allowed.includes(key)) problems.push(`${label}: onverwacht entitlement ${key}`);
+    if (values["get-task-allow"] !== false) problems.push(`${label}: get-task-allow moet false zijn`);
+    if (values["application-identifier"] !== `${expectedTeam}.${APP_ID}`) problems.push(`${label}: application-identifier wijkt af`);
+    if (values["com.apple.developer.team-identifier"] !== expectedTeam) problems.push(`${label}: team-entitlement wijkt af`);
+    if (values["beta-reports-active"] !== undefined && values["beta-reports-active"] !== true) problems.push(`${label}: beta-reports-active ongeldig`);
+    const groups = values["keychain-access-groups"];
+    if (groups !== undefined && (!Array.isArray(groups) || groups.length !== 1 || (groups[0] !== `${expectedTeam}.${APP_ID}` && !(profileValues && groups[0] === `${expectedTeam}.*`)))) problems.push(`${label}: onverwachte keychain-groep`);
+  };
+  check(ent, "app");
+  if (!profile) return [...problems, "App Store-profiel ontbreekt"];
+  check(profile.Entitlements ?? {}, "profiel", true);
+  if (Object.hasOwn(profile, "ProvisionedDevices") || profile.ProvisionsAllDevices !== undefined) problems.push("geen App Store-distributieprofiel");
+  if (JSON.stringify(profile.TeamIdentifier) !== JSON.stringify([expectedTeam])) problems.push("profielteam wijkt af");
+  if (!(Date.parse(profile.ExpirationDate) > Date.now())) problems.push("profiel is verlopen of onleesbaar");
+  if (profile.Entitlements?.["beta-reports-active"] !== true) problems.push("TestFlight-profiel mist beta-reports-active");
+  return problems;
+}
+
+export function ipaProblems(appDirectory, { env = process.env, root = process.cwd() } = {}) {
+  const problems = afterProblems(appDirectory, { root });
+  const command = (name, args) => {
+    const result = spawnSync(name, args, { encoding: "utf8" });
+    if (result.status !== 0) throw new Error(`${name}: controle mislukt`);
+    return result;
+  };
+  try {
+    problems.push(...verifyBundle({ platform: "ios", root: appDirectory, env, repoRoot: root }));
+    const plist = readPlist(join(appDirectory, "Info.plist"));
+    if (plist?.CFBundleDisplayName !== "Versado") problems.push("appnaam wijkt af van Versado");
+    const privacy = readPlist(join(appDirectory, "PrivacyInfo.xcprivacy"));
+    if (!privacy || privacy.NSPrivacyTracking !== false || !Array.isArray(privacy.NSPrivacyTrackingDomains) || privacy.NSPrivacyTrackingDomains.length !== 0 || !Array.isArray(privacy.NSPrivacyAccessedAPITypes)) problems.push("privacymanifest is ongeldig of activeert tracking");
+    const expectedPrivacy = readPlist(resolve(root, "ios/App/App/PrivacyInfo.xcprivacy"));
+    if (!expectedPrivacy || JSON.stringify(privacy) !== JSON.stringify(expectedPrivacy)) problems.push("privacymanifest wijkt af van de beoordeelde bron");
+    command("codesign", ["--verify", "--deep", "--strict", appDirectory]);
+    const details = command("codesign", ["-dvv", appDirectory]).stderr;
+    const parseOutput = (output) => {
+      const result = spawnSync("python3", ["-I", "-c", "import plistlib,json,sys;print(json.dumps(plistlib.loads(sys.stdin.buffer.read()),default=str))"], { input: output, encoding: "utf8" });
+      if (result.status !== 0) throw new Error("plist-controle mislukt");
+      return JSON.parse(result.stdout);
+    };
+    const entitlements = parseOutput(command("codesign", ["-d", "--entitlements", ":-", appDirectory]).stdout);
+    const profile = parseOutput(command("security", ["cms", "-D", "-i", join(appDirectory, "embedded.mobileprovision")]).stdout);
+    problems.push(...distributionProblems({ entitlements, profile, authorities: [...details.matchAll(/^Authority=(.+)$/gm)].map((m) => m[1]), team: /^TeamIdentifier=(.+)$/m.exec(details)?.[1], identifier: /^Identifier=(.+)$/m.exec(details)?.[1] }, env.IOS_TEAM_ID));
+  } catch { problems.push("onafhankelijke IPA-/signingcontrole mislukt (geen profiel- of sleutelmateriaal gelogd)"); }
   return problems;
 }
 
@@ -70,8 +129,12 @@ function main() {
     const problems = afterProblems(target);
     if (problems.length > 0) { console.error(`Archief afgekeurd:\n- ${problems.join("\n- ")}`); process.exit(1); }
     console.log("iOS-archief gecontroleerd (versie, buildnummer, bundel, privacy manifest). Niet geüpload.");
+  } else if (mode === "ipa" && target) {
+    const problems = ipaProblems(target);
+    if (problems.length) { console.error(`IPA afgekeurd:\n- ${problems.join("\n- ")}`); process.exit(1); }
+    console.log("IPA onafhankelijk gecontroleerd: signing, profiel, identiteit, versie, backend, assets en privacy.");
   } else {
-    console.error("Gebruik: ios-release-guard.mjs before | after <App.app-map>");
+    console.error("Gebruik: ios-release-guard.mjs before | after <App.app-map> | ipa <App.app-map>");
     process.exit(2);
   }
 }

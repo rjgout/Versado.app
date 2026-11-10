@@ -1,8 +1,5 @@
-name: iOS TestFlight-archief (handmatig, beschermd)
-# WP2: archiveert en exporteert een ondertekende IPA voor TestFlight. Alleen handmatig te starten vanaf main, in de
-# beschermde GitHub-omgeving "ios-testflight" (de eigenaar stelt vereiste goedkeurders en de secrets in).
-# Deze workflow uploadt NIETS naar App Store Connect: export gebruikt destination "export" en de eigenaar plaatst de IPA zelf.
-# Compileproef-bundels (compileProbe:true) worden nooit gearchiveerd voor distributie; publieke release blijft geblokkeerd.
+name: iOS TestFlight
+# Alleen handmatig vanaf develop; publieke release blijft afzonderlijk en geblokkeerd.
 on:
   workflow_dispatch:
     inputs:
@@ -10,17 +7,32 @@ on:
         description: 'Versienaam (x.y.z)'
         required: true
         type: string
+      upload:
+        description: 'Bewust uploaden naar TestFlight (eerste runs uit laten)'
+        required: true
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
   group: native-ios-release
   cancel-in-progress: false
 jobs:
+  branch-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Geselecteerde branch expliciet controleren
+        env:
+          SELECTED_REF: ${{ github.ref }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          test "$EVENT_NAME" = workflow_dispatch && test "$SELECTED_REF" = refs/heads/develop || { echo "::error::Alleen handmatig vanaf develop toegestaan"; exit 1; }
   testflight-archive:
-    if: github.ref == 'refs/heads/main'
+    needs: branch-check
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/develop'
     runs-on: macos-latest
     timeout-minutes: 60
-    environment: ios-testflight
+    environment: testflight
     env:
       CAPACITOR_BUILD_PROFILE: local-store-test
       NATIVE_DISTRIBUTION_CHANNEL: testflight
@@ -35,25 +47,34 @@ jobs:
         run: |
           if ! [[ "$APP_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then echo "::error::app_version moet x.y.z zijn"; exit 1; fi
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
       - name: Controleer de eigenaarsvoorwaarden (geen waarden in de log)
         env:
-          HAS_TEAM: ${{ secrets.APPLE_TEAM_ID != '' }}
+          HAS_TEAM: ${{ secrets.IOS_TEAM_ID != '' }}
           HAS_KEY_ID: ${{ secrets.ASC_KEY_ID != '' }}
           HAS_ISSUER: ${{ secrets.ASC_ISSUER_ID != '' }}
-          HAS_KEY: ${{ secrets.ASC_KEY_P8 != '' }}
+          HAS_KEY: ${{ secrets.ASC_API_KEY_P8_BASE64 != '' }}
           HAS_ORIGIN: ${{ vars.NATIVE_STORE_TEST_API_ORIGIN != '' }}
         run: |
           missing=""
-          [ "$HAS_TEAM" = "true" ] || missing="$missing APPLE_TEAM_ID"
+          [ "$HAS_TEAM" = "true" ] || missing="$missing IOS_TEAM_ID"
           [ "$HAS_KEY_ID" = "true" ] || missing="$missing ASC_KEY_ID"
           [ "$HAS_ISSUER" = "true" ] || missing="$missing ASC_ISSUER_ID"
-          [ "$HAS_KEY" = "true" ] || missing="$missing ASC_KEY_P8"
+          [ "$HAS_KEY" = "true" ] || missing="$missing ASC_API_KEY_P8_BASE64"
           [ "$HAS_ORIGIN" = "true" ] || missing="$missing vars.NATIVE_STORE_TEST_API_ORIGIN"
-          if [ -n "$missing" ]; then echo "::error::Eigenaartaak: ontbrekende secrets/variabelen in omgeving ios-testflight:$missing"; exit 1; fi
+          if [ -n "$missing" ]; then echo "::error::Eigenaartaak: ontbrekende secrets/variabelen in omgeving testflight:$missing"; exit 1; fi
       - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: npm
+      - name: Exacte bron en distributievoorwaarden controleren vóór signing
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          [[ "$NATIVE_BUILD_NUMBER" =~ ^[1-9][0-9]{0,3}$ ]] || { echo "::error::Apple-buildnummer moet 1..9999 zijn; geen hergebruik van een eerdere upload of run."; exit 1; }
+          node -e 'const p=require("./scripts/native/profiles.cjs"); const r=p.resolveBuildProfile(process.env); p.internalAccessEnabled(r); if(r.compileProbe || r.profile!=="local-store-test" || r.channel!=="testflight") process.exit(1);'
+
       - name: Xcode vastzetten en SDK-eis van Apple controleren
         # IOS_XCODE_APP (repository- of omgevingsvariabele, bijvoorbeeld /Applications/Xcode_26.0.app) zet een exacte Xcode vast;
         # zonder die variabele geldt de standaard van de runner en staat de gebruikte versie in de samenvatting.
@@ -69,26 +90,37 @@ jobs:
         run: |
           npm ci
           npm run db:generate
+          node scripts/native/check-test-backend.mjs "$NATIVE_API_BASE_URL" --profile store-test
           npm run native:build
           npx cap sync ios
           node scripts/native/verify-distribution.mjs ios
           node scripts/native/ios-release-guard.mjs before
-      - name: Archiveren en exporteren (ondertekening via App Store Connect API-sleutel, geen upload)
+      - name: Archiveren, exporteren, onafhankelijk controleren en optioneel uploaden
+        id: distribution
         env:
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          ASC_API_KEY_P8_BASE64: ${{ secrets.ASC_API_KEY_P8_BASE64 }}
+          UPLOAD: ${{ inputs.upload }}
         run: |
+          set -euo pipefail
+          set +x
           umask 077
-          key="$RUNNER_TEMP/AuthKey.p8"
-          trap 'rm -f "$key" "$RUNNER_TEMP/ExportOptions.plist"' EXIT
-          printf '%s' "$ASC_KEY_P8" | base64 -d > "$key"
+          keydir="$(mktemp -d "$RUNNER_TEMP/versado-asc.XXXXXX")"
+          key="$keydir/AuthKey_$ASC_KEY_ID.p8"
+          trap 'rm -rf "$keydir"; rm -f "$RUNNER_TEMP/ExportOptions.plist"' EXIT
+          [[ "$ASC_KEY_ID" =~ ^[A-Z0-9]{10}$ ]] && [[ "$IOS_TEAM_ID" =~ ^[A-Z0-9]{10}$ ]] || { echo "::error::Key ID of Team ID ongeldig"; exit 1; }
+          printf '%s' "$ASC_API_KEY_P8_BASE64" | base64 -d > "$key"
+          export ASC_KEY_PATH="$key"
+          node scripts/native/asc-testflight-preflight.mjs
+          echo "::group::Archivering (Release, automatische signing)"
           auth=(-allowProvisioningUpdates -authenticationKeyPath "$key" -authenticationKeyID "$ASC_KEY_ID" -authenticationKeyIssuerID "$ASC_ISSUER_ID")
           archive="$RUNNER_TEMP/Versado.xcarchive"
           xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' \
             -archivePath "$archive" MARKETING_VERSION="$NATIVE_APP_VERSION" CURRENT_PROJECT_VERSION="$NATIVE_BUILD_NUMBER" \
-            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" CODE_SIGN_STYLE=Automatic "${auth[@]}" archive
+            DEVELOPMENT_TEAM="$IOS_TEAM_ID" CODE_SIGN_STYLE=Automatic "${auth[@]}" archive
+          echo "::endgroup::"
           node scripts/native/ios-release-guard.mjs after "$archive/Products/Applications/App.app"
           cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
           <?xml version="1.0" encoding="UTF-8"?>
@@ -96,29 +128,74 @@ jobs:
           <plist version="1.0"><dict>
             <key>method</key><string>app-store-connect</string>
             <key>destination</key><string>export</string>
-            <key>teamID</key><string>$APPLE_TEAM_ID</string>
+            <key>teamID</key><string>$IOS_TEAM_ID</string>
             <key>signingStyle</key><string>automatic</string>
+            <key>signingCertificate</key><string>Apple Distribution</string>
+            <key>manageAppVersionAndBuildNumber</key><false/>
             <key>uploadSymbols</key><true/>
           </dict></plist>
           PLIST
+          echo "::group::Export (App Store Connect IPA)"
           xcodebuild -exportArchive -archivePath "$archive" -exportPath "$RUNNER_TEMP/export" -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" "${auth[@]}"
-          mkdir -p ios-export && cp "$RUNNER_TEMP"/export/*.ipa ios-export/
+          echo "::endgroup::"
+          ipas=("$RUNNER_TEMP"/export/*.ipa)
+          test "${#ipas[@]}" = 1 && test -f "${ipas[0]}"
+          ipa="${ipas[0]}"
+          unpack="$(mktemp -d "$RUNNER_TEMP/versado-ipa.XXXXXX")"
+          unzip -q "$ipa" -d "$unpack"
+          apps=("$unpack"/Payload/*.app)
+          test "${#apps[@]}" = 1
+          echo "::group::Onafhankelijke IPA-validatie"
+          node scripts/native/ios-release-guard.mjs ipa "${apps[0]}"
+          echo "::endgroup::"
+          mkdir -p ios-export && cp "$ipa" ios-export/
+          echo "validated=true" >> "$GITHUB_OUTPUT"
+          echo "- Signing en IPA-controles: geslaagd (Apple Distribution, App Store-profiel, team, entitlements, privacy, metadata en assets)." >> "$GITHUB_STEP_SUMMARY"
+          if [ "$UPLOAD" = true ]; then
+            test "$GITHUB_REF" = refs/heads/develop
+            echo "upload_started=true" >> "$GITHUB_OUTPUT"
+            echo "- TestFlight-upload: gestart." >> "$GITHUB_STEP_SUMMARY"
+            echo "::group::TestFlight-upload"
+            API_PRIVATE_KEYS_DIR="$keydir" xcrun altool --upload-app --type ios -f "$ipa" --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID"
+            echo "::endgroup::"
+            echo "upload_accepted=true" >> "$GITHUB_OUTPUT"
+            echo "- TestFlight-upload: succesvol door Apple geaccepteerd. Verwerking en beschikbaarheid voor testers zijn nog niet bevestigd." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "- TestFlight-upload: overgeslagen (upload=false)." >> "$GITHUB_STEP_SUMMARY"
+          fi
       - name: Samenvatting
+        if: always()
+        env:
+          IPA_VALIDATED: ${{ steps.distribution.outputs.validated }}
+          UPLOAD_STARTED: ${{ steps.distribution.outputs.upload_started }}
+          UPLOAD_ACCEPTED: ${{ steps.distribution.outputs.upload_accepted }}
         run: |
-          ipa="$(ls ios-export/*.ipa)"
-          sha="$(shasum -a 256 "$ipa" | cut -d' ' -f1)"
+          sha="niet beschikbaar"
+          for ipa in ios-export/*.ipa; do
+            if [ -f "$ipa" ]; then sha="$(shasum -a 256 "$ipa" | cut -d' ' -f1)"; fi
+          done
           {
             echo "### iOS TestFlight-archief"
             echo "- versie $NATIVE_APP_VERSION (build $NATIVE_BUILD_NUMBER)"
-            echo "- commit $GITHUB_SHA"
+            echo "- bronbranch $GITHUB_REF; volledige commit $GITHUB_SHA"
+            echo "- Bundle ID: app.versado.app; appnaam: Versado; kanaal: testflight"
+            echo "- Testbackend: $NATIVE_API_BASE_URL"
             echo "- $(xcodebuild -version | tr '\n' ' ')"
             echo "- sha256 \`$sha\`"
-            echo "- Niet geüpload. De eigenaar plaatst de IPA handmatig in TestFlight (bijvoorbeeld met Transporter)."
+            if [ "$IPA_VALIDATED" != true ]; then echo "- Signing/IPA: niet volledig geslaagd; upload overgeslagen."; fi
+            if [ "$UPLOAD_STARTED" = true ] && [ "$UPLOAD_ACCEPTED" != true ]; then echo "- Upload gestart maar Apple-acceptatie niet bevestigd; controleer App Store Connect vóór opnieuw proberen."; fi
+            echo "- Een geaccepteerde upload is geen publieke App Store-publicatie."
           } >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
+        if: success() && steps.distribution.outputs.validated == 'true'
         with:
           name: versado-ios-testflight-${{ github.run_number }}
           path: |
             ios-export/*.ipa
             dist/native/build.json
           retention-days: 7
+      - name: Tijdelijke Apple-sleutels opruimen
+        if: always()
+        run: |
+          rm -rf "$RUNNER_TEMP"/versado-asc.*
+          rm -f "$RUNNER_TEMP/ExportOptions.plist"
