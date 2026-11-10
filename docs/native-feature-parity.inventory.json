@@ -2,6 +2,24 @@
   "schemaVersion": 1,
   "modules": [
     {
+      "file": "src/app/account-verwijderen/page.tsx",
+      "sha256": "2a33bd639bb3c649519c9bbb29a599c3a22a7b09c1ad2b1f22d77243a3f56fc1",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/components/AccountDeletionClient",
+        "@/lib/session"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [
+        "getCurrentUser"
+      ],
+      "exports": [
+        "AccountDeletionPage",
+        "dynamic"
+      ]
+    },
+    {
       "file": "src/app/acties/page.tsx",
       "sha256": "fa3a93965d48a1c2e22843b95e3ac359ae1f512b2f0dbaab97ed287099d3d0be",
       "boundary": "context-dependent",
@@ -365,12 +383,13 @@
     },
     {
       "file": "src/app/api/account/route.ts",
-      "sha256": "eb98d371b14bd26425dea31caa90a37870c75280947670fa4a62aa8733d49035",
+      "sha256": "8c2c4af5c07b10248977ea868109e5690701c15af73a8972ab519ae50ec2605f",
       "boundary": "context-dependent",
       "imports": [
         "@/generated/prisma/client",
+        "@/lib/account/contracts",
+        "@/lib/account/deletion",
         "@/lib/account/password",
-        "@/lib/accountDeletion",
         "@/lib/achievements",
         "@/lib/apiError",
         "@/lib/auth",
@@ -388,6 +407,7 @@
         "@/lib/mascots",
         "@/lib/presence",
         "@/lib/requestBody",
+        "@/lib/requestSecurity",
         "@/lib/session",
         "@/lib/timeZone",
         "next/server",
@@ -8530,6 +8550,22 @@
       ]
     },
     {
+      "file": "src/app/voorwaarden/page.tsx",
+      "sha256": "a699a32785d2aa108fe41fcb89c40ebb03ef828e689fa3dd7d8d4a74bfc1827e",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/components/legal/TermsContent",
+        "@/lib/legal/terms",
+        "next/navigation"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "TermsPage"
+      ]
+    },
+    {
       "file": "src/app/word-game/page.tsx",
       "sha256": "4556eefde06f945292cfdae74a8b963b79315de472e51fe063b820363bd4005c",
       "boundary": "context-dependent",
@@ -8608,6 +8644,26 @@
       ],
       "exports": [
         "XpPage"
+      ]
+    },
+    {
+      "file": "src/components/AccountDeletionClient.tsx",
+      "sha256": "5c1b491bc4ff877962cae716eca966379ad245ace1145f4020fbb8983ea7e96d",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/account/AccountActionsProvider",
+        "@/components/account/AccountDeletionForm",
+        "@/components/navigation/AppNavigation",
+        "@/components/profile/ProfilePage",
+        "@/lib/account/web",
+        "@/lib/i18n/rich"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "AccountDeletionClient"
       ]
     },
     {
@@ -10471,7 +10527,7 @@
     },
     {
       "file": "src/components/ProfileClient.tsx",
-      "sha256": "788cd6a748c139895a2c5fb31086685d3acb7bd02129b700e25bee00290360e9",
+      "sha256": "fe4e34f1167f9c19c9c185c29d32d3043dbb5301993c3fac26f2f386e379aba5",
       "boundary": "client",
       "imports": [
         "@/components/ConfirmProvider",
@@ -11045,7 +11101,7 @@
     },
     {
       "file": "src/components/SubpageBackBar.tsx",
-      "sha256": "53c430ed6fe4fabf68a19ba2d05fd48b99974da60251bcbf621adf534175044f",
+      "sha256": "d1d59f7edbab9f229b3e5d36c18c2e3ba1d2c06804eace8bc8e32d51565b8274",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -11348,6 +11404,25 @@
       ]
     },
     {
+      "file": "src/components/account/AccountDeletionForm.tsx",
+      "sha256": "fa591c6fd51476e6edc02107ecd09fa3b98efba38483f3dadaeba7f82df7aa5b",
+      "boundary": "client",
+      "imports": [
+        "./AccountActionsProvider",
+        "./accountErrorKeys",
+        "@/components/I18nProvider",
+        "@/components/profile/settings",
+        "@/lib/account/contracts",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "AccountDeletionForm"
+      ]
+    },
+    {
       "file": "src/components/account/EmailConfirmationCard.tsx",
       "sha256": "2cc22330a5f96f00e3a055e22e5e19767c82cc74794236e8c20afbcb58da2757",
       "boundary": "context-dependent",
@@ -11379,10 +11454,11 @@
     },
     {
       "file": "src/components/account/PasswordChangeForm.tsx",
-      "sha256": "962e5d1fac065fb01463d761833ae826dc52ff215a8261b98f9b8747d728b782",
+      "sha256": "016f8c59f69e2318ea2cdb0932b7545f917dbce05bacbd2df74263bc60424847",
       "boundary": "client",
       "imports": [
         "./AccountActionsProvider",
+        "./accountErrorKeys",
         "@/components/I18nProvider",
         "@/components/profile/settings",
         "@/lib/account/contracts",
@@ -11430,6 +11506,21 @@
       "exports": [
         "RecoveryCodesCard",
         "TwoFactorSetupCard"
+      ]
+    },
+    {
+      "file": "src/components/account/accountErrorKeys.ts",
+      "sha256": "8bb66961fd53f9f83991e2eb16097c92963d05e11835750caa9ad27693445047",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/lib/account/contracts",
+        "@/lib/i18n/core"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "ACCOUNT_ERROR_KEYS"
       ]
     },
     {
@@ -12759,6 +12850,20 @@
       ]
     },
     {
+      "file": "src/components/legal/TermsContent.tsx",
+      "sha256": "71f4f112efe1dd73c6ae00befdcde5bc1fca92c095d5d416ac178ae7fcc5ab2f",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/lib/legal/terms"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "TermsContent"
+      ]
+    },
+    {
       "file": "src/components/mysteries/Mystery001aClient.tsx",
       "sha256": "18c163a62fbdc1f6c01093123522fcc259816b3c68661a967b550a44fea751b3",
       "boundary": "client",
@@ -12943,7 +13048,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "7a4c8a17d366fa5e8a2f487fcb002cb9ca3e7a86fc2c506b9d5ee68d21a7458c",
+      "sha256": "e528dd8f38d361051c4f4104b9941f02fa4743f0c5ece80469095980f9f72c2f",
       "boundary": "client",
       "imports": [
         "./NativeContentPicker",
@@ -12955,6 +13060,7 @@
         "@/components/I18nProvider",
         "@/components/ReadAloudMiniPlayer",
         "@/components/account/AccountActionsProvider",
+        "@/components/account/AccountDeletionForm",
         "@/components/account/PasswordChangeForm",
         "@/components/account/TwoFactorCards",
         "@/components/legal/ContactContent",
@@ -12967,6 +13073,7 @@
         "@/components/shell/SubpageBackBarView",
         "@/components/versado/MascotSlot",
         "@/components/versado/styles",
+        "@/lib/account/contracts",
         "@/lib/data/native",
         "@/lib/data/nativeHooks",
         "@/lib/handle",
@@ -15915,7 +16022,7 @@
     },
     {
       "file": "src/lib/account/contracts.ts",
-      "sha256": "03dee7f35a98e49d5f9a85bea5c4c4c2e351e0b55fa178d053d629e0e8e80bf3",
+      "sha256": "d3e31a36646c0bad3de5d5e7e175d241e2913e761452765a9d03e43ae7f2edbd",
       "boundary": "context-dependent",
       "imports": [
         "zod"
@@ -15924,7 +16031,30 @@
       "requests": [],
       "checks": [],
       "exports": [
+        "accountDeletionSchema",
         "passwordChangeSchema"
+      ]
+    },
+    {
+      "file": "src/lib/account/deletion.ts",
+      "sha256": "fadb18a99eef883bfa8d33c817e1596b8b09aa4d6a7fc326b39e5e7b8a0883c8",
+      "boundary": "context-dependent",
+      "imports": [
+        "./contracts",
+        "@/lib/accountDeletion",
+        "@/lib/auth",
+        "@/lib/native/sessions",
+        "@/lib/rateLimit",
+        "@/lib/totp"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [
+        "verifyPassword",
+        "verifyTotpCode"
+      ],
+      "exports": [
+        "deleteAccountWithReauthentication"
       ]
     },
     {
@@ -16014,7 +16144,7 @@
     },
     {
       "file": "src/lib/account/web.ts",
-      "sha256": "b12c455071d538f8c2888d605e58368907e91e87674b8e74ed0ef2825337dc6b",
+      "sha256": "1ed02ea4b7f9b71fc52b703ae18d00347cd2ef918fb904a7582f7d5b16037511",
       "boundary": "context-dependent",
       "imports": [
         "./contracts",
@@ -16031,12 +16161,13 @@
     },
     {
       "file": "src/lib/accountDeletion.ts",
-      "sha256": "a040fd07d1dc722e70bfbbfb6269b7ab6fe3e9b1c4e7da04a72c5b379ae1604f",
+      "sha256": "0dc8350c45f280fcf4029da1cf1d060c9e1140eda986d3ee8267912db17ae4a8",
       "boundary": "context-dependent",
       "imports": [
         "./db",
         "./realtime",
-        "./social/groups"
+        "./social/groups",
+        "@/generated/prisma/client"
       ],
       "methods": [],
       "requests": [],
@@ -19694,7 +19825,7 @@
     },
     {
       "file": "src/lib/i18n/messages/de.ts",
-      "sha256": "a40fc28a93b2100760733c57a20969ee2756087c5f286b19aec8dc754bfa339b",
+      "sha256": "183af4c623566e178417f6ed4ec19abff18616241e3fc832ede28121bf626593",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19709,7 +19840,7 @@
     },
     {
       "file": "src/lib/i18n/messages/en.ts",
-      "sha256": "163df9ea88117bd044f72a1468477dafbb7e3b08ebce3ef1c60091a4c63df59b",
+      "sha256": "a0daf585319d77d447f017d7fed00177864f3ff6e83753ff84a35787c529da72",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19724,7 +19855,7 @@
     },
     {
       "file": "src/lib/i18n/messages/es.ts",
-      "sha256": "114fbe61569f46d51550c93a28d6c80ecfc60a78151070b327291a2bd0537d7b",
+      "sha256": "bf98e00da9ea9f1d3b662065c24685141d141934bbab2b71127bb8145ac46aa5",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19739,7 +19870,7 @@
     },
     {
       "file": "src/lib/i18n/messages/fr.ts",
-      "sha256": "1350dfc0827d27b02ef24b50b071e996f4e029d820727456c8ed67df9682ebe8",
+      "sha256": "449190f5879f897f12b0f3aa5674107cfa74a6af19f67508c6ee488d36e53903",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19822,7 +19953,7 @@
     },
     {
       "file": "src/lib/i18n/messages/nl.ts",
-      "sha256": "ed7b7cfed462fa4255bf773c6fe8d011705d3f7066ab1011bd1f8c9ccad76e93",
+      "sha256": "604fd30d6566bacceff1819a166f55136026476c2fcf327b61b6bf5bf1aab2f9",
       "boundary": "context-dependent",
       "imports": [
         "./kompas/nl"
@@ -20496,6 +20627,18 @@
         "hasStudiedToday",
         "qualifiesForStreak",
         "streakDayGap"
+      ]
+    },
+    {
+      "file": "src/lib/legal/terms.ts",
+      "sha256": "ae5c96685d26a82b9d0c271f0a48f725e3b346547ba5d92b3ed03f0a065b7d6d",
+      "boundary": "context-dependent",
+      "imports": [],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "TERMS"
       ]
     },
     {
@@ -21234,7 +21377,7 @@
     },
     {
       "file": "src/lib/native/account.ts",
-      "sha256": "10d538b7fc96e70ca43827c4e6e0d0d8db1762a64980dfe250fa64183f28ee9e",
+      "sha256": "6a53131967fd22a7b94157636265a538bb18f27d9740aee56e2de447d82849d8",
       "boundary": "context-dependent",
       "imports": [
         "./client",
@@ -21243,6 +21386,7 @@
       ],
       "methods": [],
       "requests": [
+        "account",
         "account/password"
       ],
       "checks": [],
@@ -21297,7 +21441,7 @@
     },
     {
       "file": "src/lib/native/api.ts",
-      "sha256": "2365675b687322d974b5a08e0720c600a99880187d4d991c42729a22f799c2dc",
+      "sha256": "d0083c1546831a010b2509f2e85c086eb115dd05b98411545bb9ff2a925dfaba",
       "boundary": "context-dependent",
       "imports": [
         "./annotations.server",
@@ -21329,6 +21473,7 @@
         "@/app/api/auth/forgot-password/route",
         "@/app/api/auth/register/route",
         "@/lib/account/contracts",
+        "@/lib/account/deletion",
         "@/lib/account/emailConfirmation",
         "@/lib/account/password",
         "@/lib/account/passwordReset",
@@ -21781,7 +21926,7 @@
     },
     {
       "file": "src/lib/native/navigation.ts",
-      "sha256": "3187eaa701dd7465b7861a735b41e7305644e2d761869eaf252fa72516cf10cf",
+      "sha256": "f1b538b1f4794aac6ab11abf44465948a11397aead3591a4b9b91f8685a29232",
       "boundary": "context-dependent",
       "imports": [],
       "methods": [],
@@ -24996,7 +25141,7 @@
     },
     {
       "file": "src/lib/social/groups.ts",
-      "sha256": "a11253d3886f469c12b427cdf63fb2662da27c18a1204e115807afb18fd4bb2f",
+      "sha256": "0281c92a90e13b4c3d6077264411819fd4ab864da0903ec7c7ca792db5d5cc52",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/dates",
@@ -25018,6 +25163,7 @@
       "exports": [
         "activeMembership",
         "adminMaintenanceCandidates",
+        "announceAccountDeparture",
         "cancelGroupInvite",
         "createGroup",
         "endGroupStreakPausesForActivity",
@@ -25025,6 +25171,7 @@
         "inviteToGroup",
         "joinTx",
         "leaveAllGroups",
+        "leaveAllGroupsInTransaction",
         "leaveGroup",
         "nextEligibleDay",
         "normalizeGroupName",
@@ -27499,6 +27646,73 @@
       ]
     },
     {
+      "file": "src/app/account-verwijderen/page.tsx",
+      "sha256": "2a33bd639bb3c649519c9bbb29a599c3a22a7b09c1ad2b1f22d77243a3f56fc1",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/components/AccountDeletionClient",
+        "@/lib/session"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [
+        "getCurrentUser"
+      ],
+      "exports": [
+        "AccountDeletionPage",
+        "dynamic"
+      ],
+      "route": "/account-verwijderen",
+      "kind": "page",
+      "domain": "overig-vandaag",
+      "dependencies": [
+        "src/app/account-verwijderen/page.tsx",
+        "src/components/AccountDeletionClient.tsx",
+        "src/components/Footer.tsx",
+        "src/components/I18nProvider.tsx",
+        "src/components/account/AccountActionsProvider.tsx",
+        "src/components/account/AccountDeletionForm.tsx",
+        "src/components/account/accountErrorKeys.ts",
+        "src/components/navigation/AppNavigation.tsx",
+        "src/components/profile/ProfilePage.tsx",
+        "src/components/profile/settings.tsx",
+        "src/components/versado/ToggleSwitch.tsx",
+        "src/lib/account/contracts.ts",
+        "src/lib/account/web.ts",
+        "src/lib/auth.ts",
+        "src/lib/data/fetchJson.ts",
+        "src/lib/db.ts",
+        "src/lib/i18n/core.ts",
+        "src/lib/i18n/messages/kompas/nl.ts",
+        "src/lib/i18n/messages/nl.ts",
+        "src/lib/i18n/rich.tsx",
+        "src/lib/languages.ts",
+        "src/lib/profileViews.ts",
+        "src/lib/session.ts"
+      ],
+      "directModules": [
+        "src/components/AccountDeletionClient.tsx",
+        "src/lib/session.ts"
+      ],
+      "clientBoundaries": [
+        "src/components/AccountDeletionClient.tsx",
+        "src/components/Footer.tsx",
+        "src/components/I18nProvider.tsx",
+        "src/components/account/AccountActionsProvider.tsx",
+        "src/components/account/AccountDeletionForm.tsx",
+        "src/components/navigation/AppNavigation.tsx",
+        "src/components/profile/ProfilePage.tsx",
+        "src/components/profile/settings.tsx",
+        "src/components/versado/ToggleSwitch.tsx"
+      ],
+      "requestEvidence": [
+        "/api/account"
+      ],
+      "authEvidence": [
+        "getCurrentUser"
+      ]
+    },
+    {
       "file": "src/app/acties/page.tsx",
       "sha256": "fa3a93965d48a1c2e22843b95e3ac359ae1f512b2f0dbaab97ed287099d3d0be",
       "boundary": "context-dependent",
@@ -29925,12 +30139,13 @@
     },
     {
       "file": "src/app/api/account/route.ts",
-      "sha256": "eb98d371b14bd26425dea31caa90a37870c75280947670fa4a62aa8733d49035",
+      "sha256": "8c2c4af5c07b10248977ea868109e5690701c15af73a8972ab519ae50ec2605f",
       "boundary": "context-dependent",
       "imports": [
         "@/generated/prisma/client",
+        "@/lib/account/contracts",
+        "@/lib/account/deletion",
         "@/lib/account/password",
-        "@/lib/accountDeletion",
         "@/lib/achievements",
         "@/lib/apiError",
         "@/lib/auth",
@@ -29948,6 +30163,7 @@
         "@/lib/mascots",
         "@/lib/presence",
         "@/lib/requestBody",
+        "@/lib/requestSecurity",
         "@/lib/session",
         "@/lib/timeZone",
         "next/server",
@@ -29974,6 +30190,8 @@
       "domain": "account",
       "dependencies": [
         "src/app/api/account/route.ts",
+        "src/lib/account/contracts.ts",
+        "src/lib/account/deletion.ts",
         "src/lib/account/password.ts",
         "src/lib/accountDeletion.ts",
         "src/lib/achievements.ts",
@@ -30034,6 +30252,7 @@
         "src/lib/mailHistory.ts",
         "src/lib/mailHistoryTypes.ts",
         "src/lib/mascots.ts",
+        "src/lib/native/sessions.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
@@ -30052,6 +30271,7 @@
         "src/lib/references/standardWorks.ts",
         "src/lib/requestBody.ts",
         "src/lib/requestLanguage.ts",
+        "src/lib/requestSecurity.ts",
         "src/lib/session.ts",
         "src/lib/social/common.ts",
         "src/lib/social/friendStreaks.ts",
@@ -30076,12 +30296,14 @@
         "src/lib/studyContent/schema.ts",
         "src/lib/studyContextContract.ts",
         "src/lib/timeZone.ts",
+        "src/lib/totp.ts",
         "src/lib/unsubscribe.ts",
         "src/lib/xp.ts"
       ],
       "directModules": [
+        "src/lib/account/contracts.ts",
+        "src/lib/account/deletion.ts",
         "src/lib/account/password.ts",
-        "src/lib/accountDeletion.ts",
         "src/lib/achievements.ts",
         "src/lib/apiError.ts",
         "src/lib/auth.ts",
@@ -30099,6 +30321,7 @@
         "src/lib/mascots.ts",
         "src/lib/presence.ts",
         "src/lib/requestBody.ts",
+        "src/lib/requestSecurity.ts",
         "src/lib/session.ts",
         "src/lib/timeZone.ts"
       ],
@@ -51274,6 +51497,7 @@
         "src/components/today/TodayProgramView.tsx",
         "src/components/versado/styles.ts",
         "src/lib/account/contracts.ts",
+        "src/lib/account/deletion.ts",
         "src/lib/account/emailConfirmation.ts",
         "src/lib/account/mutation.ts",
         "src/lib/account/password.ts",
@@ -53042,6 +53266,7 @@
         "src/components/I18nProvider.tsx",
         "src/components/account/AccountActionsProvider.tsx",
         "src/components/account/PasswordChangeForm.tsx",
+        "src/components/account/accountErrorKeys.ts",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/profile/ProfilePage.tsx",
         "src/components/profile/settings.tsx",
@@ -69209,6 +69434,37 @@
       ]
     },
     {
+      "file": "src/app/voorwaarden/page.tsx",
+      "sha256": "a699a32785d2aa108fe41fcb89c40ebb03ef828e689fa3dd7d8d4a74bfc1827e",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/components/legal/TermsContent",
+        "@/lib/legal/terms",
+        "next/navigation"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "TermsPage"
+      ],
+      "route": "/voorwaarden",
+      "kind": "page",
+      "domain": "overig-vandaag",
+      "dependencies": [
+        "src/app/voorwaarden/page.tsx",
+        "src/components/legal/TermsContent.tsx",
+        "src/lib/legal/terms.ts"
+      ],
+      "directModules": [
+        "src/components/legal/TermsContent.tsx",
+        "src/lib/legal/terms.ts"
+      ],
+      "clientBoundaries": [],
+      "requestEvidence": [],
+      "authEvidence": []
+    },
+    {
       "file": "src/app/word-game/page.tsx",
       "sha256": "4556eefde06f945292cfdae74a8b963b79315de472e51fe063b820363bd4005c",
       "boundary": "context-dependent",
@@ -69837,6 +70093,24 @@
     }
   ],
   "components": [
+    {
+      "file": "src/app/account-verwijderen/page.tsx",
+      "sha256": "2a33bd639bb3c649519c9bbb29a599c3a22a7b09c1ad2b1f22d77243a3f56fc1",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/components/AccountDeletionClient",
+        "@/lib/session"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [
+        "getCurrentUser"
+      ],
+      "exports": [
+        "AccountDeletionPage",
+        "dynamic"
+      ]
+    },
     {
       "file": "src/app/acties/page.tsx",
       "sha256": "fa3a93965d48a1c2e22843b95e3ac359ae1f512b2f0dbaab97ed287099d3d0be",
@@ -72635,6 +72909,22 @@
       ]
     },
     {
+      "file": "src/app/voorwaarden/page.tsx",
+      "sha256": "a699a32785d2aa108fe41fcb89c40ebb03ef828e689fa3dd7d8d4a74bfc1827e",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/components/legal/TermsContent",
+        "@/lib/legal/terms",
+        "next/navigation"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "TermsPage"
+      ]
+    },
+    {
       "file": "src/app/word-game/page.tsx",
       "sha256": "4556eefde06f945292cfdae74a8b963b79315de472e51fe063b820363bd4005c",
       "boundary": "context-dependent",
@@ -72713,6 +73003,26 @@
       ],
       "exports": [
         "XpPage"
+      ]
+    },
+    {
+      "file": "src/components/AccountDeletionClient.tsx",
+      "sha256": "5c1b491bc4ff877962cae716eca966379ad245ace1145f4020fbb8983ea7e96d",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/account/AccountActionsProvider",
+        "@/components/account/AccountDeletionForm",
+        "@/components/navigation/AppNavigation",
+        "@/components/profile/ProfilePage",
+        "@/lib/account/web",
+        "@/lib/i18n/rich"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "AccountDeletionClient"
       ]
     },
     {
@@ -74576,7 +74886,7 @@
     },
     {
       "file": "src/components/ProfileClient.tsx",
-      "sha256": "788cd6a748c139895a2c5fb31086685d3acb7bd02129b700e25bee00290360e9",
+      "sha256": "fe4e34f1167f9c19c9c185c29d32d3043dbb5301993c3fac26f2f386e379aba5",
       "boundary": "client",
       "imports": [
         "@/components/ConfirmProvider",
@@ -75150,7 +75460,7 @@
     },
     {
       "file": "src/components/SubpageBackBar.tsx",
-      "sha256": "53c430ed6fe4fabf68a19ba2d05fd48b99974da60251bcbf621adf534175044f",
+      "sha256": "d1d59f7edbab9f229b3e5d36c18c2e3ba1d2c06804eace8bc8e32d51565b8274",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -75453,6 +75763,25 @@
       ]
     },
     {
+      "file": "src/components/account/AccountDeletionForm.tsx",
+      "sha256": "fa591c6fd51476e6edc02107ecd09fa3b98efba38483f3dadaeba7f82df7aa5b",
+      "boundary": "client",
+      "imports": [
+        "./AccountActionsProvider",
+        "./accountErrorKeys",
+        "@/components/I18nProvider",
+        "@/components/profile/settings",
+        "@/lib/account/contracts",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "AccountDeletionForm"
+      ]
+    },
+    {
       "file": "src/components/account/EmailConfirmationCard.tsx",
       "sha256": "2cc22330a5f96f00e3a055e22e5e19767c82cc74794236e8c20afbcb58da2757",
       "boundary": "context-dependent",
@@ -75484,10 +75813,11 @@
     },
     {
       "file": "src/components/account/PasswordChangeForm.tsx",
-      "sha256": "962e5d1fac065fb01463d761833ae826dc52ff215a8261b98f9b8747d728b782",
+      "sha256": "016f8c59f69e2318ea2cdb0932b7545f917dbce05bacbd2df74263bc60424847",
       "boundary": "client",
       "imports": [
         "./AccountActionsProvider",
+        "./accountErrorKeys",
         "@/components/I18nProvider",
         "@/components/profile/settings",
         "@/lib/account/contracts",
@@ -76775,6 +77105,20 @@
       ]
     },
     {
+      "file": "src/components/legal/TermsContent.tsx",
+      "sha256": "71f4f112efe1dd73c6ae00befdcde5bc1fca92c095d5d416ac178ae7fcc5ab2f",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/lib/legal/terms"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "TermsContent"
+      ]
+    },
+    {
       "file": "src/components/mysteries/Mystery001aClient.tsx",
       "sha256": "18c163a62fbdc1f6c01093123522fcc259816b3c68661a967b550a44fea751b3",
       "boundary": "client",
@@ -76959,7 +77303,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "7a4c8a17d366fa5e8a2f487fcb002cb9ca3e7a86fc2c506b9d5ee68d21a7458c",
+      "sha256": "e528dd8f38d361051c4f4104b9941f02fa4743f0c5ece80469095980f9f72c2f",
       "boundary": "client",
       "imports": [
         "./NativeContentPicker",
@@ -76971,6 +77315,7 @@
         "@/components/I18nProvider",
         "@/components/ReadAloudMiniPlayer",
         "@/components/account/AccountActionsProvider",
+        "@/components/account/AccountDeletionForm",
         "@/components/account/PasswordChangeForm",
         "@/components/account/TwoFactorCards",
         "@/components/legal/ContactContent",
@@ -76983,6 +77328,7 @@
         "@/components/shell/SubpageBackBarView",
         "@/components/versado/MascotSlot",
         "@/components/versado/styles",
+        "@/lib/account/contracts",
         "@/lib/data/native",
         "@/lib/data/nativeHooks",
         "@/lib/handle",
@@ -79887,6 +80233,7 @@
     "use_hint"
   ],
   "tests": [
+    "tests/account-deletion.integration.test.ts",
     "tests/activity-reactions.integration.test.ts",
     "tests/activity-reactions.test.ts",
     "tests/admin-layout.test.ts",
@@ -80047,6 +80394,7 @@
     "tests/native-access.browser.mjs",
     "tests/native-access.integration.test.ts",
     "tests/native-access.test.ts",
+    "tests/native-account-deletion.test.ts",
     "tests/native-account.integration.test.ts",
     "tests/native-android-release.test.mjs",
     "tests/native-annotations.integration.test.ts",
@@ -80108,6 +80456,7 @@
     "tests/otb-production-diagnosis-runtime.test.mjs",
     "tests/otb-production-diagnosis.test.mjs",
     "tests/otb.test.ts",
+    "tests/personal-data-inventory.test.mjs",
     "tests/podcast-feed.test.ts",
     "tests/profile-footer.test.ts",
     "tests/profile-guide.browser.mjs",

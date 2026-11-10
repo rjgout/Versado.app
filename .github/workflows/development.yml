@@ -38,6 +38,7 @@ jobs:
       - name: Bestaande beveiligings-, native en releaseguards
         run: |
           npm run test:security
+          npm run test:privacy
           npm run test:native
           npm run test:native:store-readiness
           npm run test:native:android-release
