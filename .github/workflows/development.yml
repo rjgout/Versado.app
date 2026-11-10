@@ -43,6 +43,8 @@ jobs:
           npm run test:native:android-release
           npm run test:native:ios-release
           npm run test:nas-stack
+          node tests/native-test-api-proxy.integration.mjs
+          node tests/native-test-api-websocket.integration.mjs
           npm run test:proxy
           npm audit --omit=dev --audit-level=high
       # Brontekst-tests lezen componentbestanden en draaien zonder database in enkele seconden.
