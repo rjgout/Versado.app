@@ -423,6 +423,8 @@ Productie/release wordt niet geactiveerd.
 
 De `store-test`-allowlist blijft leeg. Eerst review van de native implementatie
 en [proxyvoorbereiding #267](https://github.com/rjgout/Versado.app/pull/267),
-uitroltoestemming, volledige backendcheck (inclusief WP4) en echte iPhone-tests.
+uitroltoestemming en volledige backendcheck (inclusief WP4) vóór allowlistvrijgave;
+de eerste fysieke iPhone-acceptatie volgt na de afzonderlijk toegestane eerste
+TestFlight-upload en installatie.
 Dit codepad is geen bewijs voor een uitgerolde Cloudflare/NAS-keten of een werkende
 fysieke iPhone. Beide platformcompilaties en native regressies blijven vereist.
