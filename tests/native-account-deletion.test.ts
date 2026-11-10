@@ -1,3 +1,4 @@
+import { nativeRoute } from "../src/lib/native/navigation";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { nativeAccountActions } from "../src/lib/native/account";
@@ -56,4 +57,10 @@ test("elke accountfout heeft een vertaalde tekst in de bronbundel", () => {
     const value = (nl as unknown as Record<string, Record<string, unknown>>)[group]?.[name];
     assert.equal(typeof value, "string", `${code} → ${key}`);
   }
+});
+
+
+test("native wisroute bestaat; oningevulde voorwaarden worden geen placeholderroute", () => {
+  assert.equal(nativeRoute("/account-verwijderen"),"/account-verwijderen");
+  assert.equal(nativeRoute("/voorwaarden"),null);
 });

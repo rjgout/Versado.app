@@ -21926,7 +21926,7 @@
     },
     {
       "file": "src/lib/native/navigation.ts",
-      "sha256": "f1b538b1f4794aac6ab11abf44465948a11397aead3591a4b9b91f8685a29232",
+      "sha256": "eae1d3b207d8e7915a5d9f31109350396489e9e5422a761409a4fb99dcc3a3bb",
       "boundary": "context-dependent",
       "imports": [],
       "methods": [],
@@ -27664,7 +27664,7 @@
       ],
       "route": "/account-verwijderen",
       "kind": "page",
-      "domain": "overig-vandaag",
+      "domain": "account",
       "dependencies": [
         "src/app/account-verwijderen/page.tsx",
         "src/components/AccountDeletionClient.tsx",
