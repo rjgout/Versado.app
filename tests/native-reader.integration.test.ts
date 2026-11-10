@@ -599,13 +599,16 @@ test("additieve cursormigratie behoudt oude rijen en is transactioneel terug te 
 });
 
 test("cursorcommit gebruikt één verbinding en put een volledig bezette databasepool niet uit",async()=>{
-  const {spawnSync}=await import("node:child_process");
+  const {execFile}=await import("node:child_process");
+  const {promisify}=await import("node:util");
+  const runWorker=promisify(execFile);
   const {pair}=await account(),{binding}=await nativeSessionIdentity(pair.accessToken);
   for(const course of f.courses) {
     const kind=course.type==="READING_LESSONS"?"steps":"chapters",targetId=kind==="steps"?f.steps.lessons[1].id:f.chapters[1].id;
     const state=await (await call(pair.accessToken,path(course.id,kind,targetId)+"/resume")).json();
-    const result=spawnSync(process.execPath,["--import","tsx","tests/fixtures/native-reader-position-worker.ts",JSON.stringify({binding,courseId:course.id,kind,targetId,input:wireInput(state.reader,2)})],{env:process.env,encoding:"utf8",timeout:12000});
-    assert.equal(result.status,0,result.stderr);
+    // Laat de eventloop de keep-alive-FIN verwerken terwijl de worker draait;
+    // spawnSync kan anders daarna een reeds gesloten HTTP-socket hergebruiken.
+    const result=await runWorker(process.execPath,["--import","tsx","tests/fixtures/native-reader-position-worker.ts",JSON.stringify({binding,courseId:course.id,kind,targetId,input:wireInput(state.reader,2)})],{env:process.env,encoding:"utf8",timeout:12000});
     assert.equal(JSON.parse(result.stdout).version,1);
   }
 });
