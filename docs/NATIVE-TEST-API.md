@@ -99,9 +99,10 @@ De volledige backend-/readinesspoort blijft daarom afkeuren tot dit is opgelost.
 
 Kortste veilige volgorde: review proxyvoorbereiding → review native direct-
 transport/audio → WP4 integreren via normale review → eigenaar accepteert dev-
-configuratie en infrastructuur → echte API-/iPhone-acceptatie → afzonderlijke
+configuratie en infrastructuur → echte API-/infrastructuuracceptatie → afzonderlijke
 allowlistvrijgave → review #266 → apart toestemming voor signing → build zonder
-upload → aparte toestemming voor upload → TestFlight-installatie.
+upload → aparte toestemming voor upload → TestFlight-installatie → fysieke
+iPhone-acceptatie. De eerste volledige toestelproef volgt na installatie.
 Geen van deze merges, deployments, signing of uploads wordt zelfstandig gestart.
 
 ## Acceptatiebewijs dat de eigenaar nog moet leveren
