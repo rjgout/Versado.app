@@ -26,6 +26,18 @@ public class NativeAccessTransportTest {
     private NativeAccessTransport.Reply request(Edge edge) throws Exception {
         return NativeAccessTransport.request("login", "POST", "Bearer synthetic.native", "{}", credentials, "https://localhost", edge.client::newCall, () -> true);
     }
+    @Test public void directTestModeHasNoServiceCredentialsAndKeepsStrictRoutes() throws Exception {
+        assertTrue(NativeAccessTransport.directAllowed("app.versado.app","local-store-test","play-test",NativeAccessTransport.TEST_ORIGIN,true,false,false));
+        assertFalse(NativeAccessTransport.directAllowed("app.versado.app","local-store-test","play-test","https://versado.app",true,false,false));
+        assertFalse(NativeAccessTransport.directAllowed("app.versado.app","local-store-test","play-test",NativeAccessTransport.TEST_ORIGIN,true,true,false));
+        assertFalse(NativeAccessTransport.routeAllowed("realtime/session","POST"));
+        Edge edge = new Edge();
+        NativeAccessTransport.request("realtime/session","POST","Bearer synthetic.native","{}",null,"https://localhost",edge.client::newCall,()->true);
+        assertEquals("api-test.versado.app",edge.captured.url().host());
+        assertNull(edge.captured.header("CF-Access-Client-Secret")); assertNull(edge.captured.header("CF-Access-Client-Id"));
+        assertNull(edge.captured.header("Cookie")); assertNull(edge.captured.url().query());
+        assertEquals("Bearer synthetic.native",edge.captured.header("Authorization"));
+    }
     @Test public void profileAndRoutesStayStrict() {
         assertTrue(NativeAccessTransport.profileAllowed(true, "local-internal", "internal", NativeAccessTransport.ORIGIN, false, false));
         assertFalse(NativeAccessTransport.profileAllowed(false, "local-internal", "internal", NativeAccessTransport.ORIGIN, false, false));

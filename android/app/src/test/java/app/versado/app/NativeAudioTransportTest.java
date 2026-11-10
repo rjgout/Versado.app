@@ -52,6 +52,17 @@ public class NativeAudioTransportTest {
         }
     }
     static NativeAudioTransport.Lifetime life(long millis) { return new NativeAudioTransport.Lifetime(millis, System::nanoTime); }
+    @Test public void directAudioUsesSameRangeAndRevocationWithoutCloudflareCredentials() throws Exception {
+        Edge edge = new Edge(); NativeAudioTransport.Lifetime lifetime = life(120000);
+        NativeAudioTransport transport = new NativeAudioTransport(path,edge.bytes.length,"Bearer synthetic.native.token",null,"https://localhost",lifetime,edge.client::newCall);
+        byte[] bytes = new byte[100]; assertEquals(100,transport.read(0,bytes,0,100));
+        assertArrayEquals(Arrays.copyOf(edge.bytes,100),bytes);
+        assertEquals("api-test.versado.app",edge.captured.url().host());
+        assertNull(edge.captured.header("CF-Access-Client-Secret")); assertNull(edge.captured.header("CF-Access-Client-Id"));
+        assertNull(edge.captured.header("Cookie")); assertNull(edge.captured.url().query());
+        assertEquals("bytes=0-99",edge.captured.header("Range"));
+        lifetime.invalidate(); assertThrows(IOException.class,()->transport.read(0,bytes,0,100)); transport.close();
+    }
     @Test public void expiryIncludesSimulatedDeviceSleepAndHasHardLifetimeBound() throws Exception {
         java.util.concurrent.atomic.AtomicLong now = new java.util.concurrent.atomic.AtomicLong();
         NativeAudioTransport.Lifetime life = new NativeAudioTransport.Lifetime(600000, now::get);

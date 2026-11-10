@@ -44,6 +44,13 @@ private func read(_ source: NativeAudioSourceRequest, _ life: NativeAudioLifetim
         precondition(request.url!.host == "dev.versado.app" && request.url!.query == nil && request.value(forHTTPHeaderField: "Accept-Encoding") == "identity")
         precondition(request.value(forHTTPHeaderField: "CF-Access-Client-Secret") == credentials.secret && !request.url!.absoluteString.contains(credentials.secret))
         precondition(request.httpShouldHandleCookies == false && request.value(forHTTPHeaderField: "Cookie") == nil)
+        let direct = try NativeAudioSourceRequest(path: source.path, authorization: source.authorization, credentials:nil, byteSize:source.byteSize)
+        let directBytes = try await read(direct, NativeAudioLifetime(validFor:120))
+        precondition(directBytes == AudioFixtureProtocol.bytes.prefix(100))
+        let directRequest = AudioFixtureProtocol.requests.last!
+        precondition(directRequest.url?.host == "api-test.versado.app")
+        precondition(directRequest.value(forHTTPHeaderField:"CF-Access-Client-Id") == nil && directRequest.value(forHTTPHeaderField:"CF-Access-Client-Secret") == nil)
+        precondition(directRequest.value(forHTTPHeaderField:"Authorization") == source.authorization && directRequest.value(forHTTPHeaderField:"Range") == "bytes=0-99")
         for scenario in 0..<10 {
             AudioFixtureProtocol.reset()
             switch scenario {

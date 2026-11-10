@@ -27,6 +27,8 @@ private func stored(_ refresh:String) -> String { "{\"refreshToken\":\"\(refresh
     let tag=c.tag(stamp)
     let wrong=try c.capture(path:scope.path,status:200,body:body,authorization:"Bearer "+token("other"),credentials:credentials,tag:tag,startedAt:0);precondition(!wrong)
     let valid=try c.capture(path:scope.path,status:200,body:body,authorization:"Bearer "+token("one"),credentials:credentials,tag:tag,startedAt:0);precondition(valid&&c.capsule!.remaining==297)
+    let direct=try c.capture(path:scope.path,status:200,body:body,authorization:"Bearer "+token("one"),credentials:nil,tag:tag,startedAt:0)
+    precondition(direct && c.capsule!.credentials == nil && c.capsule!.remaining == 297)
     now=297.001;precondition(!c.capsule!.lifetime.current)
     do { _ = try c.capture(path:scope.path,status:200,body:body,authorization:"Bearer "+token("one"),credentials:credentials,tag:c.tag(stamp),startedAt:0);fatalError("Vertraagde autorisatie mag deadline niet verlengen") } catch is NativeAudioFailure {}
     c.select(nil);let late=try c.capture(path:scope.path,status:200,body:body,authorization:"Bearer "+token("one"),credentials:credentials,tag:tag,startedAt:0);precondition(!late)

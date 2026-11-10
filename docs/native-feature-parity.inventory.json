@@ -13241,7 +13241,7 @@
     },
     {
       "file": "src/components/native/entry.tsx",
-      "sha256": "391a5f1e8400035edb8e6a034684564a619f193ac1a64d5c29991061062175a7",
+      "sha256": "5a9580e65fcaec37a64dbc2762664807388eee5bd7be8f213a6cee3184046827",
       "boundary": "context-dependent",
       "imports": [
         "./NativeAccessPanel",
@@ -21216,7 +21216,7 @@
     },
     {
       "file": "src/lib/native/access.ts",
-      "sha256": "affdc0bcbbd467ccc1248ff69e2cdf5871c46fc0101147d63637ac6cfcbe9f53",
+      "sha256": "11714b3fba117108e87873b591ef6d0d83dbbce1bf3be0ebe26400b68fe1e656",
       "boundary": "context-dependent",
       "imports": [
         "./client",
@@ -21227,9 +21227,11 @@
       "checks": [],
       "exports": [
         "INTERNAL_ACCESS_ORIGIN",
+        "TEST_API_ORIGIN",
         "accessRouteAllowed",
         "nativeAccessError",
-        "nativeAccessTransport"
+        "nativeAccessTransport",
+        "nativeDirectTransport"
       ]
     },
     {
@@ -77257,7 +77259,7 @@
     },
     {
       "file": "src/components/native/entry.tsx",
-      "sha256": "391a5f1e8400035edb8e6a034684564a619f193ac1a64d5c29991061062175a7",
+      "sha256": "5a9580e65fcaec37a64dbc2762664807388eee5bd7be8f213a6cee3184046827",
       "boundary": "context-dependent",
       "imports": [
         "./NativeAccessPanel",
