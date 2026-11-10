@@ -47,6 +47,7 @@ const PROFILE_SUBPAGES: Record<string, MessageKey> = {
   "/xp": "header.xp",
   "/streak": "header.streak",
   "/change-password": "profile.changePassword",
+  "/account-verwijderen": "accountDeletion.title",
 };
 
 // De spellen op Spelen (/live, zie LiveLobbyForm.tsx). Een lopend spel houdt

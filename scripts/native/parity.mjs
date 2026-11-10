@@ -58,7 +58,7 @@ export function inspectModule(file, source) {
 }
 export function domainFor(route) {
   if (/^\/(api\/)?admin/.test(route)) return "beheer";
-  if (/^\/(api\/)?(auth|account|profile|avatar|onboarding|login|register|forgot-password|reset-password|change-password|verify-email|two-factor)(\/|$)/.test(route)) return "account";
+  if (/^\/(api\/)?(auth|account|account-verwijderen|profile|avatar|onboarding|login|register|forgot-password|reset-password|change-password|verify-email|two-factor)(\/|$)/.test(route)) return "account";
   if (/^\/api\/v1\/native(\/|$)/.test(route)) return "native-kern";
   if (/^\/(api\/)?(dorp|dev\/versado-dorp)(\/|$)/.test(route)) return "dorp";
   if (/^\/(api\/)?(live|scrabble|word-game|word-search|jigsaw|alleskenner|chapter-guess|gezinsavond|snelle-zendeling|mysteries)(\/|$)/.test(route)) return "spelen";
@@ -116,8 +116,9 @@ export function renderInventory(inventory) {
     const legal = ["/privacy", "/cookies", "/disclaimer", "/contact"].includes(row.route);
     const password = ["/change-password", "/reset-password"].includes(row.route);
     const confirmation = row.route === "/verify-email";
+    const deletion = row.route === "/account-verwijderen";
     lines.push([`\`${row.route}\``, `${link(row.file)}; ${row.boundary === "client" ? "expliciete clientgrens" : "Server Component-entry"}`, row.domain,
-      legal ? "Lokale gedeelde inhoud; apparaatbewijs open" : password ? "Lokale gedeelde wachtwoordflow; apparaatbewijs open" : confirmation ? "Lokale gedeelde bevestigingsflow; apparaatbewijs open" : partial ? "Lokale route; Foundation gedeeltelijk, geen volledige functiepariteit" : "Zelfde doel-URL; ontbreekt in lokale router",
+      deletion ? "Lokale gedeelde wis-/herauthenticatieflow; apparaatbewijs open" : legal ? "Lokale gedeelde inhoud; apparaatbewijs open" : password ? "Lokale gedeelde wachtwoordflow; apparaatbewijs open" : confirmation ? "Lokale gedeelde bevestigingsflow; apparaatbewijs open" : partial ? "Lokale route; Foundation gedeeltelijk, geen volledige functiepariteit" : "Zelfde doel-URL; ontbreekt in lokale router",
       [...row.authEvidence, ...row.directModules.filter(file => file.startsWith("src/lib/"))].map(cell).join("; ") || "Zie bron en rootlayout; nog expliciet beoordelen",
       "Webtests: JSON-index; native: geen volledig route-/apparaatbewijs",
     ].map(cell).join(" | "));

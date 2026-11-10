@@ -26,9 +26,11 @@ import { SettingsSection } from "@/components/profile/settings";
 import NativeShellHeader from "./NativeShellHeader";
 import { nativeAppleLoginUIAvailable } from "@/lib/native/shell";
 import PasswordChangeForm from "@/components/account/PasswordChangeForm";
+import AccountDeletionForm from "@/components/account/AccountDeletionForm";
 import { AccountActionsProvider } from "@/components/account/AccountActionsProvider";
 import { RecoveryCodesCard, TwoFactorSetupCard } from "@/components/account/TwoFactorCards";
 import { nativeAccountActions } from "@/lib/native/account";
+import { AccountActionError } from "@/lib/account/contracts";
 import { NativeSocketConnection } from "@/lib/native/socketClient";
 import NativeEmailConfirmation from "./NativeEmailConfirmation";
 import NativePasswordReset from "./NativePasswordReset";
@@ -56,6 +58,7 @@ function NativeFoundationContent({ audioOutput, client, termsUrl = null, onLangu
   const confirmationPage = navigation.pathname === "/verify-email";
   const [mailRequest, setMailRequest] = useState<{ token: string | null; id: number; route: string }>({ token: null, id: 0, route: "" });
   const passwordPage = navigation.pathname === "/change-password";
+  const deletionPage = navigation.pathname === "/account-verwijderen";
   const legal = ["/privacy", "/cookies", "/disclaimer", "/contact"].includes(navigation.pathname);
   const chapterId = navigation.pathname.startsWith("/lesson/") ? navigation.pathname.slice(8) : null;
   const mode = navigation.pathname === "/register" ? "register" : navigation.pathname === "/forgot-password" ? "forgot" : "login";
@@ -107,7 +110,8 @@ function NativeFoundationContent({ audioOutput, client, termsUrl = null, onLangu
     if (key === "network_unavailable") setOffline(true);
     if (err instanceof NativeClientError && err.status === 401 && key !== "two_factor_required" && key !== "wrong_credentials") { setUser(null); dataRuntime.reset(); setSetup(null); setRecoveryCodes(null); }
   }, [t, dataRuntime]);
-  const accountActions = useMemo(() => nativeAccountActions(client, () => report(new NativeClientError("session_expired", 401))), [client, report]);
+  const accountDeleted = useCallback(() => { setUser(null); dataRuntime.reset(); setRecoveryCodes(null); setSetup(null); navigation.replace("/login"); }, [dataRuntime, navigation]);
+  const accountActions = useMemo(() => nativeAccountActions(client, () => report(new NativeClientError("session_expired", 401)), accountDeleted), [client, report, accountDeleted]);
   const load = useCallback(async () => {
     const [me, today] = await Promise.all([dataRuntime.account(), fullTodayBackend.current ? Promise.resolve({ activity: null }) : dataRuntime.today()]);
     return { me, today };
@@ -238,7 +242,7 @@ function NativeFoundationContent({ audioOutput, client, termsUrl = null, onLangu
   const readerRoute = nativeReaderRoute(navigation.pathname);
   const learningPage = /^\/courses(?:\/|$)/.test(navigation.pathname);
   const destinations = nativePrimaryNav(features);
-  const detail = !!readerRoute || (learningPage && navigation.pathname !== "/courses") || diagnostics || pickerPage || legal || profile || passwordPage || resetPage || confirmationPage || !!chapterId;
+  const detail = !!readerRoute || (learningPage && navigation.pathname !== "/courses") || diagnostics || pickerPage || legal || profile || passwordPage || deletionPage || resetPage || confirmationPage || !!chapterId;
   const shellAccount = user && !setup && !recoveryCodes ? user : null;
   return <AccountActionsProvider actions={accountActions}><AppShellFrame
     header={<NativeShellHeader account={shellAccount} onError={report} content={content} buildIndicator={buildIndicator} destinations={destinations} />}
@@ -270,7 +274,7 @@ function NativeFoundationContent({ audioOutput, client, termsUrl = null, onLangu
       <RecoveryCodesCard recoveryCodes={recoveryCodes} onSaved={() => setRecoveryCodes(null)} />
     </> : setup ? <>
       <h1 tabIndex={-1} className="text-2xl font-extrabold">{t(setup.step === "password" ? "profile.changePassword" : "profile.twoFactor")}</h1>
-      {setup.step === "password" ? <AccountActionsProvider actions={{ async changePassword({ newPassword }) {
+      {setup.step === "password" ? <AccountActionsProvider actions={{ async deleteAccount() { throw new AccountActionError("request_failed"); }, async changePassword({ newPassword }) {
         const id = ++sequence.current; setBusy(true); setError("");
         try { await applySignIn(await client.completeSecuritySetup({ newPassword }), () => id === sequence.current); }
         catch (error) { if (id === sequence.current) report(error); throw error; }
@@ -312,8 +316,8 @@ function NativeFoundationContent({ audioOutput, client, termsUrl = null, onLangu
       <p role="status">{t(overviewQuery.error ? "nativeFoundation.error" : "nativeFoundation.loading")}</p>
       {!!overviewQuery.error && <button type="button" className={button} onClick={() => { void overviewQuery.refetch(); }}>{t("nativeFoundation.retry")}</button>}
     </section> : <>
-      <h1 tabIndex={-1} className="text-2xl font-extrabold">{passwordPage ? t("profile.changePassword") : profile ? t("nativeFoundation.account") : (chapterId ? t("pages.lesson") : `${t("nativeFoundation.today")}, ${user.handle}`)}</h1>
-      {passwordPage ? <PasswordChangeForm forced={false} requiresSecondFactor={user.totpEnabled} onChanged={async () => {
+      <h1 tabIndex={-1} className="text-2xl font-extrabold">{passwordPage ? t("profile.changePassword") : deletionPage ? t("accountDeletion.title") : profile ? t("nativeFoundation.account") : (chapterId ? t("pages.lesson") : `${t("nativeFoundation.today")}, ${user.handle}`)}</h1>
+      {deletionPage ? <AccountDeletionForm passwordLoginEnabled={user.passwordLoginEnabled} totpEnabled={user.totpEnabled} /> : passwordPage ? <PasswordChangeForm forced={false} requiresSecondFactor={user.totpEnabled} onChanged={async () => {
         await client.logout(() => { setUser(null); dataRuntime.reset(); setRecoveryCodes(null); navigation.replace("/login"); }).catch(report);
       }} /> : profile ? <>
         {(appleLoginAvailable || user.appleLinked) && <>
@@ -324,6 +328,7 @@ function NativeFoundationContent({ audioOutput, client, termsUrl = null, onLangu
         </>}
         {user.passwordLoginEnabled && features.includes("account-password-v1") && <AppLink className={button} href="/change-password">{t("profile.changePassword")}</AppLink>}
         {!user.passwordLoginEnabled && <p>{t("nativeFoundation.alternativeRequired")}</p>}
+        {features.includes("account-deletion-v1") && <AppLink className={button} href="/account-verwijderen">{t("profile.deleteAccount")}</AppLink>}
       </> : chapterId ? <><p role="status">{t("nativeReader.legacy")}</p><AppLink className={button} href="/courses">{t("nav.learn")}</AppLink></> : <>
         {user.onboardingRequired && <p>{t("nativeFoundation.onboardingNote")}</p>}
         {(contentEnabled ? todayQuery.data?.activity : activity) ? <button className={`${primaryButton} min-h-12 whitespace-normal`} disabled={busy} onClick={() => navigation.push(`/lesson/${encodeURIComponent((contentEnabled ? todayQuery.data!.activity : activity)!.id)}`)}>{(contentEnabled ? todayQuery.data!.activity : activity)!.title} — {t("nativeFoundation.continue")}</button> : <p>{t("nativeFoundation.empty")}</p>}

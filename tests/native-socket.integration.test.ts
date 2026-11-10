@@ -73,7 +73,7 @@ for (const reason of ["logout", "refresh-replay", "account wissen", "wachtwoord"
       assert.equal((await api("refresh", { refreshToken: pair.refreshToken, actionId: randomUUID() })).response.status, 200);
       assert.equal((await api("refresh", { refreshToken: pair.refreshToken, actionId: randomUUID() })).response.status, 401);
     } else if (reason === "account wissen") {
-      const result = await fetch(`${a}/api/account`, { method: "DELETE", headers: { Origin: a, Cookie: `${SESSION_COOKIE}=${await createSessionToken(user.id)}` } });
+      const result = await fetch(`${a}/api/account`, { method: "DELETE", headers: { Origin: a, "Content-Type": "application/json", Cookie: `${SESSION_COOKIE}=${await createSessionToken(user.id)}` }, body: JSON.stringify({ password, confirm: "DELETE" }) });
       assert.equal(result.status, 200);
     } else if (reason === "wachtwoord") {
       assert.equal((await api("account/password", { currentPassword: password, newPassword: "Native-race-changed-43" }, pair.accessToken)).response.status, 200);
@@ -285,7 +285,7 @@ test("wachtwoordwijziging en accountverwijdering sluiten gebruikersrooms over Re
   const oldTicket=await mint(pair.accessToken),endedA=event(sa.socket,"disconnect",3000),endedB=event(sb.socket,"disconnect",3000);
   assert.equal((await api("account/password",{currentPassword:password,newPassword:"Native-changed-synthetic-43"},pair.accessToken)).response.status,200);await Promise.all([endedA,endedB]);assert.equal((await open(oldTicket,b)).connected,false);
   const actor=await account(),session=await issueNativeSession(actor.id,0),joined=await open(await mint(session.accessToken),b),unused=await mint(session.accessToken),ended=event(joined.socket,"disconnect",3000);
-  const deleted=await fetch(`${a}/api/account`,{method:"DELETE",headers:{Origin:a,Cookie:`${SESSION_COOKIE}=${await createSessionToken(actor.id)}`}});assert.equal(deleted.status,200);await ended;assert.equal((await open(unused,b)).connected,false);assert.equal(await prisma.nativeSession.count({where:{userId:actor.id}}),0);
+  const deleted=await fetch(`${a}/api/account`,{method:"DELETE",headers: { Origin: a, "Content-Type": "application/json", Cookie:`${SESSION_COOKIE}=${await createSessionToken(actor.id)}`}, body: JSON.stringify({ password, confirm: "DELETE" })});assert.equal(deleted.status,200);await ended;assert.equal((await open(unused,b)).connected,false);assert.equal(await prisma.nativeSession.count({where:{userId:actor.id}}),0);
 });
 
 test("echte native client reconnect met vers bewijs behoudt actor en herhaalt geen actie; logout stopt transport meteen",async()=>{
@@ -441,7 +441,7 @@ for (const reason of ["logout", "refresh-replay", "wachtwoord", "account wissen"
   } else if (reason === "wachtwoord") {
     assert.equal((await api("account/password", { currentPassword: password, newPassword: "Native-quiz-password-44" }, f.pairs[0].accessToken)).response.status, 200);
   } else if (reason === "account wissen") {
-    assert.equal((await fetch(`${a}/api/account`, { method: "DELETE", headers: { Origin: a, Cookie: `${SESSION_COOKIE}=${await createSessionToken(f.users[0].id)}` } })).status, 200);
+    assert.equal((await fetch(`${a}/api/account`, { method: "DELETE", headers: { Origin: a, "Content-Type": "application/json", Cookie: `${SESSION_COOKIE}=${await createSessionToken(f.users[0].id)}` }, body: JSON.stringify({ password, confirm: "DELETE" }) })).status, 200);
   } else assert.equal((await api("logout", { refreshToken: f.pairs[0].refreshToken, actionId: randomUUID() })).response.status, 200);
   for (const item of pending) { await redis.lpush(`${item.key}:release`, "1"); await drained(item.id, "submit_answer"); }
   assert.equal(await prisma.liveQuizAction.count({ where: { gameId: f.game.id } }), 0);

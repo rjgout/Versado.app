@@ -13,6 +13,9 @@ on:
       - 'prisma/**'
       - 'package*.json'
       - 'scripts/security/**'
+      - 'scripts/privacy/**'
+      - 'tests/personal-data-inventory*'
+      - 'docs/PERSOONSGEGEVENS-INVENTARIS.md'
       - 'tests/security*'
       - '.github/workflows/security.yml'
       - '.env.example'
@@ -42,6 +45,6 @@ jobs:
       - run: npm ci
       - run: npx prisma validate && npm run db:generate && npm run build
       - run: npm run test:security:integration
-      - run: npm run test:native && npm run test:profile && npm run test:exercise-feedback
+      - run: npm run test:native && npm run test:profile && npm run test:exercise-feedback && npm run test:privacy
       - run: npx tsc --noEmit && npm run lint
       - run: npm audit --omit=dev --audit-level=high
