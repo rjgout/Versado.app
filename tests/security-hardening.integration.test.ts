@@ -146,7 +146,7 @@ test("accountwissen verwijdert registratiepersoonsgegevens via zowel zelfbedieni
     await db.pendingRegistration.create({ data: { email: account.email, handle: account.handle, passwordHash: "", tokenHash: randomBytes(32).toString("hex"), confirmedAt: new Date(), expiresAt: new Date(Date.now() + 86400000) } });
     const response = throughAdmin
       ? await request(`/api/admin/users/${account.id}`, "DELETE", undefined, await cookie(admin.id))
-      : await request("/api/account", "DELETE", undefined, await cookie(account.id));
+      : await request("/api/account", "DELETE", { password, confirm: "DELETE" }, await cookie(account.id));
     assert.equal(response.status, 200);
     assert.equal(await db.user.count({ where: { id: account.id } }), 0);
     assert.equal(await db.pendingRegistration.count({ where: { email: account.email } }), 0);
