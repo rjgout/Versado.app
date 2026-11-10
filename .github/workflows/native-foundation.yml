@@ -151,7 +151,9 @@ jobs:
   native-foundation:
     runs-on: ubuntu-latest
     # Bestaande webbuild hergebruiken voor native én volledige audioregressies.
-    timeout-minutes: 30
+    # Run 42830588168 brak na 30m af tijdens de laatste Audio V2-stap.
+    # Alleen de totale CI-begroting; database-/transactiedeadlines blijven gelijk.
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
