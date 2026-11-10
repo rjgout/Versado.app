@@ -20,6 +20,7 @@ export const routes = [
   ['(?:GET|HEAD)', `${reader}/audio/[a-f0-9]{64}/stream`],
 ];
 export function render(base = readFileSync('deploy/nginx/nginx.conf', 'utf8')) {
+  base = base.replace('    server_tokens off;', '    server_tokens off;\n    add_header X-Robots-Tag "noindex, nofollow, noarchive" always;');
   const rules = routes.map(([method, path]) => `    "~^${method}:/api/v1/native/${path}$" 1;`).join('\n');
   const extra = `
   # Alleen op de bestaande DEVELOPMENT-proxy laden; listener uitsluitend voor de tunnel.

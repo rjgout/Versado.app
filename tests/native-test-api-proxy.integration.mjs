@@ -11,15 +11,18 @@ const root = mkdtempSync(join(tmpdir(),'versado-api-edge-'));
 let container;
 try {
   const base = readFileSync('deploy/nginx/nginx.conf','utf8');
-  assert.ok(render(base).startsWith(base.trimEnd().slice(0,-1))); // websiteconfiguratie blijft behouden.
+  assert.ok(render(base).replace('    add_header X-Robots-Tag "noindex, nofollow, noarchive" always;\n','').startsWith(base.trimEnd().slice(0,-1))); // websiteconfiguratie blijft behouden.
   const mock = `server { listen 3000; location / { default_type application/json; add_header Set-Cookie "forbidden=1"; return 200 '{"cookie":"$http_cookie","cf":"$http_cf_access_client_secret","authorization":"$http_authorization","range":"$http_range","host":"$http_host"}'; } }`;
   writeFileSync(join(root,'nginx.conf'),render(base).trimEnd().slice(0,-1)+mock+'}\n');
-  container = docker('run','-d','--rm','--add-host','jehova-app:127.0.0.1','-p','127.0.0.1::8081','-v',`${root}/nginx.conf:/etc/nginx/nginx.conf:ro`,'nginx:alpine');
+  container = docker('run','-d','--rm','--add-host','jehova-app:127.0.0.1','-p','127.0.0.1::8081','-p','127.0.0.1::80','-v',`${root}/nginx.conf:/etc/nginx/nginx.conf:ro`,'nginx:alpine');
   const port = Number(docker('port',container,'8081/tcp').split(':').at(-1));
-  const request = (path,method='GET',headers={}) => new Promise((resolve,reject) => {
-    const req=http.request({hostname:'127.0.0.1',port,path,method,headers:{Host:TEST_API_HOST,Origin:'capacitor://localhost',...headers}},res=>{let body='';res.on('data',v=>body+=v);res.on('end',()=>resolve({status:res.statusCode,headers:res.headers,body}));});req.on('error',reject);req.end();
+  const request = (path,method='GET',headers={},selectedPort=port) => new Promise((resolve,reject) => {
+    const req=http.request({hostname:'127.0.0.1',port:selectedPort,path,method,headers:{Host:TEST_API_HOST,Origin:'capacitor://localhost',...headers}},res=>{let body='';res.on('data',v=>body+=v);res.on('end',()=>resolve({status:res.statusCode,headers:res.headers,body}));});req.on('error',reject);req.end();
   });
   for(let i=0;i<50;i++){try{await request('/');break;}catch(e){if(i===49)throw e;await new Promise(r=>setTimeout(r,100));}}
+  const webPort = Number(docker('port',container,'80/tcp').split(':').at(-1));
+  const web = await request('/', 'GET', {Host:'dev.versado.app'}, webPort);
+  assert.equal(web.status,200);assert.equal(web.headers['x-robots-tag'],'noindex, nofollow, noarchive');
   let count=0;
   const check=async(path,status,method='GET',headers={})=>{const r=await request(path,method,headers);assert.equal(r.status,status,`${method} ${path}: ${r.body}`);assert.equal(r.headers['x-robots-tag'],'noindex, nofollow, noarchive');count++;return r;};
   for(const path of ['/','/adminbackend','/api/health','/__maintenance-probe','/api/auth/login','/api/v1/native/diagnostics','/api/v1/native/capabilities/extra','/api/v1/native/capabilities?token=secret','/api/v1/native/%63apabilities','/x/../api/v1/native/capabilities','/api//v1/native/capabilities','/socket.io/?EIO=4&transport=websocket&token=secret'])await check(path,404);
