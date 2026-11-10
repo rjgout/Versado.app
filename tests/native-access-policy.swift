@@ -19,10 +19,10 @@ private final class FakeAccessProtocol: URLProtocol {
 
 @main struct NativeAccessPolicyTests {
     static func require(_ value: Bool, _ label: String) { if !value { fatalError(label) } }
-    static func perform(current: @escaping () -> Bool = { true }) throws -> Result<(Int, String), NativeAccessFailure> {
+    static func perform(current: @escaping () -> Bool = { true }, direct: Bool = false) throws -> Result<(Int, String), NativeAccessFailure> {
         let pair = try NativeAccessCredentials(id: "synthetic-device.access", secret: "synthetic-secret-for-native-tests")
         let done = DispatchSemaphore(value: 0); var result: Result<(Int, String), NativeAccessFailure>?
-        let request = NativeAccessRequest(credentials: pair, isCurrent: current) { value in result = value; done.signal() }
+        let request = NativeAccessRequest(credentials: direct ? nil : pair, isCurrent: current) { value in result = value; done.signal() }
         let config = URLSessionConfiguration.ephemeral; config.protocolClasses = [FakeAccessProtocol.self]
         request.start(path: "login", method: "POST", authorization: "Bearer synthetic.native", body: "{}", configuration: config)
         require(done.wait(timeout: .now() + 5) == .success, "native request timed out")
@@ -32,6 +32,17 @@ private final class FakeAccessProtocol: URLProtocol {
         if case .failure(let error) = result { require(error.code == code, "unexpected native error code") } else { fatalError("unsafe response accepted") }
     }
     static func main() throws {
+        let directMetadata: [String: Any] = ["appId":"app.versado.app", "profile":"local-store-test", "channel":"testflight", "apiOrigin":NativeAccessPolicy.testOrigin, "distribution":true, "compileProbe":false, "releaseApproved":false]
+        require(NativeAccessPolicy.directAllowed(directMetadata), "direct TestFlight profile")
+        for (key, value) in [("apiOrigin", "https://versado.app" as Any), ("profile", "local-internal" as Any), ("channel", "play-test" as Any), ("compileProbe", true as Any), ("releaseApproved", true as Any), ("distribution", false as Any)] {
+            var invalid = directMetadata; invalid[key] = value; require(!NativeAccessPolicy.directAllowed(invalid), "invalid direct profile")
+        }
+        require(!NativeAccessPolicy.routeAllowed("realtime/session", "POST"), "internal realtime stays blocked")
+        require(NativeAccessPolicy.requestRouteAllowed("realtime/session", "POST", direct:true), "direct realtime ticket")
+        if case .success = try perform(direct:true) {} else { fatalError("direct request failed") }
+        require(FakeAccessProtocol.captured?.url?.host == "api-test.versado.app", "direct host")
+        require(FakeAccessProtocol.captured?.value(forHTTPHeaderField:"CF-Access-Client-Secret") == nil, "no CF secret")
+        require(FakeAccessProtocol.captured?.value(forHTTPHeaderField:"Cookie") == nil, "no web cookie")
         let metadata: [String: Any] = ["profile": "local-internal", "channel": "internal", "apiOrigin": NativeAccessPolicy.origin, "compileProbe": false, "releaseApproved": false]
         require(NativeAccessPolicy.profileAllowed(enabled: true, metadata: metadata), "internal profile rejected")
         require(!NativeAccessPolicy.profileAllowed(enabled: false, metadata: metadata), "implicit access enabled")

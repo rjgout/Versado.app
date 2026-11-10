@@ -48,6 +48,19 @@ public class VersadoNativePlugin: CAPPlugin, CAPBridgedPlugin, ASAuthorizationCo
               (try? String(contentsOf: flagURL, encoding: .utf8)) == "{\"enabled\":true}\n" else { return false }
         return NativeAccessPolicy.profileAllowed(enabled: true, metadata: metadata)
     }
+    private func directEnabled() -> Bool {
+        guard !getConfig().getBoolean("internalAccessEnabled", false),
+              Bundle.main.url(forResource: "internal-access", withExtension: "json", subdirectory: "public") == nil,
+              let url = Bundle.main.url(forResource: "build", withExtension: "json", subdirectory: "public"),
+              let data = try? Data(contentsOf: url), let metadata = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] else { return false }
+        return NativeAccessPolicy.directAllowed(metadata)
+    }
+    private func networkEnabled() -> Bool { accessEnabled() || directEnabled() }
+    private func networkOnly(_ call: CAPPluginCall) -> Bool {
+        guard localOnly(call) else { return false }
+        guard networkEnabled() else { call.reject("access_disabled"); return false }
+        return true
+    }
     public override func load() {
         // Een andere build mag eerder opgeslagen interne credentials niet gebruiken.
         if !accessEnabled() { SecItemDelete(accessQuery as CFDictionary) }
@@ -68,7 +81,7 @@ public class VersadoNativePlugin: CAPPlugin, CAPBridgedPlugin, ASAuthorizationCo
         DispatchQueue.main.async { self.audio.reset(stamp); call.resolve() }
     }
     @objc func audioContext(_ call: CAPPluginCall) {
-        guard accessOnly(call) else { return }
+        guard networkOnly(call) else { return }
         DispatchQueue.main.async {
             guard call.getString("sessionStamp") == self.audio.stamp, let owner = call.getString("ownerId"), UUID(uuidString: owner) != nil else { call.reject("audio_changed"); return }
             if call.getBool("forget") == true { self.audio.forget(owner); call.resolve(); return }
@@ -85,16 +98,16 @@ public class VersadoNativePlugin: CAPPlugin, CAPBridgedPlugin, ASAuthorizationCo
     @objc func audioStatus(_ call: CAPPluginCall) {
         guard localOnly(call) else { return }
         DispatchQueue.main.async {
-            guard self.accessEnabled() else { call.resolve(["enabled":false,"anchored":false,"foreground":false,"contextEpoch":0,"validForMs":0]); return }
+            guard self.networkEnabled() else { call.resolve(["enabled":false,"anchored":false,"foreground":false,"contextEpoch":0,"validForMs":0]); return }
             var state = self.player().status(); state["enabled"] = true; call.resolve(state)
         }
     }
     @objc func audioVoices(_ call: CAPPluginCall) {
-        guard accessOnly(call) else { return }
+        guard networkOnly(call) else { return }
         DispatchQueue.main.async { guard self.audio.foreground else { call.reject("audio_unavailable"); return }; call.resolve(["voices":NativeAudioPlayer.voices()]) }
     }
     @objc func audioCommand(_ call: CAPPluginCall) {
-        guard accessOnly(call) else { return }
+        guard networkOnly(call) else { return }
         DispatchQueue.main.async {
             do { try self.player().control(call.options as? [String:Any] ?? [:]); call.resolve() }
             catch { call.reject((error as? NativeAudioFailure)?.code ?? "audio_unavailable") }
@@ -185,17 +198,17 @@ public class VersadoNativePlugin: CAPPlugin, CAPBridgedPlugin, ASAuthorizationCo
         }
     }
     @objc func accessRequest(_ call: CAPPluginCall) {
-        guard accessOnly(call) else { return }
+        guard networkOnly(call) else { return }
         DispatchQueue.main.async { self.performAccessRequest(call) }
     }
     private func performAccessRequest(_ call: CAPPluginCall) {
-        guard accessOnly(call) else { return }
-        guard let path = call.getString("path"), let method = call.getString("method"), NativeAccessPolicy.routeAllowed(path, method) else { call.reject("access_request_invalid"); return }
+        guard networkOnly(call) else { return }
+        guard let path = call.getString("path"), let method = call.getString("method"), NativeAccessPolicy.requestRouteAllowed(path, method, direct: directEnabled()) else { call.reject("access_request_invalid"); return }
         let tag = audio.tag(call.getString("sessionStamp")), started = NativeAudioLifetime.continuousTime()
         accessLock.lock()
         guard accessRequests.count < 4 else { accessLock.unlock(); call.reject("access_busy"); return }
-        let credentials: NativeAccessCredentials
-        do { credentials = try readAccess() } catch { accessLock.unlock(); audio.accessFailed(tag); call.reject((error as? NativeAccessFailure)?.code ?? "access_storage_unavailable"); return }
+        let credentials: NativeAccessCredentials?
+        do { if accessEnabled() { credentials = try readAccess() } else { credentials = nil } } catch { accessLock.unlock(); audio.accessFailed(tag); call.reject((error as? NativeAccessFailure)?.code ?? "access_storage_unavailable"); return }
         let epoch = accessEpoch, id = UUID()
         let request = NativeAccessRequest(credentials: credentials, isCurrent: { [weak self] in
             guard let self = self else { return false }; self.accessLock.lock(); defer { self.accessLock.unlock() }; return epoch == self.accessEpoch
@@ -204,7 +217,7 @@ public class VersadoNativePlugin: CAPPlugin, CAPBridgedPlugin, ASAuthorizationCo
                 guard let self = self else { call.reject("access_changed"); return }
                 self.accessLock.lock(); self.accessRequests.removeValue(forKey: id); let current = epoch == self.accessEpoch; self.accessLock.unlock()
                 guard current else { call.reject("access_changed"); return }
-                guard self.accessOnly(call) else { return }
+                guard self.networkOnly(call) else { return }
                 switch result {
                 case .success(let value):
                     self.audio.stage(path:path,status:value.0,body:value.1,tag:tag)

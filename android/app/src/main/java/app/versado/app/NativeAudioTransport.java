@@ -54,7 +54,7 @@ final class NativeAudioTransport implements AutoCloseable {
     }
     NativeAudioTransport(String path, long total, String authorization, NativeAccessTransport.Credentials credentials, String origin, Lifetime lifetime, NativeAccessTransport.Calls calls) throws IOException {
         if (path == null || !path.matches("courses/[A-Za-z0-9_-]{1,128}/read/(?:steps|chapters)/[A-Za-z0-9_-]{1,128}/audio/[a-f0-9]{64}/stream") ||
-            total <= 0 || total > MAX_FILE || authorization == null || !authorization.matches("Bearer [A-Za-z0-9._~-]{1,2040}") || credentials == null || lifetime == null ||
+            total <= 0 || total > MAX_FILE || authorization == null || !authorization.matches("Bearer [A-Za-z0-9._~-]{1,2040}") || lifetime == null ||
             !("https://localhost".equals(origin) || "capacitor://localhost".equals(origin))) throw unavailable();
         this.path = path; this.total = total; this.authorization = authorization; this.credentials = credentials; this.origin = origin; this.lifetime = lifetime; this.calls = calls;
         observer = lifetime.observe(this::close);
@@ -77,12 +77,14 @@ final class NativeAudioTransport implements AutoCloseable {
         Call call = null;
         byte[] chunk = new byte[length];
         try {
-            Request request = new Request.Builder().url(NativeAccessTransport.ORIGIN + "/api/v1/native/" + path)
+            Request.Builder builder = new Request.Builder().url((credentials == null ? NativeAccessTransport.TEST_ORIGIN : NativeAccessTransport.ORIGIN) + "/api/v1/native/" + path)
                 .tag(AtomicBoolean.class, new AtomicBoolean())
                 .header("Origin", origin).header("X-Versado-Client", "native-v1")
                 .header("Accept", "audio/mpeg").header("Accept-Encoding", "identity")
-                .header("Authorization", authorization).header("CF-Access-Client-Id", credentials.id).header("CF-Access-Client-Secret", credentials.secret)
-                .header("Range", "bytes=" + position + "-" + (position + length - 1)).get().build();
+                .header("Authorization", authorization)
+                .header("Range", "bytes=" + position + "-" + (position + length - 1)).get();
+            if (credentials != null) builder.header("CF-Access-Client-Id", credentials.id).header("CF-Access-Client-Secret", credentials.secret);
+            Request request = builder.build();
             call = calls.create(request); inflight.put(call, true); current();
             try (Response response = call.execute()) {
                 current();

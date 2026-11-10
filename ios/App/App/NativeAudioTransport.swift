@@ -35,9 +35,9 @@ final class NativeAudioLifetime {
     func invalidate() { lock.lock(); stopped = true; let pending = Array(callbacks.values); callbacks.removeAll(); lock.unlock(); pending.forEach { $0() } }
 }
 struct NativeAudioSourceRequest {
-    let path: String, authorization: String, credentials: NativeAccessCredentials
+    let path: String, authorization: String, credentials: NativeAccessCredentials?
     let byteSize: Int64
-    init(path: String, authorization: String, credentials: NativeAccessCredentials, byteSize: Int64) throws {
+    init(path: String, authorization: String, credentials: NativeAccessCredentials?, byteSize: Int64) throws {
         guard path.range(of: "\\Acourses/[A-Za-z0-9_-]{1,128}/read/(?:steps|chapters)/[A-Za-z0-9_-]{1,128}/audio/[a-f0-9]{64}/stream\\z", options: .regularExpression) != nil,
               authorization.range(of: "\\ABearer [A-Za-z0-9._~-]{1,2040}\\z", options: .regularExpression) != nil,
               byteSize > 0, byteSize <= 256 * 1024 * 1024 else { throw NativeAudioFailure() }
@@ -64,9 +64,10 @@ final class NativeAudioRangeRequest: NSObject, URLSessionDataDelegate, URLSessio
             configuration.requestCachePolicy = .reloadIgnoringLocalCacheData; configuration.timeoutIntervalForRequest = 15; configuration.timeoutIntervalForResource = 20
             let delegateQueue = OperationQueue(); delegateQueue.maxConcurrentOperationCount = 1; delegateQueue.underlyingQueue = self.queue
             let session = URLSession(configuration: configuration, delegate: self, delegateQueue: delegateQueue); self.session = session
-            var request = URLRequest(url: URL(string: NativeAccessPolicy.origin + "/api/v1/native/" + self.source.path)!)
+            var request = URLRequest(url: URL(string: (self.source.credentials == nil ? NativeAccessPolicy.testOrigin : NativeAccessPolicy.origin) + "/api/v1/native/" + self.source.path)!)
             request.httpShouldHandleCookies = false
-            for (key, value) in ["Origin": "capacitor://localhost", "X-Versado-Client": "native-v1", "Accept": "audio/mpeg", "Accept-Encoding": "identity", "Authorization": self.source.authorization, "CF-Access-Client-Id": self.source.credentials.id, "CF-Access-Client-Secret": self.source.credentials.secret, "Range": "bytes=\(self.offset)-\(self.offset + Int64(self.length) - 1)"] { request.setValue(value, forHTTPHeaderField: key) }
+            for (key, value) in ["Origin": "capacitor://localhost", "X-Versado-Client": "native-v1", "Accept": "audio/mpeg", "Accept-Encoding": "identity", "Authorization": self.source.authorization, "Range": "bytes=\(self.offset)-\(self.offset + Int64(self.length) - 1)"] { request.setValue(value, forHTTPHeaderField: key) }
+            if let credentials = self.source.credentials { request.setValue(credentials.id, forHTTPHeaderField: "CF-Access-Client-Id"); request.setValue(credentials.secret, forHTTPHeaderField: "CF-Access-Client-Secret") }
             session.dataTask(with: request).resume()
         }
     }

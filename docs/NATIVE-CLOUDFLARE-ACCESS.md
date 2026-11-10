@@ -166,3 +166,14 @@ gebruiken om een releasecheck groen te maken; `store-test` blijft ongewijzigd.
 Bronnen: [Service Auth](https://developers.cloudflare.com/cloudflare-one/access-controls/service-credentials/service-tokens/),
 [Access en CORS](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/authorization-cookie/cors/),
 [M0](MOBILE-1-0-INTEGRATIE.md), [Development-pipeline](DEVELOPMENT-PIPELINE.md).
+
+## Gescheiden directe store-test-route
+
+De voorgestelde API-host `api-test.versado.app` krijgt een afzonderlijke, beperkte
+proxylistener op de bestaande dev-stack; zie [draft #267](https://github.com/rjgout/Versado.app/pull/267).
+Alleen een echte `local-store-test`-bundel voor die exacte origin mag de bestaande
+native JSON-/audiolaag zonder Service Auth gebruiken. Dit opent de interne
+`accessEnabled`-/enrollmentpoort niet. De bestaande dev-website, interne bridge,
+OS-opslag en fail-closed realtimeblokkade van interne Access blijven behouden.
+Geen DNS-, Cloudflare-, NAS- of Portainerwijziging is uitgevoerd; de allowlist
+blijft gesloten tot afzonderlijk uitrolbesluit en acceptatiebewijs.

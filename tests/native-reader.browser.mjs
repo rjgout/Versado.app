@@ -5,6 +5,7 @@ import { readFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { build } from "esbuild";
 import { seedNativeCourses } from "./fixtures/native-courses.ts";
 import { prisma } from "../src/lib/db.ts";
+import { legacyVerseAnnotation } from "../src/lib/annotations/service.ts";
 import { issueNativeSession } from "../src/lib/native/sessions.ts";
 import { createSessionToken, SESSION_COOKIE } from "../src/lib/auth.ts";
 import { getT } from "../src/lib/i18n/index.ts";
@@ -496,6 +497,12 @@ try {
       const posts=()=>calls.filter(c=>c.method==="POST"&&c.path.endsWith("/position")).length;
       await go(longRoute);await waitReader();await showVerse(5);await wheelAndWait(1,10000);
       await page.getByText(t("nativeReader.saved"),{exact:true}).waitFor();
+      // Deze herstelproef bewaakt de werkelijk bevestigde serverstaat. De
+      // compositor kan bij de voorafgaande korte wielbeweging een ander vers
+      // kiezen; scrollobservatie zelf wordt hierboven afzonderlijk getest.
+      const confirmedPositions=(await prisma.contentProgress.findUniqueOrThrow({where:{userId_contentKey:{userId:user.id,contentKey:"bofm/alma#71"}}})).readerPositions;
+      assert.equal(Object.keys(confirmedPositions).length,1);
+      assert.notEqual(Object.values(confirmedPositions)[0].verse,20,"serverbaseline verschilt aantoonbaar van de latere offline leespositie");
       // Koude reader mag al leesbaar zijn terwijl het aparte leerpad nog laadt.
       holdLearning=true;await page.reload();await waitReader();await page.waitForTimeout(100);
       assert.ok(heldLearning.length>0,"leerpad/catalogus is aantoonbaar vertraagd");
@@ -526,14 +533,14 @@ try {
       holdLearning=false;for(const finish of heldLearning.splice(0))finish();
       await page.waitForLoadState("networkidle");await assertStable("leerpad wordt alsnog geladen");
       // Een volgende, succesvolle maar vertraagde GET mag de onbewaarde lokale
-      // vers20 niet terugzetten naar de laatst bevestigde serverpositie vers5.
+      // vers20 niet terugzetten naar de laatst bevestigde serverpositie.
       readFailure=0;proxyFailure=false;holdReader=true;
       await page.evaluate(()=>window.dispatchEvent(new Event("reader:test-resume")));
       for(let i=0;i<100&&!held.length;i++)await new Promise(r=>setTimeout(r,20));
       assert.equal(held.length,1);await assertStable("GET is nog onderweg");
       for(const finish of held.splice(0))finish();await page.waitForLoadState("networkidle");await assertStable("GET met oudere serverpositie is voltooid");
       const before=await prisma.contentProgress.findUniqueOrThrow({where:{userId_contentKey:{userId:user.id,contentKey:"bofm/alma#71"}}});
-      assert.equal(Object.values(before.readerPositions)[0].verse,5,"fout en herstel wijzigen de serverpositie niet");
+      assert.deepEqual(before.readerPositions,confirmedPositions,"fout en herstel wijzigen geen enkel onderdeel van de bevestigde serverpositie");
       // Alleen de bestaande retryhandler uitvoeren; Playwright mag niet eerst
       // zelf naar de knop onderaan het lange hoofdstuk scrollen.
       await page.locator("[data-reader-save-status] button").evaluate(button=>button.click());
@@ -741,6 +748,7 @@ try {
       // Een daadwerkelijk ontvangen A-antwoord blijft achter de netwerkgrens tot B is ingelogd.
       await page.reload();
       await waitReader();
+      await page.waitForLoadState("networkidle");
       const b = await seedNativeCourses("nl"),
         other = await b.account("nl");
       fixtures.push(b);
@@ -749,7 +757,9 @@ try {
         data: { text: "Uitsluitend account B: synthetische passage." },
       });
       const oldVerse=await prisma.verse.findFirstOrThrow({where:{chapterId:extraChapter.id,number:1}});
-      await prisma.note.create({data:{userId:user.id,verseId:oldVerse.id,text:"PRIVE ACCOUNT A ANNOTATIE"}});
+      // Gebruik hetzelfde annotatiecontract als de webroute, inclusief targetKey,
+      // versie en tombstonebehandeling; een kale legacy-rij is geen readerannotatie.
+      await legacyVerseAnnotation(user,"note",oldVerse.id,"PRIVE ACCOUNT A ANNOTATIE");
       holdReader = true;holdAnnotations=true;
       await page.evaluate(() =>
         window.dispatchEvent(new Event("reader:test-resume")),

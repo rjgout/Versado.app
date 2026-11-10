@@ -14,6 +14,13 @@ import org.json.JSONObject;
 
 /** Native-only transport; geen globale CookieHandler, redirects, cache of automatische actie-replays. */
 final class NativeAccessTransport {
+    static final String TEST_ORIGIN = "https://api-test.versado.app";
+    static boolean directAllowed(String appId, String profile, String channel, String origin, boolean distribution, boolean probe, boolean approved) {
+        return "app.versado.app".equals(appId) && "local-store-test".equals(profile) && "play-test".equals(channel) && TEST_ORIGIN.equals(origin) && distribution && !probe && !approved;
+    }
+    static boolean requestRouteAllowed(String path, String method, boolean direct) {
+        return routeAllowed(path, method) || direct && "POST".equals(method) && "realtime/session".equals(path);
+    }
     static final String ORIGIN = "https://dev.versado.app";
     static final int MAX_BODY = 16384, MAX_RESPONSE = 1048576;
     private static final OkHttpClient CLIENT = new OkHttpClient.Builder()
@@ -55,6 +62,7 @@ final class NativeAccessTransport {
         return "DELETE".equals(method) && path.matches("apple|account");
     }
     static boolean containsCredential(Object object, Credentials credentials) throws Exception {
+        if (credentials == null) return false;
         if (object instanceof String) return ((String) object).contains(credentials.secret) || ((String) object).contains(credentials.id);
         if (object instanceof JSONObject) {
             JSONObject value = (JSONObject) object; Iterator<String> keys = value.keys();
@@ -77,15 +85,15 @@ final class NativeAccessTransport {
         return true;
     }
     static Reply request(String path, String method, String authorization, String body, Credentials credentials, String nativeOrigin, Calls calls, Current current) throws Failure {
-        if (!routeAllowed(path, method) || credentials == null || !("capacitor://localhost".equals(nativeOrigin) || "https://localhost".equals(nativeOrigin)) ||
+        if (!requestRouteAllowed(path, method, credentials == null) || !("capacitor://localhost".equals(nativeOrigin) || "https://localhost".equals(nativeOrigin)) ||
             (authorization != null && !authorization.matches("Bearer [A-Za-z0-9._~-]{1,2040}")) ||
             (body != null && ("GET".equals(method) || body.getBytes(StandardCharsets.UTF_8).length > MAX_BODY))) throw new Failure("access_request_invalid");
         try {
             if (!current.valid()) throw new Failure("access_changed");
-            Request.Builder builder = new Request.Builder().url(ORIGIN + "/api/v1/native/" + path)
+            Request.Builder builder = new Request.Builder().url((credentials == null ? TEST_ORIGIN : ORIGIN) + "/api/v1/native/" + path)
                 .tag(AtomicBoolean.class, new AtomicBoolean())
-                .header("Origin", nativeOrigin).header("X-Versado-Client", "native-v1").header("Accept", "application/json")
-                .header("CF-Access-Client-Id", credentials.id).header("CF-Access-Client-Secret", credentials.secret);
+                .header("Origin", nativeOrigin).header("X-Versado-Client", "native-v1").header("Accept", "application/json");
+            if (credentials != null) builder.header("CF-Access-Client-Id", credentials.id).header("CF-Access-Client-Secret", credentials.secret);
             if (authorization != null) builder.header("Authorization", authorization);
             RequestBody payload = null;
             if (!"GET".equals(method)) {
