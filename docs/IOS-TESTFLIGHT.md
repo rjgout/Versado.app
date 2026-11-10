@@ -97,11 +97,23 @@ als dubbel worden afgekeurd. Verlaag nooit het nummer en migreer bij uitputting
 via een afzonderlijke wijziging. Controleer voor de eerste upload dat bestaande
 Apple-builds voor deze appversie geen hoger nummer gebruiken.
 
-Als GitHub de Run workflow-knop niet toont: `workflow_dispatch` moet volgens
-GitHub ook op de default branch bekend zijn. Wijzig of merge `main` hiervoor
-niet stilzwijgend. De eigenaar moet dat repositorybeleid afzonderlijk oplossen;
-ook een CLI-dispatch omzeilt die GitHub-voorwaarde niet. Dit is niet in een echte
-dispatch getest.
+De default branch is `main`; de bestaande workflow is daar al actief met
+`workflow_dispatch` geregistreerd. De GitHub-voorwaarde voor workflowregistratie
+is dus aanwezig. De startknop kan tot een bewuste latere synchronisatie nog de
+oude workflownaam tonen. Selecteer na merge van deze PR expliciet **develop**:
+GitHub gebruikt dan de workflowinhoud van die branch, met het nieuwe uploadveld.
+Een echte dispatch is niet uitgevoerd.
+
+**Legacy op main:** de ongewijzigde kopie bevat nog de oude main/ios-testflight-
+archiefroute. Deze PR kan die kopie niet verwijderen zonder de expliciet verboden
+wijziging aan main. Configureer daarvoor geen oude secrets of legacy environment;
+gebruik uitsluitend de op develop beperkte `testflight`-environment. De eigenaar
+moet een afzonderlijk besluit nemen over het uitschakelen/opruimen van de oude
+route voordat repositorybreed kan worden geclaimd dat geen main-archiefroute meer
+bestaat. Geen main-run starten. Er is nu alleen environment `testflight` gezien,
+met branchbeleid `develop`; vereiste reviewers zijn niet aangetroffen. Het
+controleren van secret-/variabelemetadata werd door GitHub geweigerd (HTTP 403).
+Er zijn geen instellingen gewijzigd.
 
 ## Wat wordt gecontroleerd?
 
