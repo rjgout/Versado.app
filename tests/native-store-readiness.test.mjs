@@ -27,7 +27,7 @@ const completeFiles = () => ({
   "ios/App/App/Info.plist": "<key>UISupportedInterfaceOrientations</key>\n<array><string>UIInterfaceOrientationPortrait</string></array>\n<key>ITSAppUsesNonExemptEncryption</key><false/>",
   "ios/App/App/PrivacyInfo.xcprivacy": "<plist/>",
   ".github/workflows/native.yml": "xcodebuild -scheme App archive\n./gradlew :app:bundleRelease",
-  ".github/workflows/native-ios-release.yml": "on:\n  workflow_dispatch:\njobs:\n  x:\n    if: github.ref == 'refs/heads/main'\n    environment: ios-testflight\n    steps: xcodebuild -exportArchive <key>destination</key><string>export</string>",
+  ".github/workflows/native-ios-release.yml": "on:\n  workflow_dispatch:\njobs:\n  x:\n    if: github.ref == 'refs/heads/develop'\n    environment: testflight\n    default: false\n    run: if [ \"$UPLOAD\" = true ]; then\n    steps: node scripts/native/ios-release-guard.mjs ipa; xcodebuild -exportArchive <key>destination</key><string>export</string>",
   "scripts/native/ios-release-guard.mjs": "metadata.compileProbe !== false local-store-test testflight",
   "public/.well-known/apple-app-site-association": "{}",
   "public/.well-known/assetlinks.json": "[]",
@@ -112,12 +112,12 @@ test("de signingpoort-guard faalt zodra Gradle compileproeven doorlaat of de wor
   assert.equal(guard({ ".github/workflows/native-android-release.yml": files[".github/workflows/native-android-release.yml"].replace("on:\n", "on:\n  pull_request:\n") }), false);
 });
 
-test("de iOS-poort-guard faalt zodra de poort compileproeven doorlaat of de workflow uploadt of op een PR draait", () => {
+test("de iOS-poort-guard faalt zodra de poort compileproeven doorlaat of de workflow ongecontroleerd uploadt of op een PR draait", () => {
   const files = completeFiles();
   const guard = (patch) => evaluate(memoryFs({ ...files, ...patch })).guards.find((item) => item.id === "ios-signing-refuses-probe").ok;
   assert.equal(guard({}), true);
   assert.equal(guard({ "scripts/native/ios-release-guard.mjs": "" }), false);
-  assert.equal(guard({ ".github/workflows/native-ios-release.yml": files[".github/workflows/native-ios-release.yml"] + "\n xcrun altool --upload-app" }), false);
+  assert.equal(guard({ ".github/workflows/native-ios-release.yml": files[".github/workflows/native-ios-release.yml"].replace("default: false", "default: true") }), false);
   assert.equal(guard({ ".github/workflows/native-ios-release.yml": files[".github/workflows/native-ios-release.yml"].replace("on:\n", "on:\n  pull_request:\n") }), false);
 });
 
