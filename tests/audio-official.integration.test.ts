@@ -223,6 +223,30 @@ test("volledige Duitse selectie blijft duurzaam bij meer dan 30 seconden voorber
  }
 });
 
+test("teruggedraaide policylock wordt eenmaal herhaald met volledige herauthenticatie",async()=>{
+ for(const revoke of [false,true]) {
+  const source=config.sources[0];let release!:()=>void,acquired!:()=>void,attempts=0;
+  const gate=new Promise<void>(r=>{release=r;}),ready=new Promise<void>(r=>{acquired=r;});
+  const holder=prisma.$transaction(async tx=>{await tx.$queryRaw`SELECT pg_advisory_xact_lock(726540108)::text`;acquired();await gate;},{timeout:15000});
+  await ready;
+  const db=new Proxy(prisma,{get(target,key){
+   if(key==="$transaction")return async(...args:Parameters<typeof prisma.$transaction>)=>{
+    attempts++;
+    try{return await Reflect.apply(target.$transaction,target,args);}
+    catch(error){if(attempts===1){release();await holder;if(revoke)await prisma.user.update({where:{id:actor.id},data:{isAdmin:false}});}throw error;}
+   };
+   const value=Reflect.get(target,key);return typeof value==="function"?value.bind(target):value;
+  }});
+  try {
+   const run=()=>requestProduction(actor,"download",[source.id],db,config.sources);
+   if(revoke)await assert.rejects(run(),/FORBIDDEN/);
+   else assert.equal((await run()).accepted,1);
+   assert.equal(attempts,2,"één rollback en precies één nieuwe transactie");
+   assert.deepEqual(await snapshot(),baseline); // Geen publicatie of voortgangswijziging.
+  }finally{release();await holder;await prisma.user.update({where:{id:actor.id},data:{isAdmin:true}});}
+ }
+});
+
 test("volledige vijf taalcollecties: begrensde aanvragen, gelijktijdige voorbereiding, geen dubbele taken of publicaties",async()=>{
  const {BOOK_KEYS_BY_SLUG}=await import("../prisma/bookKeys");
  const {officialBatches}=await import("../src/lib/audio/officialControls");
