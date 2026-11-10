@@ -125,3 +125,16 @@ Een lokale nginxproef met synthetische upstream bewijst alleen de proxygrens,
 methoden en headerdoorvoer, niet de echte Cloudflare/NAS-keten, TLS, iPhone-codec,
 backendautorisatie of WebSocket-upgrade. **Nog NO-GO voor echte TestFlight-signing
 of upload** totdat bovenstaande afhankelijkheden/bewijzen zijn beoordeeld.
+
+
+## Uitgevoerd proxybewijs
+
+De lokale nginx-proef controleert negatieve routes, raw URI/encoding, host/methode,
+CORS-origin en het verwijderen van webcookies en CF-serviceheaders. Daarnaast
+is een **echte Socket.IO-client via nginx naar een synthetische Socket.IO-server**
+getest: echte WebSocket-upgrade, het auth-pakket buiten de querystring,
+replayweigering, een vers bewijs, headerverwijdering en verkeerde origin.
+Deze twee proeven draaien ook in de bestaande Linux Development-controles;
+er is geen extra CI-matrix of distributieworkflow toegevoegd. Dit bewijst de
+proxydoorvoer, niet de echte Cloudflare/TLS/NAS-keten of backend-sessieautoriteit.
+De bestaande backend-socketintegraties blijven daarvoor afzonderlijk vereist.
