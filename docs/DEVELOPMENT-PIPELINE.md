@@ -42,7 +42,22 @@ De workflow is `.github/workflows/development.yml`:
 
 Images: `ghcr.io/rjgout/jehova-app` en `ghcr.io/rjgout/jehova-proxy`.
 Nooit `latest`, generieke `sha-*` of een development-deploy-agent. De bestaande
-productie-workflow, Dockerfiles, opslag- en migratiearchitectuur zijn ongewijzigd.
+productie-workflow, productieconfiguratie, opslag- en migratiearchitectuur zijn ongewijzigd.
+
+De DEV-proxy wordt in zowel de PR-build als de develop-publicatie expliciet met
+`target: development` gebouwd. Dat target voert de bestaande
+`scripts/native/render-test-api-proxy.mjs` uit in een Node-buildstage en neemt
+alleen de gegenereerde nginxconfiguratie mee: website op 80, native test-API op
+8081. Node komt niet in de runtime-image. Het laatste/standaardtarget is
+`production`: main blijft zonder target de oorspronkelijke nginxconfiguratie
+gebruiken, uitsluitend op 80. Branding en onderhoudsassets zijn gedeeld.
+
+De eigenaar hoeft na goedgekeurde merge en groene develop-publicatie alleen het
+bijbehorende DEV-imagepaar in Portainer te verversen en de API-poort veilig te
+koppelen; geen nginx-bindmount. Voor de host-network Tunnel op dezelfde NAS:
+`127.0.0.1:18082:8081` en Tunnel-service `http://127.0.0.1:18082`.
+`18082:8081` zonder bindadres kan Cloudflare omzeilen en is zonder bewezen
+netwerkisolatie geen uitrol-GO. Zie [API-inrichting](NATIVE-TEST-API.md).
 
 PR-jobs hebben geen package-write-rechten. Alleen de afgeschermde develop-pushjob
 heeft `packages: write`, met de eigen tijdelijke `GITHUB_TOKEN`; geen NAS-,
@@ -78,14 +93,12 @@ request-origins `capacitor://localhost` en `https://localhost`, CORS-headers,
 releaseprofiel en signingguards veranderen niet. Deze backend-allowlist is geen
 CORS-uitzondering en bewijst geen bereikbaarheid achter Access.
 
-De eigenaar rapporteerde HTTP 200, API-versie 1 en native CORS vóór de nog te
-beoordelen Access-inrichting. **`account-deletion-v1` ontbreekt op deze basis**.
-WP4 staat in #202 en #205; deze PR dupliceert of merge't die implementaties niet.
-De volgende alleen-lezen controle moet daarom terecht afkeuren totdat de vereiste
-WP4-functionaliteit bewust in de dev-versie is geïntegreerd:
+WP4-accountverwijdering is via #269 in develop opgenomen, samen met #267,
+#268 en #266 (basis `749649b4`). Dit bewijst nog geen live API-acceptatie.
+De eigenaar controleert na zijn DEV-uitrol de volledige nieuwe API-origin:
 
 ```bash
-npm run native:check-test-backend -- https://dev.versado.app --profile internal
+npm run native:check-test-backend -- https://api-test.versado.app --profile store-test
 ```
 
 Niet omzeilen met een beperkte `--expect-capability`-lijst. Een geslaagde
