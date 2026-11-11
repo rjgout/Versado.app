@@ -176,14 +176,22 @@ test("achterhaalde run mag dev niet terugzetten; losse aliasfout blijft een echt
   assert.throws(() => execute(registry({ existing: true, aliasFailure: true })), /gestopt/);
 });
 
-test("echte internal-allowlist staat alleen exacte dev-HTTPS toe; store-test/release blijven dicht", () => {
+test("echte allowlists staan uitsluitend DEV-internal en gecontroleerde test-API toe; release blijft dicht", () => {
   const allowlist = loadAllowedOrigins();
-  assert.deepEqual(allowlist, { internal: ["https://dev.versado.app"], "store-test": [] });
+  assert.deepEqual(allowlist, { internal: ["https://dev.versado.app"], "store-test": ["https://api-test.versado.app"] });
   const base = { CAPACITOR_BUILD_PROFILE: "local-internal", GITHUB_SHA: env.GITHUB_SHA, NATIVE_API_BASE_URL: "https://dev.versado.app" };
   assert.equal(resolveBuildProfile(base).compileProbe, false);
   for (const origin of ["https://versado.app", "http://dev.versado.app", "https://dev.versado.app/", "https://DEV.versado.app", "https://dev.versado.app.evil.com", "https://dev.versado.app:8443", "https://dev.versado.app/api", "https://user@dev.versado.app", "https://*.versado.app"]) {
     assert.throws(() => resolveBuildProfile({ ...base, NATIVE_API_BASE_URL: origin }), undefined, origin);
   }
-  assert.throws(() => resolveBuildProfile({ ...base, CAPACITOR_BUILD_PROFILE: "local-store-test", NATIVE_DISTRIBUTION_CHANNEL: "testflight" }), /leeg/);
+  const store = { ...base, CAPACITOR_BUILD_PROFILE: "local-store-test", NATIVE_DISTRIBUTION_CHANNEL: "testflight", NATIVE_API_BASE_URL: "https://api-test.versado.app", NATIVE_APP_VERSION: "0.1.0", NATIVE_BUILD_NUMBER: "1" };
+  const resolved = resolveBuildProfile(store);
+  assert.equal(resolved.apiOrigin, "https://api-test.versado.app");
+  assert.equal(resolved.channel, "testflight");assert.equal(resolved.compileProbe, false);
+  assert.equal(resolved.cleartext, false);assert.equal(resolved.serverUrl, null);
+  for (const origin of ["https://versado.app", "https://dev.versado.app", "https://api-test.versado.app.evil.com", "https://api-test.versado.app/", "http://api-test.versado.app"]) {
+    assert.throws(() => resolveBuildProfile({ ...store, NATIVE_API_BASE_URL: origin }), undefined, origin);
+  }
+  assert.throws(() => resolveBuildProfile({ ...base, NATIVE_API_BASE_URL: store.NATIVE_API_BASE_URL }), /allowlist/); // Geen verruiming van internal.
   assert.throws(() => resolveBuildProfile({ ...base, CAPACITOR_BUILD_PROFILE: "release" }), /geblokkeerd/);
 });
