@@ -7,12 +7,11 @@ import { tmpdir } from 'node:os';
 import { resolve, join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { io } from 'socket.io-client';
-import { render } from '../scripts/native/render-test-api-proxy.mjs';
 const docker=(...args)=>execFileSync('docker',['--host=unix:///var/run/docker.sock',...args],{encoding:'utf8',env:{...process.env,DOCKER_CONTEXT:'',DOCKER_HOST:'unix:///var/run/docker.sock'},stdio:['ignore','pipe','pipe']}).trim();
 const root=mkdtempSync(join(tmpdir(),'versado-edge-ws-')),network=`versado-edge-${randomUUID()}`;
-const containers=[],sockets=[];
+const containers=[],sockets=[],image=`versado-ws-test:${randomUUID()}`;
 try {
-  writeFileSync(join(root,'nginx.conf'),render());
+  docker('build','-f','deploy/nginx/Dockerfile','--target','development','-t',image,'.');
   writeFileSync(join(root,'upstream.cjs'),`
     const {Server}=require('/deps/node_modules/socket.io');
     const http=require('node:http');
@@ -29,7 +28,7 @@ try {
   `);
   docker('network','create',network);
   containers.push(docker('run','-d','--rm','--network',network,'--network-alias','jehova-app','-v',`${resolve('node_modules')}:/deps/node_modules:ro`,'-v',`${root}/upstream.cjs:/test/upstream.cjs:ro`,'node:24-alpine','node','/test/upstream.cjs'));
-  containers.push(docker('run','-d','--rm','--network',network,'-p','127.0.0.1::8081','-v',`${root}/nginx.conf:/etc/nginx/nginx.conf:ro`,'nginx:alpine'));
+  containers.push(docker('run','-d','--rm','--network',network,'-p','127.0.0.1::8081',image));
   const port=Number(docker('port',containers[1],'8081/tcp').split(':').at(-1));
   const connect=(ticket,origin='capacitor://localhost')=>new Promise((resolve,reject)=>{
     const socket=io(`http://127.0.0.1:${port}`,{path:'/socket.io',transports:['websocket'],forceNew:true,reconnection:false,timeout:10000,auth:{client:'native-v1',ticket},extraHeaders:{Host:'api-test.versado.app',Origin:origin,Cookie:'untrusted-web-cookie', 'CF-Access-Client-Secret':'untrusted-service-header'}});
@@ -54,5 +53,6 @@ try {
   for(const s of sockets)s.disconnect();
   for(const c of containers.reverse()){try{docker('rm','-f',c);}catch{}}
   try{docker('network','rm',network);}catch{}
+  try{docker('image','rm',image);}catch{}
   rmSync(root,{recursive:true,force:true});
 }

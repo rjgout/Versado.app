@@ -21,8 +21,11 @@ function assertWorkflowBoundaries(production, development) {
     const target = targets.find((row) => row.name === name);
     assert.equal(target?.context, ".");
     assert.equal(target?.dockerfile, dockerfile);
+    assert.equal(target?.target, undefined); // Productie gebruikt uitsluitend het standaardtarget.
   }
 
+  assert.equal(development.jobs["pr-images"].strategy.matrix.include.find(row => row.name === "jehova-proxy").target, "development");
+  assert.equal(development.jobs.publish.steps.find(step => step.with?.file === "./deploy/nginx/Dockerfile").with.target, "development");
   assert.deepEqual(development.permissions, { contents: "read" });
   for (const [id, job] of Object.entries(development.jobs)) {
     assert.deepEqual(job.permissions ?? development.permissions, id === "publish" ? { contents: "read", packages: "write" } : { contents: "read" });
@@ -67,7 +70,10 @@ test("uitsluitend develop-push/PR, PR read-only, publicatie na alle controles en
   assert.equal(pr.permissions, undefined);
   assert.equal(pr.steps.filter((s) => s.uses?.startsWith("docker/login-action")).length, 0);
   assert.equal(pr.steps.find((s) => s.uses?.startsWith("docker/build-push-action")).with.push, false);
-  assert.deepEqual(pr.strategy.matrix.include, [{ name: "jehova-app", dockerfile: "./Dockerfile" }, { name: "jehova-proxy", dockerfile: "./deploy/nginx/Dockerfile" }]);
+  assert.deepEqual(pr.strategy.matrix.include, [{ name: "jehova-app", dockerfile: "./Dockerfile" }, { name: "jehova-proxy", dockerfile: "./deploy/nginx/Dockerfile", target: "development" }]);
+  assert.equal(pr.steps.find((s) => s.uses?.startsWith("docker/build-push-action")).with.target, "${{ matrix.target }}");
+  assert.equal(publish.steps.find((s) => s.with?.file === "./deploy/nginx/Dockerfile").with.target, "development");
+  assert.equal(publish.steps.find((s) => s.with?.file === "./Dockerfile").with.target, undefined);
   assert.equal(publish.needs, "checks");
   assert.equal(publish.if, "github.event_name == 'push' && github.ref == 'refs/heads/develop' && github.repository == 'rjgout/Versado.app'");
   assert.deepEqual(publish.permissions, { contents: "read", packages: "write" });
@@ -93,6 +99,9 @@ test("legitieme productie-commentaren, opmaak en stapnamen breken development-co
 test("gerichte invarianten blijven onveilige triggers, rechten, tags en Dockerfiles weigeren", () => {
   const mutations = [
     (prod) => { prod.on.push.branches.push("develop"); },
+    (prod) => { prod.jobs["build-and-push"].strategy.matrix.include.find(row => row.name === "jehova-proxy").target = "development"; },
+    (prod, dev) => { dev.jobs["pr-images"].strategy.matrix.include.find(row => row.name === "jehova-proxy").target = "production"; },
+    (prod, dev) => { delete dev.jobs.publish.steps.find(step => step.with?.file === "./deploy/nginx/Dockerfile").with.target; },
     (prod) => { prod.on.push.tags = ["v*"]; },
     (prod) => { prod.jobs["build-and-push"].strategy.matrix.include.find((row) => row.name === "jehova-proxy").dockerfile = "./Dockerfile"; },
     (prod, dev) => { dev.permissions.packages = "write"; },

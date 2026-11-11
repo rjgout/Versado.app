@@ -69,6 +69,7 @@ jobs:
             dockerfile: ./Dockerfile
           - name: jehova-proxy
             dockerfile: ./deploy/nginx/Dockerfile
+            target: development
     steps:
       - uses: actions/checkout@v7
         with:
@@ -79,6 +80,7 @@ jobs:
         with:
           context: .
           file: ${{ matrix.dockerfile }}
+          target: ${{ matrix.target }}
           push: false
           build-args: NEXT_PUBLIC_BUILD_SHA=${{ github.sha }}
           cache-from: type=gha,scope=development-${{ matrix.name }}
@@ -115,6 +117,7 @@ jobs:
         with:
           context: .
           file: ./deploy/nginx/Dockerfile
+          target: development
           load: true
           push: false
           tags: versado-dev-proxy:${{ github.sha }}
