@@ -109,10 +109,16 @@ export const GUARDS = [
       const guard = fs.read("scripts/native/ios-release-guard.mjs");
       const release = fs.read(".github/workflows/native-ios-release.yml");
       const guardOk = /compileProbe !== false/.test(guard) && /local-store-test/.test(guard) && /testflight/.test(guard);
-      const controlledUpload = /<string>export<\/string>/.test(release) && /workflow_dispatch/.test(release) && !/\n\s+(push|pull_request|schedule):/.test(release)
+      const assets = fs.read("scripts/native/ios-signing-assets.mjs");
+      const explicitExport = /ios-signing-assets.mjs prepare/.test(release)
+        && /-exportOptionsPlist "\$signing\/ExportOptions.plist"/.test(release)
+        && /<key>destination<\/key><string>export<\/string>/.test(assets)
+        && /<key>signingStyle<\/key><string>manual<\/string>/.test(assets);
+      const exportOnly = /<string>export<\/string>/.test(release) || explicitExport;
+      const controlledUpload = exportOnly && /workflow_dispatch/.test(release) && !/\n\s+(push|pull_request|schedule):/.test(release)
         && /default: false/.test(release) && /if \[ "\$UPLOAD" = true \]/.test(release) && /refs\/heads\/develop/.test(release)
         && /ios-release-guard.mjs ipa/.test(release);
-      return { ok: guardOk && controlledUpload, evidence: "scripts/native/ios-release-guard.mjs, .github/workflows/native-ios-release.yml" };
+      return { ok: guardOk && controlledUpload, evidence: "scripts/native/ios-release-guard.mjs, ios-signing-assets.mjs, .github/workflows/native-ios-release.yml" };
     },
   },
   {

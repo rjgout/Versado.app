@@ -144,3 +144,14 @@ test("voorwaarden tellen pas als opgelost met een door de eigenaar aangeleverde 
   assert.equal(terms({ "src/lib/legal/terms.ts": "export const TERMS: LegalDocument | null = null;" }), false);
   assert.equal(terms({ "src/lib/legal/terms.ts": "" }), false, "een leeg bestand telt niet");
 });
+
+test("de iOS-readinessguard volgt expliciete ExportOptions en weigert ontbrekende of uploadende helpers", () => {
+  const files = completeFiles();
+  files[".github/workflows/native-ios-release.yml"] = readFileSync(".github/workflows/native-ios-release.yml", "utf8");
+  files["scripts/native/ios-signing-assets.mjs"] = readFileSync("scripts/native/ios-signing-assets.mjs", "utf8");
+  const guard = patch => evaluate(memoryFs({ ...files, ...patch })).guards.find(g => g.id === "ios-signing-refuses-probe").ok;
+  assert.equal(guard({}), true);
+  assert.equal(guard({ "scripts/native/ios-signing-assets.mjs": "" }), false);
+  assert.equal(guard({ "scripts/native/ios-signing-assets.mjs": files["scripts/native/ios-signing-assets.mjs"].replace("<key>destination</key><string>export</string>", "<key>destination</key><string>upload</string>") }), false);
+  assert.equal(guard({ "scripts/native/ios-signing-assets.mjs": files["scripts/native/ios-signing-assets.mjs"].replace("<key>signingStyle</key><string>manual</string>", "<key>signingStyle</key><string>automatic</string>") }), false);
+});

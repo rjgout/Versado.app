@@ -12,6 +12,11 @@ on:
         required: true
         type: boolean
         default: false
+      signing_import_only:
+        description: 'Alleen bestaande signingmiddelen op macOS importeren/controleren; geen archive of upload'
+        required: true
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
@@ -25,11 +30,57 @@ jobs:
         env:
           SELECTED_REF: ${{ github.ref }}
           EVENT_NAME: ${{ github.event_name }}
+          SIGNING_IMPORT_ONLY: ${{ inputs.signing_import_only }}
+          UPLOAD: ${{ inputs.upload }}
         run: |
+          if [ "${SIGNING_IMPORT_ONLY:-false}" = true ] && [ "${UPLOAD:-false}" = true ]; then echo "::error::Importcontrole kan niet uploaden"; exit 1; fi
           test "$EVENT_NAME" = workflow_dispatch && test "$SELECTED_REF" = refs/heads/develop || { echo "::error::Alleen handmatig vanaf develop toegestaan"; exit 1; }
+  signing-import-check:
+    needs: branch-check
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/develop' && inputs.signing_import_only == true && inputs.upload != true
+    runs-on: macos-latest
+    timeout-minutes: 10
+    environment: testflight
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Alleen macOS-import en profielcontrole (geen Apple-API of archive)
+        env:
+          IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
+          IOS_DISTRIBUTION_P12_BASE64: ${{ secrets.IOS_DISTRIBUTION_P12_BASE64 }}
+          IOS_DISTRIBUTION_P12_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_P12_PASSWORD }}
+          IOS_PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+        run: |
+          set -euo pipefail
+          set +x
+          umask 077
+          keydir="$(mktemp -d "$RUNNER_TEMP/versado-import.XXXXXX")"
+          signing="$keydir/signing"
+          cleanup() {
+            status=$?
+            trap - EXIT
+            if node scripts/native/ios-signing-assets.mjs cleanup "$signing"; then rm -rf "$keydir"; else exit 1; fi
+            exit "$status"
+          }
+          trap cleanup EXIT
+          node scripts/native/ios-signing-assets.mjs probe "$signing"
+      - name: Importmiddelen altijd opruimen
+        if: always()
+        run: |
+          failed=0
+          for keydir in "$RUNNER_TEMP"/versado-import.*; do
+            [ -d "$keydir" ] || continue
+            if node scripts/native/ios-signing-assets.mjs cleanup "$keydir/signing"; then rm -rf "$keydir"; else failed=1; fi
+          done
+          exit "$failed"
   testflight-archive:
     needs: branch-check
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/develop'
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/develop' && inputs.signing_import_only != true
     runs-on: macos-latest
     timeout-minutes: 60
     environment: testflight
@@ -56,6 +107,9 @@ jobs:
           HAS_KEY_ID: ${{ secrets.ASC_KEY_ID != '' }}
           HAS_ISSUER: ${{ secrets.ASC_ISSUER_ID != '' }}
           HAS_KEY: ${{ secrets.ASC_API_KEY_P8_BASE64 != '' }}
+          HAS_P12: ${{ secrets.IOS_DISTRIBUTION_P12_BASE64 != '' }}
+          HAS_P12_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_P12_PASSWORD != '' }}
+          HAS_PROFILE: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 != '' }}
           HAS_ORIGIN: ${{ vars.NATIVE_STORE_TEST_API_ORIGIN != '' }}
         run: |
           missing=""
@@ -64,6 +118,9 @@ jobs:
           [ "$HAS_ISSUER" = "true" ] || missing="$missing ASC_ISSUER_ID"
           [ "$HAS_KEY" = "true" ] || missing="$missing ASC_API_KEY_P8_BASE64"
           [ "$HAS_ORIGIN" = "true" ] || missing="$missing vars.NATIVE_STORE_TEST_API_ORIGIN"
+          [ "$HAS_P12" = "true" ] || missing="$missing IOS_DISTRIBUTION_P12_BASE64"
+          [ "$HAS_P12_PASSWORD" = "true" ] || missing="$missing IOS_DISTRIBUTION_P12_PASSWORD"
+          [ "$HAS_PROFILE" = "true" ] || missing="$missing IOS_PROVISIONING_PROFILE_BASE64"
           if [ -n "$missing" ]; then echo "::error::Eigenaartaak: ontbrekende secrets/variabelen in omgeving testflight:$missing"; exit 1; fi
       - uses: actions/setup-node@v4
         with:
@@ -102,6 +159,9 @@ jobs:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
           ASC_API_KEY_P8_BASE64: ${{ secrets.ASC_API_KEY_P8_BASE64 }}
+          IOS_DISTRIBUTION_P12_BASE64: ${{ secrets.IOS_DISTRIBUTION_P12_BASE64 }}
+          IOS_DISTRIBUTION_P12_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_P12_PASSWORD }}
+          IOS_PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
           UPLOAD: ${{ inputs.upload }}
         run: |
           set -euo pipefail
@@ -109,39 +169,36 @@ jobs:
           umask 077
           keydir="$(mktemp -d "$RUNNER_TEMP/versado-asc.XXXXXX")"
           key="$keydir/AuthKey_$ASC_KEY_ID.p8"
-          trap 'rm -rf "$keydir"; rm -f "$RUNNER_TEMP/ExportOptions.plist"' EXIT
+          signing="$keydir/signing"
+          cleanup() {
+            status=$?
+            trap - EXIT
+            if node scripts/native/ios-signing-assets.mjs cleanup "$signing"; then rm -rf "$keydir"; else exit 1; fi
+            exit "$status"
+          }
+          trap cleanup EXIT
           [[ "$ASC_KEY_ID" =~ ^[A-Z0-9]{10}$ ]] && [[ "$IOS_TEAM_ID" =~ ^[A-Z0-9]{10}$ ]] || { echo "::error::Key ID of Team ID ongeldig"; exit 1; }
           printf '%s' "$ASC_API_KEY_P8_BASE64" | base64 -d > "$key"
           export ASC_KEY_PATH="$key"
           node scripts/native/asc-testflight-preflight.mjs
-          echo "::group::Archivering (Release, automatische signing)"
-          auth=(-allowProvisioningUpdates -authenticationKeyPath "$key" -authenticationKeyID "$ASC_KEY_ID" -authenticationKeyIssuerID "$ASC_ISSUER_ID")
-          archive="$RUNNER_TEMP/Versado.xcarchive"
+          node scripts/native/ios-signing-assets.mjs prepare "$signing"
+          unset IOS_DISTRIBUTION_P12_BASE64 IOS_DISTRIBUTION_P12_PASSWORD IOS_PROVISIONING_PROFILE_BASE64 ASC_API_KEY_P8_BASE64 ASC_KEY_PATH
+          echo "::group::Archivering (Release, bestaande Apple Distribution-identiteit)"
+          archive="$keydir/Versado.xcarchive"
           xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' \
             -archivePath "$archive" MARKETING_VERSION="$NATIVE_APP_VERSION" CURRENT_PROJECT_VERSION="$NATIVE_BUILD_NUMBER" \
-            DEVELOPMENT_TEAM="$IOS_TEAM_ID" CODE_SIGN_STYLE=Automatic "${auth[@]}" archive
+            archive > "$keydir/archive.log" 2>&1 || { node scripts/native/ios-signing-assets.mjs report "$keydir/archive.log"; exit 1; }
           echo "::endgroup::"
           node scripts/native/ios-release-guard.mjs after "$archive/Products/Applications/App.app"
-          cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0"><dict>
-            <key>method</key><string>app-store-connect</string>
-            <key>destination</key><string>export</string>
-            <key>teamID</key><string>$IOS_TEAM_ID</string>
-            <key>signingStyle</key><string>automatic</string>
-            <key>signingCertificate</key><string>Apple Distribution</string>
-            <key>manageAppVersionAndBuildNumber</key><false/>
-            <key>uploadSymbols</key><true/>
-          </dict></plist>
-          PLIST
           echo "::group::Export (App Store Connect IPA)"
-          xcodebuild -exportArchive -archivePath "$archive" -exportPath "$RUNNER_TEMP/export" -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" "${auth[@]}"
+          xcodebuild -exportArchive -archivePath "$archive" -exportPath "$keydir/export" -exportOptionsPlist "$signing/ExportOptions.plist" \
+            > "$keydir/export.log" 2>&1 || { node scripts/native/ios-signing-assets.mjs report "$keydir/export.log"; exit 1; }
           echo "::endgroup::"
-          ipas=("$RUNNER_TEMP"/export/*.ipa)
+          ipas=("$keydir"/export/*.ipa)
           test "${#ipas[@]}" = 1 && test -f "${ipas[0]}"
           ipa="${ipas[0]}"
-          unpack="$(mktemp -d "$RUNNER_TEMP/versado-ipa.XXXXXX")"
+          unpack="$keydir/ipa"
+          mkdir "$unpack"
           unzip -q "$ipa" -d "$unpack"
           apps=("$unpack"/Payload/*.app)
           test "${#apps[@]}" = 1
@@ -197,5 +254,9 @@ jobs:
       - name: Tijdelijke Apple-sleutels opruimen
         if: always()
         run: |
-          rm -rf "$RUNNER_TEMP"/versado-asc.*
-          rm -f "$RUNNER_TEMP/ExportOptions.plist"
+          failed=0
+          for keydir in "$RUNNER_TEMP"/versado-asc.*; do
+            [ -d "$keydir" ] || continue
+            if node scripts/native/ios-signing-assets.mjs cleanup "$keydir/signing"; then rm -rf "$keydir"; else failed=1; fi
+          done
+          exit "$failed"

@@ -1,3 +1,4 @@
+import { exportOptions } from '../scripts/native/ios-signing-assets.mjs';
 import assert from "node:assert/strict";
 import test from "node:test";
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -115,16 +116,18 @@ test('dispatch, develop, exacte commit, environment en upload opt-in zijn verpli
   assert.match(distribution.run, /ios-release-guard.mjs ipa/);
   assert.ok(distribution.run.indexOf('ios-release-guard.mjs ipa') < distribution.run.indexOf('if [ "$UPLOAD" = true ]'));
   assert.match(distribution.run, /trap .*EXIT/);
-  assert.match(distribution.run, /manageAppVersionAndBuildNumber<\/key><false\/>/);
+  assert.match(distribution.run, /-exportOptionsPlist "\$signing\/ExportOptions.plist"/);
+  const options = exportOptions('ABCDEFGHIJ', 'AB'.repeat(20), '12345678-1234-1234-1234-123456789ABC');
+  assert.match(options, /manageAppVersionAndBuildNumber<\/key><false\/>/);
   assert.match(job.steps.at(-1).if, /always/);
 });
 
 test('ontbrekende secrets melden uitsluitend hun namen', () => {
   const step = job.steps.find(s => s.env?.HAS_TEAM);
-  for (const name of ['IOS_TEAM_ID', 'ASC_KEY_ID', 'ASC_ISSUER_ID', 'ASC_API_KEY_P8_BASE64']) assert.ok(JSON.stringify(step.env).includes(`secrets.${name}`));
+  for (const name of ['IOS_TEAM_ID', 'ASC_KEY_ID', 'ASC_ISSUER_ID', 'ASC_API_KEY_P8_BASE64', 'IOS_DISTRIBUTION_P12_BASE64', 'IOS_DISTRIBUTION_P12_PASSWORD', 'IOS_PROVISIONING_PROFILE_BASE64']) assert.ok(JSON.stringify(step.env).includes(`secrets.${name}`));
   const run = spawnSync('bash', ['-c', step.run], { env: { ...process.env, HAS_TEAM:'false', HAS_KEY_ID:'false', HAS_ISSUER:'false', HAS_KEY:'false', HAS_ORIGIN:'false' }, encoding:'utf8' });
   assert.notEqual(run.status, 0);
-  for (const name of ['IOS_TEAM_ID', 'ASC_KEY_ID', 'ASC_ISSUER_ID', 'ASC_API_KEY_P8_BASE64']) assert.ok(run.stdout.includes(name));
+  for (const name of ['IOS_TEAM_ID', 'ASC_KEY_ID', 'ASC_ISSUER_ID', 'ASC_API_KEY_P8_BASE64', 'IOS_DISTRIBUTION_P12_BASE64', 'IOS_DISTRIBUTION_P12_PASSWORD', 'IOS_PROVISIONING_PROFILE_BASE64']) assert.ok(run.stdout.includes(name));
 });
 
 const team = 'ABCDEFGHIJ';
@@ -330,7 +333,7 @@ test('uploadkeuze en uploadfout worden daadwerkelijk fail-closed uitgevoerd', ()
 
 test('nieuwe Apple- en Cloudflare-geheimnamen worden in bundels geweigerd', () => {
   const { findSecrets } = require('../scripts/native/profiles.cjs');
-  for (const name of ['ASC_API_KEY_P8_BASE64','CF_ACCESS_CLIENT_ID','CF_ACCESS_CLIENT_SECRET']) assert.ok(findSecrets(name).length);
+  for (const name of ['ASC_API_KEY_P8_BASE64','CF_ACCESS_CLIENT_ID','CF_ACCESS_CLIENT_SECRET','IOS_DISTRIBUTION_P12_BASE64','IOS_DISTRIBUTION_P12_PASSWORD','IOS_PROVISIONING_PROFILE_BASE64']) assert.ok(findSecrets(name).length);
 });
 
 test('iOS-poort weigert ongeldige versies, buildnummers en onvolledige commits ook zonder GitHub', () => {
