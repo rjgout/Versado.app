@@ -26,9 +26,10 @@ export function opensslResult(result) {
     // -noout zonder MAC kan geen correct wachtwoord bewijzen.
     return { state:/^MAC:\s*\S+/im.test(text) && !/MAC is absent/i.test(text) ? 'valid_mac' : 'no_verified_mac', ...facts };
   }
-  if (/unsupported|unknown (?:cipher|digest|algorithm)|unable to fetch/i.test(text)) return { state:'algorithm_unavailable', ...facts };
   if (/mac verify error|mac verification (?:error|failed)/i.test(text)) return { state:'mac_rejected', ...facts };
+  if (/unable to load (?:provider )?legacy\b/i.test(text)) return { state:'legacy_provider_unavailable', ...facts };
   if (/asn1|wrong tag|header too long|not enough data|bad object header|decode error|no start line/i.test(text)) return { state:'invalid_container', ...facts };
+  if (/unsupported|unknown (?:cipher|digest|algorithm)|unable to fetch/i.test(text)) return { state:'algorithm_unavailable', ...facts };
   return { state:'validation_error', ...facts };
 }
 export function findOpenSsl3(run = spawnSync, env = process.env, platform = process.platform) {
@@ -44,21 +45,28 @@ export function findOpenSsl3(run = spawnSync, env = process.env, platform = proc
 }
 export function validatePkcs12(path, { env = process.env, run = spawnSync, platform = process.platform } = {}) {
   const reference = contentReference(readFileSync(path), env.IOS_DISTRIBUTION_P12_SHA256);
-  const base = { contentReference:reference, openssl:'not_run', aes256Observed:false, sha256MacObserved:false };
+  const base = { contentReference:reference, openssl:'not_run', legacyRead:'not_attempted', aes256Observed:false, sha256MacObserved:false };
   if (reference === 'mismatch' || reference === 'invalid_reference') return { ...base, category:reference === 'mismatch' ? 'p12_content_reference_mismatch' : 'p12_source_reference_invalid', canImport:false };
   const binary = findOpenSsl3(run, env, platform);
   if (!binary) return { ...base, category:'independent_validator_unavailable', openssl:'tool_unavailable', canImport:false };
-  // Geen -out, -nodes, -noenc, -nomacver, -legacy of export/conversie.
+  // Beide pogingen lezen alleen: geen -out, -nodes, -noenc, -nomacver of export/conversie.
   // Het wachtwoord staat alleen in de omgeving, nooit in argv of uitvoer.
-  const result = run(binary, ['pkcs12', '-in', path, '-info', '-noout', '-passin', 'env:IOS_DISTRIBUTION_P12_PASSWORD'], {
-    encoding:'utf8', timeout:30000, env:{ ...env, LC_ALL:'C' },
-  });
-  const parsed = opensslResult(result), receipt = { ...base, openssl:parsed.state, aes256Observed:parsed.aes256Observed, sha256MacObserved:parsed.sha256MacObserved };
+  const args = ['pkcs12', '-in', path, '-info', '-noout', '-passin', 'env:IOS_DISTRIBUTION_P12_PASSWORD'];
+  const options = { encoding:'utf8', timeout:30000, env:{ ...env, LC_ALL:'C' } };
+  let parsed = opensslResult(run(binary, args, options)), legacyRead = 'not_attempted';
+  if (parsed.state === 'algorithm_unavailable') {
+    // Alleen een ontbrekend algoritme rechtvaardigt één legacy-leespoging.
+    // Ook hier blijft MAC-verificatie verplicht; het P12-bestand wordt niet gewijzigd.
+    parsed = opensslResult(run(binary, [...args, '-legacy'], options));
+    legacyRead = parsed.state === 'valid_mac' ? 'verified' : 'failed';
+  }
+  const receipt = { ...base, openssl:parsed.state, legacyRead, aes256Observed:parsed.aes256Observed, sha256MacObserved:parsed.sha256MacObserved };
   const categories = {
     valid_mac:'independent_mac_valid',
     no_verified_mac:'password_validation_inconclusive',
     invalid_container:'invalid_pkcs12_container',
     algorithm_unavailable:'independent_algorithm_unavailable',
+    legacy_provider_unavailable:'independent_legacy_provider_unavailable',
     tool_error:'independent_validator_error',
     validation_error:'independent_validation_inconclusive',
     mac_rejected:reference === 'match' ? 'password_or_encoding_rejected' : 'password_or_integrity_unresolved',
@@ -77,6 +85,7 @@ export function diagnosticMessage(receipt) {
     category:receipt.category,
     contentReference:receipt.contentReference,
     openssl:receipt.openssl,
+    legacyRead:['verified', 'failed'].includes(receipt.legacyRead) ? receipt.legacyRead : 'not_attempted',
     security:receipt.security ?? 'not_attempted',
     aes256Observed:receipt.aes256Observed === true,
     sha256MacObserved:receipt.sha256MacObserved === true,

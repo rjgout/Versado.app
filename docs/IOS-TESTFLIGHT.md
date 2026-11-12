@@ -158,7 +158,7 @@ gh workflow run native-ios-release.yml --repo rjgout/Versado.app --ref develop \
 
 Importcontrole plus `upload=true` wordt vóór environmentgebruik afgekeurd.
 Een importcontrole is geen geslaagde IPA-build. Geen automatische herverpakking,
-legacy-fallback of verzwakking van encryptie.
+export naar een legacy-formaat of verzwakking van encryptie.
 
 ### Gerichte PKCS#12-diagnose na run 43233172700
 
@@ -204,9 +204,15 @@ De agent verandert geen secrets. De vergelijking logt alleen `match`, `mismatch`
 
 [OpenSSL documenteert](https://docs.openssl.org/3.0/man1/openssl-pkcs12/)
 `-noout` als verificatie zonder credentials-uitvoer en AES-256-CBC met PBKDF2 als
-standaard encryptie. `-nomacver`, `-legacy`, export en conversie worden niet
-gebruikt. De regressietests valideren een synthetische AES-256/SHA-256-container
-zonder wijziging. Dit bewijst OpenSSL-ondersteuning, niet macOS-compatibiliteit van
+standaard encryptie. Alleen als de normale controle `algorithm_unavailable`
+meldt, volgt één tweede leespoging met `-legacy -info -noout`. Die laadt de
+optionele legacy-provider om bestaande oudere P12-formaten te lezen; ook daarbij
+blijven MAC-verificatie en alle distributiecontroles verplicht. `legacyRead`
+meldt uitsluitend `not_attempted`, `verified` (MAC geverifieerd) of `failed`.
+Een ontbrekende provider meldt `independent_legacy_provider_unavailable` en stopt
+veilig. Er volgt geen derde poging. `-nomacver`, sleutelextractie, export en
+conversie worden nooit gebruikt. De regressietests valideren synthetische
+AES-256/SHA-256- en oudere RC2/3DES-containers zonder wijziging. Dit bewijst OpenSSL-ondersteuning, niet macOS-compatibiliteit van
 het echte Windows-bestand. Apple's
 [SecPKCS12Import](https://developer.apple.com/documentation/security/secpkcs12import(_:_:_:))
 biedt geen bewijs dat deze concrete Windows-export moet worden afgezwakt.
