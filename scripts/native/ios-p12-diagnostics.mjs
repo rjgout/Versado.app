@@ -26,10 +26,10 @@ export function opensslResult(result) {
     // -noout zonder MAC kan geen correct wachtwoord bewijzen.
     return { state:/^MAC:\s*\S+/im.test(text) && !/MAC is absent/i.test(text) ? 'valid_mac' : 'no_verified_mac', ...facts };
   }
-  if (/mac verify error|mac verification (?:error|failed)/i.test(text)) return { state:'mac_rejected', ...facts };
   if (/unable to load (?:provider )?legacy\b/i.test(text)) return { state:'legacy_provider_unavailable', ...facts };
-  if (/asn1|wrong tag|header too long|not enough data|bad object header|decode error|no start line/i.test(text)) return { state:'invalid_container', ...facts };
   if (/unsupported|unknown (?:cipher|digest|algorithm)|unable to fetch/i.test(text)) return { state:'algorithm_unavailable', ...facts };
+  if (/mac verify error|mac verification (?:error|failed)/i.test(text)) return { state:'mac_rejected', ...facts };
+  if (/asn1|wrong tag|header too long|not enough data|bad object header|decode error|no start line/i.test(text)) return { state:'invalid_container', ...facts };
   return { state:'validation_error', ...facts };
 }
 export function findOpenSsl3(run = spawnSync, env = process.env, platform = process.platform) {

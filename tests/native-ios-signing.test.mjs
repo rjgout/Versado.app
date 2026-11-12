@@ -367,11 +367,30 @@ test('legacy-leespoging behoudt iedere afkeuring, ook ontbrekende MAC, toolfout 
     assert.ok(!diagnosticMessage(receipt).includes('SECRET'));
   }
 });
+test('ontbrekend algoritme met afgeleide fouttekst behoudt de bestaande classificatie en verplichte MAC', () => {
+  for (const detail of ['Mac verify error: invalid password?', 'ASN1 decode error']) {
+    for (const valid of [true,false]) {
+      let parses = 0;
+      const run = (name,args) => {
+        if (args[0] === 'version') return { status:0,stdout:'OpenSSL 3.0.0' };
+        parses++;
+        return parses === 1 ? { status:1,stderr:'unsupported algorithm; ' + detail + ' SECRET' }
+          : valid ? { status:0,stderr:'MAC: sha1, Iteration 2048' } : { status:1,stderr:'Mac verify error: invalid password? SECRET' };
+      };
+      const receipt = validatePkcs12(join(cryptoRoot,'legacy.p12'),{ env:{},run });
+      assert.equal(parses,2);
+      assert.equal(receipt.openssl,valid ? 'valid_mac' : 'mac_rejected');
+      assert.equal(receipt.legacyRead,valid ? 'verified' : 'failed');
+      assert.equal(receipt.canImport,valid);
+      assert.ok(!diagnosticMessage(receipt).includes('SECRET'));
+    }
+  }
+});
 test('MAC-, container- en toolfouten of ontbrekende MAC activeren nooit legacy-lezen', () => {
   for (const result of [
-    { status:1,stderr:'Mac verify error: invalid password? unsupported SECRET' },
+    { status:1,stderr:'Mac verify error: invalid password? SECRET' },
     { status:0,stderr:'Warning: MAC is absent! SECRET' },
-    { status:1,stderr:'ASN1 wrong tag unsupported SECRET' },
+    { status:1,stderr:'ASN1 wrong tag SECRET' },
     { status:null,error:{ code:'ETIMEDOUT' },stderr:'SECRET' },
     { status:1,stderr:'unknown failure SECRET' },
   ]) {
