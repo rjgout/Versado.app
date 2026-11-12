@@ -54,6 +54,10 @@ test('App Store-profiel moet exact bij certificaat, team en Versado horen; besta
   assert.ok(errors.includes('profiel: onverwachte keychain-groep'));
   assert.ok(errors.some(e => e.startsWith('Signingdiagnose (geschoond;')));
   assert.ok(!errors.join('\n').includes(team));
+  const malformed = profileFor(der);
+  malformed.Entitlements['unknown\nSECRET-ENTITLEMENT'] = true;
+  assert.ok(!profileProblems(malformed, der, team).join('\n').includes('SECRET'));
+
 });
 test('expliciete export selecteert één profiel en identiteit; versiehernummering en upload blijven uit', () => {
   const xml = exportOptions(team, descriptor.fingerprint, uuid);

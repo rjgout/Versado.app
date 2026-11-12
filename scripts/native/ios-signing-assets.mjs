@@ -48,7 +48,7 @@ export function profileProblems(profile, certificate, team, now = Date.now()) {
   // Verwachte identiteit voor profiel-preflight; dit vervangt NOOIT de echte app-/IPA-validatie.
   const entitlements = { 'application-identifier': team + '.' + APP_ID, 'com.apple.developer.team-identifier': team, 'get-task-allow': false };
   const signing = { entitlements, profile, authorities: ['Apple Distribution: preflight'], team, identifier: APP_ID };
-  const errors = distributionProblems(signing, team).map(p => p.replace(/onverwacht entitlement .+$/, 'onverwacht entitlement [onbekende sleutel]'));
+  const errors = distributionProblems(signing, team).map(p => p.replace(/onverwacht entitlement [\s\S]*$/, 'onverwacht entitlement [onbekende sleutel]'));
   if (profile?.ApplicationIdentifierPrefix !== undefined && JSON.stringify(profile.ApplicationIdentifierPrefix) !== JSON.stringify([team])) errors.push('Profiel-App ID Prefix wijkt af; geen automatische uitzondering.');
   if (!UUID.test(profile?.UUID ?? '')) errors.push('Profiel-UUID ontbreekt of is ongeldig.');
   if (!Array.isArray(profile?.Platform) || !profile.Platform.includes('iOS')) errors.push('Geen iOS-profiel.');
