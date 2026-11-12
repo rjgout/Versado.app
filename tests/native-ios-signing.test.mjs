@@ -4,8 +4,9 @@ import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync, rmSync
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { X509Certificate } from 'node:crypto';
+import { X509Certificate, createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
+import { findOpenSsl3, validatePkcs12, contentReference, opensslResult, securityImportCategory, macImportFailure, diagnosticMessage } from '../scripts/native/ios-p12-diagnostics.mjs';
 import { protectedContext, certificateProblems, profileProblems, patchReleaseProject, exportOptions, prepare, cleanup, xcodeFailureSummary } from '../scripts/native/ios-signing-assets.mjs';
 
 const team = 'ABCDEFGHIJ', uuid = '12345678-1234-1234-1234-123456789ABC';
@@ -98,11 +99,15 @@ test('macOS plutil kan de echte App/Release-patch lezen; alle andere projectdata
 const cryptoRoot = mkdtempSync(join(tmpdir(), 'versado-synthetic-cert-'));
 let synthetic;
 test.before(() => {
-  const run = args => { const r = spawnSync('openssl', args, { cwd:cryptoRoot, encoding:'utf8' }); assert.equal(r.status, 0, 'synthetische OpenSSL-fixture moet slagen'); };
+  const binary = findOpenSsl3();
+  assert.ok(binary, 'OpenSSL 3 moet beschikbaar zijn voor de synthetische AES256-fixture');
+  const run = (args, options = {}) => { const r = spawnSync(binary, args, { cwd:cryptoRoot, encoding:'utf8', ...options }); assert.equal(r.status, 0, 'synthetische OpenSSL-fixture moet slagen'); };
   run(['req','-x509','-newkey','rsa:2048','-nodes','-keyout','ca.key','-out','ca.pem','-days','2','-subj','/CN=Apple Worldwide Developer Relations Certification Authority/OU=Synthetic test only']);
   run(['req','-new','-newkey','rsa:2048','-nodes','-keyout','leaf.key','-out','leaf.csr','-subj','/CN=Apple Distribution: Synthetic Only/OU=' + team]);
   run(['x509','-req','-in','leaf.csr','-CA','ca.pem','-CAkey','ca.key','-CAcreateserial','-out','leaf.pem','-days','1']);
   synthetic = new X509Certificate(readFileSync(join(cryptoRoot, 'leaf.pem')));
+  run(['pkcs12','-export','-inkey','leaf.key','-in','leaf.pem','-out','aes256.p12','-passout','env:P12_TEST_PASSWORD','-keypbe','AES-256-CBC','-certpbe','AES-256-CBC','-macalg','sha256','-iter','2048'], { env:{ ...process.env, P12_TEST_PASSWORD:'synthetic-password' } });
+
 });
 test.after(() => rmSync(cryptoRoot, { recursive:true, force:true }));
 
@@ -275,4 +280,120 @@ test('werkelijke import-shell behoudt foutstatus en ruimt ook via always op', ()
       assert.equal(spawnSync('bash',['-c','find "$RUNNER_TEMP" -mindepth 1 -print'],{ env,encoding:'utf8' }).stdout,'');
     } finally { rmSync(root, { recursive:true, force:true }); }
   }
+});
+
+test('onafhankelijke OpenSSL-controle leest AES256/SHA256 zonder sleutelextractie of wijziging', () => {
+  const path = join(cryptoRoot, 'aes256.p12'), before = readFileSync(path);
+  const reference = createHash('sha256').update(before).digest('hex');
+  const env = { ...process.env, IOS_DISTRIBUTION_P12_PASSWORD:'synthetic-password', IOS_DISTRIBUTION_P12_SHA256:reference };
+  const calls = [];
+  const run = (name, args, options) => { calls.push([name,args]); return spawnSync(name,args,options); };
+  const receipt = validatePkcs12(path, { env, run });
+  assert.equal(receipt.canImport,true);
+  assert.equal(receipt.contentReference,'match');
+  assert.equal(receipt.openssl,'valid_mac');
+  assert.equal(receipt.aes256Observed,true);
+  assert.equal(receipt.sha256MacObserved,true);
+  assert.deepEqual(readFileSync(path), before);
+  const args = calls.find(([,args]) => args[0] === 'pkcs12')[1];
+  for (const required of ['-info','-noout','env:IOS_DISTRIBUTION_P12_PASSWORD']) assert.ok(args.includes(required));
+  for (const forbidden of ['-nodes','-noenc','-nomacver','-legacy','-export','-out','synthetic-password']) assert.ok(!args.includes(forbidden));
+  const serialized = diagnosticMessage(receipt);
+  assert.ok(!serialized.includes(reference));
+  assert.ok(!serialized.includes('synthetic-password'));
+});
+test('verkeerde inhoud en referentie worden vóór native import onderscheiden; geen parser bij mismatch', () => {
+  const path = join(cryptoRoot,'aes256.p12'), bytes = readFileSync(path);
+  const noTool = () => { throw new Error('parser mag niet gestart worden'); };
+  for (const [reference, category] of [['00'.repeat(32),'p12_content_reference_mismatch'], ['invalid','p12_source_reference_invalid']]) {
+    const receipt = validatePkcs12(path,{ env:{ IOS_DISTRIBUTION_P12_SHA256:reference },run:noTool });
+    assert.equal(receipt.category,category);
+    assert.equal(receipt.canImport,false);
+  }
+  assert.equal(contentReference(bytes,undefined),'not_provided');
+  assert.equal(contentReference(bytes,'  '),'invalid_reference');
+});
+test('MAC-fout is zonder bronreferentie geen bewezen verkeerd wachtwoord', () => {
+  const path = join(cryptoRoot,'aes256.p12'), reference = createHash('sha256').update(readFileSync(path)).digest('hex');
+  const wrong = { ...process.env, IOS_DISTRIBUTION_P12_PASSWORD:'wrong-synthetic-password' };
+  const without = validatePkcs12(path,{ env:wrong });
+  assert.equal(without.category,'password_or_integrity_unresolved');
+  const withReference = validatePkcs12(path,{ env:{ ...wrong, IOS_DISTRIBUTION_P12_SHA256:reference } });
+  assert.equal(withReference.category,'password_or_encoding_rejected');
+  assert.equal(withReference.canImport,false);
+  assert.equal(withReference.openssl,'mac_rejected');
+});
+test('gewijzigde versleutelde inhoud met dezelfde structuur kan ook een MAC-fout geven', () => {
+  const original = readFileSync(join(cryptoRoot,'aes256.p12'));
+  const changed = Buffer.from(original);
+  // Wijzig inhoud in de container; behoud de DER-lengtes en MAC-structuur.
+  changed[Math.floor(changed.length / 2)] ^= 1;
+  const path = join(cryptoRoot,'changed.p12'); writeFileSync(path,changed);
+  const env = { ...process.env, IOS_DISTRIBUTION_P12_PASSWORD:'synthetic-password' };
+  const without = validatePkcs12(path,{ env });
+  assert.equal(without.openssl,'mac_rejected');
+  assert.equal(without.category,'password_or_integrity_unresolved');
+  const withReference = validatePkcs12(path,{ env:{ ...env, IOS_DISTRIBUTION_P12_SHA256:createHash('sha256').update(original).digest('hex') } });
+  assert.equal(withReference.category,'p12_content_reference_mismatch');
+  assert.equal(withReference.canImport,false);
+});
+test('misvormde container, ontbrekende validator en onbekende algoritmen blijven afzonderlijk herkenbaar', () => {
+  const path = join(cryptoRoot,'not-a-pfx');writeFileSync(path,'synthetic invalid PKCS12');
+  assert.equal(validatePkcs12(path,{ env:{ ...process.env, IOS_DISTRIBUTION_P12_PASSWORD:'synthetic' } }).category,'invalid_pkcs12_container');
+  const receipt = validatePkcs12(path,{ env:{}, run:() => ({ status:1,stderr:'SECRET',stdout:'LibreSSL 3.3.6' }) });
+  assert.equal(receipt.category,'independent_validator_unavailable');
+  assert.equal(opensslResult({ status:1,stderr:'error: unsupported algorithm SECRET' }).state,'algorithm_unavailable');
+  assert.equal(opensslResult({ status:0,stderr:'Warning: MAC is absent! SECRET' }).state,'no_verified_mac');
+  assert.equal(opensslResult({ status:null,error:{ code:'ETIMEDOUT' },stderr:'SECRET' }).state,'tool_error');
+});
+test('native foutdetails worden alleen in vaste categorieën omgezet', () => {
+  for (const [stderr, expected] of [
+    ['MAC verification failed during PKCS12 import SECRET','pkcs12_mac_rejected'],
+    ['Unknown format in import SECRET','format_rejected'],
+    ['User interaction is not allowed SECRET','keychain_access'],
+    ['specified item already exists SECRET','duplicate_item'],
+    ['unknown error SECRET','other'],
+  ]) {
+    const category = securityImportCategory({ status:1,stderr });
+    assert.equal(category, expected);
+    const message = diagnosticMessage(macImportFailure({ category:'independent_mac_valid',openssl:'valid_mac',contentReference:'match' },category));
+    assert.ok(!message.includes('SECRET'));
+    if (expected === 'pkcs12_mac_rejected') assert.match(message,/macos_p12_or_password_encoding_rejected/);
+    if (expected === 'keychain_access') assert.match(message,/keychain_or_other_import_error/);
+  }
+  assert.equal(securityImportCategory({ error:{ code:'ETIMEDOUT' } }),'tool_timeout');
+});
+test('importdiagnose stopt vóór keychainaanmaak of meldt macOS-afkeuring en ruimt volledig op', () => {
+  const f = fixture();
+  try {
+    const reports = [];
+    const validate = () => ({ category:'password_or_integrity_unresolved',contentReference:'not_provided',openssl:'mac_rejected',canImport:false });
+    assert.throws(() => prepare(f.dir,{ ...f.options,configureProject:false,diagnoseImport:true,validate,report:message => reports.push(message) }));
+    assert.equal(f.calls.length,0);
+    assert.equal(existsSync(f.dir),false);
+    assert.match(reports[0],/password_or_integrity_unresolved/);
+  } finally { f.remove(); }
+  const g = fixture({ importError:true });
+  try {
+    assert.throws(() => prepare(g.dir,{ ...g.options,configureProject:false,diagnoseImport:true,validate:() => ({ category:'independent_mac_valid',contentReference:'match',openssl:'valid_mac',canImport:true }) }), error => error.message.includes('keychain_or_other_import_error') && !error.message.includes('SECRET'));
+    assert.equal(existsSync(g.dir),false);
+  } finally { g.remove(); }
+});
+test('ongeldige Base64 wordt geschoond vóór enig toolgebruik afgewezen', () => {
+  const f = fixture();
+  try {
+    f.env.IOS_DISTRIBUTION_P12_BASE64 = 'SECRET-invalid-base64!';
+    assert.throws(() => prepare(f.dir,{ ...f.options,configureProject:false,diagnoseImport:true }), error => error.message.includes('p12_secret_invalid_base64') && !error.message.includes('SECRET'));
+    assert.equal(f.calls.length,0);
+    assert.equal(existsSync(f.dir),false);
+  } finally { f.remove(); }
+});
+test('alleen import-only krijgt de optionele bronreferentie en onafhankelijke diagnose', () => {
+  const require = createRequire(import.meta.url);
+  const workflow = require('yaml').parse(readFileSync('.github/workflows/native-ios-release.yml','utf8'));
+  const probe = workflow.jobs['signing-import-check'].steps.find(s => s.env?.IOS_DISTRIBUTION_P12_BASE64);
+  const archive = workflow.jobs['testflight-archive'].steps.find(s => s.id === 'distribution');
+  assert.equal(probe.env.IOS_DISTRIBUTION_P12_SHA256, '$' + '{{ secrets.IOS_DISTRIBUTION_P12_SHA256 }}');
+  assert.equal(archive.env.IOS_DISTRIBUTION_P12_SHA256, undefined);
+  assert.match(readFileSync('scripts/native/ios-signing-assets.mjs','utf8'),/configureProject: false, diagnoseImport: true/);
 });

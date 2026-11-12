@@ -7,6 +7,7 @@ import { join, resolve, relative, isAbsolute, basename, dirname } from 'node:pat
 import { isDeepStrictEqual } from 'node:util';
 import { APP_ID } from './profiles.cjs';
 import { distributionProblems, distributionDiagnostics } from './ios-release-guard.mjs';
+import { securityImportCategory, validatePkcs12, macImportFailure, diagnosticMessage } from './ios-p12-diagnostics.mjs';
 
 const PROJECT = 'ios/App/App.xcodeproj/project.pbxproj';
 const UUID = /^[0-9A-F]{8}-(?:[0-9A-F]{4}-){3}[0-9A-F]{12}$/i;
@@ -20,7 +21,11 @@ function saveState(path, state) {
 // Geen commandoregel, stdout/stderr of native Error-object doorgeven: kan geheimen bevatten.
 function command(name, args, options = {}) {
   const r = spawnSync(name, args, { encoding: 'utf8', timeout: 30000, ...options });
-  if (r.error || r.status !== 0) fail('Lokale signingcontrole mislukt.');
+  if (r.error || r.status !== 0) {
+    const error = new SigningError('Lokale signingcontrole mislukt.');
+    if (name === 'security' && args[0] === 'import') error.importCategory = securityImportCategory(r);
+    throw error;
+  }
   return r.stdout;
 }
 export function protectedContext(env, platform = process.platform) {
@@ -116,11 +121,17 @@ function privateDirectory(directory, env) {
 function nativePlist(xml, run) {
   return JSON.parse(run('python3', ['-I', '-c', 'import plistlib,json,sys,base64,datetime;print(json.dumps(plistlib.loads(sys.stdin.buffer.read()),default=lambda x:base64.b64encode(x).decode() if isinstance(x,bytes) else x.replace(tzinfo=datetime.timezone.utc).isoformat()))'], { input: xml }));
 }
-export function prepare(directory, { env = process.env, root = process.cwd(), run = command, configureProject = true, report = () => {} } = {}) {
+export function prepare(directory, { env = process.env, root = process.cwd(), run = command, configureProject = true, report = () => {}, diagnoseImport = false, validate = validatePkcs12 } = {}) {
   const dir = privateDirectory(directory, env);
   if (!env.IOS_DISTRIBUTION_P12_PASSWORD) fail('IOS_DISTRIBUTION_P12_PASSWORD ontbreekt.');
   if (!/^[A-Z0-9]{10}$/.test(env.IOS_TEAM_ID ?? '')) fail('IOS_TEAM_ID ontbreekt of is ongeldig.');
-  const p12 = decode(env.IOS_DISTRIBUTION_P12_BASE64), profileBytes = decode(env.IOS_PROVISIONING_PROFILE_BASE64);
+  let p12;
+  try { p12 = decode(env.IOS_DISTRIBUTION_P12_BASE64); }
+  catch (error) {
+    if (diagnoseImport) fail('PKCS#12-diagnose (geschoond): {"category":"p12_secret_invalid_base64"}');
+    throw error;
+  }
+  const profileBytes = decode(env.IOS_PROVISIONING_PROFILE_BASE64);
   mkdirSync(dir, { mode: 0o700 });
   const statePath = join(dir, 'state.json'), keychain = join(dir, 'distribution.keychain-db');
   const state = { keychain: false, searchChanged: false, profile: null, projectChanged: false, originalKeychains: [], root: resolve(root) };
@@ -129,6 +140,12 @@ export function prepare(directory, { env = process.env, root = process.cwd(), ru
     save();
     writeFileSync(join(dir, 'identity.p12'), p12, { mode: 0o600 });
     writeFileSync(join(dir, 'profile.mobileprovision'), profileBytes, { mode: 0o600 });
+    let receipt;
+    if (diagnoseImport) {
+      receipt = validate(join(dir, 'identity.p12'), { env });
+      report(diagnosticMessage(receipt));
+      if (!receipt.canImport) fail('Onafhankelijke P12-controle afgekeurd; geen macOS-import geprobeerd.');
+    }
     const password = randomBytes(32).toString('hex');
     state.originalKeychains = [...run('security', ['list-keychains', '-d', 'user']).matchAll(/"(?:\\.|[^"\\])*"/g)].map(m => JSON.parse(m[0]));
     state.keychain = true; state.searchChanged = true; save(); // Aanmaak kan de zoeklijst wijzigen; ook gedeeltelijke aanmaak opruimen.
@@ -136,7 +153,10 @@ export function prepare(directory, { env = process.env, root = process.cwd(), ru
     run('security', ['set-keychain-settings', '-lut', '3600', keychain]);
     run('security', ['unlock-keychain', '-p', password, keychain]);
     try { run('security', ['import', join(dir, 'identity.p12'), '-P', env.IOS_DISTRIBUTION_P12_PASSWORD, '-k', keychain, '-T', '/usr/bin/codesign', '-T', '/usr/bin/security']); }
-    catch { fail('PKCS#12-import mislukt; controleer wachtwoord en AES256-SHA256-compatibiliteit met macOS. Geen automatische conversie.'); }
+    catch (error) {
+      if (diagnoseImport) fail(diagnosticMessage(macImportFailure(receipt, error.importCategory)));
+      fail('PKCS#12-import mislukt; controleer wachtwoord en AES256-SHA256-compatibiliteit met macOS. Geen automatische conversie.');
+    }
     rmSync(join(dir, 'identity.p12'));
     report('PKCS#12-import op macOS geslaagd; geen signingmiddelen gelogd.');
     run('security', ['set-key-partition-list', '-S', 'apple-tool:,apple:,codesign:', '-s', '-k', password, keychain]);
@@ -228,7 +248,7 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(new URL(import.meta.
       if (command('git', ['rev-parse', 'HEAD']).trim() !== process.env.GITHUB_SHA) fail('Broncommit wijkt af.');
       if (mode === 'prepare') prepare(directory, { report: message => console.log(message) });
       else if (mode === 'probe') {
-        try { prepare(directory, { configureProject: false, report: message => console.log(message) }); }
+        try { prepare(directory, { configureProject: false, diagnoseImport: true, report: message => console.log(message) }); }
         finally { cleanup(directory); }
       } else fail('Gebruik prepare, probe of cleanup.');
       console.log(mode === 'probe' ? 'macOS-import en Distribution-profiel gecontroleerd; geen archive, Apple-API of upload.' : 'Bestaande Distribution-identiteit en Versado-profiel gecontroleerd; uitsluitend App/Release expliciet ingesteld.');
