@@ -193,6 +193,7 @@ jobs:
         run: |
           npm ci
           npm run db:generate
+          node --test tests/native-ios-signing.test.mjs
           npm run native:build
           npx cap sync ios
           node scripts/native/verify-distribution.mjs ios

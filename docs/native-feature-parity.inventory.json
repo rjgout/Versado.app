@@ -80419,6 +80419,7 @@
     "tests/native-foundation.integration.test.ts",
     "tests/native-foundation.test.ts",
     "tests/native-ios-release.test.mjs",
+    "tests/native-ios-signing.test.mjs",
     "tests/native-learning-flow.browser.mjs",
     "tests/native-learning-flow.integration.browser.mjs",
     "tests/native-learning-flow.test.ts",
