@@ -213,7 +213,7 @@ export function xcodeFailureSummary(text) {
     missingProfile: /No profiles for|requires a provisioning profile/i.test(text),
     missingIdentity: /No signing certificate|signing identity.*not found/i.test(text),
     signingFailure: /CodeSign.*failed|codesign.*failed/i.test(text),
-    compilationFailure: /CompileSwift|SwiftCompile|CompileC|error:/i.test(text),
+    reportedBuildError: /\berror:/i.test(text),
   };
 }
 

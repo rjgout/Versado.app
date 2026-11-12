@@ -211,7 +211,8 @@ test('bestaand profiel wordt niet overschreven of verwijderd; falende cleanup ka
 });
 test('Xcode-logs worden alleen als vaste foutcategorieën uitgegeven', () => {
   const text = 'SECRET-KEY TEAM123456 profile SECRET-UUID No profiles for app error: maximum number of certificates';
-  assert.deepEqual(xcodeFailureSummary(text), { certificateLimit:true, missingProfile:true, missingIdentity:false, signingFailure:false, compilationFailure:true });
+  assert.deepEqual(xcodeFailureSummary(text), { certificateLimit:true, missingProfile:true, missingIdentity:false, signingFailure:false, reportedBuildError:true });
+  assert.equal(xcodeFailureSummary('CompileSwift completed').reportedBuildError, false);
   const path = join(cryptoRoot, 'private.log'); writeFileSync(path, text);
   const r = spawnSync(process.execPath, ['scripts/native/ios-signing-assets.mjs','report',path], { encoding:'utf8' });
   assert.equal(r.status, 0);
