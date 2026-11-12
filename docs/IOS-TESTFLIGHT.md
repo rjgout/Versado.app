@@ -142,7 +142,8 @@ Kies Actions → iOS TestFlight → **develop**:
 
 Alleen `branch-check` en `signing-import-check` mogen lopen;
 `testflight-archive` moet worden overgeslagen. De importjob krijgt uitsluitend
-het team en de drie nieuwe signingsecrets. Geen App Store Connect-sleutel,
+het team, de drie signingsecrets en eventueel de hieronder beschreven
+bronreferentie. Geen App Store Connect-sleutel,
 backendcheck, npm-build, `xcodebuild`, app-signing of upload. Hij controleert
 macOS-import, geldige Distribution-identiteit met privésleutel, profielmatch en
 de bestaande profielpolicy en ruimt alles op. De broncommit wordt gecontroleerd.
@@ -156,10 +157,65 @@ gh workflow run native-ios-release.yml --repo rjgout/Versado.app --ref develop \
 ```
 
 Importcontrole plus `upload=true` wordt vóór environmentgebruik afgekeurd.
-Een importcontrole is geen geslaagde IPA-build. Bij AES256-SHA256/importproblemen
-wordt veilig gestopt met een vaste foutmelding; wachtwoord, Base64 en PKCS#12-
-compatibiliteit moeten gericht worden onderzocht. Geen automatische herverpakking,
+Een importcontrole is geen geslaagde IPA-build. Geen automatische herverpakking,
 legacy-fallback of verzwakking van encryptie.
+
+### Gerichte PKCS#12-diagnose na run 43233172700
+
+Die run faalde bij `security import`; de toenmalige vaste foutmelding bevatte
+geen native oorzaak. Het oorspronkelijke Windows-bestand en wachtwoord zijn
+volgens de eigenaar met `Get-PfxData` gevalideerd. Dat bewijst niet dat dezelfde
+bytes en hetzelfde wachtwoord in GitHub Secrets staan. De historische oorzaak
+is daarmee nog niet vastgesteld; een AES256_SHA256-incompatibiliteit is niet bewezen.
+
+De import-only mode voert nu vóór keychainaanmaak een onafhankelijke OpenSSL 3-
+controle uit: `pkcs12 -info -noout -passin env:IOS_DISTRIBUTION_P12_PASSWORD`.
+Dit verifieert de MAC en leest de container zonder privésleutels of certificaten
+uit te schrijven. Native uitvoer wordt uitsluitend in geheugen gecategoriseerd;
+logs bevatten vaste categorieën en booleans voor waargenomen AES-256-CBC/SHA-256.
+Geen ruwe foutuitvoer, wachtwoord, digest, Base64 of certificaatgegevens.
+Een ontbrekende validator, ontbrekende MAC of onbesliste controle stopt veilig
+vóór de macOS-import. De normale archive/signingmode verandert niet.
+
+Voor een sterker onderscheid kan de eigenaar **optioneel**, zonder hier waarden
+te delen, `IOS_DISTRIBUTION_P12_SHA256` als **secret** van environment `testflight`
+instellen. Bereken deze uitsluitend van het oorspronkelijke, gevalideerde PFX;
+gebruik geen gewone GitHub-variabele omdat de runner die kan tonen. Bijvoorbeeld
+lokaal in PowerShell, rechtstreeks naar het klembord:
+
+```powershell
+Set-Clipboard -Value ((Get-FileHash -LiteralPath 'C:\veilig\AppleDistribution.p12' -Algorithm SHA256).Hash)
+```
+
+De agent verandert geen secrets. De vergelijking logt alleen `match`, `mismatch`,
+`not_provided` of `invalid_reference`. Een foute referentie blijft mogelijk.
+
+| Diagnosecategorie | Betekenis en vervolgstap |
+| --- | --- |
+| `p12_secret_invalid_base64` / `invalid_pkcs12_container` | Secret is geen geldige Base64/container; controleer de overdracht van het oorspronkelijke bestand. |
+| `p12_content_reference_mismatch` | Secretbytes verschillen van de opgegeven bronreferentie; controleer bestand én referentie. Geen import. |
+| `password_or_integrity_unresolved` | MAC afgewezen zonder bronreferentie: gewijzigd bestand en verkeerd wachtwoord zijn niet te onderscheiden. |
+| `password_or_encoding_rejected` | Bronhash klopt, maar OpenSSL accepteert het wachtwoord niet; controleer wachtwoordoverdracht en eventuele encodingverschillen. Geen bewijs van een typefout. |
+| `independent_mac_valid` | OpenSSL accepteert de MAC en het wachtwoord; pas daarna wordt de bestaande macOS-import geprobeerd. |
+| `macos_format_rejected` | macOS meldt formaat/algoritme-afkeuring terwijl OpenSSL slaagt; aanwijzing voor parsercompatibiliteit, geen bewijs dat iedere AES-256-export ongeschikt is. |
+| `macos_p12_or_password_encoding_rejected` | macOS meldt MAC-afkeuring terwijl OpenSSL slaagt; onderzoek parser/wachtwoordencoding. Niet als bewezen verkeerd secretwachtwoord rapporteren. |
+| `keychain_or_other_import_error` | Andere importfout; subcategorie `keychain_access`, `duplicate_item`, `tool_timeout` of `other`. Geen crypto-conversie op basis hiervan. |
+| `independent_*` / `password_validation_inconclusive` / `p12_source_reference_invalid` | Onafhankelijke controle of bronreferentie onbeslist/ongeldig; eerst deze oorzaak oplossen. Geen import. |
+
+[OpenSSL documenteert](https://docs.openssl.org/3.0/man1/openssl-pkcs12/)
+`-noout` als verificatie zonder credentials-uitvoer en AES-256-CBC met PBKDF2 als
+standaard encryptie. `-nomacver`, `-legacy`, export en conversie worden niet
+gebruikt. De regressietests valideren een synthetische AES-256/SHA-256-container
+zonder wijziging. Dit bewijst OpenSSL-ondersteuning, niet macOS-compatibiliteit van
+het echte Windows-bestand. Apple's
+[SecPKCS12Import](https://developer.apple.com/documentation/security/secpkcs12import(_:_:_:))
+biedt geen bewijs dat deze concrete Windows-export moet worden afgezwakt.
+Behoud daarom AES-256. Er is nog geen technisch onderbouwd alternatief exportadvies.
+
+Na onafhankelijke review en merge is **afzonderlijke eigenaarstoestemming voor
+één echte import-only run** nodig. Bekijk daarna alleen de geschoonde categorieën;
+geen complete logs met sleutelgegevens, profielen of P12-bestanden delen.
+Deze PR start die run niet en maakt geen Apple-middelen aan.
 
 ## De eerdere keychaingroepfout blijft open
 
