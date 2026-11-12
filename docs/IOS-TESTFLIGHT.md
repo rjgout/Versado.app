@@ -5,36 +5,19 @@ handmatig vanaf `develop`, met de exact geselecteerde commit. De eigenaar heeft
 geen lokale Xcode-installatie nodig. `main` is voor een later, afzonderlijk
 publiek releasetraject; dat traject wordt hier niet geactiveerd.
 
-## Huidige status: nog geen eerste ondertekende build
+## Huidige status: eerste export, IPA-validatie nog niet afgerond
 
-De `store-test`-allowlist is bewust leeg. `https://dev.versado.app` staat alleen
-in `internal` en is beschermd door Cloudflare Access. De bestaande native
-Service Auth-bridge accepteert uitsluitend `local-internal` + kanaal `internal`
-+ `NATIVE_INTERNAL_ACCESS=1` voor die exacte origin. Enrollment bewaart het
-credentialpaar in aparte Keychain/Keystore-opslag; het hoort nooit in de bundel.
-Een `local-store-test`-client mag die bridge niet inschakelen. Browsercookies of
-een Access-loginredirect bieden geen bewezen alternatief voor de lokale client.
-Realtime is in de huidige interne Access-route bovendien expliciet geblokkeerd.
+De gecontroleerde `store-test`-origin is `https://api-test.versado.app` (PR #272).
+De website `https://dev.versado.app` blijft een afzonderlijke interne origin met
+Cloudflare Access; die credentials horen niet in een TestFlight-bundel.
 
-**Daarom: NO-GO voor een succesvolle testbuild en voor upload zolang dit niet is
-opgelost.** Een run mag veilig afkeuren vóór signing; een compileproef of interne
-build is geen TestFlight-kandidaat. Alleen een environmentvariabele invullen
-opent de allowlist niet.
-
-Er is een afzonderlijk architectuur- en uitrolbesluit nodig: ontwerp een voor
-TestFlight geschikte, individueel intrekbare native toegangsketen naar de
-bestaande beschermde development-backend, met OS-opslag/enrollment, exacte
-routebeperkingen en behoud van Versado-login, 2FA en sessie-intrekking. Beoordeel
-audio/media en realtime afzonderlijk. Dit is een voorstel, geen geïmplementeerde
-of goedgekeurde wijziging. Geen Access uitschakelen, bypass, gebundelde
-servicecredentials, publieke dev-backend of productiebackend gebruiken.
-
-Na dat besluit zijn echte toesteltests van toegang, herstart, logout,
-accountwisseling, ingetrokken toegang, verlopen sessies en benodigde API's nodig.
-Bewijs ook gescheiden dev-accounts en opslag, zonder productieaccounts of
-productiedata. Pas daarna kan een afzonderlijke reviewbare wijziging de
-`store-test`-allowlist openen. Deze PR verandert geen Cloudflare-, DNS-, NAS-,
-Portainer-, database- of accountinstellingen en voert geen live backendtest uit.
+De eigenaar rapporteert voor run [43093200972](https://github.com/rjgout/Versado.app/actions/runs/43093200972)
+op develop `2c4d5ded6baafd7b832d7a4d346658d7a0ed655c`, versie `0.1.0`,
+`upload=false`: preflight, Release-archive, archiefvalidatie en IPA-export geslaagd;
+IPA-validatie faalt met `profiel: onverwachte keychain-groep`. Niets geüpload.
+De werkelijke profielgroepen en App ID Prefix zijn niet beschikbaar. Zie de
+veilige diagnose hieronder; de acceptatieregels blijven ongewijzigd.
+Geen nieuwe signingrun of upload zonder afzonderlijke eigenaarstoestemming.
 
 ## GitHub en Apple voorbereiden — eigenaar
 
@@ -59,8 +42,8 @@ Portainer-, database- of accountinstellingen en voert geen live backendtest uit.
    afzonderlijk. Deel secretwaarden nooit in chat, logs of artifacts.
 3. Voeg environmentvariabele **`NATIVE_STORE_TEST_API_ORIGIN`** toe: de exacte,
    afzonderlijk goedgekeurde HTTPS-testorigin zonder afsluitende slash. De
-   huidige beoogde development-origin is `https://dev.versado.app`, maar deze
-   blijft geblokkeerd totdat bovenstaande architectuur is geaccepteerd.
+   goedgekeurde testorigin is `https://api-test.versado.app`; gebruik geen
+   website-origin of productie-origin.
    Optioneel: `IOS_XCODE_APP` voor een exacte Xcode-installatie op de runner.
 4. Controleer de bestaande Apple-registratie: naam **Versado**, Bundle ID
    **`app.versado.app`**, juiste team. Maak geen nieuwe registratie. De workflow
@@ -152,6 +135,50 @@ poging. De samenvatting noemt bron/SHA, versie/build, identiteit, backend, Xcode
 IPA-hash en beschikbare signing-/uploadresultaten. Apple-acceptatie betekent
 geen verwerkte build en geen beschikbaarheid voor testers.
 
+## Tijdelijke diagnose van afgekeurde keychainrechten
+
+Apple’s [TN3125, “The how”](https://developer.apple.com/documentation/technotes/tn3125-inside-code-signing-provisioning-profiles#The-how)
+toont een profiel met een prefixwildcard en exact `com.apple.token`. Het profiel
+is een entitlement-allowlist: “Every entitlement claimed by the app must be in
+the profile’s allowlist but the reverse isn’t true.” Een synthetisch profiel met
+dit patroon reproduceert de gemelde fout: onze enkele-groepregel is voor dat
+Apple-voorbeeld te streng. Dat bewijst niet dat deze groepen in de mislukte IPA
+stonden. Een vreemde groep geeft dezelfde foutmelding.
+
+[TN2311](https://developer.apple.com/library/archive/technotes/tn2311/_index.html)
+beschrijft legacy App ID Prefixes die van Team ID kunnen afwijken. Die begrippen
+zijn niet universeel gelijk. Zonder het echte profiel is niet vast te stellen
+of dat hier speelt. Er wordt geen andere prefix of keychaingroep toegestaan;
+`distributionProblems()` en alle signing-/IPA-/uploadguards blijven ongewijzigd.
+
+Als de distributiecontrole een fout geeft, voegt `ipaProblems()` een JSON-regel
+`Signingdiagnose (geschoond; geen acceptatiebesluit)` aan de foutmelding toe:
+
+- Per app/profiel: aanwezig/afwezig/misvormd, aantal groepen/duplicaten en aantallen
+  per vaste categorie: `expected-app`, `expected-wildcard`, `apple-token`,
+  `profile-prefix-app`, `profile-prefix-wildcard`, `other`, `malformed`.
+- Vergelijkingen met het verwachte signingteam en de exacte appidentiteit;
+  afzonderlijk de prefix uit app-ID, profiel-app-ID en `ApplicationIdentifierPrefix`.
+  Niet bepaalbaar is `null`; ontbrekende gegevens worden niet als overeenkomst gezien.
+- `appKeychainCoveredByProfile` beschrijft alleen dekking door exacte groepen of
+  een prefixwildcard; het kent geen rechten toe. Profieldekking maakt een
+  ongeoorloofde appclaim niet toegestaan.
+
+De uitvoer bevat geen concrete groep-, team- of prefixwaarden, profielnaam/UUID,
+certificaten of sleutels. Alleen bij afkeuring, geen extra artifacts of Apple-calls.
+De bestaande fout blijft bestaan en upload blijft geblokkeerd. Na een expliciet
+toegestane nieuwe run met `upload=false` deelt de eigenaar alleen deze geschoonde
+regel. Beoordeel daarmee de oorzaak vóór een eventuele gerichte reparatie; sta
+geen onbekende waarden toe. Verwijder de tijdelijke diagnose na die reparatie.
+
+GitHub bevestigt de mislukte distributiestap van run 43093200972, maar meldde de
+run tijdens dit onderzoek nog als `in_progress`; de joblog gaf HTTP 502 en er waren
+geen artifacts. De eigenaar heeft bevestigd geen aanvullende profielgegevens te
+hebben. **NO-GO voor een claim dat de IPA-fout is opgelost.** Na groene relevante
+CI, onafhankelijke review en eigenaarstoestemming kan een diagnose-run op develop
+met `upload=false` worden uitgevoerd; een nieuwe afkeuring kan daarbij verwacht
+worden. Geen signingbuild gestart door deze wijziging.
+
 ## Herkomst en grenzen
 
 Versado leverde al profielen, lokale bundeling, distributiechecks, privacy manifest
@@ -167,5 +194,6 @@ API-authenticatie en een tijdelijke `API_PRIVATE_KEYS_DIR`.
 
 `releaseApproved` blijft false en het `release`-profiel blijft geblokkeerd.
 Geen promotie naar main of publieke releaseworkflow. Momenteel **NO-GO** voor
-ondertekende testbuild, echte upload en publieke App Store-release; code kan
-wel als draft-PR onafhankelijk worden beoordeeld.
+een herstelde TestFlight-build: de werkelijke profieloorzaak is nog onbekend.
+Een diagnose-run vereist afzonderlijke review/CI en eigenaarstoestemming.
+Upload en publieke release blijven afzonderlijke besluiten.

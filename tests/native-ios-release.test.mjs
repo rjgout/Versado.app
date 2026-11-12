@@ -89,8 +89,8 @@ test("workflowinvoer wordt nooit in shelltekst geïnterpoleerd (alleen via env),
   assert.match(text, /\^\[0-9\]\+\\\.\[0-9\]\+\\\.\[0-9\]\+\$/);
 });
 
-import { distributionProblems, ipaProblems } from '../scripts/native/ios-release-guard.mjs';
-import { createRequire } from 'node:module';
+import { distributionDiagnostics, distributionProblems, ipaProblems } from '../scripts/native/ios-release-guard.mjs';
+import { createRequire, syncBuiltinESMExports } from 'node:module';
 import { spawnSync } from 'node:child_process';
 const require = createRequire(import.meta.url);
 const workflow = require('yaml').parse(readFileSync('.github/workflows/native-ios-release.yml', 'utf8'));
@@ -145,6 +145,163 @@ test('IPA signing weigert debug, verlopen/ad-hoc/enterprise-profielen, verkeerde
   ];
   for (const mutate of mutations) { const s = signed(); mutate(s); assert.ok(distributionProblems(s,team).length); }
   assert.ok(ipaProblems('/tmp/versado-nonexistent-app').length);
+});
+
+// Alleen synthetische identiteiten; deze diagnose verandert geen acceptatieregel.
+const appGroup = `${team}.app.versado.app`;
+const wildcardGroup = `${team}.*`;
+const keychainSigned = (profileGroups, appGroups = [appGroup]) => {
+  const s = signed();
+  s.entitlements['keychain-access-groups'] = appGroups;
+  s.profile.ApplicationIdentifierPrefix = [team];
+  if (profileGroups !== undefined) s.profile.Entitlements['keychain-access-groups'] = profileGroups;
+  return s;
+};
+
+test('diagnose herkent TN3125-profielgroepen zonder de huidige enkele-groepregel te versoepelen', () => {
+  const standard = keychainSigned([appGroup]);
+  assert.deepEqual(distributionProblems(standard, team), []);
+  assert.deepEqual(distributionDiagnostics(standard, team).profileKeychain.categories, { 'expected-app': 1 });
+  for (const groups of [[wildcardGroup, 'com.apple.token'], [appGroup, 'com.apple.token']]) {
+    const s = keychainSigned(groups);
+    const diagnostic = distributionDiagnostics(s, team);
+    assert.equal(diagnostic.profileKeychain.count, 2);
+    assert.equal(diagnostic.profileKeychain.categories['apple-token'], 1);
+    assert.equal(diagnostic.appKeychainCoveredByProfile, true);
+    assert.equal(diagnostic.declaredPrefixMatchesExpectedTeam, true);
+    assert.equal(diagnostic.declaredPrefixMatchesAppPrefix, true);
+    // Bewijs van de gedocumenteerde incompatibiliteit; reparatie wacht op profielbewijs.
+    assert.deepEqual(distributionProblems(s, team), ['profiel: onverwachte keychain-groep']);
+  }
+});
+
+test('diagnose maakt vreemde, dubbele, misvormde en ontbrekende groepen zichtbaar zonder waarden', () => {
+  for (const group of [`${team}.app.andere.app`, 'OTHERTEAM1.*', 'com.apple.token.extra', 'com.apple.*', '*']) {
+    const s = keychainSigned([appGroup, group]);
+    assert.deepEqual(distributionDiagnostics(s, team).profileKeychain.categories, { 'expected-app': 1, other: 1 });
+    assert.ok(distributionProblems(s, team).length);
+  }
+  const s = keychainSigned([appGroup, appGroup, 7]);
+  assert.deepEqual(distributionDiagnostics(s, team).profileKeychain, { state:'array', count:3, duplicateCount:1, categories:{ 'expected-app':2, malformed:1 } });
+  for (const groups of [[], null, appGroup, undefined]) {
+    const s = keychainSigned(groups);
+    const d = distributionDiagnostics(s, team);
+    assert.equal(d.profileKeychain.state, groups === undefined ? 'absent' : Array.isArray(groups) ? 'array' : 'malformed');
+    assert.equal(d.appKeychainCoveredByProfile, false);
+  }
+  delete s.entitlements['keychain-access-groups'];
+  assert.deepEqual(distributionDiagnostics(s, team).appKeychain, { state:'absent' });
+  assert.equal(distributionDiagnostics(s, team).appKeychainCoveredByProfile, null);
+});
+
+test('App ID Prefix en Team ID worden apart vergeleken, nooit automatisch geaccepteerd', () => {
+  const s = keychainSigned(['LEGACY1234.*', 'com.apple.token'], ['LEGACY1234.app.versado.app']);
+  s.profile.ApplicationIdentifierPrefix = ['LEGACY1234'];
+  s.entitlements['application-identifier'] = s.profile.Entitlements['application-identifier'] = 'LEGACY1234.app.versado.app';
+  const d = distributionDiagnostics(s, team);
+  assert.equal(d.signingTeamMatchesExpected, true);
+  assert.equal(d.appPrefixMatchesExpectedTeam, false);
+  assert.equal(d.profileAppPrefixMatchesExpectedTeam, false);
+  assert.equal(d.declaredPrefixMatchesExpectedTeam, false);
+  assert.equal(d.declaredPrefixMatchesAppPrefix, true);
+  assert.deepEqual(d.appKeychain.categories, { 'profile-prefix-app':1 });
+  assert.deepEqual(d.profileKeychain.categories, { 'profile-prefix-wildcard':1, 'apple-token':1 });
+  assert.equal(d.appKeychainCoveredByProfile, true);
+  assert.ok(distributionProblems(s, team).some(p => /application-identifier/.test(p)));
+  for (const [prefix, state] of [[undefined, 'absent'], [[], 'empty'], [['INVALID'], 'malformed'], [[team, 'LEGACY1234'], 'multiple']]) {
+    s.profile.ApplicationIdentifierPrefix = prefix;
+    const d = distributionDiagnostics(s, team);
+    assert.equal(d.declaredPrefixState, state);
+    assert.equal(d.declaredPrefixCount, Array.isArray(prefix) ? prefix.length : null);
+    assert.equal(d.declaredPrefixMatchesExpectedTeam, null);
+  }
+});
+
+test('diagnose logt geen concrete groepen, team/prefix, profielinhoud of sleutelmateriaal', () => {
+  const s = keychainSigned([appGroup, 'com.apple.token', 'SECRET-GROUP'], [appGroup]);
+  s.profile.Name = s.profile.UUID = s.profile.DeveloperCertificates = 'SECRET-PROFILE';
+  s.profile.ApplicationIdentifierPrefix = ['LEGACY1234'];
+  s.entitlements['SECRET-ENTITLEMENT'] = 'SECRET-VALUE';
+  s.profile.Entitlements['SECRET-ENTITLEMENT'] = 'SECRET-VALUE';
+  s.authorities = ['Apple Distribution: SECRET-NAME'];
+  const serialized = JSON.stringify(distributionDiagnostics(s, team));
+  for (const forbidden of [team, 'LEGACY1234', 'app.versado.app', 'com.apple.token', 'SECRET-', 'Apple Distribution:']) assert.ok(!serialized.includes(forbidden), forbidden);
+  assert.equal(distributionDiagnostics(s, '').expectedTeamValid, false);
+  assert.equal(distributionDiagnostics({ profile:null }, undefined).declaredPrefixMatchesExpectedTeam, null);
+});
+
+test('extra apprechten, verkeerde identiteit/team en ongeschikte profielen blijven afgekeurd', () => {
+  const mutations = [
+    s => s.entitlements['keychain-access-groups'] = [appGroup, 'com.apple.token'],
+    s => s.entitlements['keychain-access-groups'] = [wildcardGroup],
+    s => s.entitlements['aps-environment'] = 'production',
+    s => s.entitlements['com.apple.developer.applesignin'] = ['Default'],
+    s => s.entitlements['com.apple.developer.associated-domains'] = ['applinks:example.com'],
+    s => s.team = 'OTHERTEAM1', s => s.profile.TeamIdentifier = ['OTHERTEAM1'],
+    s => s.identifier = 'app.andere.app',
+    s => s.profile.Entitlements['application-identifier'] = `${team}.*`,
+    s => s.entitlements['application-identifier'] = `${team}.app.andere.app`,
+    s => s.authorities = ['Apple Development: Example'],
+    s => s.profile.Entitlements['get-task-allow'] = true,
+    s => s.profile.ProvisionedDevices = ['synthetic-device'],
+    s => s.profile.ProvisionsAllDevices = true,
+    s => s.profile.ExpirationDate = '2000-01-01',
+    s => delete s.profile.Entitlements['beta-reports-active'],
+    s => s.profile.Entitlements['beta-reports-active'] = false,
+  ];
+  for (const mutate of mutations) {
+    const s = keychainSigned([appGroup]);
+    mutate(s);
+    const before = distributionProblems(s, team);
+    assert.ok(before.length, mutate.toString());
+    distributionDiagnostics(s, team);
+    assert.deepEqual(distributionProblems(s, team), before);
+  }
+});
+
+test('IPA-foutpad voegt geschoonde diagnose toe en behoudt de afkeuring (synthetische codesign-uitvoer)', () => {
+  const root = mkdtempSync(join(tmpdir(), 'versado-ipa-diagnostic-'));
+  const app = join(root, 'App.app');
+  const childProcess = require('node:child_process');
+  const originalSpawn = childProcess.spawnSync;
+  const s = keychainSigned([wildcardGroup, 'com.apple.token']);
+  const xml = value => {
+    const run = originalSpawn('python3', ['-I', '-c', 'import plistlib,json,sys;sys.stdout.buffer.write(plistlib.dumps(json.load(sys.stdin)))'], { input:JSON.stringify(value), encoding:'utf8' });
+    assert.equal(run.status, 0);
+    return run.stdout;
+  };
+  const entitlementXml = xml(s.entitlements);
+  try {
+    mkdirSync(join(app, 'public'), { recursive:true });
+    writeFileSync(join(app, 'Info.plist'), plistXml({ CFBundleIdentifier:'app.versado.app', CFBundleShortVersionString:'0.2.0', CFBundleVersion:'42' }));
+    writeFileSync(join(app, 'public/build.json'), JSON.stringify(good));
+    // De fixture is geen echte IPA; bundel-/privacyfouten mogen blijven bestaan.
+    for (const groups of [[wildcardGroup, 'com.apple.token'], [appGroup]]) {
+      s.profile.Entitlements['keychain-access-groups'] = groups;
+      const profileXml = xml(s.profile);
+      childProcess.spawnSync = (name, args, options) => {
+        if (name === 'codesign') return { status:0, stdout:args.includes('--entitlements') ? entitlementXml : '', stderr:args.includes('-dvv') ? `Authority=Apple Distribution: Synthetic\nTeamIdentifier=${team}\nIdentifier=app.versado.app\n` : '' };
+        if (name === 'security') return { status:0, stdout:profileXml, stderr:'' };
+        return originalSpawn(name, args, options);
+      };
+      syncBuiltinESMExports();
+      const problems = ipaProblems(app, { root, env:{ IOS_TEAM_ID:team, NATIVE_API_BASE_URL:'https://test.versado-test.com' } });
+      const diagnostic = problems.find(p => p.startsWith('Signingdiagnose (geschoond;'));
+      if (groups.length > 1) {
+        assert.ok(problems.includes('profiel: onverwachte keychain-groep'), JSON.stringify(problems));
+        assert.ok(diagnostic);
+        assert.match(diagnostic, /"apple-token":1/);
+        assert.ok(!diagnostic.includes(team));
+        assert.ok(!diagnostic.includes('com.apple.token'));
+      } else {
+        assert.equal(diagnostic, undefined);
+      }
+    }
+  } finally {
+    childProcess.spawnSync = originalSpawn;
+    syncBuiltinESMExports();
+    rmSync(root, { recursive:true, force:true });
+  }
 });
 
 test('Apple-preflight weigert ontbrekende configuratie zonder sleutelmateriaal te loggen', () => {

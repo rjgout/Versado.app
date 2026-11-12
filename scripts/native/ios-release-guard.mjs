@@ -90,6 +90,67 @@ export function distributionProblems({ entitlements: ent = {}, profile, authorit
   return problems;
 }
 
+// Tijdelijke diagnose bij afkeuring: uitsluitend vaste categorieën, aantallen en
+// vergelijkingsresultaten. Geen ruwe groepen, team-/prefixwaarden of profieldata.
+// TN3125: profielentitlements zijn een allowlist, geen appclaims. De diagnose
+// wijzigt distributionProblems() niet en is nooit een acceptatiebesluit.
+export function distributionDiagnostics({ entitlements: ent = {}, profile, team, identifier }, expectedTeam) {
+  const profileEnt = profile?.Entitlements ?? {};
+  const validPrefix = value => typeof value === "string" && /^[A-Z0-9]{10}$/.test(value);
+  const expectedTeamValid = validPrefix(expectedTeam);
+  const appPrefix = value => {
+    if (typeof value !== "string" || !value.endsWith(`.${APP_ID}`)) return null;
+    const prefix = value.slice(0, -APP_ID.length - 1);
+    return validPrefix(prefix) ? prefix : null;
+  };
+  const declared = profile?.ApplicationIdentifierPrefix;
+  const declaredPrefix = Array.isArray(declared) && declared.length === 1 && validPrefix(declared[0]) ? declared[0] : null;
+  const prefixState = declared === undefined ? "absent"
+    : !Array.isArray(declared) || !declared.every(validPrefix) ? "malformed"
+    : declared.length === 0 ? "empty" : declared.length === 1 ? "single" : "multiple";
+  const app = ent["application-identifier"];
+  const provisionedApp = profileEnt["application-identifier"];
+  const comparePrefix = prefix => prefix !== null && expectedTeamValid ? prefix === expectedTeam : null;
+  const groupsSummary = groups => {
+    if (groups === undefined) return { state: "absent" };
+    if (!Array.isArray(groups)) return { state: "malformed" };
+    const counts = {};
+    for (const group of groups) {
+      const category = typeof group !== "string" ? "malformed"
+        : expectedTeamValid && group === `${expectedTeam}.${APP_ID}` ? "expected-app"
+        : expectedTeamValid && group === `${expectedTeam}.*` ? "expected-wildcard"
+        : group === "com.apple.token" ? "apple-token"
+        : declaredPrefix !== null && group === `${declaredPrefix}.${APP_ID}` ? "profile-prefix-app"
+        : declaredPrefix !== null && group === `${declaredPrefix}.*` ? "profile-prefix-wildcard"
+        : "other";
+      counts[category] = (counts[category] ?? 0) + 1;
+    }
+    return { state: "array", count: groups.length, duplicateCount: groups.length - new Set(groups).size, categories: counts };
+  };
+  const appGroups = ent["keychain-access-groups"];
+  const profileGroups = profileEnt["keychain-access-groups"];
+  // Beschrijft alleen profieldekking, niet of een claim volgens ons beleid mag.
+  const covered = appGroups === undefined ? null : Array.isArray(appGroups) && appGroups.length > 0 && Array.isArray(profileGroups) && appGroups.every(group =>
+    typeof group === "string" && profileGroups.some(allowed => allowed === group ||
+      (typeof allowed === "string" && /^[A-Z0-9]{10}\.\*$/.test(allowed) && group.startsWith(allowed.slice(0, -1)))));
+  return {
+    expectedTeamValid,
+    signingTeamMatchesExpected: expectedTeamValid && team === expectedTeam,
+    bundleIdentifierMatchesExpected: identifier === APP_ID,
+    appIdentifierMatchesExpected: expectedTeamValid && app === `${expectedTeam}.${APP_ID}`,
+    profileIdentifierMatchesExpected: expectedTeamValid && provisionedApp === `${expectedTeam}.${APP_ID}`,
+    appPrefixMatchesExpectedTeam: comparePrefix(appPrefix(app)),
+    profileAppPrefixMatchesExpectedTeam: comparePrefix(appPrefix(provisionedApp)),
+    declaredPrefixState: prefixState,
+    declaredPrefixCount: Array.isArray(declared) ? declared.length : null,
+    declaredPrefixMatchesExpectedTeam: comparePrefix(declaredPrefix),
+    declaredPrefixMatchesAppPrefix: declaredPrefix !== null && appPrefix(app) !== null ? declaredPrefix === appPrefix(app) : null,
+    appKeychain: groupsSummary(appGroups),
+    profileKeychain: groupsSummary(profileGroups),
+    appKeychainCoveredByProfile: covered,
+  };
+}
+
 export function ipaProblems(appDirectory, { env = process.env, root = process.cwd() } = {}) {
   const problems = afterProblems(appDirectory, { root });
   const command = (name, args) => {
@@ -114,7 +175,10 @@ export function ipaProblems(appDirectory, { env = process.env, root = process.cw
     };
     const entitlements = parseOutput(command("codesign", ["-d", "--entitlements", ":-", appDirectory]).stdout);
     const profile = parseOutput(command("security", ["cms", "-D", "-i", join(appDirectory, "embedded.mobileprovision")]).stdout);
-    problems.push(...distributionProblems({ entitlements, profile, authorities: [...details.matchAll(/^Authority=(.+)$/gm)].map((m) => m[1]), team: /^TeamIdentifier=(.+)$/m.exec(details)?.[1], identifier: /^Identifier=(.+)$/m.exec(details)?.[1] }, env.IOS_TEAM_ID));
+    const signing = { entitlements, profile, authorities: [...details.matchAll(/^Authority=(.+)$/gm)].map((m) => m[1]), team: /^TeamIdentifier=(.+)$/m.exec(details)?.[1], identifier: /^Identifier=(.+)$/m.exec(details)?.[1] };
+    const distribution = distributionProblems(signing, env.IOS_TEAM_ID);
+    problems.push(...distribution);
+    if (distribution.length > 0) problems.push(`Signingdiagnose (geschoond; geen acceptatiebesluit): ${JSON.stringify(distributionDiagnostics(signing, env.IOS_TEAM_ID))}`);
   } catch { problems.push("onafhankelijke IPA-/signingcontrole mislukt (geen profiel- of sleutelmateriaal gelogd)"); }
   return problems;
 }
