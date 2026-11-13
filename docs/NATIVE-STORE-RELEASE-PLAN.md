@@ -524,8 +524,13 @@ omgeving `android-play-test` met goedkeurders, `NATIVE_STORE_TEST_API_ORIGIN` na
 
 ## 8. Vereiste fysieke apparaattests
 
-Geen enkele test hieronder is vandaag uitgevoerd. De resultaten komen in `docs/NATIVE-DEVICE-TEST-REPORT.md`
-(`device-test-report`); een Chromium- of simulatortest vervangt dit nooit.
+**Update 13 november 2026:** de eigenaar heeft de eerste zeven iPhone-scenario's op
+TestFlight-versie `0.1.0 (11)` foutloos bevestigd. Dit staat met bewijsgrenzen in
+[het fysieke testverslag](NATIVE-DEVICE-TEST-REPORT.md); de uitgebreide iOS-, iPad-
+en Android-matrix is **niet** afgerond. De releaseblokkade `device-test-report`
+blijft open totdat alle vereiste apparaatscenario's expliciet als volledig
+beoordeeld zijn vastgelegd. Een Chromium- of simulatortest vervangt dit nooit.
+Zie [TestFlight-fase 2](NATIVE-TESTFLIGHT-FASE-2.md) voor de testvolgorde.
 
 | Apparaat (minimaal) | OS |
 |---|---|
