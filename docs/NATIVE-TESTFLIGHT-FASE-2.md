@@ -1,10 +1,14 @@
-# Versado TestFlight — fase 2: stabiliteit en apparaatacceptatie
+# Versado TestFlight — fase 2: volledige functiepariteit en apparaatacceptatie
 
 **Start:** 13 november 2026, na installatie van iOS TestFlight `0.1.0 (11)`.
 **Bron:** `develop` commit `fea24e027e027f0b8d6b2a3cabe250937eec7cca`.
 **Uitgangspunt:** de eigenaar bevestigde zeven foutloos verlopen eerste iPhone-proeven;
-zie [toestelrapport](NATIVE-DEVICE-TEST-REPORT.md). Dit is een operationeel
-testplan, geen automatische implementatieopdracht of releasegoedkeuring.
+zie [toestelrapport](NATIVE-DEVICE-TEST-REPORT.md). Op 13 november 2026 heeft
+de eigenaar daarnaast expliciet besloten dat **alle beschikbare webappfuncties
+ook op iOS beschikbaar moeten worden**, in plaats van de uitgeklede eerste
+TestFlight-interface. [Issue #238](https://github.com/rjgout/Versado.app/issues/238)
+is de uitvoeringsopdracht. Dit document is test- en releaseplanning, geen
+automatische implementatieopdracht of releasegoedkeuring.
 
 ## Grenzen die ongewijzigd blijven
 
@@ -12,13 +16,41 @@ testplan, geen automatische implementatieopdracht of releasegoedkeuring.
   de afgescheiden testomgeving. Geen productieaccounts/-data overnemen.
 - `develop` en `main` blijven gescheiden; publieke `release` blijft
   geblokkeerd met `releaseApproved:false`. Geen automatische signingrun of upload.
-- Kritieke bevindingen eerst reproduceren en als kleine reviewbare GitHub-PR
-  repareren; geen grote feature-uitbreiding tijdens deze stabilisatieronde.
+- Kritieke bevindingen blijven P0/P1-werk. **Featurepariteit is nu juist de
+  hoofddoelstelling**: implementeer iedere ontbrekende webfunctie als complete,
+  reviewbare, getest gedeelde web/native verticale slice. Geen placeholders,
+  remote WebView, generieke cookie-/Bearer-bypass of eigen nieuwe spelregels.
 - Testers, toestelidentiteiten, e-mailadressen, tokens en persoonsdata niet
   in openbaar toegankelijke GitHub-documentatie opnemen.
 - De bestaande functiepariteit en [multiplatformopdracht #238](https://github.com/rjgout/Versado.app/issues/238)
   blijven leidend. [Optie B](NATIVE-MOBILE-1-0-OPTIE-B.md) is een
-  **voorstel** voor tijdelijke uitzonderingen, niet automatisch formeel aangenomen.
+  **voorstel** voor tijdelijke uitzonderingen, niet formeel aangenomen en geen
+  grond om webfuncties voor iOS uit te sluiten.
+
+## Prioriteit 0 — van uitgeklede TestFlight naar volledige iOS-app
+
+De huidige `0.1.0 (11)` is de **distributie- en basisrooktest**, niet de
+productvolledige iOS-app. Bestaande iOS-code heeft grotendeels Vandaag en Leren;
+de volledige webnavigatie en veel scherm-/actiecontracten ontbreken. De eigenaar
+wil dat de volgende builds zichtbare functionele vooruitgang geven en dat het
+**uiteindelijke doel 100% functiepariteit** blijft; geen web-only uitzonderingen
+zonder een afzonderlijk expliciet eigenaarbesluit.
+
+[Issue #238 — geactualiseerde uitvoeringsopdracht](https://github.com/rjgout/Versado.app/issues/238#issuecomment-6847979708)
+beschrijft het hergebruik van echte gedeelde React-weergaven, domein-/backendregels,
+strikte native sessie- en autorisatiepoorten, pariteitstabel en kleine code-PR's.
+Prioriteer de ontbrekende gebruikerservaring in bestaande webonderdelen:
+volledig profiel/instellingen, Vandaag/Leren/CFM/lezer; daarna alle Spelen,
+Vrienden/groepen/social/multiplayer, overige tools, Dorp, Lofzangen, studiemap,
+FSY, meldingen/push, en bestaande autorisatiegebonden beheerschermen. Alle
+daadwerkelijk bereikbare webfuncties moeten worden getrieerd; geen stilzwijgend
+wegstrepen van iets dat lastig is.
+
+Elke tussenbuild kan nog onvolledig zijn en wordt als zodanig gelabeld. Alleen
+volledig werkende routes worden zichtbaar. Een volgende TestFlight-upload volgt
+pas na een inhoudelijke code-PR met groen gerichte CI, onafhankelijke review en
+afzonderlijke toestemming van de eigenaar. De bestaande signing-/uploadketen,
+Apple-certificaten en `develop`/productiescheiding blijven intact.
 
 ## Stap A — Dieptetest op dezelfde iPhone (WP15, prioriteit P0)
 
@@ -85,7 +117,8 @@ Een geslaagde upload/rooktest is geen vrijgave van deze verplichtingen.
 | Na stap C | Samenvatting stabiliteit, feedback/crashes en gesloten bugs | Wel/niet externe TestFlight |
 | Na stap D | Releasechecklist, privacy/pariteit en onafhankelijke review | Afzonderlijk besluit over `main` en App Store |
 
-**Nu eerst:** noteer het exacte iPhone-model en iOS-versie in het verslag,
-voer de dieptetests van stap A uit en registreer bevindingen. Geen nieuw
+**Nu eerst:** start een echte, gebruikerszichtbare **implementatie-PR** vanuit
+actuele `develop` volgens #238, parallel aan gerichte P0-dieptetests. Het reeds
+vastgelegde testtoestel is iPhone 17 Pro Max op iOS 27.2.1. Er is geen nieuw
 certificaat, provisioningprofiel, infrastructuur, backenddeployment of
 TestFlight-upload nodig voor deze documentatiestap.
