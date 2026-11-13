@@ -1,3 +1,4 @@
+import {logoutNativeProfile,serveNativeProfileAsset} from "./fixtures/native-profile-browser-actions.mjs";
 // Echte Next-SSR naast dezelfde lokaal gebundelde CFM-view; uitsluitend eigen testdatabase.
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
@@ -22,6 +23,7 @@ const css=readFileSync('dist/native/index.css'),secrets=new Map(),calls=[],error
 let failOverview=false,holdNext=false,held=[];let oldBackend=false;let courseFailure=0,catalogFailure=0;
 const front=createServer(async(req,res)=>{try{
  const url=new URL(req.url,'http://127.0.0.1');
+ if(serveNativeProfileAsset(url.pathname,res))return;
  if(url.pathname.startsWith('/api/v1/native/')){
   const record={method:req.method,path:url.pathname};calls.push(record);
   if(catalogFailure && url.pathname==='/api/v1/native/courses'){res.writeHead(catalogFailure,{'Content-Type':'application/json'});res.end(JSON.stringify({error:'native_request_failed'}));return;}
@@ -87,7 +89,7 @@ try {
   if(language==='nl') {
    oldBackend=true;await page.reload();await page.getByText(t('nativeLearning.pathUnavailable'),{exact:true}).waitFor();assert.equal(await page.locator('[data-cfm-week-path]').count(),0);oldBackend=false;await page.reload();await page.locator('[data-cfm-week-path]').waitFor();
    await page.waitForLoadState('networkidle');holdNext=true;await page.evaluate(()=>window.dispatchEvent(new Event('versado:app-resumed')));for(let i=0;i<150&&!held.length;i++)await new Promise(r=>setTimeout(r,20));assert.equal(held.length,1);
-   const other=await fx.account('nl');await page.locator('[data-subpage-back-bar] button').click();await page.locator('a[data-kompas-target="profile"]:visible').click();await page.getByRole('button',{name:t('nativeFoundation.logout'),exact:true}).click();await page.locator('form').waitFor();await page.getByLabel(t('nativeFoundation.email')).fill(other.email);await page.getByLabel(t('nativeFoundation.password'),{exact:true}).fill(fx.password);await page.getByRole('button',{name:t('nativeFoundation.login'),exact:true}).click();await page.locator('[data-today-overview]').waitFor();
+   const other=await fx.account('nl');await page.locator('[data-subpage-back-bar] button').click();await page.locator('a[data-kompas-target="profile"]:visible').click();await logoutNativeProfile(page,t);await page.locator('form').waitFor();await page.getByLabel(t('nativeFoundation.email')).fill(other.email);await page.getByLabel(t('nativeFoundation.password'),{exact:true}).fill(fx.password);await page.getByRole('button',{name:t('nativeFoundation.login'),exact:true}).click();await page.locator('[data-today-overview]').waitFor();
    await page.locator('[data-main-nav]').getByRole('link',{name:t('nav.learn'),exact:true}).click();await page.locator(`.card-title-link[href="#/courses/${fx.steps.id}"]`).click();await page.locator('[data-cfm-week-path]').waitFor();for(const finish of held.splice(0))finish();await page.waitForLoadState('networkidle');assert.equal((await page.locator('main').innerText()).includes('LATE ACCOUNT A'),false);
   }
   console.log(`CFM browser ${language}: weken, archief, vrije studie en isolatie gecontroleerd`);await context.close();

@@ -1,3 +1,4 @@
+import {logoutNativeProfile,serveNativeProfileAsset} from "./fixtures/native-profile-browser-actions.mjs";
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import {createServer} from 'node:http';
@@ -28,6 +29,7 @@ const stylesheet=readFileSync('dist/native/index.css');
 const front=createServer(async(req,res)=>{
  try{
   const url=new URL(req.url,'http://127.0.0.1');
+ if(serveNativeProfileAsset(url.pathname,res))return;
   if(url.pathname.startsWith('/native-bridge/')){
    const chunks=[];for await(const chunk of req)chunks.push(chunk);const {options}=JSON.parse(Buffer.concat(chunks).toString());
    let value;try{
@@ -103,7 +105,7 @@ try{
     holdNextChapterRead=true;await page.evaluate(()=>window.dispatchEvent(new Event('wp6:test-resume')));
     for(let attempt=0;heldReads.length===0&&attempt<100;attempt++)await delay(10);
     assert.equal(heldReads.length,1,'Een bestaand leesantwoord van A wordt daadwerkelijk vertraagd');
-    await openProfile();await page.getByRole('button',{name:t('nativeFoundation.logout'),exact:true}).click();await page.getByRole('heading',{name:t('nativeFoundation.welcome'),exact:true}).waitFor();
+    await openProfile();await logoutNativeProfile(page,t);await page.getByRole('heading',{name:t('nativeFoundation.welcome'),exact:true}).waitFor();
     await page.getByLabel(t('nativeFoundation.email')).fill(other.email);await page.getByLabel(t('nativeFoundation.password'),{exact:true}).fill(password);await page.getByRole('button',{name:t('nativeFoundation.login'),exact:true}).click();await page.getByRole('heading',{name:t('nativeFoundation.today')+', '+other.handle,exact:true}).waitFor();
     assert.equal(await page.getByText('Synthetische WP6-passage 1.',{exact:false}).count(),0,'Account B toont geen hoofdstukcache van A');
     await openChapter(chapters[0]);await page.getByText('Synthetische WP6-passage 1.',{exact:false}).waitFor();
@@ -122,7 +124,7 @@ try{
     assert.equal(completions(),completedBefore,'Hervatten, accountwisseling en late leesantwoorden veroorzaken geen afrondings-POST');
     await openChapter(chapters[1]);await page.getByText('Synthetische WP6-passage 2.',{exact:false}).waitFor();
     assert.equal(await page.getByText('Synthetische WP6-passage 1.',{exact:false}).count(),0,'Andere concrete hoofdstukidentiteit toont nooit vorige tekst');
-    await openProfile();await page.getByRole('button',{name:t('nativeFoundation.logout'),exact:true}).click();await page.getByRole('heading',{name:t('nativeFoundation.welcome'),exact:true}).waitFor();
+    await openProfile();await logoutNativeProfile(page,t);await page.getByRole('heading',{name:t('nativeFoundation.welcome'),exact:true}).waitFor();
     await page.getByLabel(t('nativeFoundation.email')).fill(user.email);await page.getByLabel(t('nativeFoundation.password'),{exact:true}).fill(password);await page.getByRole('button',{name:t('nativeFoundation.login'),exact:true}).click();await page.getByRole('heading',{name:t('nativeFoundation.today')+', '+user.handle,exact:true}).waitFor();
     gate.revoke();await page.reload();await page.getByRole('alert').filter({hasText:t('nativeAccess.denied')}).waitFor();
     assert.ok(sessions.get(device),'Access-intrekking wist de Versado-refreshstaat niet');

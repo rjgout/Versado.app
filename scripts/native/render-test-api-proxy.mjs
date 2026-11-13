@@ -7,13 +7,13 @@ export const TEST_API_HOST = 'api-test.versado.app'; // Voorstel; eigenaar moet 
 const id = '[A-Za-z0-9_-]{1,128}';
 const reader = `courses/${id}/read/(?:steps|chapters)/${id}`;
 export const routes = [
-  ['GET', '(?:capabilities|me|today|today-overview|content-context|courses)'],
+  ['GET', '(?:capabilities|me|today|today-overview|profile|content-context|courses)'],
   ['GET', `(?:chapters|study-media)/${id}`],
   ['GET', `courses/${id}/(?:path|weeks|archive)`],
   ['GET', `courses/${id}/weeks/${id}/steps`],
   ['GET', `${reader}(?:/audio(?:/playback)?|/annotations(?:/${id})?|/resume)?`],
   ['GET', `${reader}/learning/sessions/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}`],
-  ['POST', '(?:login|register|forgot-password|reset-password|verify-email|refresh|logout|security-setup/(?:complete|cancel)|apple/(?:challenge|complete)|account/password|realtime/session|content-context|today-actions/(?:hide|friend-response))'],
+  ['POST', '(?:login|register|forgot-password|reset-password|verify-email|refresh|logout|security-setup/(?:complete|cancel)|apple/(?:challenge|complete)|account/password|profile(?:/two-factor)?|realtime/session|content-context|today-actions/(?:hide|friend-response))'],
   ['POST', `chapters/${id}/complete`],
   ['POST', `${reader}/(?:learning/(?:start|submit|read|check)|annotations|position)`],
   ['DELETE', '(?:apple|account)'], // account blijft 404 totdat WP4 bewust geïntegreerd is.

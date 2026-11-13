@@ -61,7 +61,8 @@ try {
   await check('/api/v1/native/capabilities',403,'GET',{Origin:'https://dev.versado.app'});
   await check('/api/v1/native/capabilities',404,'GET',{Host:'dev.versado.app'});
   await check('/api/v1/native/capabilities',404,'DELETE');
-  for(const [path,method] of [['capabilities','GET'],['login','POST'],['refresh','POST'],['logout','POST'],['account','DELETE'],['courses/c/read/chapters/ch/audio/playback','GET'],[`courses/c/read/chapters/ch/audio/${'a'.repeat(64)}/stream`,'GET'],['realtime/session','POST']])await check('/api/v1/native/'+path,200,method);
+  for(const [path,method] of [['capabilities','GET'],['login','POST'],['refresh','POST'],['logout','POST'],['account','DELETE'],['courses/c/read/chapters/ch/audio/playback','GET'],[`courses/c/read/chapters/ch/audio/${'a'.repeat(64)}/stream`,'GET'],['realtime/session','POST'],['profile','GET'],['profile','POST'],['profile/two-factor','POST']])await check('/api/v1/native/'+path,200,method);
+  for(const [path,method] of [['profile','PATCH'],['profile','DELETE'],['profile/two-factor','GET'],['profile/two-factor/disable','POST'],['profile?userId=other','GET'],['profile%2ftwo-factor','POST']])await check('/api/v1/native/'+path,404,method);
   const r=await check('/api/v1/native/capabilities',200,'GET',{Cookie:'web-session=secret','CF-Access-Client-Secret':'secret',Authorization:'Bearer synthetic',Range:'bytes=0-9','X-Forwarded-Host':'dev.versado.app'});
   assert.deepEqual(JSON.parse(r.body),{cookie:'',cf:'',authorization:'Bearer synthetic',range:'bytes=0-9',host:TEST_API_HOST});assert.equal(r.headers['set-cookie'],undefined);
   await check('/socket.io/?EIO=4&transport=websocket',200);

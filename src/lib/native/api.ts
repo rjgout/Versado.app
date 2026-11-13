@@ -1,56 +1,58 @@
-import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
-import { HANDLE_MIN_LENGTH, HANDLE_MAX_LENGTH } from "@/lib/handle";
-import { prisma } from "@/lib/db";
-import { readingAccessWhere } from "@/lib/contentAccess";
-import { completeChapterReading, getChapterState } from "@/lib/learning/contentProgress";
-import { clientIp, failureLockSeconds, registerFailure } from "@/lib/rateLimit";
-import { hashSecret, issueNativeSession, nativeUser, nativeSessionIdentity, NativeAuthError, rotateNativeSession } from "./sessions";
-import { nativePasswordLogin, nativePasswordProof } from "./password";
-import { cancelNativeSecuritySetup, finishNativeSecuritySetup, nativeSignInResult } from "./securitySetup";
-import { nativeSetupFinishSchema } from "./contract";
-import { saveListPreferences } from "@/lib/listPreferences.server";
-import { FriendRequestError, respondFriendRequest } from "@/lib/social/friendRequests";
-import { nativeTodayHideSchema, nativeFriendResponseSchema } from "./todayActionsContract";
-import { nativeStudyCourse, nativeStudySteps } from "./studyCourses.server";
-import { nativeLearningStart, nativeLearningSubmit, nativeLearningCheck } from "./learningContract";
-import { startNativeLearning, submitNativeLearning, completeNativeReading, checkNativeLearning, nativeLearningSession } from "./learning.server";
-import { ExerciseSessionError } from "@/lib/learning/contentProgress";
+import { accountDeletionSchema,passwordChangeSchema } from "@/lib/account/contracts";
+import { AccountDeletionError,deleteAccountWithReauthentication } from "@/lib/account/deletion";
+import { confirmAccountEmail } from "@/lib/account/emailConfirmation";
+import { AccountPasswordError,changeAccountPassword } from "@/lib/account/password";
+import { passwordResetSchema } from "@/lib/account/passwordReset";
+import { manageTwoFactor,TwoFactorSettingsError } from "@/lib/account/twoFactor";
+import { twoFactorCommand } from "@/lib/account/twoFactorContract";
 import { AnnotationError } from "@/lib/annotations/service";
-import { nativeReaderAnnotations, mutateNativeReaderAnnotation } from "./annotations.server";
+import { hashPassword,verifyPassword } from "@/lib/auth";
+import { authBudget,authBudgetKey } from "@/lib/authBudget";
+import { resetPasswordWithToken } from "@/lib/authTokens";
+import { getBaseUrl } from "@/lib/baseUrl";
+import { readingAccessWhere } from "@/lib/contentAccess";
+import { ContentSelectionConflict,getContentPickerContext } from "@/lib/contentCollections";
+import { prisma } from "@/lib/db";
+import { isEmailConfigured } from "@/lib/email";
+import { HANDLE_MAX_LENGTH,HANDLE_MIN_LENGTH } from "@/lib/handle";
+import { completeChapterReading,ExerciseSessionError,getChapterState } from "@/lib/learning/contentProgress";
+import { saveListPreferences } from "@/lib/listPreferences.server";
+import { clientIp,failureLockSeconds,registerFailure } from "@/lib/rateLimit";
+import { disconnectUserSockets } from "@/lib/realtime";
+import { findOpenPendingRegistration,resendPendingVerification } from "@/lib/registration";
+import { FriendRequestError,respondFriendRequest } from "@/lib/social/friendRequests";
+import { NextRequest,NextResponse } from "next/server";
+import { z } from "zod";
+import { mutateNativeReaderAnnotation,nativeReaderAnnotations } from "./annotations.server";
 import { nativeAnnotationMutation } from "./annotationsContract";
-import { nativeReaderResume, saveNativeReaderPosition } from "./readerPosition.server";
-import { readerPositionInput } from "./readerPositionContract";
-import { nativeReaderAudio, nativeReaderPlayback, streamNativeReaderAudio, nativeAudioPrepareBudget } from "./audio.server";
+import { appleConfiguration,createAppleChallenge,finishAppleChallenge,unlinkApple } from "./apple";
+import { nativeAudioPrepareBudget,nativeReaderAudio,nativeReaderPlayback,streamNativeReaderAudio } from "./audio.server";
+import { getNativeContentState,selectNativeContent } from "./content.server";
+import { nativeContentSelectionSchema,nativeSetupFinishSchema } from "./contract";
+import { nativeCoursePath,nativeCourses } from "./courses.server";
+import { nativeCourseId } from "./coursesContract";
+import { checkNativeLearning,completeNativeReading,nativeLearningSession,startNativeLearning,submitNativeLearning } from "./learning.server";
+import { nativeLearningCheck,nativeLearningStart,nativeLearningSubmit } from "./learningContract";
+import { nativePasswordLogin,nativePasswordProof } from "./password";
+import { getNativeProfile,mutateNativeProfile,ProfileSettingsError } from "./profile.server";
+import { nativeProfileAction } from "./profileContract";
 import { nativeScriptureReader } from "./reader.server";
 import { nativeReaderKind } from "./readerContract";
-import { nativeCourses, nativeCoursePath } from "./courses.server";
-import { nativeCourseId } from "./coursesContract";
+import { nativeReaderResume,saveNativeReaderPosition } from "./readerPosition.server";
+import { readerPositionInput } from "./readerPositionContract";
+import { cancelNativeSecuritySetup,finishNativeSecuritySetup,nativeSignInResult } from "./securitySetup";
+import { hashSecret,issueNativeSession,NativeAuthError,nativeSessionIdentity,nativeUser,rotateNativeSession } from "./sessions";
+import { nativeShellHeader } from "./shellHeader.server";
+import { nativeStudyCourse,nativeStudySteps } from "./studyCourses.server";
 import { nativeStudyImage } from "./studyMedia.server";
 import { nativeStudyMediaId } from "./studyMediaContract";
 import { getNativeTodayOverview } from "./today.server";
-import { getNativeContentState, selectNativeContent } from "./content.server";
-import { nativeContentSelectionSchema } from "./contract";
-import { ContentSelectionConflict, getContentPickerContext } from "@/lib/contentCollections";
-import { nativeShellHeader } from "./shellHeader.server";
-import { AccountPasswordError, changeAccountPassword } from "@/lib/account/password";
-import { hashPassword, verifyPassword } from "@/lib/auth";
-import { findOpenPendingRegistration, resendPendingVerification } from "@/lib/registration";
-import { isEmailConfigured } from "@/lib/email";
-import { getBaseUrl } from "@/lib/baseUrl";
-import { confirmAccountEmail } from "@/lib/account/emailConfirmation";
-import { passwordResetSchema } from "@/lib/account/passwordReset";
-import { resetPasswordWithToken } from "@/lib/authTokens";
-import { disconnectUserSockets } from "@/lib/realtime";
-import { accountDeletionSchema, passwordChangeSchema } from "@/lib/account/contracts";
-import { AccountDeletionError, deleteAccountWithReauthentication } from "@/lib/account/deletion";
-import { authBudget, authBudgetKey } from "@/lib/authBudget";
-import { appleConfiguration, createAppleChallenge, finishAppleChallenge, unlinkApple } from "./apple";
+import { nativeFriendResponseSchema,nativeTodayHideSchema } from "./todayActionsContract";
 
-import { issueSocketTicket } from "./socketTickets";
-import { nativeSocketEnabled } from "./socketAuth";
 import { nativeOriginAllowed } from "./origin";
-export { NATIVE_ORIGINS, nativeOriginAllowed } from "./origin";
+import { nativeSocketEnabled } from "./socketAuth";
+import { issueSocketTicket } from "./socketTickets";
+export { NATIVE_ORIGINS,nativeOriginAllowed } from "./origin";
 const credentials = { password: z.string().min(1).max(256), code: z.string().min(1).max(100).optional() };
 const refresh = z.object({ refreshToken: z.string().min(1).max(128), actionId: z.uuid() }).strict();
 const budgets = new Map<string, { n: number; until: number }>();
@@ -91,7 +93,7 @@ export async function nativeApi(req: NextRequest, parts: string[]): Promise<Next
   const ip = hashSecret(clientIp(req)), failureKey = `native-auth:${ip}`;
   try {
     if (mutation && req.headers.get("content-type")?.split(";")[0] !== "application/json") throw new NativeAuthError("json_required", 415);
-    if (req.method === "GET" && path === "capabilities") return json({ apiVersion: 1, apple: !!appleConfiguration(), registration: true, features: ["scripture-learning-v1", "scripture-audio-v1", "scripture-annotations-v1", "scripture-reading-position-v1", "scripture-reader-v1", "study-course-overview-v1", "courses-overview-v1", "study-media-v1", "today-actions-v1", "today-overview-v1", "content-picker-v1", "security-setup-v1", "account-password-v1", "account-deletion-v1", "password-reset-v1", "email-confirmation-v1", ...(nativeSocketEnabled() ? ["realtime-ticket-v1"] : [])] });
+    if (req.method === "GET" && path === "capabilities") return json({ apiVersion: 1, apple: !!appleConfiguration(), registration: true, features: ["scripture-learning-v1", "scripture-audio-v1", "scripture-annotations-v1", "scripture-reading-position-v1", "scripture-reader-v1", "study-course-overview-v1", "courses-overview-v1", "study-media-v1", "today-actions-v1", "today-overview-v1", "content-picker-v1", "security-setup-v1", "account-password-v1", "account-deletion-v1", "password-reset-v1", "email-confirmation-v1", "profile-settings-v1", ...(nativeSocketEnabled() ? ["realtime-ticket-v1"] : [])] });
     if (req.method === "POST" && path === "login") {
       if (failureLockSeconds(failureKey, 30)) throw new NativeAuthError("too_many_attempts", 429);
       const input = z.object({ identifier: z.string().trim().min(1).max(320), ...credentials, supportsSecuritySetup: z.boolean().optional() }).strict().parse(await body(req));
@@ -187,6 +189,23 @@ export async function nativeApi(req: NextRequest, parts: string[]): Promise<Next
       return json(await issueSocketTicket(header.slice(7)));
     }
     const user = await authenticated(req);
+    if (path === "profile/two-factor" && req.method === "POST") {
+      if(req.nextUrl.search)throw new NativeAuthError("invalid_input",400);
+      const limited=await authBudget(authBudgetKey("native-profile-totp",user.id),15,15*60_000);
+      if(limited)throw new NativeAuthError(limited.status===503?"security_check_unavailable":"too_many_attempts",limited.status);
+      const {binding}=await nativeSessionIdentity(req.headers.get("authorization")!.slice(7));
+      try{return json({version:1,userId:user.id,result:await manageTwoFactor({userId:user.id,nativeSession:binding},twoFactorCommand.parse(await body(req)))});}
+      catch(error){if(!(error instanceof TwoFactorSettingsError))throw error;return json({error:error.key},error.status);}
+    }
+    if (path === "profile" && ["GET", "POST"].includes(req.method)) {
+      if (req.nextUrl.search) throw new NativeAuthError("invalid_input",400);
+      const limited = await authBudget(authBudgetKey("native-profile", user.id),60,60_000);
+      if (limited) throw new NativeAuthError(limited.status === 503 ? "security_check_unavailable" : "too_many_attempts",limited.status);
+      const { binding } = await nativeSessionIdentity(req.headers.get("authorization")!.slice(7));
+      if (req.method === "GET") return json(await getNativeProfile(binding));
+      try { return json(await mutateNativeProfile(binding, nativeProfileAction.parse(await body(req)))); }
+      catch (error) { if (!(error instanceof ProfileSettingsError)) throw error; return json({ error:error.key },error.status); }
+    }
     if (parts[0] === "courses" && parts[2] === "read" && parts[5] === "learning" &&
       ((req.method === "POST" && parts.length === 7 && ["start", "submit", "read", "check"].includes(parts[6])) ||
        (req.method === "GET" && parts.length === 8 && parts[6] === "sessions"))) {

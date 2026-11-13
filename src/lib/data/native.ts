@@ -1,24 +1,26 @@
+import { twoFactorCommand,type TwoFactorCommand } from "@/lib/account/twoFactorContract";
+import { nativeProfileAction,nativeProfileActionResult,nativeProfileSchema,nativeProfileTwoFactorResult,type NativeProfileMutation } from "@/lib/native/profileContract";
 // Native adapter van dezelfde LiveDataStore als web. Geen cookiesocket,
 // web-API-fallback, opslag of tweede voortgangs-/beloningssysteem.
+import { NativeClientError,type NativeSessionClient } from "@/lib/native/client";
+import { nativeAccountSchema,nativeChapterSchema,nativeContentResultSchema,nativeContentSelectionSchema,nativeContentStateSchema,nativeTodaySchema,type NativeContentSelection,type NativeContentState } from "@/lib/native/contract";
+import { nativeStudyDataUrl,nativeStudyMediaId } from "@/lib/native/studyMediaContract";
 import { nativeTodayActionResultSchema } from "@/lib/native/todayActionsContract";
 import type { NativeTodayOverview } from "@/lib/native/todayContract";
-import { nativeStudyMediaId, nativeStudyDataUrl } from "@/lib/native/studyMediaContract";
 import { nativeTodayOverviewSchema } from "@/lib/native/todayContract";
 import type { Socket } from "socket.io-client";
-import { LiveDataStore, serializeKey, type LiveEnvironment, type QueryKey } from "./store";
-import { DATA_EVENT_SOCKET_NAME, SOCKET_EVENT_TO_DATA_EVENT, dataEventsForSocketEvent, isDataEvent, type DataEvent, type DataScope } from "./scopes";
-import { nativeAccountSchema, nativeTodaySchema, nativeChapterSchema, nativeContentStateSchema, nativeContentResultSchema, nativeContentSelectionSchema, type NativeContentState, type NativeContentSelection } from "@/lib/native/contract";
-import { NativeClientError, type NativeSessionClient } from "@/lib/native/client";
+import { DATA_EVENT_SOCKET_NAME,SOCKET_EVENT_TO_DATA_EVENT,dataEventsForSocketEvent,isDataEvent,type DataEvent,type DataScope } from "./scopes";
+import { LiveDataStore,serializeKey,type LiveEnvironment,type QueryKey } from "./store";
 
-import { nativeAnnotationList, nativeAnnotationResult, nativeAnnotationMutation, nativeAnnotationContext, type NativeAnnotationList } from "@/lib/native/annotationsContract";
 import type { AnnotationAction } from "@/lib/annotations/contract";
-import { nativePlaybackSchema, type NativePlayback } from "@/lib/native/audioPlaybackContract";
-import {NativeLearningFlow} from "@/lib/native/learningFlow";
+import { nativeAnnotationContext,nativeAnnotationList,nativeAnnotationMutation,nativeAnnotationResult,type NativeAnnotationList } from "@/lib/native/annotationsContract";
+import { nativePlaybackSchema,type NativePlayback } from "@/lib/native/audioPlaybackContract";
+import { nativeCourseId,nativeCoursePathSchema,nativeCoursesSchema } from "@/lib/native/coursesContract";
+import { NativeLearningFlow } from "@/lib/native/learningFlow";
 import type { NativeReader } from "@/lib/native/readerContract";
-import { readerResumeSchema, readerPositionInput, readerPositionResult, type ReaderResume, type ReaderPositionInput } from "@/lib/native/readerPositionContract";
-import { nativeReaderSchema, nativeReaderKind, type NativeReaderKind } from "@/lib/native/readerContract";
-import { nativeStudyCourseSchema, nativeStudyStepsSchema } from "@/lib/native/studyCoursesContract";
-import { nativeCoursesSchema, nativeCoursePathSchema, nativeCourseId } from "@/lib/native/coursesContract";
+import { nativeReaderKind,nativeReaderSchema,type NativeReaderKind } from "@/lib/native/readerContract";
+import { readerPositionInput,readerPositionResult,readerResumeSchema,type ReaderPositionInput,type ReaderResume } from "@/lib/native/readerPositionContract";
+import { nativeStudyCourseSchema,nativeStudyStepsSchema } from "@/lib/native/studyCoursesContract";
 
 /** Gescheiden resources, ook wanneer een geldige cursus-ID "list" of "overview" is. */
 export const nativeLearningQueryKey = (userId: string, language: string, context: { activeCollectionId: string | null; selectionVersion: number } | undefined, courseId?: string) =>
@@ -48,13 +50,14 @@ export const nativeTodayQueryKey = (state: Pick<NativeTodayOverview, "userId" | 
 export class NativeDataRuntime {
   readonly store: LiveDataStore;
   private epoch = 0;
+  private profileSignal: ((event:"friend_profile_changed"|"presence_settings_changed")=>void)|undefined;
   private activeLearning: NativeLearningFlow | null = null;
   private pendingTodayActions = new Set<string>();
   private listeners = new Set<() => void>();
   constructor(readonly client: NativeSessionClient, private readonly environment: LiveEnvironment) { this.store = new LiveDataStore(environment); }
   getSnapshot = () => this.epoch;
   subscribe = (listener: () => void) => { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; };
-  reset = () => { this.activeLearning?.dispose(); this.activeLearning=null; this.epoch++; this.store.reset(); for (const listener of this.listeners) listener(); };
+  reset = () => { this.profileSignal=undefined;this.activeLearning?.dispose(); this.activeLearning=null; this.epoch++; this.store.reset(); for (const listener of this.listeners) listener(); };
   learningFlow(reader:NativeReader) {
     const epoch=this.epoch,stamp=this.client.getSessionStamp();
     const key=["native",epoch,"scripture-learning-flow",stamp,reader.userId,reader.activeCollectionId,reader.selectionVersion,reader.language,reader.courseId,reader.kind,reader.targetId,reader.chapterId,reader.startVerse,reader.endVerse] as const;
@@ -178,6 +181,49 @@ export class NativeDataRuntime {
     if(value.courseId!==courseId || value.editionId!==editionId || value.revisionId!==revisionId)throw new NativeClientError("content_context_changed",409);
     return this.studyResponse(value,epoch,userId,language,expected);
   }
+  /** Zoals Vandaag-acties: de epoch wordt bij render gebonden, niet pas na een late bevestiging. */
+  profileActions(userId:string) {
+    const epoch=this.epoch, stamp=this.client.getSessionStamp();
+    const current=()=>{if(epoch!==this.epoch || stamp!==this.client.getSessionStamp())throw new NativeClientError("session_changed",409);};
+    return {
+      read:async()=>{current();const result=await this.profile(userId);current();return result;},
+      mutate:async(input:NativeProfileMutation)=>{current();const result=await this.mutateProfile(userId,input);current();return result;},
+      // Geen leesverversing starten nadat de server onze sessie intrekt.
+      // De bestaande lokale logout wist vervolgens RAM en beschermde opslag.
+      // Ook dit antwoord blijft volledig aan render-epoch en sessiestamp gebonden.
+      logoutAll:async()=>{
+        current();
+        const result=nativeProfileActionResult.parse(await this.client.actionOnce("profile",{kind:"logout-all"}));
+        current();
+        if(result.userId!==userId)throw new NativeClientError("session_changed",409);
+        return result;
+      },
+      twoFactor:async(input:TwoFactorCommand)=>{current();const result=await this.profileTwoFactor(userId,input);current();return result;},
+      contentLanguage:async(input:NativeContentSelection)=>{current();const result=await this.selectContent(userId,input);current();this.store.invalidate(["profile"]);return result;},
+    };
+  }
+  private async profileTwoFactor(userId:string,input:TwoFactorCommand) {
+    return this.mutation(async()=>{
+      const value=nativeProfileTwoFactorResult.parse(await this.client.actionOnce("profile/two-factor",twoFactorCommand.parse(input)));
+      if(value.userId!==userId)throw new NativeClientError("session_changed",409);
+      return value.result;
+    },["profile"]);
+  }
+  private async profile(userId:string) {
+    const epoch=this.epoch, value=nativeProfileSchema.parse(await this.client.api("profile"));
+    if(epoch!==this.epoch || value.userId!==userId)throw new NativeClientError("session_changed",409);
+    return value;
+  }
+  private async mutateProfile(userId:string,input:NativeProfileMutation) {
+    const result=await this.mutation(async()=>{
+      const value=nativeProfileActionResult.parse(await this.client.actionOnce("profile",nativeProfileAction.parse(input)));
+      if(value.userId!==userId)throw new NativeClientError("session_changed",409);
+      return value;
+    },["profile","today","xp","streak","competition","friends","dorp","progress","courses"]);
+    if(input.kind==="featured-achievements" || input.kind==="settings" && ["shareAchievements","shareVillageWithFriends"].some(key=>key in input.patch))this.profileSignal?.("friend_profile_changed");
+    if(input.kind==="settings" && ["shareOnlineStatus","shareCurrentActivity","incognitoHours"].some(key=>key in input.patch))this.profileSignal?.("presence_settings_changed");
+    return result;
+  }
   async today() { return nativeTodaySchema.parse(await this.client.api("today")); }
   async todayOverview(userId: string, context: { activeCollectionId: string | null; selectionVersion: number }) {
     const epoch = this.epoch;
@@ -274,7 +320,9 @@ export class NativeDataRuntime {
   }
   resume = () => this.store.revalidate({ force: true });
   /** Alleen de reeds met eenmalig bewijs geauthenticeerde native socket. */
-  attachSocket(socket: Pick<Socket, "on" | "off">) {
+  attachSocket(socket: Pick<Socket, "on" | "off"> & Partial<Pick<Socket,"emit"|"connected">>) {
+    const signal=(event:"friend_profile_changed"|"presence_settings_changed")=>{if(socket.connected)socket.emit?.(event);};
+    this.profileSignal=signal;
     const cleanups: (() => void)[] = [];
     const listen = (name: string, handler: (...args: unknown[]) => void) => { socket.on(name, handler); cleanups.push(() => { socket.off(name, handler); }); };
     listen("connect", this.resume);
@@ -285,7 +333,7 @@ export class NativeDataRuntime {
     for (const name of Object.keys(SOCKET_EVENT_TO_DATA_EVENT) as (keyof typeof SOCKET_EVENT_TO_DATA_EVENT)[]) listen(name, () => {
       for (const event of dataEventsForSocketEvent(name)) this.store.invalidate(event, { jitterMs: 1500 });
     });
-    return () => { for (const stop of cleanups) stop(); };
+    return () => { if(this.profileSignal===signal)this.profileSignal=undefined;for (const stop of cleanups) stop(); };
   }
   start(target: Window, page: Document) {
     const cleanups = [this.client.onSessionChange(this.reset)];

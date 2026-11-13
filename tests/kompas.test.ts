@@ -164,7 +164,7 @@ test("vertalingen: tijdelijke plaatshouders blijven behouden en teksten zijn nie
 
 test("elke tekstsleutel die de Kompas-componenten letterlijk gebruiken bestaat", () => {
   const files = [...walk("src/components/kompas", (f) => f.endsWith(".tsx")), ...walk("src/app/kompas", (f) => f.endsWith(".tsx"))];
-  files.push("src/components/OnboardingClient.tsx", "src/components/ProfileClient.tsx", "src/components/LiveLobbyForm.tsx", "src/components/SubpageBackBar.tsx");
+  files.push("src/components/OnboardingClient.tsx", "src/components/ProfileClient.tsx", "src/components/profile/ProfileOverview.tsx", "src/components/LiveLobbyForm.tsx", "src/components/SubpageBackBar.tsx");
   const known = new Set(flatten(kompasNl).map((key) => `kompas.${key}`));
   for (const file of files) {
     const source = file.startsWith("src") && !file.startsWith(root) ? read(file) : readFileSync(file, "utf8");
@@ -559,7 +559,7 @@ test("Kompas-pagina's zijn neutraal voor de contentroutering en horen bij de gew
 test("accountonboarding en vrijwillige Kompas-rondleiding blijven gescheiden", () => {
   const dashboard = read("src/app/dashboard/page.tsx");
   assert.match(dashboard, /if \(!user\.onboardingSeenAt\) redirect\("\/onboarding"\)/);
-  const profile = read("src/components/ProfileClient.tsx");
+  const profile = read("src/components/ProfileClient.tsx") + read("src/components/profile/ProfileOverview.tsx");
   assert.match(profile, /label=\{t\("kompas\.entry\.title"\)\} href="\/kompas"/);
   assert.doesNotMatch(profile, /href="\/onboarding"/);
   const onboarding = read("src/app/onboarding/page.tsx");

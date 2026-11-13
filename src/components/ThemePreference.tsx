@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Monitor, Moon, Sun, type LucideIcon } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
 import type { MessageKey } from "@/lib/i18n/core";
+import { Monitor,Moon,Sun,type LucideIcon } from "lucide-react";
+import { useEffect,useState } from "react";
 
 type ThemeChoice = "system" | "light" | "dark";
 
@@ -16,7 +16,7 @@ const OPTIONS: { value: ThemeChoice; label: MessageKey; icon: LucideIcon }[] = [
   { value: "dark", label: "theme.dark", icon: Moon },
 ];
 
-function readChoice(): ThemeChoice {
+export function readThemeChoice(): ThemeChoice {
   try {
     const stored = window.localStorage.getItem(STORAGE_KEY);
     return stored === "light" || stored === "dark" ? stored : "system";
@@ -33,7 +33,7 @@ export default function ThemePreference() {
   const [choice, setChoice] = useState<ThemeChoice | null>(null);
 
   useEffect(() => {
-    setChoice(readChoice());
+    setChoice(readThemeChoice());
   }, []);
 
   function select(next: ThemeChoice) {

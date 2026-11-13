@@ -1,5 +1,13 @@
 # Native functiepariteit — Versado
 
+## Profiel en instellingen — eerste productstap na de TestFlight-installatie
+
+`profile-settings-v1` sluit de echte webprofielpresentatie en bestaande serverregels
+op de lokale app aan, inclusief avatar, voorkeuren, privacy en tweestapsinstellingen.
+Zie [NATIVE-PROFILE.md](NATIVE-PROFILE.md) voor concrete acties, testbewijs en hiaten.
+Native push, enkele bestemmingen en fysieke acceptatie blijven open; er wordt
+geen volledige profiel- of productpariteit afgevinkt.
+
 ## Actuele multiplatformopdracht — shell, contentkiezer, Vandaag en eerste leerpaden op develop
 
 De opdracht in [#238](https://github.com/rjgout/Versado.app/issues/238) is leidend:
@@ -350,7 +358,7 @@ De onafhankelijke review volgt door ChatGPT. #176 en #178 blijven ongemerged.
 <!-- BEGIN NATIVE PARITY INVENTORY -->
 ## Volledige broninventaris (gegenereerd)
 
-Gevonden: **145 pagina's**, **244 fysieke routehandlers**, **477 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
+Gevonden: **145 pagina's**, **244 fysieke routehandlers**, **486 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
 
 De JSON-bijlage bevat per route alle transitief bereikbare lokale modules, clientgrenzen en statische requestpaden. Dat is een afhankelijkheidsinventaris, geen autorisatiebewijs; voorwaarden per HTTP-methode blijven apart te controleren. Een Client Component kan via een gedeelde helper nog een serverafhankelijkheid hebben. Een module zonder eigen `use client` is contextafhankelijk, niet automatisch browsergeschikt.
 
@@ -471,8 +479,8 @@ Route | Bron / rendergrens | Domeinbeleid | Native scherm / status | Data- en au
 `/podcast/[episodeId]/[mode]` | [src/app/podcast/[episodeId]/[mode]/page.tsx](../src/app/podcast/[episodeId]/[mode]/page.tsx); Server Component-entry | media-hulpmiddelen | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/courses.ts; src/lib/db.ts; src/lib/email.ts; src/lib/exerciseGen.ts; src/lib/i18n/index.ts; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/practice` | [src/app/practice/page.tsx](../src/app/practice/page.tsx); Server Component-entry | leren | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/db.ts; src/lib/i18n/index.ts; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/privacy` | [src/app/privacy/page.tsx](../src/app/privacy/page.tsx); Server Component-entry | hulp-juridisch | Lokale gedeelde inhoud; apparaatbewijs open | Zie bron en rootlayout; nog expliciet beoordelen | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
-`/profile` | [src/app/profile/page.tsx](../src/app/profile/page.tsx); Server Component-entry | account | Lokale route; Foundation gedeeltelijk, geen volledige functiepariteit | getCurrentUser; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
-`/profile/avatar` | [src/app/profile/avatar/page.tsx](../src/app/profile/avatar/page.tsx); Server Component-entry | account | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
+`/profile` | [src/app/profile/page.tsx](../src/app/profile/page.tsx); Server Component-entry | account | Gedeelde profiel-/instellingenpresentatie via profile-settings-v1; apparaatacceptatie en genoemde hiaten open | getCurrentUser; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
+`/profile/avatar` | [src/app/profile/avatar/page.tsx](../src/app/profile/avatar/page.tsx); Server Component-entry | account | Gedeelde profiel-/instellingenpresentatie via profile-settings-v1; apparaatacceptatie en genoemde hiaten open | getCurrentUser; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/reading-lesson/[lessonId]` | [src/app/reading-lesson/[lessonId]/page.tsx](../src/app/reading-lesson/[lessonId]/page.tsx); Server Component-entry | leren | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/audioMirror.ts; src/lib/chapterTerm.ts; src/lib/contentAccess.ts; src/lib/courses.ts; src/lib/db.ts; src/lib/i18n/index.ts; src/lib/learning/contentProgress.ts; src/lib/readingLessons.ts; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/register` | [src/app/register/page.tsx](../src/app/register/page.tsx); expliciete clientgrens | account | Lokale route; Foundation gedeeltelijk, geen volledige functiepariteit | src/lib/returnTo.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/reset-password` | [src/app/reset-password/page.tsx](../src/app/reset-password/page.tsx); Server Component-entry | account | Lokale gedeelde wachtwoordflow; apparaatbewijs open | Zie bron en rootlayout; nog expliciet beoordelen | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
@@ -508,11 +516,11 @@ Route | Bron / rendergrens | Domeinbeleid | Native scherm / status | Data- en au
 
 Endpoint | Methoden | Bron | Domein / authenticatie | Native beschikbaarheid
 --- | --- | --- | --- | ---
-`/api/account` | DELETE, PATCH, PUT | [src/app/api/account/route.ts](../src/app/api/account/route.ts) | account; canUseAccessory, canUseAvatarCharacter, getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
-`/api/account/totp/disable` | POST | [src/app/api/account/totp/disable/route.ts](../src/app/api/account/totp/disable/route.ts) | account; getCurrentUser, verifyTotpCode | Geen algemene bearer-toegang; expliciet contract vereist
-`/api/account/totp/reset` | POST | [src/app/api/account/totp/reset/route.ts](../src/app/api/account/totp/reset/route.ts) | account; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
-`/api/account/totp/setup` | POST | [src/app/api/account/totp/setup/route.ts](../src/app/api/account/totp/setup/route.ts) | account; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
-`/api/account/totp/verify` | POST | [src/app/api/account/totp/verify/route.ts](../src/app/api/account/totp/verify/route.ts) | account; getCurrentUser, verifyTotpCode | Geen algemene bearer-toegang; expliciet contract vereist
+`/api/account` | DELETE, PATCH, PUT | [src/app/api/account/route.ts](../src/app/api/account/route.ts) | account; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
+`/api/account/totp/disable` | POST | [src/app/api/account/totp/disable/route.ts](../src/app/api/account/totp/disable/route.ts) | account; controle in bron/service nodig | Geen algemene bearer-toegang; expliciet contract vereist
+`/api/account/totp/reset` | POST | [src/app/api/account/totp/reset/route.ts](../src/app/api/account/totp/reset/route.ts) | account; controle in bron/service nodig | Geen algemene bearer-toegang; expliciet contract vereist
+`/api/account/totp/setup` | POST | [src/app/api/account/totp/setup/route.ts](../src/app/api/account/totp/setup/route.ts) | account; controle in bron/service nodig | Geen algemene bearer-toegang; expliciet contract vereist
+`/api/account/totp/verify` | POST | [src/app/api/account/totp/verify/route.ts](../src/app/api/account/totp/verify/route.ts) | account; controle in bron/service nodig | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/activity-feed` | GET | [src/app/api/activity-feed/route.ts](../src/app/api/activity-feed/route.ts) | overig-vandaag; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/activity-feed/[itemId]/reaction` | POST | [src/app/api/activity-feed/[itemId]/reaction/route.ts](../src/app/api/activity-feed/[itemId]/reaction/route.ts) | overig-vandaag; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/activity-feed/[itemId]/reactions` | GET | [src/app/api/activity-feed/[itemId]/reactions/route.ts](../src/app/api/activity-feed/[itemId]/reactions/route.ts) | overig-vandaag; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
@@ -1015,7 +1023,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/StreakContinuation.tsx](../src/components/StreakContinuation.tsx) | use client | StreakContinuationCard, StreakContinuationProvider, useStreakContinuation
 [src/components/StreakEarnedBanner.tsx](../src/components/StreakEarnedBanner.tsx) | use client | StreakEarnedBanner
 [src/components/SubpageBackBar.tsx](../src/components/SubpageBackBar.tsx) | use client | SubpageBackBar
-[src/components/ThemePreference.tsx](../src/components/ThemePreference.tsx) | use client | ThemePreference
+[src/components/ThemePreference.tsx](../src/components/ThemePreference.tsx) | use client | ThemePreference, readThemeChoice
 [src/components/ThemeScript.tsx](../src/components/ThemeScript.tsx) | contextafhankelijk / server-entry waar page/layout | ThemeScript
 [src/components/TimeZoneSync.tsx](../src/components/TimeZoneSync.tsx) | use client | TimeZoneSync
 [src/components/TwoFactorSettings.tsx](../src/components/TwoFactorSettings.tsx) | use client | TwoFactorSettings
@@ -1106,6 +1114,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/native/NativeLearningView.tsx](../src/components/native/NativeLearningView.tsx) | use client | NativeLearningView
 [src/components/native/NativeNavigationProvider.tsx](../src/components/native/NativeNavigationProvider.tsx) | use client | NativeNavigationProvider
 [src/components/native/NativePasswordReset.tsx](../src/components/native/NativePasswordReset.tsx) | use client | NativePasswordReset
+[src/components/native/NativeProfileView.tsx](../src/components/native/NativeProfileView.tsx) | use client | NativeProfileView
 [src/components/native/NativeReadAloudPlayer.tsx](../src/components/native/NativeReadAloudPlayer.tsx) | use client | NativeReadAloudPlayer
 [src/components/native/NativeReaderView.tsx](../src/components/native/NativeReaderView.tsx) | use client | NativeReaderView
 [src/components/native/NativeShellHeader.tsx](../src/components/native/NativeShellHeader.tsx) | use client | NativeShellHeader
@@ -1114,9 +1123,17 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/native/entry.tsx](../src/components/native/entry.tsx) | contextafhankelijk / server-entry waar page/layout | default/locale declaratie; zie bron
 [src/components/navigation/AppNavigation.tsx](../src/components/navigation/AppNavigation.tsx) | use client | AppImage, AppLink, AppNavigationProvider, LocalAppImage, useAppImageSource, useAppNavigation, useAppNavigationAdapter
 [src/components/navigation/NextNavigationProvider.tsx](../src/components/navigation/NextNavigationProvider.tsx) | use client | NextNavigationProvider
+[src/components/profile/AvatarEditorView.tsx](../src/components/profile/AvatarEditorView.tsx) | use client | AvatarEditorView
+[src/components/profile/CompanionPreference.tsx](../src/components/profile/CompanionPreference.tsx) | use client | CompanionPreference
+[src/components/profile/LanguageSettingsView.tsx](../src/components/profile/LanguageSettingsView.tsx) | use client | LanguageSettingsView
 [src/components/profile/ProfileContentViews.tsx](../src/components/profile/ProfileContentViews.tsx) | use client | AchievementsView, CompetitionView
+[src/components/profile/ProfileOverview.tsx](../src/components/profile/ProfileOverview.tsx) | use client | ProfileOverview
 [src/components/profile/ProfilePage.tsx](../src/components/profile/ProfilePage.tsx) | use client | ProfilePage
+[src/components/profile/ProfilePageView.tsx](../src/components/profile/ProfilePageView.tsx) | use client | ProfilePageView
 [src/components/profile/ProfileSettingsViews.tsx](../src/components/profile/ProfileSettingsViews.tsx) | use client | GameFeedbackView, NotificationsView, PresenceView, PrivacyView, ReadAloudView, ReadingView, WhatsNewView
+[src/components/profile/TimeZoneRow.tsx](../src/components/profile/TimeZoneRow.tsx) | use client | TimeZoneRow
+[src/components/profile/TwoFactorSettingsView.tsx](../src/components/profile/TwoFactorSettingsView.tsx) | use client | TwoFactorSettingsView
+[src/components/profile/WebWhatsNewView.tsx](../src/components/profile/WebWhatsNewView.tsx) | use client | WebWhatsNewView
 [src/components/profile/settings.tsx](../src/components/profile/settings.tsx) | use client | ProfileCard, SettingsActions, SettingsButton, SettingsField, SettingsInfoRow, SettingsRow, SettingsSection, SettingsStatus, SettingsToggleRow, settingsFieldClass, settingsInlineFieldClass
 [src/components/puzzle/CompletionCard.tsx](../src/components/puzzle/CompletionCard.tsx) | use client | CompletionCard, CompletionRecord
 [src/components/puzzle/CoopClient.tsx](../src/components/puzzle/CoopClient.tsx) | use client | CoopClient
@@ -1241,18 +1258,18 @@ Module | Eigen grens | Geëxporteerde namen
 - Metadata: [src/app/sitemap.ts](../src/app/sitemap.ts).
 - Rewrite: `/manifest.webmanifest` → `/api/branding/manifest` (`next.config.js`).
 
-- Profielscherm: `/profile?view=competition` — ontbreekt als volwaardig lokaal scherm.
-- Profielscherm: `/profile?view=achievements` — ontbreekt als volwaardig lokaal scherm.
-- Profielscherm: `/profile?view=reading` — ontbreekt als volwaardig lokaal scherm.
-- Profielscherm: `/profile?view=guide` — ontbreekt als volwaardig lokaal scherm.
-- Profielscherm: `/profile?view=language` — ontbreekt als volwaardig lokaal scherm.
-- Profielscherm: `/profile?view=readAloud` — ontbreekt als volwaardig lokaal scherm.
-- Profielscherm: `/profile?view=gameFeedback` — ontbreekt als volwaardig lokaal scherm.
-- Profielscherm: `/profile?view=notifications` — ontbreekt als volwaardig lokaal scherm.
-- Profielscherm: `/profile?view=privacy` — ontbreekt als volwaardig lokaal scherm.
-- Profielscherm: `/profile?view=presence` — ontbreekt als volwaardig lokaal scherm.
-- Profielscherm: `/profile?view=about` — ontbreekt als volwaardig lokaal scherm.
-- Profielscherm: `/profile?view=twoFactor` — ontbreekt als volwaardig lokaal scherm.
+- Profielscherm: `/profile?view=competition` — gedeelde lokale renderer via `profile-settings-v1`; fysieke acceptatie en expliciete hiaten in NATIVE-PROFILE.md blijven open.
+- Profielscherm: `/profile?view=achievements` — gedeelde lokale renderer via `profile-settings-v1`; fysieke acceptatie en expliciete hiaten in NATIVE-PROFILE.md blijven open.
+- Profielscherm: `/profile?view=reading` — gedeelde lokale renderer via `profile-settings-v1`; fysieke acceptatie en expliciete hiaten in NATIVE-PROFILE.md blijven open.
+- Profielscherm: `/profile?view=guide` — gedeelde lokale renderer via `profile-settings-v1`; fysieke acceptatie en expliciete hiaten in NATIVE-PROFILE.md blijven open.
+- Profielscherm: `/profile?view=language` — gedeelde lokale renderer via `profile-settings-v1`; fysieke acceptatie en expliciete hiaten in NATIVE-PROFILE.md blijven open.
+- Profielscherm: `/profile?view=readAloud` — gedeelde lokale renderer via `profile-settings-v1`; fysieke acceptatie en expliciete hiaten in NATIVE-PROFILE.md blijven open.
+- Profielscherm: `/profile?view=gameFeedback` — gedeelde lokale renderer via `profile-settings-v1`; fysieke acceptatie en expliciete hiaten in NATIVE-PROFILE.md blijven open.
+- Profielscherm: `/profile?view=notifications` — gedeelde lokale renderer via `profile-settings-v1`; fysieke acceptatie en expliciete hiaten in NATIVE-PROFILE.md blijven open.
+- Profielscherm: `/profile?view=privacy` — gedeelde lokale renderer via `profile-settings-v1`; fysieke acceptatie en expliciete hiaten in NATIVE-PROFILE.md blijven open.
+- Profielscherm: `/profile?view=presence` — gedeelde lokale renderer via `profile-settings-v1`; fysieke acceptatie en expliciete hiaten in NATIVE-PROFILE.md blijven open.
+- Profielscherm: `/profile?view=about` — gedeelde lokale renderer via `profile-settings-v1`; fysieke acceptatie en expliciete hiaten in NATIVE-PROFILE.md blijven open.
+- Profielscherm: `/profile?view=twoFactor` — gedeelde lokale renderer via `profile-settings-v1`; fysieke acceptatie en expliciete hiaten in NATIVE-PROFILE.md blijven open.
 
 Socket-events (web; native handshake nog niet aanwezig):
 

@@ -1,7 +1,8 @@
-import { z } from "zod";
-import { contentPickerContextSchema, contentSelectionSchema } from "@/lib/contentPickerContract";
-import { nativeRoute } from "./navigation";
+import { contentPickerContextSchema,contentSelectionSchema } from "@/lib/contentPickerContract";
+import { LANGUAGES } from "@/lib/languages";
 import { TIER_ORDER } from "@/lib/leagueTiers";
+import { z } from "zod";
+import { nativeRoute } from "./navigation";
 export const nativeTokensSchema = z.object({ accessToken: z.string().min(1).max(2048), refreshToken: z.string().min(1).max(128), expiresIn: z.literal(300) });
 export const nativeSetupSchema = z.object({ securitySetup: z.object({
   token: z.string().max(128).regex(/^[a-f0-9-]{36}\.[A-Za-z0-9_-]{43}$/),
@@ -36,10 +37,14 @@ export const nativeContentStateSchema = z.object({
   picker: contentPickerContextSchema.extend({ selectionVersion: z.number().int().nonnegative() }),
 });
 export type NativeContentState = z.infer<typeof nativeContentStateSchema>;
-export const nativeContentSelectionSchema = z.object({
-  contentCollectionId: z.string().min(1).max(256), expectedSelection: contentSelectionSchema,
+const nativeContentSelectionFields = {
+  expectedSelection: contentSelectionSchema,
   expectedSelectionVersion: z.number().int().nonnegative(),
   location: z.string().max(256).refine(value => nativeRoute(value) !== null && value !== "/content" && !["/login", "/register", "/forgot-password"].includes(value)),
-}).strict();
+};
+export const nativeContentSelectionSchema = z.union([
+  z.object({ contentCollectionId:z.string().min(1).max(256), ...nativeContentSelectionFields }).strict(),
+  z.object({ contentLanguage:z.enum(LANGUAGES.map(language=>language.code)), ...nativeContentSelectionFields }).strict(),
+]);
 export type NativeContentSelection = z.infer<typeof nativeContentSelectionSchema>;
 export const nativeContentResultSchema = z.object({ state: nativeContentStateSchema, destination: z.string().refine(value => nativeRoute(value) !== null), changed: z.boolean() });

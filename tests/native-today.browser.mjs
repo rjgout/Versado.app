@@ -1,3 +1,4 @@
+import {logoutNativeProfile,serveNativeProfileAsset,recordNativeProfileLogout} from "./fixtures/native-profile-browser-actions.mjs";
 // Echte Next-SSR naast dezelfde lokaal gebundelde Vandaag-view; uitsluitend eigen testdatabase.
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
@@ -23,10 +24,12 @@ const css=readFileSync('dist/native/index.css'),secrets=new Map(),calls=[],error
 let failOverview=false,holdNext=false,held=[],priorChapter;
 const front=createServer(async(req,res)=>{try{
  const url=new URL(req.url,'http://127.0.0.1');
+ if(serveNativeProfileAsset(url.pathname,res))return;
  if(url.pathname.startsWith('/api/v1/native/')){
   const record={method:req.method,path:url.pathname};calls.push(record);
   if(failOverview&&url.pathname.endsWith('/today-overview')){res.writeHead(503,{'Content-Type':'application/json'});res.end(JSON.stringify({error:'native_request_failed'}));return;}
   const chunks=[];for await(const chunk of req)chunks.push(chunk);
+  recordNativeProfileLogout(record,Buffer.concat(chunks));
   const response=await fetch(`${backend}${req.url}`,{method:req.method,headers:{Origin:'capacitor://localhost','X-Versado-Client':'native-v1','x-real-ip':'127.0.0.61',...(req.headers.authorization?{Authorization:req.headers.authorization}:{}),...(req.headers['content-type']?{'Content-Type':req.headers['content-type']}:{})},body:['GET','HEAD'].includes(req.method)?undefined:Buffer.concat(chunks)});
   const body=await response.text();if(url.pathname.endsWith('/today-overview')||url.pathname.endsWith('/me')){const value=JSON.parse(body);record.response={status:response.status,language:value.language??value.uiLanguage,error:value.error};}const finish=()=>{if(!res.destroyed){res.writeHead(response.status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(body);}};
   if(holdNext&&url.pathname.endsWith('/today-overview')){holdNext=false;held.push(finish);}else finish();return;
@@ -86,7 +89,7 @@ try{
   await page.locator('a[data-kompas-target="profile"]').evaluate(a=>a.click());await page.locator('[data-subpage-back-bar] button').click();await page.waitForFunction(position=>Math.abs(scrollY-position)<2,position,{timeout:4000});
   if(language==='nl'){
    await page.locator('a[data-kompas-target="profile"]').click();
-   await prisma.user.update({where:{id:user.id},data:{uiLanguage:'de'}});await page.evaluate(()=>window.dispatchEvent(new Event('today:test-resume')));await page.getByRole('heading',{level:1,name:getT('de')('nativeFoundation.account'),exact:true}).waitFor();await page.locator('[data-subpage-back-bar] button').click();await page.waitForFunction(title=>document.documentElement.lang==='de'&&document.querySelector('[data-kompas-target="kompas-entry"]')?.textContent.includes(title),getT('de')('kompas.entry.title'));
+   await prisma.user.update({where:{id:user.id},data:{uiLanguage:'de'}});await page.evaluate(()=>window.dispatchEvent(new Event('today:test-resume')));await page.getByRole('heading',{level:1,name:getT('de')('nav.profile'),exact:true}).waitFor();await page.locator('[data-subpage-back-bar] button').click();await page.waitForFunction(title=>document.documentElement.lang==='de'&&document.querySelector('[data-kompas-target="kompas-entry"]')?.textContent.includes(title),getT('de')('kompas.entry.title'));
    await prisma.user.update({where:{id:user.id},data:{uiLanguage:'nl'}});await page.evaluate(()=>window.dispatchEvent(new Event('today:test-resume')));await page.waitForFunction(title=>document.documentElement.lang==='nl'&&document.querySelector('[data-kompas-target="kompas-entry"]')?.textContent.includes(title),t('kompas.entry.title'));
    await webPage.locator('[aria-labelledby="today-continue"] button[aria-haspopup="menu"]').click();await webPage.getByRole('menuitem',{name:t('today.hideContinue'),exact:true}).click();await webPage.locator('.card-title-link').waitFor({state:'detached'});
    await page.evaluate(()=>window.dispatchEvent(new Event('today:test-resume')));await page.locator('.card-title-link').waitFor({state:'detached'});
@@ -98,12 +101,13 @@ try{
    assert.equal((await prisma.userCourseProgress.findUniqueOrThrow({where:{userId_courseId:{userId:user.id,courseId:course.id}}})).currentLessonId,course.lessons[1].id);
    const other=await seedAccount('nl',collections[0],course.lessons[1]);holdNext=true;await page.evaluate(()=>window.dispatchEvent(new Event('versado:app-resumed')));
    for(let i=0;held.length===0&&i<100;i++)await new Promise(resolve=>setTimeout(resolve,20));assert.ok(held.length);
-   await page.locator('a[data-kompas-target="profile"]').click();await page.getByRole('button',{name:t('nativeFoundation.logout'),exact:true}).click();await page.locator('form').waitFor();await login(page,other,t);
+   await page.locator('a[data-kompas-target="profile"]').click();await logoutNativeProfile(page,t);await page.locator('form').waitFor();await login(page,other,t);
    for(const finish of held.splice(0))finish();await page.waitForTimeout(100);assert.ok((await page.locator('[data-today-overview]').textContent()).includes(other.handle));assert.equal((await page.locator('[data-today-overview]').textContent()).includes(user.handle),false,'Late A-response cannot overwrite B');
    await prisma.nativeSession.updateMany({where:{userId:other.id},data:{revokedAt:new Date()}});await page.evaluate(()=>window.dispatchEvent(new Event('versado:app-resumed')));await page.locator('form').waitFor();assert.equal(await page.locator('[data-today-overview]').count(),0);
   }
   assert.equal(sockets,0);await context.close();await web.close();
  }
- assert.deepEqual(errors,[]);assert.equal(calls.some(call=>call.path==='/api/v1/native/today'),false,'Een capabele backend gebruikt nooit de Foundation-hoofdstukproef');assert.equal(calls.filter(call=>call.method==='POST'&&call.path==='/api/v1/native/content-context').length,1,'Precies één bewust gekozen B1-bronwissel, zonder automatische retry');assert.deepEqual(calls.filter(call=>call.method!=='GET'&&!['login','logout','refresh','content-context'].some(path=>call.path.endsWith('/'+path))),[],'Geen voortgangs-, hide-, friends- of beloningswrites via onbewezen native routes');
+ assert.equal(calls.filter(c=>c.confirmedProfileLogout).length,1,'Alleen de bewuste profiel-logout, zonder retry');
+ assert.deepEqual(errors,[]);assert.equal(calls.some(call=>call.path==='/api/v1/native/today'),false,'Een capabele backend gebruikt nooit de Foundation-hoofdstukproef');assert.equal(calls.filter(call=>call.method==='POST'&&call.path==='/api/v1/native/content-context').length,1,'Precies één bewust gekozen B1-bronwissel, zonder automatische retry');assert.deepEqual(calls.filter(call=>call.method!=='GET'&&!call.confirmedProfileLogout&&!['login','logout','refresh','content-context'].some(path=>call.path.endsWith('/'+path))),[],'Geen voortgangs-, hide-, friends- of beloningswrites via onbewezen native routes');
  console.log(`Gedeelde Vandaag: ${artifacts.length} web/native screenshots, vijf talen, echte vers-stapcursor, kaarten/volgorde/artwork, 320px/200%, licht/donker/tablets, veilige bestemmingen, focus/scroll, bronwissel, leesfout/herstel, late accountresponse en intrekking. Geen fysieke acceptatie.`);
 }finally{for(const finish of held.splice(0))finish();await browser.close();await new Promise(resolve=>front.close(resolve));await prisma.contentCollection.deleteMany({where:{id:{in:collections}}});await prisma.$disconnect();}

@@ -1,3 +1,4 @@
+import {logoutNativeProfile,serveNativeProfileAsset} from "./fixtures/native-profile-browser-actions.mjs";
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 import { createServer } from "node:http";
@@ -75,6 +76,7 @@ let holdAnnotations=false,loseAnnotation=false;
 const front = createServer(async (req, res) => {
   try {
     const url = new URL(req.url, "http://127.0.0.1");
+ if(serveNativeProfileAsset(url.pathname,res))return;
     if (url.pathname.startsWith("/api/v1/native/")) {
       const record={ path: url.pathname, method: req.method };calls.push(record);
       const isReader = /\/courses\/[^/]+\/read\//.test(url.pathname) && !url.pathname.includes("/annotations");
@@ -770,12 +772,7 @@ try {
       for(let i=0;i<100&&!heldAnnotations.length;i++)await new Promise(r=>setTimeout(r,20));
       assert.equal(heldAnnotations.length,1);assert.ok(calls.some(c=>c.privateMarker),"vertraagd A-antwoord bevat werkelijk diens privénotitie");
       await go("/profile");
-      await page
-        .getByRole("button", {
-          name: t("nativeFoundation.logout"),
-          exact: true,
-        })
-        .click();
+      await logoutNativeProfile(page,t);
       await page.locator("form").waitFor();
       await page.getByLabel(t("nativeFoundation.email")).fill(other.email);
       await page

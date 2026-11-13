@@ -1,11 +1,11 @@
+import { avatarAppearancePatch,avatarAppearancesEqual,filterAvatarOptions } from "@/lib/avatarEditor";
+import { avatarFallbackText,type AvatarAppearance } from "@/lib/avatarTypes";
+import { avatarOptions,START_AVATAR_CHARACTER_IDS } from "@/lib/avatarUnlocks";
+import { profileCameraOriginY } from "@/lib/profileCamera";
+import { PROFILE_CHARACTER_FRAMING } from "@/lib/profileCharacterFraming";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { avatarAppearancePatch, avatarAppearancesEqual, filterAvatarOptions } from "@/lib/avatarEditor";
-import { avatarOptions, START_AVATAR_CHARACTER_IDS } from "@/lib/avatarUnlocks";
-import { PROFILE_CHARACTER_FRAMING } from "@/lib/profileCharacterFraming";
-import { profileCameraOriginY } from "@/lib/profileCamera";
-import { avatarFallbackText, type AvatarAppearance } from "@/lib/avatarTypes";
 
 const empty: AvatarAppearance = {
   avatarEmoji: null,
@@ -62,14 +62,16 @@ test("profielcamera houdt de zichtbare bovenrand binnen de zoomviewport voor all
 });
 
 test("editor en profiel gebruiken één veilige avatar-ingang", () => {
-  const editor = readFileSync("src/components/AvatarEditorClient.tsx", "utf8");
-  const profile = readFileSync("src/components/ProfileClient.tsx", "utf8");
+  const editor = readFileSync("src/components/profile/AvatarEditorView.tsx", "utf8");
+  assert.match(readFileSync("src/components/AvatarEditorClient.tsx","utf8"), /<AvatarEditorView/);
+  const profile = readFileSync("src/components/profile/ProfileOverview.tsx", "utf8");
+  assert.match(readFileSync("src/components/ProfileClient.tsx","utf8"), /<ProfileOverview/);
   assert.match(editor, /role="tablist"/);
   assert.match(editor, /type EditorTab = "characters" \| "accessories"/);
   assert.doesNotMatch(editor, /AVATAR_EMOJI_OPTIONS/);
   assert.match(editor, /data-avatar-editor-save-bar/);
   assert.match(editor, /pointer-events-none[^\n]*overflow-hidden/);
-  assert.match(profile, /changeHref="\/profile\/avatar"/);
+  assert.match(profile, /changeHref=\{canNavigate\("\/profile\/avatar"\)/);
   assert.doesNotMatch(profile, /avatarPicker/);
 });
 
@@ -83,8 +85,10 @@ test("avatarlagen blijven bruikbaar bij kleine formaten en een kapotte karaktera
   // HeaderAvatar nest de renderer in een span. Zonder eigen display-box
   // klappen uitsluitend absoluut gepositioneerde lagen in Safari in tot nul.
   assert.match(avatar, /relative isolate block overflow-hidden/);
-  assert.match(userAvatar, /inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full/);
-  assert.match(userAvatar, /block h-full w-full shrink-0/);
+  const renderer=readFileSync("src/components/versado/UserAvatarView.tsx","utf8");
+  assert.match(userAvatar, /<UserAvatarView/);
+  assert.match(renderer, /inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full/);
+  assert.match(renderer, /block h-full w-full shrink-0/);
   assert.match(userAvatar, /localOverrides/);
   assert.match(userAvatar, /localOverrides\.get\(id\) \?\? known \?\? cache\.get\(id\)/);
 });

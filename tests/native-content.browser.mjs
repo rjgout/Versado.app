@@ -1,3 +1,4 @@
+import {logoutNativeProfile,serveNativeProfileAsset} from "./fixtures/native-profile-browser-actions.mjs";
 // De echte Next-webshell naast dezelfde React-views in de lokale Foundation.
 // Alleen synthetische gebruikers en de eigen wegwerpdatabase; geen productie.
 import assert from 'node:assert/strict';
@@ -23,6 +24,7 @@ const stylesheet=readFileSync('dist/native/index.css');
 const secrets=new Map(),held=[];let holdMe=false,failContext=false;const nativeCalls=[];
 const front=createServer(async(req,res)=>{try{
  const url=new URL(req.url,'http://127.0.0.1');
+ if(serveNativeProfileAsset(url.pathname,res))return;
  if(url.pathname.startsWith('/api/v1/native/')){
   nativeCalls.push({path:url.pathname,method:req.method});
   if(failContext&&url.pathname==='/api/v1/native/content-context'&&req.method==='GET'){res.writeHead(503,{'Content-Type':'application/json'});res.end(JSON.stringify({error:'network_unavailable'}));return;}
@@ -119,7 +121,7 @@ try{
    await page.locator('a[data-kompas-target="profile"]').click();await page.getByRole('link',{name:t('nativeDiagnostics.open'),exact:true}).click();
    await page.getByRole('heading',{name:t('nativeDiagnostics.title'),exact:true}).waitFor();await page.getByRole('button',{name:t('nativeFoundation.keyboardDone'),exact:true}).waitFor();
    await page.screenshot({path:`${out}/internal-diagnostics.png`,fullPage:true});await page.locator('[data-subpage-back-bar] button').click();
-   await page.getByRole('button',{name:t('nativeFoundation.logout'),exact:true}).click();await page.locator('form').waitFor();
+   await logoutNativeProfile(page,t);await page.locator('form').waitFor();
    const other=await prisma.user.create({data:{email:`picker-other-${randomUUID()}@example.invalid`,handle:'Ander'+randomUUID().slice(0,6),discriminator:'01',passwordHash:await hashPassword(password),emailVerifiedAt:new Date(),onboardingSeenAt:new Date(),activeContentCollectionId:collections.es.id,contentLanguage:'es'}});
    await login(page,other,t);await page.locator('[data-kompas-target="content-switcher"] a').click();await page.locator('[data-content-work="bofm"]').waitFor();
    assert.equal(await page.locator('[data-content-language] button[aria-pressed="true"]').textContent(),'Español');

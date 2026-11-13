@@ -1,3 +1,4 @@
+import {logoutNativeProfile,serveNativeProfileAsset} from "./fixtures/native-profile-browser-actions.mjs";
 // Echte Foundation + bestaande authroutes in een eigen wegwerpdatabase.
 // Alleen platformdetectie en capability-aanbod zijn testvarianten; geen Apple-providerclaim.
 import assert from 'node:assert/strict';
@@ -24,6 +25,7 @@ const backend=process.env.NATIVE_TEST_BASE_URL,stylesheet=readFileSync('dist/nat
 const cases=new Map();
 const front=createServer(async(req,res)=>{try{
  const url=new URL(req.url,'http://127.0.0.1'),id=url.searchParams.get('device')??(req.headers.referer?new URL(req.headers.referer).searchParams.get('device'):null),scenario=cases.get(id);
+ if(serveNativeProfileAsset(url.pathname,res))return;
  if(url.pathname.startsWith('/api/v1/native/')){
   assert.ok(scenario);calls.push({method:req.method,path:url.pathname});
   const chunks=[];for await(const chunk of req)chunks.push(chunk);
@@ -43,6 +45,11 @@ const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH,ar
 const password='Synthetic-apple-ui-42',errors=[];
 const userData=async(extra={})=>({email:`apple-ui-${randomUUID()}@example.invalid`,handle:`Apple${randomUUID().replaceAll('-','').slice(0,12)}`,discriminator:'01',passwordHash:await hashPassword(password),emailVerifiedAt:new Date(),onboardingSeenAt:new Date(),...extra});
 const profile=page=>page.locator('a[data-kompas-target="profile"]');
+async function openProfile(page,t){
+ await profile(page).click();
+ // Ook afwezigheidsasserties pas na de bevestigde profieldata uitvoeren.
+ await page.getByRole('button',{name:t('profile.logout'),exact:true}).waitFor();
+}
 async function login(page,user,t,secret){
  await page.getByLabel(t('nativeFoundation.email')).fill(user.email);await page.getByLabel(t('nativeFoundation.password'),{exact:true}).fill(password);
  if(secret)await page.getByLabel(t('nativeFoundation.code')).fill(generateTotpCode(secret));
@@ -69,13 +76,13 @@ try{
   await page.getByRole('button',{name:t('nativeFoundation.forgot'),exact:true}).click();await expectApple(page,t,false);
   await page.locator('a[href="#/reset-password"]').click();await page.getByLabel(t('password.resetLinkLabel')).waitFor();
   assert.equal(await page.getByText(t('nativeFoundation.appleResetHelp'),{exact:true}).count(),0);
-  await page.locator('a[href="#/login"]').click();await login(page,user,t);await profile(page).click();
+  await page.locator('a[href="#/login"]').click();await login(page,user,t);await openProfile(page,t);
   await expectApple(page,t,false);
   assert.equal(await page.getByRole('button',{name:t('nativeFoundation.appleLink'),exact:true}).count(),0);
   assert.equal(await page.getByRole('button',{name:t('nativeFoundation.appleUnlink'),exact:true}).count(),0);
   assert.equal(await page.getByLabel(t('nativeFoundation.password'),{exact:true}).count(),0,'Geen ongebruikte Apple-wachtwoordvelden');
   await page.screenshot({path:`${out}/disabled-profile-${language}.png`,fullPage:true});
-  await page.getByRole('button',{name:t('nativeFoundation.logout'),exact:true}).click();await expectApple(page,t,false);
+  await logoutNativeProfile(page,t);await expectApple(page,t,false);
   await login(page,user,t);await context.close();
  }
  // Beide poorten en iOS zijn noodzakelijk: geen knop of hersteladvies bij slechts één signaal/Android.
@@ -85,7 +92,7 @@ try{
   await expectApple(page,t,available);
   await page.getByRole('button',{name:t('nativeFoundation.forgot'),exact:true}).click();await expectApple(page,t,available);
   await page.getByRole('button',{name:t('nativeFoundation.register'),exact:true}).click();await expectApple(page,t,available);
-  await page.getByRole('button',{name:t('nativeFoundation.login'),exact:true}).click();await login(page,user,t);await profile(page).click();
+  await page.getByRole('button',{name:t('nativeFoundation.login'),exact:true}).click();await login(page,user,t);await openProfile(page,t);
   assert.equal(await page.getByRole('button',{name:t('nativeFoundation.appleLink'),exact:true}).count(),Number(available));
   assert.equal(await page.getByText(t('nativeFoundation.appleLinked'),{exact:true}).count(),0);
   assert.equal(await page.getByText(t('nativeFoundation.appleUnavailable'),{exact:true}).count(),0);
@@ -97,17 +104,17 @@ try{
  const t=getT('nl'),{page,context}=await open({platform:'ios',capable:false,released:false});
  await page.getByLabel(t('nativeFoundation.email')).fill(linked.email);await page.getByLabel(t('nativeFoundation.password'),{exact:true}).fill(password);await page.getByRole('button',{name:t('nativeFoundation.login'),exact:true}).click();
  await page.getByText(t('nativeFoundation.twoFactorRequired'),{exact:true}).waitFor();assert.equal(await profile(page).count(),0);
- await login(page,linked,t,secret);await profile(page).click();
+ await login(page,linked,t,secret);await openProfile(page,t);
  await page.getByText(t('nativeFoundation.appleLinked'),{exact:true}).waitFor();assert.equal(await page.getByRole('button',{name:t('nativeFoundation.appleLink'),exact:true}).count(),0);
  const unlink=page.getByRole('button',{name:t('nativeFoundation.appleUnlink'),exact:true});assert.equal(await unlink.isDisabled(),true);
  await page.getByLabel(t('nativeFoundation.password'),{exact:true}).fill(password);await unlink.click();await page.getByRole('alert').waitFor();
  assert.equal(await prisma.externalIdentity.count({where:{userId:linked.id}}),1,'Ontkoppelen zonder 2FA wordt server-side geweigerd');
- await page.getByRole('button',{name:t('nativeFoundation.logout'),exact:true}).click();await page.locator('form').waitFor();
+ await logoutNativeProfile(page,t);await page.locator('form').waitFor();
  assert.equal(await page.getByLabel(t('nativeFoundation.password'),{exact:true}).inputValue(),'','Logout wist ook ingevulde Apple-herauthenticatie');
- await login(page,linked,t,secret);await profile(page).click();await page.getByLabel(t('nativeFoundation.password'),{exact:true}).fill(password);
+ await login(page,linked,t,secret);await openProfile(page,t);await page.getByLabel(t('nativeFoundation.password'),{exact:true}).fill(password);
  await page.getByLabel(t('nativeFoundation.code')).fill(generateTotpCode(secret));await unlink.click();await page.locator('form').waitFor();
  assert.equal(await prisma.externalIdentity.count({where:{userId:linked.id}}),0);await expectApple(page,t,false);
- await login(page,user,t);await profile(page).click();assert.equal(await page.getByText(t('nativeFoundation.appleLinked'),{exact:true}).count(),0,'Accountwisseling neemt geen Apple-status over');
+ await login(page,user,t);await openProfile(page,t);assert.equal(await page.getByText(t('nativeFoundation.appleLinked'),{exact:true}).count(),0,'Accountwisseling neemt geen Apple-status over');
  assert.equal(await page.getByRole('button',{name:t('nativeFoundation.appleUnlink'),exact:true}).count(),0);await context.close();
  // Apple-only: herstelbare bestaande sessie; UI mag de laatste inlogmethode nooit ontkoppelen.
  const only=await prisma.user.create({data:await userData({passwordLoginEnabled:false})});
