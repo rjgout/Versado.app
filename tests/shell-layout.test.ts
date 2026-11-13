@@ -138,7 +138,8 @@ test("de bestaande shellmodi blijven: immersive zonder balken, focus zonder head
 test("de avatar-editor gebruikt focus mode zodat de bottom navigation verdwijnt", () => {
   const focusMode = read("src/lib/focusMode.ts");
   assert.ok(focusMode.includes("/^\\/profile\\/avatar$/"));
-  assert.match(read("src/components/AvatarEditorClient.tsx"), /data-avatar-editor-save-bar/);
+  assert.match(read("src/components/AvatarEditorClient.tsx"), /<AvatarEditorView/);
+  assert.match(read("src/components/profile/AvatarEditorView.tsx"), /data-avatar-editor-save-bar/);
 });
 
 test("Capacitor: toetsenbord en systeembalken lopen via de centrale variabelen", () => {
