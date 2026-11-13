@@ -114,7 +114,7 @@ test('TestFlight GitHub-waarschuwingen worden aan de oorzaak opgelost, zonder re
   assert.equal(workflow.on.workflow_dispatch.inputs.upload.default,false);
   assert.equal(job.environment,'testflight');
   assert.equal(workflow.jobs['signing-import-check'].environment,'testflight');
-  assert.match(job.if,/refs\\/heads\\/develop/);
+  assert.ok(job.if.includes('refs/heads/develop'));
   assert.equal(job.env.NATIVE_DISTRIBUTION_CHANNEL,'testflight');
   assert.equal(job.env.CAPACITOR_BUILD_PROFILE,'local-store-test');
   const platform=require('yaml').parse(readFileSync('.github/workflows/native-platform-builds.yml','utf8'));
