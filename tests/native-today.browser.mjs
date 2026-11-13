@@ -1,4 +1,4 @@
-import {logoutNativeProfile,serveNativeProfileAsset} from "./fixtures/native-profile-browser-actions.mjs";
+import {logoutNativeProfile,serveNativeProfileAsset,recordNativeProfileLogout} from "./fixtures/native-profile-browser-actions.mjs";
 // Echte Next-SSR naast dezelfde lokaal gebundelde Vandaag-view; uitsluitend eigen testdatabase.
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
@@ -29,6 +29,7 @@ const front=createServer(async(req,res)=>{try{
   const record={method:req.method,path:url.pathname};calls.push(record);
   if(failOverview&&url.pathname.endsWith('/today-overview')){res.writeHead(503,{'Content-Type':'application/json'});res.end(JSON.stringify({error:'native_request_failed'}));return;}
   const chunks=[];for await(const chunk of req)chunks.push(chunk);
+  recordNativeProfileLogout(record,Buffer.concat(chunks));
   const response=await fetch(`${backend}${req.url}`,{method:req.method,headers:{Origin:'capacitor://localhost','X-Versado-Client':'native-v1','x-real-ip':'127.0.0.61',...(req.headers.authorization?{Authorization:req.headers.authorization}:{}),...(req.headers['content-type']?{'Content-Type':req.headers['content-type']}:{})},body:['GET','HEAD'].includes(req.method)?undefined:Buffer.concat(chunks)});
   const body=await response.text();if(url.pathname.endsWith('/today-overview')||url.pathname.endsWith('/me')){const value=JSON.parse(body);record.response={status:response.status,language:value.language??value.uiLanguage,error:value.error};}const finish=()=>{if(!res.destroyed){res.writeHead(response.status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(body);}};
   if(holdNext&&url.pathname.endsWith('/today-overview')){holdNext=false;held.push(finish);}else finish();return;
@@ -106,6 +107,7 @@ try{
   }
   assert.equal(sockets,0);await context.close();await web.close();
  }
- assert.deepEqual(errors,[]);assert.equal(calls.some(call=>call.path==='/api/v1/native/today'),false,'Een capabele backend gebruikt nooit de Foundation-hoofdstukproef');assert.equal(calls.filter(call=>call.method==='POST'&&call.path==='/api/v1/native/content-context').length,1,'Precies één bewust gekozen B1-bronwissel, zonder automatische retry');assert.deepEqual(calls.filter(call=>call.method!=='GET'&&!['login','logout','refresh','content-context'].some(path=>call.path.endsWith('/'+path))),[],'Geen voortgangs-, hide-, friends- of beloningswrites via onbewezen native routes');
+ assert.equal(calls.filter(c=>c.confirmedProfileLogout).length,1,'Alleen de bewuste profiel-logout, zonder retry');
+ assert.deepEqual(errors,[]);assert.equal(calls.some(call=>call.path==='/api/v1/native/today'),false,'Een capabele backend gebruikt nooit de Foundation-hoofdstukproef');assert.equal(calls.filter(call=>call.method==='POST'&&call.path==='/api/v1/native/content-context').length,1,'Precies één bewust gekozen B1-bronwissel, zonder automatische retry');assert.deepEqual(calls.filter(call=>call.method!=='GET'&&!call.confirmedProfileLogout&&!['login','logout','refresh','content-context'].some(path=>call.path.endsWith('/'+path))),[],'Geen voortgangs-, hide-, friends- of beloningswrites via onbewezen native routes');
  console.log(`Gedeelde Vandaag: ${artifacts.length} web/native screenshots, vijf talen, echte vers-stapcursor, kaarten/volgorde/artwork, 320px/200%, licht/donker/tablets, veilige bestemmingen, focus/scroll, bronwissel, leesfout/herstel, late accountresponse en intrekking. Geen fysieke acceptatie.`);
 }finally{for(const finish of held.splice(0))finish();await browser.close();await new Promise(resolve=>front.close(resolve));await prisma.contentCollection.deleteMany({where:{id:{in:collections}}});await prisma.$disconnect();}

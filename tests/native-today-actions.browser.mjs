@@ -1,4 +1,4 @@
-import {logoutNativeProfile,serveNativeProfileAsset} from "./fixtures/native-profile-browser-actions.mjs";
+import {logoutNativeProfile,serveNativeProfileAsset,recordNativeProfileLogout} from "./fixtures/native-profile-browser-actions.mjs";
 // Echte Next-SSR naast dezelfde lokaal gebundelde Vandaag-view; uitsluitend eigen testdatabase.
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
@@ -30,6 +30,7 @@ const front=createServer(async(req,res)=>{try{
   if(failAction&&url.pathname.includes('/today-actions/')){res.writeHead(503,{'Content-Type':'application/json'});res.end(JSON.stringify({error:'native_request_failed'}));return;}
   if(failOverview&&url.pathname.endsWith('/today-overview')){res.writeHead(503,{'Content-Type':'application/json'});res.end(JSON.stringify({error:'native_request_failed'}));return;}
   const chunks=[];for await(const chunk of req)chunks.push(chunk);
+  recordNativeProfileLogout(record,Buffer.concat(chunks));
   const response=await fetch(`${backend}${req.url}`,{method:req.method,headers:{Origin:'capacitor://localhost','X-Versado-Client':'native-v1','x-real-ip':'127.0.0.61',...(req.headers.authorization?{Authorization:req.headers.authorization}:{}),...(req.headers['content-type']?{'Content-Type':req.headers['content-type']}:{})},body:['GET','HEAD'].includes(req.method)?undefined:Buffer.concat(chunks)});
   const body=await response.text();if(url.pathname.endsWith('/today-overview')||url.pathname.endsWith('/me')){const value=JSON.parse(body);record.response={status:response.status,language:value.language??value.uiLanguage,error:value.error};}const finish=()=>{if(!res.destroyed){res.writeHead(response.status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(body);}};
   if(holdAction&&url.pathname.includes('/today-actions/')){holdAction=false;heldActions.push(finish);}else if(holdNext&&url.pathname.endsWith('/today-overview')){holdNext=false;held.push(finish);}else finish();return;
@@ -100,6 +101,7 @@ try{
  // Revocation at an actual action is fail-closed and clears the old account UI.
  await prisma.nativeSession.updateMany({where:{userId:sender.id},data:{revokedAt:new Date()}});await hide();await page.locator('form').waitFor();assert.equal(await page.locator('[data-today-overview]').count(),0);
  assert.equal(sockets,0);assert.deepEqual(errors,[]);await context.close();await web.close();
- assert.deepEqual(calls.filter(c=>c.method!=='GET'&&!['login','logout','refresh','hide','friend-response'].some(path=>c.path.endsWith('/'+path))),[],'No progress/reward writes');
+ assert.equal(calls.filter(c=>c.confirmedProfileLogout).length,1,'Alleen de bewuste profiel-logout, zonder retry');
+ assert.deepEqual(calls.filter(c=>c.method!=='GET'&&!c.confirmedProfileLogout&&!['login','logout','refresh','hide','friend-response'].some(path=>c.path.endsWith('/'+path))),[],'No progress/reward writes');
  console.log('B2b actions: real native + web, hide/friend failures and manual retry, duplicate taps, offline no replay, confirmed action + failed/stale GET, restart persistence, late A action/B login, revocation, 320px/200%, six paired screenshots. No physical acceptance.');
 }finally{for(const finish of [...held.splice(0),...heldActions.splice(0)])finish();await browser.close();await new Promise(resolve=>front.close(resolve));await prisma.contentCollection.deleteMany({where:{id:{in:collections}}});await prisma.$disconnect();}

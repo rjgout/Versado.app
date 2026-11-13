@@ -1,3 +1,4 @@
+import assert from 'node:assert/strict';
 /** De bestaande accountwisselproeven volgen nu ook de gedeelde logoutbevestiging.
  * De expliciete oude-backendproeven blijven hun oorspronkelijke pad controleren. */
 export async function logoutNativeProfile(page,t){
@@ -17,4 +18,12 @@ export function serveNativeProfileAsset(pathname,res){
  try{const bytes=readFileSync(path);res.setHeader('Content-Type','image/webp');res.end(bytes);}
  catch{res.writeHead(404);res.end();}
  return true;
+}
+
+/** Alleen de bewuste terminale logout is in read-only browserproeven toegestaan.
+ * Een instellingen-, voortgangs- of ander profielcommando blijft een fout. */
+export function recordNativeProfileLogout(record,body){
+ if(record.method!=='POST'||record.path!=='/api/v1/native/profile')return;
+ assert.deepEqual(JSON.parse(body.toString()),{kind:'logout-all'});
+ record.confirmedProfileLogout=true;
 }
