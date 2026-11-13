@@ -24,7 +24,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   branch-check:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Geselecteerde branch expliciet controleren
         env:
@@ -36,9 +36,10 @@ jobs:
           if [ "${SIGNING_IMPORT_ONLY:-false}" = true ] && [ "${UPLOAD:-false}" = true ]; then echo "::error::Importcontrole kan niet uploaden"; exit 1; fi
           test "$EVENT_NAME" = workflow_dispatch && test "$SELECTED_REF" = refs/heads/develop || { echo "::error::Alleen handmatig vanaf develop toegestaan"; exit 1; }
   signing-import-check:
+    # Intel macOS 26 is de bestaande groen geteste iOS-CI-runner; geen arm64-queue of wisselende macos-latest.
     needs: branch-check
     if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/develop' && inputs.signing_import_only == true && inputs.upload != true
-    runs-on: macos-latest
+    runs-on: macos-26-intel
     timeout-minutes: 10
     environment: testflight
     steps:
@@ -46,7 +47,7 @@ jobs:
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
       - name: Alleen macOS-import en profielcontrole (geen Apple-API of archive)
@@ -80,9 +81,10 @@ jobs:
           done
           exit "$failed"
   testflight-archive:
+    # Dezelfde Xcode-generatie/SDK als de iOS-compileproef, op macOS 26 Intel.
     needs: branch-check
     if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/develop' && inputs.signing_import_only != true
-    runs-on: macos-latest
+    runs-on: macos-26-intel
     timeout-minutes: 60
     environment: testflight
     env:
@@ -123,7 +125,7 @@ jobs:
           [ "$HAS_P12_PASSWORD" = "true" ] || missing="$missing IOS_DISTRIBUTION_P12_PASSWORD"
           [ "$HAS_PROFILE" = "true" ] || missing="$missing IOS_PROVISIONING_PROFILE_BASE64"
           if [ -n "$missing" ]; then echo "::error::Eigenaartaak: ontbrekende secrets/variabelen in omgeving testflight:$missing"; exit 1; fi
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
@@ -244,10 +246,11 @@ jobs:
             if [ "$UPLOAD_STARTED" = true ] && [ "$UPLOAD_ACCEPTED" != true ]; then echo "- Upload gestart maar Apple-acceptatie niet bevestigd; controleer App Store Connect vóór opnieuw proberen."; fi
             echo "- Een geaccepteerde upload is geen publieke App Store-publicatie."
           } >> "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: success() && steps.distribution.outputs.validated == 'true'
         with:
           name: versado-ios-testflight-${{ github.run_number }}
+          if-no-files-found: error
           path: |
             ios-export/*.ipa
             dist/native/build.json

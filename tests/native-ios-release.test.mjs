@@ -97,6 +97,37 @@ const require = createRequire(import.meta.url);
 const workflow = require('yaml').parse(readFileSync('.github/workflows/native-ios-release.yml', 'utf8'));
 const job = workflow.jobs['testflight-archive'];
 
+test('TestFlight GitHub-waarschuwingen worden aan de oorzaak opgelost, zonder releasepoort te wijzigen', () => {
+  assert.equal(workflow.jobs['branch-check']['runs-on'], 'ubuntu-24.04', 'voorkomt de aangekondigde automatische Ubuntu 26-migratie');
+  for (const name of ['signing-import-check', 'testflight-archive']) {
+    const macJob=workflow.jobs[name];
+    assert.equal(macJob['runs-on'], 'macos-26-intel', name+' vermijdt de gemelde macOS-arm64-runnerwachtrij');
+    const setup=macJob.steps.filter(step=>step.uses?.startsWith('actions/setup-node@'));
+    assert.equal(setup.length,1);
+    assert.equal(setup[0].uses,'actions/setup-node@v7','Node 24 action runtime, niet oude setup-node@v4');
+    assert.equal(setup[0].with['node-version'],24,'app-runtime blijft Node 24');
+  }
+  const artifact=job.steps.find(step=>step.uses?.startsWith('actions/upload-artifact@'));
+  assert.equal(artifact.uses,'actions/upload-artifact@v7','upload-artifact heeft Node 24 runtime');
+  assert.equal(artifact.with['if-no-files-found'],'error','geen stil ontbrekend gevalideerd IPA-artifact');
+  assert.equal(artifact.with['retention-days'],7);
+  assert.equal(workflow.on.workflow_dispatch.inputs.upload.default,false);
+  assert.equal(job.environment,'testflight');
+  assert.equal(workflow.jobs['signing-import-check'].environment,'testflight');
+  assert.match(job.if,/refs\\/heads\\/develop/);
+  assert.equal(job.env.NATIVE_DISTRIBUTION_CHANNEL,'testflight');
+  assert.equal(job.env.CAPACITOR_BUILD_PROFILE,'local-store-test');
+  const platform=require('yaml').parse(readFileSync('.github/workflows/native-platform-builds.yml','utf8'));
+  assert.equal(platform.jobs['ios-simulator']['runs-on'],'macos-26-intel','runner is in de ongetekende iOS-CI aantoonbaar dezelfde');
+  assert.equal(platform.jobs['android-development']['runs-on'],'ubuntu-24.04');
+  for(const testJob of Object.values(platform.jobs)) {
+    for(const step of testJob.steps ?? []) {
+      if(step.uses?.startsWith('actions/setup-node@')) assert.equal(step.uses,'actions/setup-node@v7');
+      if(step.uses?.startsWith('actions/upload-artifact@')) assert.equal(step.uses,'actions/upload-artifact@v7');
+    }
+  }
+});
+
 test('dispatch, develop, exacte commit, environment en upload opt-in zijn verplicht', () => {
   assert.deepEqual(Object.keys(workflow.on), ['workflow_dispatch']);
   assert.equal(workflow.on.workflow_dispatch.inputs.upload.default, false);
