@@ -18,8 +18,8 @@ foutloos heeft gemeld. Het is geen onafhankelijke instrumentatie of CI-assertie.
 | Apple-buildstatus | Build 11 upload `Complete`, gekoppeld aan interne groep `Versado Intern` (door eigenaar getoond) |
 | Backend in bundel | `https://api-test.versado.app` (`local-store-test` / `testflight`); geen productierelease |
 | Uitvoerder | Eigenaar, zelfrapportage via gesprek op 13 november 2026 |
-| Testtoestel | Fysieke iPhone, exact model **nog niet genoteerd** |
-| iOS-versie | **Nog niet genoteerd** |
+| Testtoestel | **iPhone 17 Pro Max** (door eigenaar opgegeven) |
+| iOS-versie | **iOS 27.2.1** (door eigenaar opgegeven) |
 | Meetbewijs | TestFlight-installatie en gebruikersbevestiging; geen bijgevoegde crashtelemetrie, apparaatlogs, screenshots per stap of automatische eind-tot-eindmeting |
 | Persoonsgegevens | Geen accountadres, tokens, certificaten of sleutelmateriaal in dit rapport |
 
@@ -54,9 +54,10 @@ de betreffende toestellen, met model/OS, testdatum, stappen, uitkomst en reviewe
 | android-phone-b | PENDING | Tweede Android-fabrikant, recente Android-versie, dezelfde kritieke flow |
 | android-tablet | PENDING | Android-tablet, beide oriëntaties, TalkBack en lifecycle |
 
-De reeds geteste iPhone kan later als `iphone-small` en/of `iphone-recent`
-worden geregistreerd **als het exacte model/iOS en alle vereiste scenario's
-aantoonbaar passen**; dat wordt niet automatisch aangenomen.
+De geregistreerde **iPhone 17 Pro Max met iOS 27.2.1** is een kandidaat voor
+`iphone-recent`. De zeven geslaagde rooktests vormen alvast praktijkbewijs,
+maar de volledige vereiste dieptetests zijn nog niet afgetekend: deze matrixregel
+blijft daarom **PENDING**. Het toestel vervangt geen kleine iPhone (`iphone-small`).
 
 ## Nog niet afgetekende dieptetests
 
