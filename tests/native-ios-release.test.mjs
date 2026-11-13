@@ -161,7 +161,7 @@ const keychainSigned = (profileGroups, appGroups = [appGroup]) => {
   return s;
 };
 
-test('diagnose herkent TN3125-profielgroepen zonder de huidige enkele-groepregel te versoepelen', () => {
+test('Apple TN3125-profielgroepen zijn geldig zonder apprechten te versoepelen', () => {
   const standard = keychainSigned([appGroup]);
   assert.deepEqual(distributionProblems(standard, team), []);
   assert.deepEqual(distributionDiagnostics(standard, team).profileKeychain.categories, { 'expected-app': 1 });
@@ -173,17 +173,21 @@ test('diagnose herkent TN3125-profielgroepen zonder de huidige enkele-groepregel
     assert.equal(diagnostic.appKeychainCoveredByProfile, true);
     assert.equal(diagnostic.declaredPrefixMatchesExpectedTeam, true);
     assert.equal(diagnostic.declaredPrefixMatchesAppPrefix, true);
-    // Bewijs van de gedocumenteerde incompatibiliteit; reparatie wacht op profielbewijs.
-    assert.deepEqual(distributionProblems(s, team), ['profiel: onverwachte keychain-groep']);
+    // Profielgroepen zijn een Apple-allowlist, geen extra app-entitlements.
+    assert.deepEqual(distributionProblems(s, team), []);
   }
 });
 
-test('diagnose maakt vreemde, dubbele, misvormde en ontbrekende groepen zichtbaar zonder waarden', () => {
+test('profielguard weigert vreemde, dubbele en misvormde groepen; diagnose blijft geschoond', () => {
   for (const group of [`${team}.app.andere.app`, 'OTHERTEAM1.*', 'com.apple.token.extra', 'com.apple.*', '*']) {
     const s = keychainSigned([appGroup, group]);
     assert.deepEqual(distributionDiagnostics(s, team).profileKeychain.categories, { 'expected-app': 1, other: 1 });
     assert.ok(distributionProblems(s, team).length);
   }
+  for (const groups of [[appGroup, appGroup], [wildcardGroup, wildcardGroup], [wildcardGroup, appGroup], ['com.apple.token'], [appGroup, 'com.apple.token', 'com.apple.token'], ['com.apple.token', 'com.apple.token']]) {
+    assert.ok(distributionProblems(keychainSigned(groups), team).includes('profiel: onverwachte keychain-groep'));
+  }
+  assert.deepEqual(distributionProblems(keychainSigned(['com.apple.token', wildcardGroup]), team), []);
   const s = keychainSigned([appGroup, appGroup, 7]);
   assert.deepEqual(distributionDiagnostics(s, team).profileKeychain, { state:'array', count:3, duplicateCount:1, categories:{ 'expected-app':2, malformed:1 } });
   for (const groups of [[], null, appGroup, undefined]) {
@@ -262,7 +266,7 @@ test('extra apprechten, verkeerde identiteit/team en ongeschikte profielen blijv
   }
 });
 
-test('IPA-foutpad voegt geschoonde diagnose toe en behoudt de afkeuring (synthetische codesign-uitvoer)', () => {
+test('IPA-guard accepteert normale profielallowlist, maar behoudt andere IPA-afkeuringen (synthetische uitvoer)', () => {
   const root = mkdtempSync(join(tmpdir(), 'versado-ipa-diagnostic-'));
   const app = join(root, 'App.app');
   const childProcess = require('node:child_process');
@@ -290,15 +294,9 @@ test('IPA-foutpad voegt geschoonde diagnose toe en behoudt de afkeuring (synthet
       syncBuiltinESMExports();
       const problems = ipaProblems(app, { root, env:{ IOS_TEAM_ID:team, NATIVE_API_BASE_URL:'https://test.versado-test.com' } });
       const diagnostic = problems.find(p => p.startsWith('Signingdiagnose (geschoond;'));
-      if (groups.length > 1) {
-        assert.ok(problems.includes('profiel: onverwachte keychain-groep'), JSON.stringify(problems));
-        assert.ok(diagnostic);
-        assert.match(diagnostic, /"apple-token":1/);
-        assert.ok(!diagnostic.includes(team));
-        assert.ok(!diagnostic.includes('com.apple.token'));
-      } else {
-        assert.equal(diagnostic, undefined);
-      }
+      assert.ok(!problems.includes('profiel: onverwachte keychain-groep'), JSON.stringify(problems));
+      assert.equal(diagnostic, undefined);
+      assert.ok(problems.length > 0, 'synthetische IPA moet elders nog steeds worden afgekeurd');
     }
   } finally {
     childProcess.spawnSync = originalSpawn;

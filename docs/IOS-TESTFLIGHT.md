@@ -223,24 +223,26 @@ Na onafhankelijke review en merge is **afzonderlijke eigenaarstoestemming voor
 geen complete logs met sleutelgegevens, profielen of P12-bestanden delen.
 Deze PR start die run niet en maakt geen Apple-middelen aan.
 
-## De eerdere keychaingroepfout blijft open
+## Apple's profielallowlist en Versado-appclaims
 
-[TN3125](https://developer.apple.com/documentation/technotes/tn3125-inside-code-signing-provisioning-profiles#The-how)
-beschrijft een ruimere profielallowlist met bijvoorbeeld `com.apple.token`.
-De huidige Versado-policy staat dat meervoudige patroon nog niet toe.
-Deze signingwijziging versoepelt die policy niet.
+Apple's [TN3125](https://developer.apple.com/documentation/technotes/tn3125-inside-code-signing-provisioning-profiles#The-how)
+geeft expliciet als voorbeeld een profiel met de team-wildcard `TEAM.*` én
+`com.apple.token`. Een provisioningprofiel autoriseert rechten die de app kán
+claimen: de app hoeft die rechten niet daadwerkelijk te claimen.
 
-De profiel-preflight hergebruikt dezelfde bestaande controles. Daardoor kan ook
-de importcontrole na een geslaagde P12-import nog afkeuren op
-`profiel: onverwachte keychain-groep`. De log meldt eerst de geslaagde import en
-identiteitscontrole, gevolgd door de geschoonde diagnose uit #273. Dat levert
-bewijs vóór een dure archive, zonder de fout te omzeilen. De daadwerkelijke
-app-entitlements worden pas door de onafhankelijke IPA-guard beoordeeld.
+De eerdere import-only run bevestigde de geldige Distribution-identiteit en het
+correcte team, maar onze eigen profielguard wees die gedocumenteerde combinatie
+ten onrechte af. De profielguard accepteert nu exact één teamgebonden
+keychaingroep (de appgroep of de team-wildcard), eventueel aangevuld met één
+`com.apple.token`. Dubbele, vreemde, verkeerd geprefixte of extra groepen
+blijven verboden. De **ondertekende app zelf** blijft beperkt tot hoogstens
+de ene exacte Versado-keychaingroep; `com.apple.token` en wildcards worden
+daar nooit als appclaims toegestaan. Alle overige certificaat-, team-, profiel-,
+entitlement-, privacy- en IPA-controles blijven van kracht.
 
-De concrete profielgroepen van de eerste IPA blijven onbekend. Ook een
-legacy App ID Prefix uit [TN2311](https://developer.apple.com/library/archive/technotes/tn2311/_index.html)
-wordt niet automatisch toegestaan. Deel bij een volgende fout uitsluitend de
-geschoonde diagnose, geen profiel, teamcodes of sleutels.
+Deze correctie bewijst nog geen succesvolle echte IPA-build; na review/merge
+eerst één expliciet geautoriseerde import-only test met `upload=false`.
+Een daadwerkelijke archiverun en upload vereisen afzonderlijke toestemming.
 
 ## Daarna bouwen zonder upload — alleen na nieuwe toestemming
 

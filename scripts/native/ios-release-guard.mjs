@@ -78,7 +78,19 @@ export function distributionProblems({ entitlements: ent = {}, profile, authorit
     if (values["com.apple.developer.team-identifier"] !== expectedTeam) problems.push(`${label}: team-entitlement wijkt af`);
     if (values["beta-reports-active"] !== undefined && values["beta-reports-active"] !== true) problems.push(`${label}: beta-reports-active ongeldig`);
     const groups = values["keychain-access-groups"];
-    if (groups !== undefined && (!Array.isArray(groups) || groups.length !== 1 || (groups[0] !== `${expectedTeam}.${APP_ID}` && !(profileValues && groups[0] === `${expectedTeam}.*`)))) problems.push(`${label}: onverwachte keychain-groep`);
+    if (groups !== undefined) {
+      const appGroup = `${expectedTeam}.${APP_ID}`;
+      const wildcard = `${expectedTeam}.*`;
+      // Apple TN3125: het profiel is een allowlist, niet de door de app geclaimde rechten.
+      // Alleen het profiel mag naast één geldige teamgroep ook com.apple.token bevatten.
+      const accepted = profileValues
+        ? Array.isArray(groups) && groups.length >= 1 && groups.length <= 2 &&
+          groups.filter(group => group === appGroup || group === wildcard).length === 1 &&
+          groups.every(group => group === appGroup || group === wildcard || group === 'com.apple.token') &&
+          new Set(groups).size === groups.length
+        : Array.isArray(groups) && groups.length === 1 && groups[0] === appGroup;
+      if (!accepted) problems.push(`${label}: onverwachte keychain-groep`);
+    }
   };
   check(ent, "app");
   if (!profile) return [...problems, "App Store-profiel ontbreekt"];

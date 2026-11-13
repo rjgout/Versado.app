@@ -51,10 +51,14 @@ test('App Store-profiel moet exact bij certificaat, team en Versado horen; besta
   ];
   for (const mutate of mutations) { const p = profileFor(der); mutate(p); assert.ok(profileProblems(p, der, team).length, mutate.toString()); }
   const p = profileFor(der); p.Entitlements['keychain-access-groups'].push('com.apple.token');
-  const errors = profileProblems(p, der, team);
-  assert.ok(errors.includes('profiel: onverwachte keychain-groep'));
-  assert.ok(errors.some(e => e.startsWith('Signingdiagnose (geschoond;')));
-  assert.ok(!errors.join('\n').includes(team));
+  assert.deepEqual(profileProblems(p, der, team), [], 'Apple TN3125-profiel met wildcard en com.apple.token');
+  for (const invalidGroups of [[team + '.*', team + '.*'], ['com.apple.token'], [team + '.*', 'com.apple.token', 'EXTRA']]) {
+    p.Entitlements['keychain-access-groups'] = invalidGroups;
+    const errors = profileProblems(p, der, team);
+    assert.ok(errors.includes('profiel: onverwachte keychain-groep'));
+    assert.ok(errors.some(e => e.startsWith('Signingdiagnose (geschoond;')));
+    assert.ok(!errors.join('\n').includes(team));
+  }
   const malformed = profileFor(der);
   malformed.Entitlements['unknown\nSECRET-ENTITLEMENT'] = true;
   assert.ok(!profileProblems(malformed, der, team).join('\n').includes('SECRET'));
