@@ -9027,7 +9027,7 @@
     },
     {
       "file": "src/components/BottomNav.tsx",
-      "sha256": "632af0657a82340093ab424a18e18a03643b07f2eb17b0c4d8e7154fd7d31be4",
+      "sha256": "d0a92670b47bc4413da2b9ef5f1fd0f99258af49f122068398b8f5a6405f8704",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -9220,7 +9220,7 @@
     },
     {
       "file": "src/components/ConfirmProvider.tsx",
-      "sha256": "984b453c740c7424d35077b9f2ea1f6c95c50ac9e5d6515af69ccbfbbbf9458c",
+      "sha256": "c5fc8e5923f270911694a5619b97becead35da4e62dec77e0df39fa53174f36c",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -11053,7 +11053,7 @@
     },
     {
       "file": "src/components/ThemePreference.tsx",
-      "sha256": "013f975067606509d5add6f67c72a1032b7db1020abe5e063588c82dc8642e9f",
+      "sha256": "b6ed6e95dcbfc541c05123b0a1fedbc4449071876fbd491bbad922727ba156cc",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -13146,7 +13146,7 @@
     },
     {
       "file": "src/components/native/NativeProfileView.tsx",
-      "sha256": "f24f8723a3373568c805415bd65b17cd0985c3c18e7505266d20e9e17f05ee25",
+      "sha256": "951f7ff93d15cce892e2d77823438290fc8f5e6a810a60394c17b766253972d2",
       "boundary": "client",
       "imports": [
         "@/components/ConfirmProvider",
@@ -13323,7 +13323,7 @@
     },
     {
       "file": "src/components/native/entry.tsx",
-      "sha256": "5a9580e65fcaec37a64dbc2762664807388eee5bd7be8f213a6cee3184046827",
+      "sha256": "b9f206e1ac51691704bcbfe9db08ed29d7e2977ca923df1816fcbe96e4f92119",
       "boundary": "context-dependent",
       "imports": [
         "./NativeAccessPanel",
@@ -13336,10 +13336,12 @@
         "@/lib/i18n",
         "@/lib/languages",
         "@/lib/native/access",
+        "@/lib/native/appearance",
         "@/lib/native/audioOutput",
         "@/lib/native/audioSessionGate",
         "@/lib/native/bridge",
         "@/lib/native/client",
+        "@/lib/platform",
         "react",
         "react-dom/client"
       ],
@@ -13494,7 +13496,7 @@
     },
     {
       "file": "src/components/profile/ProfileOverview.tsx",
-      "sha256": "37773605ab4f390745f888648f6b2d771df86fc279278424ad4b2ca3c9306045",
+      "sha256": "d4099462d5c579a574aa2dfe7711540b04326103d2addf99241ea47e0f53bd55",
       "boundary": "client",
       "imports": [
         "./ProfilePageView",
@@ -13655,7 +13657,7 @@
     },
     {
       "file": "src/components/profile/settings.tsx",
-      "sha256": "bc170814a6c580eb1485f0d30fdb41cf0bbde251061fba25c251ee7f760facf7",
+      "sha256": "ec56cbeecc7daeda091aa2522dc1f83f01282f8ba73ad92999c7c4d36a6d0844",
       "boundary": "client",
       "imports": [
         "@/components/navigation/AppNavigation",
@@ -14122,7 +14124,7 @@
     },
     {
       "file": "src/components/shell/AppShellHeader.tsx",
-      "sha256": "266bf2e844cb2adb6a6e69753107fa5a4ae1e6bcbcfa459119e05688c12ae261",
+      "sha256": "bc071b10d763ebb839a9aa91dde95c93ba34cf291e80fc57b9c60e7e814f0b5e",
       "boundary": "client",
       "imports": [
         "./PrimaryNav",
@@ -14273,7 +14275,7 @@
     },
     {
       "file": "src/components/shell/SubpageBackBarView.tsx",
-      "sha256": "4f37809ac393496faa74fb5ea2b9d2b1ae8b26d3e16b60557c248445f98436d9",
+      "sha256": "ba6c44cbe2291bbe009ab2babd8db14a8d8ca8ad665cc608586c7824fee7b271",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -16125,7 +16127,7 @@
     },
     {
       "file": "src/components/versado/styles.ts",
-      "sha256": "de4fb649bf45ce344198a364d66e29969fe9bf4d49989c1f1f4ae236f637f97b",
+      "sha256": "99c64cbdbe68368018ffc06883d73e2534b7745aaedfeff22c2e437e6407390c",
       "boundary": "context-dependent",
       "imports": [],
       "methods": [],
@@ -21730,6 +21732,21 @@
       ]
     },
     {
+      "file": "src/lib/native/appearance.ts",
+      "sha256": "56f0ba721aa585b599d37b73274e5821a5af766ced7cefff9b2985daed25df38",
+      "boundary": "context-dependent",
+      "imports": [
+        "zod"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "interfacePreferencesSchema",
+        "startNativeAppearance"
+      ]
+    },
+    {
       "file": "src/lib/native/apple.ts",
       "sha256": "2878bf0c54e7eac9bacd023bee300122b934b64056df1fbd67a6629fcd5c288e",
       "boundary": "context-dependent",
@@ -21909,7 +21926,7 @@
     },
     {
       "file": "src/lib/native/bridge.ts",
-      "sha256": "6a9ffe254b92e5e3368a917ceab0e1efd69eaf64c878e17165296d65639ed32f",
+      "sha256": "0725b7fccca5cae0c25d7f503648a093a5b9516f019489c189300f567ac309f7",
       "boundary": "context-dependent",
       "imports": [
         "./access",
@@ -28082,7 +28099,12 @@
       "requestEvidence": [],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/account-verwijderen/page.tsx",
@@ -28151,7 +28173,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "volledig",
+        "native": "/account-verwijderen",
+        "reason": "Gedeelde lokale inhoud/formulieren en bestaande services; fysieke heracceptatie apart"
+      }
     },
     {
       "file": "src/app/acties/page.tsx",
@@ -28323,7 +28350,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/activity/page.tsx",
@@ -28458,7 +28490,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/adminbackend/page.tsx",
@@ -28581,7 +28618,12 @@
       ],
       "authEvidence": [
         "requireAdminPage"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen lokale beheerflow; bestaande rol-/2FA-gates blijven vereist"
+      }
     },
     {
       "file": "src/app/adminbackend/communicatie/page.tsx",
@@ -28741,7 +28783,12 @@
       ],
       "authEvidence": [
         "requireAdminPage"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen lokale beheerflow; bestaande rol-/2FA-gates blijven vereist"
+      }
     },
     {
       "file": "src/app/adminbackend/content/page.tsx",
@@ -28914,7 +28961,12 @@
       ],
       "authEvidence": [
         "requireAdminPage"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen lokale beheerflow; bestaande rol-/2FA-gates blijven vereist"
+      }
     },
     {
       "file": "src/app/adminbackend/content-preview/page.tsx",
@@ -29184,7 +29236,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen lokale beheerflow; bestaande rol-/2FA-gates blijven vereist"
+      }
     },
     {
       "file": "src/app/adminbackend/content/audio/page.tsx",
@@ -29331,7 +29388,12 @@
       ],
       "authEvidence": [
         "requireAdminPage"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen lokale beheerflow; bestaande rol-/2FA-gates blijven vereist"
+      }
     },
     {
       "file": "src/app/adminbackend/content/inspect/page.tsx",
@@ -29447,7 +29509,12 @@
       ],
       "authEvidence": [
         "requireAdminPage"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen lokale beheerflow; bestaande rol-/2FA-gates blijven vereist"
+      }
     },
     {
       "file": "src/app/adminbackend/content/study-publications/page.tsx",
@@ -29630,7 +29697,12 @@
       ],
       "authEvidence": [
         "requireAdminPage"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen lokale beheerflow; bestaande rol-/2FA-gates blijven vereist"
+      }
     },
     {
       "file": "src/app/adminbackend/gebruikers/page.tsx",
@@ -29716,7 +29788,12 @@
       ],
       "authEvidence": [
         "requireAdminPage"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen lokale beheerflow; bestaande rol-/2FA-gates blijven vereist"
+      }
     },
     {
       "file": "src/app/adminbackend/spellen/page.tsx",
@@ -29816,7 +29893,12 @@
       ],
       "authEvidence": [
         "requireAdminPage"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen lokale beheerflow; bestaande rol-/2FA-gates blijven vereist"
+      }
     },
     {
       "file": "src/app/adminbackend/systeem/page.tsx",
@@ -30058,7 +30140,12 @@
       ],
       "authEvidence": [
         "requireAdminPage"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen lokale beheerflow; bestaande rol-/2FA-gates blijven vereist"
+      }
     },
     {
       "file": "src/app/alleskenner/page.tsx",
@@ -30156,7 +30243,12 @@
       "authEvidence": [
         "canStartGame",
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/alleskenner/alleen/page.tsx",
@@ -30314,7 +30406,12 @@
         "canResumeGameContent",
         "canStartGame",
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/alleskenner/alleen/[id]/page.tsx",
@@ -30400,7 +30497,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/alleskenner/seizoen/page.tsx",
@@ -30500,7 +30602,12 @@
       "authEvidence": [
         "canStartGame",
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/alleskenner/seizoen/[id]/page.tsx",
@@ -30579,7 +30686,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/api/account/route.ts",
@@ -53576,7 +53688,12 @@
       "requestEvidence": [],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/challenges/page.tsx",
@@ -53660,7 +53777,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/change-password/page.tsx",
@@ -53728,7 +53850,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "volledig",
+        "native": "/change-password",
+        "reason": "Gedeelde lokale inhoud/formulieren en bestaande services; fysieke heracceptatie apart"
+      }
     },
     {
       "file": "src/app/chapter-guess/page.tsx",
@@ -53827,7 +53954,12 @@
       "authEvidence": [
         "canStartGame",
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/chapter-guess/solo/[gameId]/page.tsx",
@@ -54040,7 +54172,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/competition/page.tsx",
@@ -54169,7 +54306,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/contact/page.tsx",
@@ -54204,7 +54346,12 @@
         "src/components/legal/ContactContent.tsx"
       ],
       "requestEvidence": [],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "gedeeltelijk",
+        "native": "/contact",
+        "reason": "Gedeelde contactinhoud; lokale feedbackbestemming ontbreekt"
+      }
     },
     {
       "file": "src/app/content/page.tsx",
@@ -54338,7 +54485,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "gedeeltelijk",
+        "native": "/content",
+        "reason": "Gedeelde veilige bron-/taalkeuze; niet alle bronpreviews en vervolgactiviteiten lokaal beschikbaar"
+      }
     },
     {
       "file": "src/app/cookies/page.tsx",
@@ -54374,7 +54526,12 @@
         "src/components/legal/CookiesContent.tsx"
       ],
       "requestEvidence": [],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "volledig",
+        "native": "/cookies",
+        "reason": "Gedeelde lokale inhoud/formulieren en bestaande services; fysieke heracceptatie apart"
+      }
     },
     {
       "file": "src/app/courses/page.tsx",
@@ -54564,7 +54721,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "gedeeltelijk",
+        "native": "/courses",
+        "reason": "Gedeelde cursuscatalogus; toevoegen, inschrijven en alle cursustypen/acties nog niet gelijk"
+      }
     },
     {
       "file": "src/app/courses/[courseId]/page.tsx",
@@ -54757,7 +54919,12 @@
       "authEvidence": [
         "canStartStudy",
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "gedeeltelijk",
+        "native": "/courses/[courseId]",
+        "reason": "Bestaande cursuscontext; volledige webdetails/acties nog niet lokaal gelijk"
+      }
     },
     {
       "file": "src/app/courses/[courseId]/archief/page.tsx",
@@ -54906,7 +55073,12 @@
       "requestEvidence": [],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "gedeeltelijk",
+        "native": "/courses/[courseId]/archief",
+        "reason": "Gedeeld CFM-archief; daadwerkelijke studie-/vragenflow ontbreekt"
+      }
     },
     {
       "file": "src/app/courses/[courseId]/chapter/[chapterId]/page.tsx",
@@ -55027,7 +55199,12 @@
       "requestEvidence": [],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": "Reader bestaat alleen met bewezen cursuscontext via /courses/:id/read/(steps|chapters)/:id",
+        "reason": "Directe webbestemming en volledige acties niet overgezet; legacy-melding telt niet als beschikbaar scherm"
+      }
     },
     {
       "file": "src/app/courses/[courseId]/pad/page.tsx",
@@ -55284,7 +55461,12 @@
       "authEvidence": [
         "canStartStudy",
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "gedeeltelijk",
+        "native": "/courses/[courseId]/pad",
+        "reason": "Drie schriftelijke leespaden en CFM-weken; overige cursus-/vraag-/afrondingsflows ontbreken"
+      }
     },
     {
       "file": "src/app/dashboard/page.tsx",
@@ -55637,7 +55819,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "gedeeltelijk",
+        "native": "/dashboard",
+        "reason": "Gedeelde Vandaag en bevestigde acties; overige activiteiten, beloningen en sociale doelen ontbreken"
+      }
     },
     {
       "file": "src/app/dev/lofzangen/page.tsx",
@@ -55742,7 +55929,12 @@
       "authEvidence": [
         "getCurrentUser",
         "getHymnsAccess"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/dev/versado-dorp/page.tsx",
@@ -55874,7 +56066,12 @@
       "requestEvidence": [],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/disclaimer/page.tsx",
@@ -55911,7 +56108,12 @@
         "src/components/navigation/AppNavigation.tsx"
       ],
       "requestEvidence": [],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "volledig",
+        "native": "/disclaimer",
+        "reason": "Gedeelde lokale inhoud/formulieren en bestaande services; fysieke heracceptatie apart"
+      }
     },
     {
       "file": "src/app/dorp/page.tsx",
@@ -56057,7 +56259,12 @@
         "/api/dorp?${target}",
         "/api/dorp?markers=friends"
       ],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/dorp/groups/[groupId]/page.tsx",
@@ -56206,7 +56413,12 @@
         "/api/dorp?${target}",
         "/api/dorp?markers=friends"
       ],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/dorp/visit/[userId]/page.tsx",
@@ -56355,7 +56567,12 @@
         "/api/dorp?${target}",
         "/api/dorp?markers=friends"
       ],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/feedback/page.tsx",
@@ -56473,7 +56690,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/feedback/respond/[token]/page.tsx",
@@ -56536,7 +56758,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/forgot-password/page.tsx",
@@ -56573,7 +56800,12 @@
       "requestEvidence": [
         "/api/auth/forgot-password"
       ],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "gedeeltelijk",
+        "native": "/forgot-password",
+        "reason": "Native resetaanvraag werkt; platform-/Apple-herstelverschillen blijven apart getoetst"
+      }
     },
     {
       "file": "src/app/friends/page.tsx",
@@ -56739,7 +56971,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/friends/[userId]/page.tsx",
@@ -56940,7 +57177,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/fsy/[lessonId]/page.tsx",
@@ -57211,7 +57453,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/gezinsavond/page.tsx",
@@ -57309,7 +57556,12 @@
       "authEvidence": [
         "canStartGame",
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/groups/page.tsx",
@@ -57432,7 +57684,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/groups/[groupId]/page.tsx",
@@ -57560,7 +57817,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/groups/[groupId]/settings/page.tsx",
@@ -57691,7 +57953,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/groups/leaderboard/page.tsx",
@@ -57750,7 +58017,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/groups/new/page.tsx",
@@ -57803,7 +58075,12 @@
       "requestEvidence": [],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/intro/[lessonId]/page.tsx",
@@ -58092,7 +58369,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/jigsaw/page.tsx",
@@ -58335,7 +58617,12 @@
         "canResumeGameContent",
         "canStartGame",
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/jigsaw/afgerond/page.tsx",
@@ -58452,7 +58739,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/jigsaw/records/page.tsx",
@@ -58604,7 +58896,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/jigsaw/records/[variantId]/page.tsx",
@@ -58763,7 +59060,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/jigsaw/samen/[id]/page.tsx",
@@ -58992,7 +59294,12 @@
       "authEvidence": [
         "canResumeGameContent",
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/jigsaw/wedstrijd/[id]/page.tsx",
@@ -59232,7 +59539,12 @@
       "authEvidence": [
         "canResumeGameContent",
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/kids/[storyId]/page.tsx",
@@ -59514,7 +59826,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/kompas/page.tsx",
@@ -59691,7 +60008,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/kompas/[topicId]/page.tsx",
@@ -59854,7 +60176,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/lesson/[chapterId]/page.tsx",
@@ -60173,7 +60500,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": "Reader bestaat alleen met bewezen cursuscontext via /courses/:id/read/(steps|chapters)/:id",
+        "reason": "Directe webbestemming en volledige acties niet overgezet; legacy-melding telt niet als beschikbaar scherm"
+      }
     },
     {
       "file": "src/app/live/page.tsx",
@@ -60320,7 +60652,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/live/[code]/page.tsx",
@@ -60639,7 +60976,12 @@
       "authEvidence": [
         "canResumeLiveGame",
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/login/page.tsx",
@@ -60685,7 +61027,12 @@
         "/api/auth/login",
         "/api/auth/login/2fa"
       ],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "gedeeltelijk",
+        "native": "/login",
+        "reason": "Native auth/2FA werkt; Apple-vrijgave, web-onboarding en alle vervolgflows nog niet volledig gelijk"
+      }
     },
     {
       "file": "src/app/mysteries/page.tsx",
@@ -60836,7 +61183,12 @@
       "authEvidence": [
         "canUseMystery",
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/001/page.tsx",
@@ -60973,7 +61325,12 @@
         "src/components/versado/MediaArtwork.tsx"
       ],
       "requestEvidence": [],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/001a/page.tsx",
@@ -61110,7 +61467,12 @@
         "src/components/versado/MediaArtwork.tsx"
       ],
       "requestEvidence": [],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/001a/play/page.tsx",
@@ -61269,7 +61631,12 @@
         "/api/mysteries/attempts",
         "/api/mysteries/attempts?variant=${definition.routeId}"
       ],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/001b/page.tsx",
@@ -61293,7 +61660,12 @@
       "directModules": [],
       "clientBoundaries": [],
       "requestEvidence": [],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/001b/play/page.tsx",
@@ -61452,7 +61824,12 @@
         "/api/mysteries/attempts",
         "/api/mysteries/attempts?variant=${definition.routeId}"
       ],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/001c/page.tsx",
@@ -61476,7 +61853,12 @@
       "directModules": [],
       "clientBoundaries": [],
       "requestEvidence": [],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/001c/play/page.tsx",
@@ -61635,7 +62017,12 @@
         "/api/mysteries/attempts",
         "/api/mysteries/attempts?variant=${definition.routeId}"
       ],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/002/page.tsx",
@@ -61772,7 +62159,12 @@
         "src/components/versado/MediaArtwork.tsx"
       ],
       "requestEvidence": [],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/002a/page.tsx",
@@ -61796,7 +62188,12 @@
       "directModules": [],
       "clientBoundaries": [],
       "requestEvidence": [],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/002a/play/page.tsx",
@@ -61955,7 +62352,12 @@
         "/api/mysteries/attempts",
         "/api/mysteries/attempts?variant=${definition.routeId}"
       ],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/002b/page.tsx",
@@ -61979,7 +62381,12 @@
       "directModules": [],
       "clientBoundaries": [],
       "requestEvidence": [],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/002b/play/page.tsx",
@@ -62138,7 +62545,12 @@
         "/api/mysteries/attempts",
         "/api/mysteries/attempts?variant=${definition.routeId}"
       ],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/002c/page.tsx",
@@ -62162,7 +62574,12 @@
       "directModules": [],
       "clientBoundaries": [],
       "requestEvidence": [],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/002c/play/page.tsx",
@@ -62321,7 +62738,12 @@
         "/api/mysteries/attempts",
         "/api/mysteries/attempts?variant=${definition.routeId}"
       ],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/003/page.tsx",
@@ -62458,7 +62880,12 @@
         "src/components/versado/MediaArtwork.tsx"
       ],
       "requestEvidence": [],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/003a/page.tsx",
@@ -62482,7 +62909,12 @@
       "directModules": [],
       "clientBoundaries": [],
       "requestEvidence": [],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/003a/play/page.tsx",
@@ -62641,7 +63073,12 @@
         "/api/mysteries/attempts",
         "/api/mysteries/attempts?variant=${definition.routeId}"
       ],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/003b/page.tsx",
@@ -62665,7 +63102,12 @@
       "directModules": [],
       "clientBoundaries": [],
       "requestEvidence": [],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/003b/play/page.tsx",
@@ -62824,7 +63266,12 @@
         "/api/mysteries/attempts",
         "/api/mysteries/attempts?variant=${definition.routeId}"
       ],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/003c/page.tsx",
@@ -62848,7 +63295,12 @@
       "directModules": [],
       "clientBoundaries": [],
       "requestEvidence": [],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/003c/play/page.tsx",
@@ -63007,7 +63459,12 @@
         "/api/mysteries/attempts",
         "/api/mysteries/attempts?variant=${definition.routeId}"
       ],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/004/page.tsx",
@@ -63144,7 +63601,12 @@
         "src/components/versado/MediaArtwork.tsx"
       ],
       "requestEvidence": [],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/004a/page.tsx",
@@ -63168,7 +63630,12 @@
       "directModules": [],
       "clientBoundaries": [],
       "requestEvidence": [],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/004a/play/page.tsx",
@@ -63327,7 +63794,12 @@
         "/api/mysteries/attempts",
         "/api/mysteries/attempts?variant=${definition.routeId}"
       ],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/004b/page.tsx",
@@ -63351,7 +63823,12 @@
       "directModules": [],
       "clientBoundaries": [],
       "requestEvidence": [],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/004b/play/page.tsx",
@@ -63510,7 +63987,12 @@
         "/api/mysteries/attempts",
         "/api/mysteries/attempts?variant=${definition.routeId}"
       ],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/004c/page.tsx",
@@ -63534,7 +64016,12 @@
       "directModules": [],
       "clientBoundaries": [],
       "requestEvidence": [],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/004c/play/page.tsx",
@@ -63693,7 +64180,12 @@
         "/api/mysteries/attempts",
         "/api/mysteries/attempts?variant=${definition.routeId}"
       ],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/005/page.tsx",
@@ -63830,7 +64322,12 @@
         "src/components/versado/MediaArtwork.tsx"
       ],
       "requestEvidence": [],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/005a/page.tsx",
@@ -63854,7 +64351,12 @@
       "directModules": [],
       "clientBoundaries": [],
       "requestEvidence": [],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/005a/play/page.tsx",
@@ -64013,7 +64515,12 @@
         "/api/mysteries/attempts",
         "/api/mysteries/attempts?variant=${definition.routeId}"
       ],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/005b/page.tsx",
@@ -64037,7 +64544,12 @@
       "directModules": [],
       "clientBoundaries": [],
       "requestEvidence": [],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/005b/play/page.tsx",
@@ -64196,7 +64708,12 @@
         "/api/mysteries/attempts",
         "/api/mysteries/attempts?variant=${definition.routeId}"
       ],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/005c/page.tsx",
@@ -64220,7 +64737,12 @@
       "directModules": [],
       "clientBoundaries": [],
       "requestEvidence": [],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/005c/play/page.tsx",
@@ -64379,7 +64901,12 @@
         "/api/mysteries/attempts",
         "/api/mysteries/attempts?variant=${definition.routeId}"
       ],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/006/page.tsx",
@@ -64516,7 +65043,12 @@
         "src/components/versado/MediaArtwork.tsx"
       ],
       "requestEvidence": [],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/006a/page.tsx",
@@ -64540,7 +65072,12 @@
       "directModules": [],
       "clientBoundaries": [],
       "requestEvidence": [],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/006a/play/page.tsx",
@@ -64699,7 +65236,12 @@
         "/api/mysteries/attempts",
         "/api/mysteries/attempts?variant=${definition.routeId}"
       ],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/006b/page.tsx",
@@ -64723,7 +65265,12 @@
       "directModules": [],
       "clientBoundaries": [],
       "requestEvidence": [],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/006b/play/page.tsx",
@@ -64882,7 +65429,12 @@
         "/api/mysteries/attempts",
         "/api/mysteries/attempts?variant=${definition.routeId}"
       ],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/006c/page.tsx",
@@ -64906,7 +65458,12 @@
       "directModules": [],
       "clientBoundaries": [],
       "requestEvidence": [],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/mysteries/006c/play/page.tsx",
@@ -65065,7 +65622,12 @@
         "/api/mysteries/attempts",
         "/api/mysteries/attempts?variant=${definition.routeId}"
       ],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/onboarding/page.tsx",
@@ -65225,7 +65787,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/podcast/[episodeId]/[mode]/page.tsx",
@@ -65507,7 +66074,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/practice/page.tsx",
@@ -65771,7 +66343,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/privacy/page.tsx",
@@ -65809,7 +66386,12 @@
         "src/components/navigation/AppNavigation.tsx"
       ],
       "requestEvidence": [],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "volledig",
+        "native": "/privacy",
+        "reason": "Gedeelde lokale inhoud/formulieren en bestaande services; fysieke heracceptatie apart"
+      }
     },
     {
       "file": "src/app/profile/page.tsx",
@@ -66032,7 +66614,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "gedeeltelijk",
+        "native": "/profile",
+        "reason": "Gedeeld volledig profieloverzicht; push, stem-preview, tijdzonesync en enkele doelroutes ontbreken"
+      }
     },
     {
       "file": "src/app/profile/avatar/page.tsx",
@@ -66164,7 +66751,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "volledig",
+        "native": "/profile/avatar",
+        "reason": "Gedeelde lokale inhoud/formulieren en bestaande services; fysieke heracceptatie apart"
+      }
     },
     {
       "file": "src/app/reading-lesson/[lessonId]/page.tsx",
@@ -66472,7 +67064,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": "Reader bestaat alleen met bewezen cursuscontext via /courses/:id/read/(steps|chapters)/:id",
+        "reason": "Directe webbestemming en volledige acties niet overgezet; legacy-melding telt niet als beschikbaar scherm"
+      }
     },
     {
       "file": "src/app/register/page.tsx",
@@ -66517,7 +67114,12 @@
         "/api/auth/register",
         "/api/invite/${encodeURIComponent(code)}"
       ],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "gedeeltelijk",
+        "native": "/register",
+        "reason": "Native registratie en bevestiging; volledige onboarding-/vervolgervaring nog open"
+      }
     },
     {
       "file": "src/app/reset-password/page.tsx",
@@ -66562,7 +67164,12 @@
         "/api/auth/login/2fa",
         "/api/auth/reset-password"
       ],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "volledig",
+        "native": "/reset-password",
+        "reason": "Gedeelde lokale inhoud/formulieren en bestaande services; fysieke heracceptatie apart"
+      }
     },
     {
       "file": "src/app/scrabble/page.tsx",
@@ -66691,7 +67298,12 @@
       "authEvidence": [
         "canStartGame",
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/scrabble/[gameId]/page.tsx",
@@ -66819,7 +67431,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/scripture/[chapterId]/page.tsx",
@@ -67091,7 +67708,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/shop/page.tsx",
@@ -67209,7 +67831,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/snelle-zendeling/page.tsx",
@@ -67351,7 +67978,12 @@
       "authEvidence": [
         "canUseQuickMissionary",
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/snelle-zendeling/run/[runId]/page.tsx",
@@ -67433,7 +68065,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/snelle-zendeling/samen/[code]/page.tsx",
@@ -67627,7 +68264,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/streak/page.tsx",
@@ -67831,7 +68473,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/study-folder/page.tsx",
@@ -67958,7 +68605,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/study-lesson/[lessonId]/[collectionId]/page.tsx",
@@ -68216,7 +68868,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/study-lesson/[lessonId]/[collectionId]/stappen/page.tsx",
@@ -68328,7 +68985,12 @@
       "requestEvidence": [],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/study-lesson/[lessonId]/[collectionId]/stappen/[stap]/page.tsx",
@@ -68582,7 +69244,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/study-lesson/[lessonId]/[collectionId]/vragen/page.tsx",
@@ -68886,7 +69553,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/tools/page.tsx",
@@ -69005,7 +69677,12 @@
       "requestEvidence": [],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/tools/dictionary/page.tsx",
@@ -69120,7 +69797,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/tools/dictionary/[word]/page.tsx",
@@ -69239,7 +69921,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/tools/persons/page.tsx",
@@ -69359,7 +70046,12 @@
       "requestEvidence": [],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/tools/xp-guide/page.tsx",
@@ -69497,7 +70189,12 @@
       "requestEvidence": [],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/uitnodiging/[code]/page.tsx",
@@ -69625,7 +70322,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/uitnodiging/groep/[token]/page.tsx",
@@ -69747,7 +70449,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/uitschrijven/[token]/page.tsx",
@@ -69822,7 +70529,12 @@
         "getCurrentUser",
         "verifyPodcastUnsubscribeToken",
         "verifyUnsubscribeToken"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/verify-email/page.tsx",
@@ -69897,7 +70609,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "volledig",
+        "native": "/verify-email",
+        "reason": "Gedeelde lokale inhoud/formulieren en bestaande services; fysieke heracceptatie apart"
+      }
     },
     {
       "file": "src/app/voorwaarden/page.tsx",
@@ -69928,7 +70645,12 @@
       ],
       "clientBoundaries": [],
       "requestEvidence": [],
-      "authEvidence": []
+      "authEvidence": [],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/word-game/page.tsx",
@@ -70168,7 +70890,12 @@
         "canResumeGameContent",
         "canStartGame",
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/word-search/page.tsx",
@@ -70309,7 +71036,12 @@
       "authEvidence": [
         "assertWordSearchContext",
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/word-search/[gameId]/page.tsx",
@@ -70446,7 +71178,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     },
     {
       "file": "src/app/xp/page.tsx",
@@ -70556,7 +71293,12 @@
       ],
       "authEvidence": [
         "getCurrentUser"
-      ]
+      ],
+      "iosCoverage": {
+        "status": "ontbreekt",
+        "native": null,
+        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+      }
     }
   ],
   "components": [
@@ -73901,7 +74643,7 @@
     },
     {
       "file": "src/components/BottomNav.tsx",
-      "sha256": "632af0657a82340093ab424a18e18a03643b07f2eb17b0c4d8e7154fd7d31be4",
+      "sha256": "d0a92670b47bc4413da2b9ef5f1fd0f99258af49f122068398b8f5a6405f8704",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -74094,7 +74836,7 @@
     },
     {
       "file": "src/components/ConfirmProvider.tsx",
-      "sha256": "984b453c740c7424d35077b9f2ea1f6c95c50ac9e5d6515af69ccbfbbbf9458c",
+      "sha256": "c5fc8e5923f270911694a5619b97becead35da4e62dec77e0df39fa53174f36c",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -75927,7 +76669,7 @@
     },
     {
       "file": "src/components/ThemePreference.tsx",
-      "sha256": "013f975067606509d5add6f67c72a1032b7db1020abe5e063588c82dc8642e9f",
+      "sha256": "b6ed6e95dcbfc541c05123b0a1fedbc4449071876fbd491bbad922727ba156cc",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -77916,7 +78658,7 @@
     },
     {
       "file": "src/components/native/NativeProfileView.tsx",
-      "sha256": "f24f8723a3373568c805415bd65b17cd0985c3c18e7505266d20e9e17f05ee25",
+      "sha256": "951f7ff93d15cce892e2d77823438290fc8f5e6a810a60394c17b766253972d2",
       "boundary": "client",
       "imports": [
         "@/components/ConfirmProvider",
@@ -78093,7 +78835,7 @@
     },
     {
       "file": "src/components/native/entry.tsx",
-      "sha256": "5a9580e65fcaec37a64dbc2762664807388eee5bd7be8f213a6cee3184046827",
+      "sha256": "b9f206e1ac51691704bcbfe9db08ed29d7e2977ca923df1816fcbe96e4f92119",
       "boundary": "context-dependent",
       "imports": [
         "./NativeAccessPanel",
@@ -78106,10 +78848,12 @@
         "@/lib/i18n",
         "@/lib/languages",
         "@/lib/native/access",
+        "@/lib/native/appearance",
         "@/lib/native/audioOutput",
         "@/lib/native/audioSessionGate",
         "@/lib/native/bridge",
         "@/lib/native/client",
+        "@/lib/platform",
         "react",
         "react-dom/client"
       ],
@@ -78246,7 +78990,7 @@
     },
     {
       "file": "src/components/profile/ProfileOverview.tsx",
-      "sha256": "37773605ab4f390745f888648f6b2d771df86fc279278424ad4b2ca3c9306045",
+      "sha256": "d4099462d5c579a574aa2dfe7711540b04326103d2addf99241ea47e0f53bd55",
       "boundary": "client",
       "imports": [
         "./ProfilePageView",
@@ -78394,7 +79138,7 @@
     },
     {
       "file": "src/components/profile/settings.tsx",
-      "sha256": "bc170814a6c580eb1485f0d30fdb41cf0bbde251061fba25c251ee7f760facf7",
+      "sha256": "ec56cbeecc7daeda091aa2522dc1f83f01282f8ba73ad92999c7c4d36a6d0844",
       "boundary": "client",
       "imports": [
         "@/components/navigation/AppNavigation",
@@ -78846,7 +79590,7 @@
     },
     {
       "file": "src/components/shell/AppShellHeader.tsx",
-      "sha256": "266bf2e844cb2adb6a6e69753107fa5a4ae1e6bcbcfa459119e05688c12ae261",
+      "sha256": "bc071b10d763ebb839a9aa91dde95c93ba34cf291e80fc57b9c60e7e814f0b5e",
       "boundary": "client",
       "imports": [
         "./PrimaryNav",
@@ -78997,7 +79741,7 @@
     },
     {
       "file": "src/components/shell/SubpageBackBarView.tsx",
-      "sha256": "4f37809ac393496faa74fb5ea2b9d2b1ae8b26d3e16b60557c248445f98436d9",
+      "sha256": "ba6c44cbe2291bbe009ab2babd8db14a8d8ca8ad665cc608586c7824fee7b271",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -80858,6 +81602,80 @@
     "/profile?view=about",
     "/profile?view=twoFactor"
   ],
+  "iosProfileViews": [
+    {
+      "route": "/profile?view=competition",
+      "status": "gedeeltelijk",
+      "native": "/profile?view=competition",
+      "reason": "Gedeelde profielweergave; totale instelling-/bestemmingspariteit en fysieke acceptatie nog open (NATIVE-PROFILE.md)"
+    },
+    {
+      "route": "/profile?view=achievements",
+      "status": "gedeeltelijk",
+      "native": "/profile?view=achievements",
+      "reason": "Gedeelde profielweergave; totale instelling-/bestemmingspariteit en fysieke acceptatie nog open (NATIVE-PROFILE.md)"
+    },
+    {
+      "route": "/profile?view=reading",
+      "status": "gedeeltelijk",
+      "native": "/profile?view=reading",
+      "reason": "Gedeelde profielweergave; totale instelling-/bestemmingspariteit en fysieke acceptatie nog open (NATIVE-PROFILE.md)"
+    },
+    {
+      "route": "/profile?view=guide",
+      "status": "gedeeltelijk",
+      "native": "/profile?view=guide",
+      "reason": "Gedeelde profielweergave; totale instelling-/bestemmingspariteit en fysieke acceptatie nog open (NATIVE-PROFILE.md)"
+    },
+    {
+      "route": "/profile?view=language",
+      "status": "gedeeltelijk",
+      "native": "/profile?view=language",
+      "reason": "Gedeelde profielweergave; totale instelling-/bestemmingspariteit en fysieke acceptatie nog open (NATIVE-PROFILE.md)"
+    },
+    {
+      "route": "/profile?view=readAloud",
+      "status": "gedeeltelijk",
+      "native": "/profile?view=readAloud",
+      "reason": "Gedeelde profielweergave; totale instelling-/bestemmingspariteit en fysieke acceptatie nog open (NATIVE-PROFILE.md)"
+    },
+    {
+      "route": "/profile?view=gameFeedback",
+      "status": "gedeeltelijk",
+      "native": "/profile?view=gameFeedback",
+      "reason": "Gedeelde profielweergave; totale instelling-/bestemmingspariteit en fysieke acceptatie nog open (NATIVE-PROFILE.md)"
+    },
+    {
+      "route": "/profile?view=notifications",
+      "status": "gedeeltelijk",
+      "native": "/profile?view=notifications",
+      "reason": "Gedeelde profielweergave; totale instelling-/bestemmingspariteit en fysieke acceptatie nog open (NATIVE-PROFILE.md)"
+    },
+    {
+      "route": "/profile?view=privacy",
+      "status": "gedeeltelijk",
+      "native": "/profile?view=privacy",
+      "reason": "Gedeelde profielweergave; totale instelling-/bestemmingspariteit en fysieke acceptatie nog open (NATIVE-PROFILE.md)"
+    },
+    {
+      "route": "/profile?view=presence",
+      "status": "gedeeltelijk",
+      "native": "/profile?view=presence",
+      "reason": "Gedeelde profielweergave; totale instelling-/bestemmingspariteit en fysieke acceptatie nog open (NATIVE-PROFILE.md)"
+    },
+    {
+      "route": "/profile?view=about",
+      "status": "gedeeltelijk",
+      "native": "/profile?view=about",
+      "reason": "Gedeelde profielweergave; totale instelling-/bestemmingspariteit en fysieke acceptatie nog open (NATIVE-PROFILE.md)"
+    },
+    {
+      "route": "/profile?view=twoFactor",
+      "status": "gedeeltelijk",
+      "native": "/profile?view=twoFactor",
+      "reason": "Gedeelde profielweergave; totale instelling-/bestemmingspariteit en fysieke acceptatie nog open (NATIVE-PROFILE.md)"
+    }
+  ],
   "socketEvents": [
     "activity_update",
     "add_guest",
@@ -81050,6 +81868,7 @@
     "tests/native-android-release.test.mjs",
     "tests/native-annotations.integration.test.ts",
     "tests/native-annotations.test.ts",
+    "tests/native-appearance.test.ts",
     "tests/native-audio-player.browser.mjs",
     "tests/native-audio-player.test.ts",
     "tests/native-audio-shell.browser.mjs",

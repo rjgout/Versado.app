@@ -37,10 +37,11 @@ interface ConfirmContextValue {
 
 const ConfirmContext = createContext<ConfirmContextValue | null>(null);
 
-export function ConfirmProvider({ children }: { children: ReactNode }) {
+export function ConfirmProvider({ children, nativeDialogs = false }: { children: ReactNode; nativeDialogs?: boolean }) {
   const t = useT();
   const [pending, setPending] = useState<PendingConfirmation | null>(null);
   const pendingRef = useRef<PendingConfirmation | null>(null);
+  const legacyDialog = useRef<HTMLDivElement>(null);
   pendingRef.current = pending;
 
   const close = useCallback((confirmed: boolean) => {
@@ -52,21 +53,38 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
 
   const confirm = useCallback((message: string, options?: ConfirmOptions) => {
     return new Promise<boolean>((resolve) => {
-      setPending({ ...options, message, resolve });
+      const modalAvailable = typeof HTMLDialogElement !== "undefined" && typeof HTMLDialogElement.prototype.showModal === "function";
+      setPending({ ...options, native: (options?.native ?? nativeDialogs) && modalAvailable, message, resolve });
     });
-  }, []);
+  }, [nativeDialogs]);
 
   useEffect(() => {
     if (!pending || pending.native) return;
+    const node = legacyDialog.current;
+    const before = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") close(false);
+      if (event.key === "Escape") { event.preventDefault(); close(false); return; }
+      if (event.key !== "Tab" || !node) return;
+      const controls = Array.from(node.querySelectorAll<HTMLElement>("button:not([disabled]), [href], input:not([disabled]), [tabindex]"))
+        .filter(element => element.tabIndex >= 0 && element.getClientRects().length > 0);
+      const first = controls[0], last = controls.at(-1);
+      if (!first || !last) { event.preventDefault(); node.focus(); return; }
+      if (!node.contains(document.activeElement) || document.activeElement === node) {
+        event.preventDefault(); (event.shiftKey ? last : first).focus();
+      } else if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault(); last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault(); first.focus();
+      }
     }
+    node?.focus({ preventScroll: true });
     window.addEventListener("keydown", onKeyDown);
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       window.removeEventListener("keydown", onKeyDown);
       document.body.style.overflow = previousOverflow;
+      if (before?.isConnected) before.focus();
     };
   }, [pending, close]);
 
@@ -78,10 +96,14 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
       ) : (
         pending && (
           <div
+            data-confirm-overlay
             className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4"
             onClick={() => close(false)}
           >
             <div
+              ref={legacyDialog}
+              tabIndex={-1}
+              data-vs-surface="sheet"
               className="card w-full max-w-sm !p-5 shadow-xl animate-pop"
               role="dialog"
               aria-modal="true"
@@ -97,7 +119,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
               <p className="mt-2 whitespace-pre-line text-sm text-slate-600 dark:text-slate-300">
                 {pending.message}
               </p>
-              <div className="mt-5 flex justify-end gap-2">
+              <div className="mt-5 flex flex-wrap justify-end gap-2 [&>button]:max-w-full">
                 <button
                   className="btn-secondary !px-3 !py-2"
                   onClick={() => close(false)}
@@ -156,6 +178,7 @@ function NativeConfirmation({
   }, []);
   return createPortal(
     <dialog
+      data-vs-surface="sheet"
       ref={dialog}
       aria-labelledby="native-confirm-title"
       onKeyDown={(event) => {

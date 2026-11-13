@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
-import { inspectModule, routeFor, domainFor, collectParity, renderInventory, updateDocument } from "../scripts/native/parity.mjs";
+import { inspectModule, routeFor, domainFor, iosCoverageFor, collectParity, renderInventory, updateDocument } from "../scripts/native/parity.mjs";
 
 test("inventaris behandelt dynamische routes, groepen, parallelle routes en root", () => {
   assert.equal(routeFor("src/app/page.tsx"), "/");
@@ -55,4 +55,14 @@ test("de echte bronboom, alle API-methoden en profielsubschermen zijn in de actu
   assert.ok(inventory.components.some(module => module.file === "src/components/ProfileClient.tsx"));
   assert.match(source, /geen onafhankelijke acceptatie-audit/);
   assert.match(source, /release.*geblokkeerd/i);
+});
+
+test("alle webpagina's hebben expliciete iOS-dekking; een route of legacy-melding is geen pariteit", () => {
+  const inventory=collectParity();
+  for(const row of inventory.routes.filter(row=>row.kind==='page'))assert.ok(['volledig','gedeeltelijk','ontbreekt'].includes(row.iosCoverage.status),row.route);
+  for(const route of ['/live','/friends','/study-folder','/dev/lofzangen','/adminbackend','/lesson/[chapterId]'])assert.equal(iosCoverageFor(route).status,'ontbreekt');
+  for(const route of ['/dashboard','/profile','/courses','/courses/[courseId]/pad'])assert.equal(iosCoverageFor(route).status,'gedeeltelijk');
+  assert.equal(iosCoverageFor('/privacy').status,'volledig');
+  assert.equal(iosCoverageFor('/new-route').status,'ontbreekt');
+  assert.equal(inventory.iosProfileViews.length,inventory.profileViews.length);
 });

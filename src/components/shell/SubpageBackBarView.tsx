@@ -7,7 +7,7 @@ import { useT } from "@/components/I18nProvider";
 export default function SubpageBackBarView({ title, subtitle, onBack }: { title: string; subtitle?: string | null; onBack: () => void }) {
   const t = useT();
   return (
-    <div data-subpage-back-bar className="border-b border-vs-line bg-vs-elevated">
+    <div data-vs-surface="chrome" data-subpage-back-bar className="border-b border-vs-line bg-vs-elevated">
       <div className="mx-auto flex max-w-5xl min-w-0 items-center gap-1 px-4 py-1">
         <button
           type="button"

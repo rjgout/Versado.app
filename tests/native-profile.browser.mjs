@@ -1,3 +1,4 @@
+import {checkGlassShell,checkGlassAccessibility,checkGlassPalette} from "./fixtures/native-glass-checks.mjs";
 // Werkelijke gedeelde web-/nativeprofielen, uitsluitend synthetische accounts.
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
@@ -15,7 +16,7 @@ const db=new URL(process.env.NATIVE_TEST_DATABASE_URL??'http://invalid');
 if(db.hostname!=='127.0.0.1'||db.pathname!=='/versado_content_access_test'||db.href!==process.env.DATABASE_URL)throw Error('Alleen eigen geïsoleerde database');
 const backend=process.env.NATIVE_TEST_BASE_URL;
 const require=createRequire(import.meta.url),{chromium}=require(process.env.PLAYWRIGHT_MODULE??'playwright');
-const out='/tmp/versado-native-browser/shared-profile';mkdirSync(out,{recursive:true});
+const out=process.env.NATIVE_GLASS_TEST==='1'?'/tmp/versado-native-browser/liquid-glass/shared-profile':'/tmp/versado-native-browser/shared-profile';mkdirSync(out,{recursive:true});
 const inputs=JSON.parse(readFileSync('dist/native.inputs.json','utf8'));
 for(const view of ['ProfileOverview','ProfileSettingsViews','AvatarEditorView','TwoFactorSettingsView','LanguageSettingsView','CompanionPreference'])assert.ok(inputs.some(file=>file.endsWith(`/profile/${view}.tsx`)),view);
 assert.ok(inputs.every(file=>!/(?:node_modules\/(?:next|@prisma)\/|src\/lib\/(?:db|auth)\.ts|\.server\.ts$)/.test(file)));
@@ -69,19 +70,20 @@ try{
   const t=getT(language),user=await makeUser(language);
   const context=await browser.newContext({viewport:{width:390,height:844},locale:language,colorScheme:'light'}),web=await browser.newContext({viewport:{width:390,height:844},locale:language,colorScheme:'light'});
   const page=await context.newPage(),webPage=await web.newPage();for(const p of [page,webPage])p.on('pageerror',e=>errors.push(e.message));
-  await page.goto(`${origin}/?device=${randomUUID()}&accountLanguage=1`);await login(page,user,t);
+  await page.goto(`${origin}/?device=${randomUUID()}&accountLanguage=1${process.env.NATIVE_GLASS_TEST==='1'?'&material=ios':''}`);await login(page,user,t);if(process.env.NATIVE_GLASS_TEST==='1')await checkGlassShell(page);
   await web.addCookies([{name:'bvm_session',value:await createSessionToken(user.id),url:backend}]);await webPage.goto(`${backend}/profile`);await webPage.locator('[data-profile-page] h1, [data-profile-page] h2').filter({hasText:user.handle}).waitFor();
   for(const [width,scale,scheme]of [[390,1,'light'],[320,2,'dark'],[1024,1,'light']])for(const [kind,p]of [['native',page],['web',webPage]]){
-   await p.setViewportSize({width,height:844});await p.emulateMedia({colorScheme:scheme});await p.evaluate(scale=>{document.documentElement.style.fontSize=`${scale*100}%`;},scale);await renderedImages(p);
+   await p.setViewportSize({width,height:844});await p.emulateMedia({colorScheme:scheme});if(kind==='native'&&process.env.NATIVE_GLASS_TEST==='1')await checkGlassPalette(p,scheme);await p.evaluate(scale=>{document.documentElement.style.fontSize=`${scale*100}%`;},scale);await renderedImages(p);
    assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,`${kind} ${language} ${width}/${scale}: overflow`);
-   await p.screenshot({path:`${out}/${kind}-${language}-${width}-${scale}-${scheme}.png`,fullPage:true});
+   await p.screenshot({path:`${out}/${kind}-${language}-${width}-${scale}-${scheme}.png`,fullPage:process.env.NATIVE_GLASS_TEST!=='1'});
   }
   for(const p of [page,webPage]){await p.setViewportSize({width:390,height:844});await p.evaluate(()=>document.documentElement.style.fontSize='100%');}
+  if(process.env.NATIVE_GLASS_TEST==='1'&&language==='nl'){await profileRoot(page);await checkGlassAccessibility(page,t,out);}
   for(const [view,{title}]of Object.entries(PROFILE_VIEWS)){
    await openView(page,view,t);await page.locator('[data-profile-page]').waitFor();await page.getByRole('heading',{name:t(title),exact:true}).last().waitFor();await renderedImages(page);
    assert.equal(await page.locator('[data-profile-page] footer').count(),0);
    if(language==='nl'&&view==='notifications'){await page.getByText(t('nativeProfile.pushUnavailable'),{exact:true}).waitFor();assert.equal(await page.getByRole('switch',{name:t('profile.pushLabel')}).isDisabled(),true);assert.equal(await page.getByRole('button',{name:t('profile.sendTestPush'),exact:true}).isDisabled(),true);assert.equal((await prisma.user.findUniqueOrThrow({where:{id:user.id}})).pushNotificationsEnabled,true,'Een niet-beschikbaar toestel verandert bestaande webvoorkeuren niet');}
-   if(language==='nl'){await page.screenshot({path:`${out}/native-nl-${view}.png`,fullPage:true});await webPage.goto(`${backend}/profile?view=${view}`);await webPage.getByRole('heading',{name:t(title),exact:true}).last().waitFor();await renderedImages(webPage);await webPage.screenshot({path:`${out}/web-nl-${view}.png`,fullPage:true});}
+   if(language==='nl'){await page.screenshot({path:`${out}/native-nl-${view}.png`,fullPage:process.env.NATIVE_GLASS_TEST!=='1'});await webPage.goto(`${backend}/profile?view=${view}`);await webPage.getByRole('heading',{name:t(title),exact:true}).last().waitFor();await renderedImages(webPage);await webPage.screenshot({path:`${out}/web-nl-${view}.png`,fullPage:process.env.NATIVE_GLASS_TEST!=='1'});}
   }
   if(language==='nl'){
    await profileRoot(page);await page.getByRole('button',{name:t('profile.changeHandle'),exact:true}).click();await page.getByRole('textbox',{name:t('profile.changeHandle'),exact:true}).fill('ZichtbaarNieuw');await page.getByRole('button',{name:t('profile.save'),exact:true}).click();await page.locator('[data-profile-page] h2').filter({hasText:'ZichtbaarNieuw'}).waitFor();
@@ -100,6 +102,6 @@ try{
  assert.deepEqual(errors,[]);assert.deepEqual(missing,[],'Alle profielbeelden zitten in de lokale appbundel');assert.ok(calls.every(call=>call.path.startsWith('/api/v1/native/')),'Geen cookie-web-API vanuit native');
  console.log('Gedeeld profiel: vijf talen, web/native screenshots, 320px/200%, tablet/licht/donker, alle instellingen, echte opslag/foutafhandeling/avatar/logout/accountwisseling, uitsluitend lokale assets. Geen fysieke iOS-acceptatie.');
 }catch(error){
- let index=0;for(const context of browser.contexts())for(const page of context.pages())if(!page.isClosed())await page.screenshot({path:`${out}/failure-${index++}.png`,fullPage:true}).catch(()=>{});
+ let index=0;for(const context of browser.contexts())for(const page of context.pages())if(!page.isClosed())await page.screenshot({path:`${out}/failure-${index++}.png`,fullPage:process.env.NATIVE_GLASS_TEST!=='1'}).catch(()=>{});
  throw error;
 }finally{release();releaseAccount();await browser.close();await new Promise(resolve=>front.close(resolve));await prisma.$disconnect();}

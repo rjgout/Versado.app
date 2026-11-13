@@ -49,7 +49,7 @@ export default function ThemePreference() {
   }
 
   return (
-    <div role="radiogroup" aria-label={t("theme.appearance")} className="grid grid-cols-3 gap-1 rounded-xl bg-vs-subtle p-1">
+    <div data-vs-theme-choice role="radiogroup" aria-label={t("theme.appearance")} className="grid grid-cols-3 gap-1 rounded-xl bg-vs-subtle p-1">
       {OPTIONS.map(({ value, label, icon: Icon }) => {
         const active = choice === value;
         return (

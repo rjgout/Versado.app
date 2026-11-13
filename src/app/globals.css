@@ -617,3 +617,229 @@ nav[data-main-nav] a {
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
 }
+
+/* Liquid Glass Foundation — dezelfde VS-componenten, expliciete iOS-opt-in.
+ * Geen nieuwe shell, kleuridentiteit of scrollcontainer. Kaarten gebruiken geen
+ * backdrop-filter: alleen de navigatievlakken en een geopende sheet blurren.
+ * Tot UIKit zijn voorkeuren bevestigt, is de terugval bewust ondoorzichtig. */
+html[data-vs-material="glass"] {
+  --vs-glass-tint: var(--vs-elevated);
+  --vs-glass-highlight: 255 255 255;
+  --vs-glass-alpha: .92;
+  --vs-glass-border-alpha: .78;
+  --vs-glass-shadow-alpha: .10;
+  --vs-glass-radius: 1.75rem;
+  font-size: calc(100% * var(--vs-native-type-scale, 1));
+}
+html.dark[data-vs-material="glass"] {
+  --vs-glass-alpha: .94;
+  --vs-glass-border-alpha: .14;
+  --vs-glass-shadow-alpha: .28;
+}
+html[data-vs-material="glass"] body {
+  background-color: rgb(var(--vs-app));
+  background-image: radial-gradient(ellipse at 0 0, rgb(var(--vs-accent) / .09), transparent 65%),
+    radial-gradient(ellipse at 100% 12rem, rgb(var(--vs-league) / .05), transparent 55%);
+  background-size: 100% 56rem;
+  background-repeat: no-repeat;
+}
+html[data-vs-material="glass"] :is([data-vs-surface], .vs-material-card) {
+  background-color: rgb(var(--vs-glass-tint));
+  border-color: rgb(var(--vs-line-strong) / .72);
+  box-shadow: inset 0 1px 0 rgb(var(--vs-glass-highlight) / var(--vs-glass-border-alpha)),
+    0 8px 24px -16px rgb(var(--vs-shadow) / var(--vs-glass-shadow-alpha));
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+html[data-vs-material="glass"] :is([data-vs-surface="card"], .vs-material-card) {
+  background-image: linear-gradient(145deg, rgb(var(--vs-glass-highlight) / .025), transparent 55%);
+  border-radius: 1.5rem;
+  background-color: rgb(var(--vs-glass-tint) / .97);
+}
+/* De buitenste balk behoudt zijn meetbare safe-area-ruimte. Het materiaal zit
+ * op de bestaande binnenste grid, zodat ShellMetrics de volledige voet meet. */
+html[data-vs-material="glass"] nav[data-main-nav] {
+  border: 0;
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  padding: .5rem max(.75rem, var(--vs-safe-area-right))
+    calc(.5rem + var(--vs-safe-area-bottom)) max(.75rem, var(--vs-safe-area-left));
+}
+html[data-vs-material="glass"] nav[data-main-nav] > [data-vs-surface="navigation"] {
+  border: 1px solid rgb(var(--vs-line-strong) / .72);
+  border-radius: var(--vs-glass-radius);
+  padding: .5rem;
+  box-shadow: inset 0 1px 0 rgb(var(--vs-glass-highlight) / var(--vs-glass-border-alpha)),
+    0 8px 28px -10px rgb(var(--vs-shadow) / .18);
+}
+html[data-vs-material="glass"] nav[data-main-nav] a {
+  min-height: 3.25rem;
+  border-radius: 1.25rem;
+  color: rgb(var(--vs-fg-2));
+}
+html[data-vs-material="glass"] nav[data-main-nav] a[aria-current="page"] {
+  color: rgb(var(--vs-accent));
+  background: rgb(var(--vs-accent-soft));
+  box-shadow: inset 0 1px 0 rgb(var(--vs-glass-highlight) / .35);
+}
+html[data-vs-material="glass"] nav[data-main-nav] a[aria-current="page"] > span {
+  background: transparent;
+}
+html[data-vs-material="glass"] nav[data-main-nav] a:focus-visible {
+  outline: 2px solid rgb(var(--vs-accent));
+  outline-offset: 2px;
+}
+html[data-vs-material="glass"] nav[data-main-nav] a:active {
+  background-color: rgb(var(--vs-subtle));
+}
+html[data-vs-material="glass"] [data-vs-surface="sheet"] {
+  border-radius: var(--vs-glass-radius);
+  box-shadow: inset 0 1px 0 rgb(var(--vs-glass-highlight) / var(--vs-glass-border-alpha)),
+    0 24px 70px -24px rgb(var(--vs-shadow) / .3);
+}
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  html[data-vs-material="glass"] :is([data-vs-surface="chrome"], [data-vs-surface="navigation"], [data-vs-surface="sheet"]) {
+    background-color: rgb(var(--vs-glass-tint) / var(--vs-glass-alpha));
+    -webkit-backdrop-filter: blur(18px) saturate(1.12);
+    backdrop-filter: blur(18px) saturate(1.12);
+  }
+}
+/* UIKit-signalen gelden ook op WebKit-versies zonder deze mediaquery. */
+html[data-vs-material="glass"][data-vs-reduce-transparency="true"] :is([data-vs-surface], .vs-material-card),
+html[data-vs-material="glass"][data-vs-increase-contrast="true"] :is([data-vs-surface], .vs-material-card) {
+  background: rgb(var(--vs-glass-tint));
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+html[data-vs-material="glass"][data-vs-increase-contrast="true"] {
+  --vs-fg-3: var(--vs-fg-2);
+}
+html[data-vs-material="glass"][data-vs-increase-contrast="true"] :is([data-vs-surface], .vs-material-card) {
+  border-color: rgb(var(--vs-fg-2));
+}
+html[data-vs-material="glass"][data-vs-reduce-motion="true"],
+html[data-vs-material="glass"][data-vs-reduce-motion="true"] * {
+  animation-duration: .01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: .01ms !important;
+  scroll-behavior: auto !important;
+}
+@media (prefers-reduced-transparency: reduce), (forced-colors: active) {
+  html[data-vs-material="glass"] :is([data-vs-surface], .vs-material-card) {
+    background: rgb(var(--vs-glass-tint));
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-vs-material="glass"], html[data-vs-material="glass"] * {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+@media (prefers-contrast: more) {
+  html[data-vs-material="glass"] { --vs-fg-3: var(--vs-fg-2); }
+  html[data-vs-material="glass"] :is([data-vs-surface], .vs-material-card) {
+    background: rgb(var(--vs-glass-tint));
+    border-color: rgb(var(--vs-fg-2));
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+html[data-vs-material="glass"] [data-subpage-back-bar] button > span[aria-hidden] {
+  border: 1px solid rgb(var(--vs-line-strong) / .6);
+  background: rgb(var(--vs-elevated));
+  box-shadow: inset 0 1px 0 rgb(var(--vs-glass-highlight) / .4);
+}
+
+/* Achtergrond en inkt wisselen atomisch van palet. Een kleurcrossfade kan
+ * anders tijdelijk lichte tekst op een nog licht materiaalvlak zetten. */
+html[data-vs-material="glass"] :is([data-vs-surface], .vs-material-card) * {
+  transition-property: transform, box-shadow;
+}
+html[data-vs-material="glass"] body { transition: none; }
+/* Grote Dynamic Type-categorieën mogen het merk op een extra regel zetten,
+ * nooit de headerbediening afknippen of de systeemlettergrootte verkleinen. */
+html[data-vs-material="glass"] [data-app-brand] {
+  min-width: 0;
+  max-width: 100%;
+  flex-wrap: wrap;
+}
+html[data-vs-material="glass"] [data-app-brand] > span {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+/* iOS 15.0–15.3 zonder HTMLDialogElement.showModal houdt dezelfde bevestiging,
+ * met focusgrens en een veilig scrollbaar paneel bij grote systeemtekst. */
+html[data-vs-material="glass"] [data-confirm-overlay] {
+  padding: max(1rem, var(--vs-safe-area-top)) max(1rem, var(--vs-safe-area-right))
+    max(1rem, var(--vs-safe-area-bottom)) max(1rem, var(--vs-safe-area-left));
+}
+html[data-vs-material="glass"] [data-confirm-overlay] > [data-vs-surface="sheet"] {
+  max-height: calc(100vh - max(1rem, var(--vs-safe-area-top)) - max(1rem, var(--vs-safe-area-bottom)));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+/* Grote systeemtekst vraagt reflow, geen kleinere letters. Houd alleen de
+ * niet-tekstuele gutters compact; waarden en bedieningen krijgen een eigen rij. */
+html[data-vs-material="glass"][data-text-large] main {
+  padding-inline: max(16px, var(--vs-safe-area-left)) max(16px, var(--vs-safe-area-right));
+}
+html[data-vs-material="glass"][data-text-large] :is([data-vs-surface="card"], [data-profile-summary]) {
+  padding: 16px;
+}
+html[data-vs-material="glass"][data-text-large] [data-vs-settings-row] {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  padding-inline: 0;
+}
+html[data-vs-material="glass"][data-text-large] [data-vs-settings-icon] { display: none; }
+html[data-vs-material="glass"][data-text-large] [data-vs-settings-value] {
+  text-align: start;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+html[data-vs-material="glass"][data-text-large] [data-vs-theme-choice] {
+  grid-template-columns: minmax(0, 1fr);
+}
+html[data-vs-material="glass"][data-text-large] [data-vs-theme-choice] button {
+  flex-wrap: wrap;
+  overflow-wrap: anywhere;
+}
+html[data-vs-material="glass"][data-text-large] [data-profile-stats] { grid-template-columns: minmax(0, 1fr); }
+html[data-vs-material="glass"][data-text-large] [data-profile-stats] .whitespace-nowrap,
+html[data-vs-material="glass"][data-text-large] [data-profile-summary] .truncate,
+html[data-vs-material="glass"][data-text-large] [data-vs-settings-row] .truncate {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+/* Een tablabel mag bij Dynamic Type niet in losse letters onder een groot
+ * icoon terechtkomen. Dezelfde bestemmingen worden volledige, leesbare rijen. */
+html[data-vs-material="glass"][data-text-large] nav[data-main-nav] {
+  padding: 8px max(12px, var(--vs-safe-area-right))
+    calc(8px + var(--vs-safe-area-bottom)) max(12px, var(--vs-safe-area-left));
+}
+html[data-vs-material="glass"][data-text-large] nav[data-main-nav] > [data-vs-surface="navigation"] {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px;
+  padding: 6px;
+  border-radius: 24px;
+}
+html[data-vs-material="glass"][data-text-large] nav[data-main-nav] a {
+  flex-direction: row;
+  justify-content: flex-start;
+  min-height: 44px;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 18px;
+}
+html[data-vs-material="glass"][data-text-large] nav[data-main-nav] a > span {
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+}

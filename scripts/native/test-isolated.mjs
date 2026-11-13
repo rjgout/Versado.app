@@ -37,7 +37,7 @@ try{
  mediaRoot=mkdtempSync(join(tmpdir(),'versado-native-study-media-'));
  audioRoot=mkdtempSync(join(tmpdir(),'versado-native-audio-'));
  writeFileSync(join(mediaRoot,'.versado-study-volume.json'),JSON.stringify({version:1,purpose:'versado-study-media',volumeId:randomUUID()}),{mode:0o600});
- const env={...process.env,AUDIO_DIR:audioRoot,AUDIO_TEST_ROOT:audioRoot,STUDY_MEDIA_DIR:mediaRoot,STUDY_MEDIA_TEST_ROOT:mediaRoot,STUDY_PUBLICATION_PROFILE:'synthetic-test',REDIS_URL:`redis://127.0.0.1:${redisPort}`,DATABASE_URL:db,CONTENT_ACCESS_TEST_DATABASE_URL:db,CONTENT_ACCESS_TEST_BASE_URL:base,NATIVE_TEST_DATABASE_URL:db,LEARNING_TEST_DATABASE_URL:db,NATIVE_TEST_BASE_URL:base,APP_URL:base,SESSION_SECRET:'native-isolated-web-secret-at-least-32-chars',NATIVE_SESSION_SECRET:'native-isolated-only-secret-at-least-32-chars',NATIVE_API_ENABLED:'1',APPLE_SIGN_IN_ENABLED:'1',APPLE_TEAM_ID:'TESTTEAM01',APPLE_IOS_CLIENT_ID:'app.versado.synthetic',NODE_ENV:'production'};
+ const env={...process.env,NATIVE_GLASS_TEST:'1',AUDIO_DIR:audioRoot,AUDIO_TEST_ROOT:audioRoot,STUDY_MEDIA_DIR:mediaRoot,STUDY_MEDIA_TEST_ROOT:mediaRoot,STUDY_PUBLICATION_PROFILE:'synthetic-test',REDIS_URL:`redis://127.0.0.1:${redisPort}`,DATABASE_URL:db,CONTENT_ACCESS_TEST_DATABASE_URL:db,CONTENT_ACCESS_TEST_BASE_URL:base,NATIVE_TEST_DATABASE_URL:db,LEARNING_TEST_DATABASE_URL:db,NATIVE_TEST_BASE_URL:base,APP_URL:base,SESSION_SECRET:'native-isolated-web-secret-at-least-32-chars',NATIVE_SESSION_SECRET:'native-isolated-only-secret-at-least-32-chars',NATIVE_API_ENABLED:'1',APPLE_SIGN_IN_ENABLED:'1',APPLE_TEAM_ID:'TESTTEAM01',APPLE_IOS_CLIENT_ID:'app.versado.synthetic',NODE_ENV:'production'};
  // Gecontroleerde oude database: alle bestaande migraties zonder nieuwe auth-DDL.
  const migration='20261125120000_native_auth_foundation',setupMigration='20261127120000_native_security_setup',quizMigration='20261203120000_live_quiz_actions',work=mkdtempSync(join(tmpdir(),'versado-native-')),path=join(work,'migrations');
  cpSync('prisma/migrations',path,{recursive:true,filter:src=>![migration,setupMigration,quizMigration].some(name=>src.endsWith(name)||src.includes(`${name}/`))});
@@ -94,7 +94,10 @@ try{
  }finally{await client.end();}
  server=spawn('node',['scripts/content-architecture/test-server.mjs'],{env,stdio:'inherit',detached:true});
  let healthy=false;for(let i=0;i<100;i++){try{if((await fetch(`${base}/api/health`)).ok){healthy=true;break;}}catch{}if(server.exitCode!==null)throw Error('Testserver gestopt');await delay(500);}if(!healthy)throw Error('Productiebuild niet bereikbaar');
- if(process.argv.includes('--profile-only')||process.argv.includes('--profile-ui-only')) {
+ if(process.argv.includes('--glass-only')) {
+  await run('npx',['tsx','tests/native-profile.browser.mjs'],env);
+  await run('npx',['tsx','tests/native-today.browser.mjs'],env);
+ } else if(process.argv.includes('--profile-only')||process.argv.includes('--profile-ui-only')) {
   if(!process.argv.includes('--profile-ui-only'))await run('npx',['tsx','--test','--test-concurrency=1','tests/native-profile.integration.test.ts','tests/native-account.integration.test.ts','tests/account-deletion.integration.test.ts'],env);
   if(!process.argv.includes('--no-browser'))await run('npx',['tsx','tests/native-profile.browser.mjs'],env);
  } else if(process.argv.includes('--account-only')) {

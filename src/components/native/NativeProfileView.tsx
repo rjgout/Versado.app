@@ -41,7 +41,7 @@ function ProfileImage(props:AppImageProps) {
 export default function NativeProfileView(props: { account:NativeAccount; content?:NativeContentState; onLogout():Promise<void>; onAccountChanged():void; accountExtras?:ReactNode; onError(error:unknown):void }) {
   const navigation=useAppNavigationAdapter();
   const adapter=useMemo(()=>({...navigation,Image:ProfileImage,imageSource:(src:string)=>nativeProfileImageSource(src) ?? nativeTodayImageSource(src) ?? (navigation.imageSource?navigation.imageSource(src):src)}),[navigation]);
-  return <AppNavigationProvider adapter={adapter}><ConfirmProvider><NativeProfileContent {...props}/></ConfirmProvider></AppNavigationProvider>;
+  return <AppNavigationProvider adapter={adapter}><ConfirmProvider nativeDialogs><NativeProfileContent {...props}/></ConfirmProvider></AppNavigationProvider>;
 }
 function NativeProfileContent({ account, content, onLogout, onAccountChanged, accountExtras, onError }: { account:NativeAccount; content?:NativeContentState; onLogout():Promise<void>; onAccountChanged():void; accountExtras?:ReactNode; onError(error:unknown):void }) {
   const t=useT(), confirm=useConfirm(), navigation=useAppNavigation(), runtime=useNativeData();
