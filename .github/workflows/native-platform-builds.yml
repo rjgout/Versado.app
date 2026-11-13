@@ -35,11 +35,11 @@ env:
   NATIVE_BUILD_NUMBER: '1'
 jobs:
   android-development:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
@@ -82,7 +82,7 @@ jobs:
           script: bash ./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=app.versado.app.NativeAudioDecoderTest --no-daemon
       - name: Android-codec- en instrumentatierapporten
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: native-audio-android-decoder
           path: |
@@ -171,7 +171,7 @@ jobs:
           (cd android && VERSADO_UPLOAD_KEYSTORE_PATH="$keystore" VERSADO_UPLOAD_KEYSTORE_PASSWORD="$pw" VERSADO_UPLOAD_KEY_ALIAS=selftest VERSADO_UPLOAD_KEY_PASSWORD="$pw" bash ./gradlew :app:bundleRelease --no-daemon)
           node scripts/native/android-release-guard.mjs after android/app/build/outputs/bundle/release/app-release.aab
           rm -f "$keystore" android/app/build/outputs/bundle/release/app-release.aab
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: versado-android-development-compileprobe
           path: |
@@ -184,7 +184,7 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
@@ -266,7 +266,7 @@ jobs:
           cat "$RUNNER_TEMP/guard.txt"
           grep -q "compileproef" "$RUNNER_TEMP/guard.txt"
           if grep -E "PrivacyInfo|CFBundleIdentifier|Info.plist|build.json|buildNumber|version " "$RUNNER_TEMP/guard.txt"; then echo "onverwachte archiefafwijking"; exit 1; fi
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: versado-ios-simulator-development-compileprobe
           path: |
