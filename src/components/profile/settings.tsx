@@ -41,7 +41,7 @@ export function ProfileCard({
 }) {
   const id = useId();
   return (
-    <section data-vs-surface="card" aria-labelledby={title ? id : undefined} className={`rounded-2xl border border-vs-line bg-vs-surface p-4 sm:p-5 ${className}`}>
+    <section aria-labelledby={title ? id : undefined} data-vs-surface="card" className={`rounded-2xl border border-vs-line bg-vs-surface p-4 sm:p-5 ${className}`}>
       {title && (
         <h2 id={id} className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-vs-fg-2">
           {title}
@@ -121,7 +121,7 @@ export function SettingsRow({
     );
   }
   return (
-    <button data-vs-settings-row type="button" onClick={onClick} className={`${ROW_CLASS} ${INTERACTIVE_ROW}`}>
+    <button type="button" data-vs-settings-row onClick={onClick} className={`${ROW_CLASS} ${INTERACTIVE_ROW}`}>
       {content}
     </button>
   );

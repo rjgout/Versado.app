@@ -13657,7 +13657,7 @@
     },
     {
       "file": "src/components/profile/settings.tsx",
-      "sha256": "ec56cbeecc7daeda091aa2522dc1f83f01282f8ba73ad92999c7c4d36a6d0844",
+      "sha256": "971683cc50d49cd551fdbf08a1b0c2638541e19b10738d54936036d22e38eae1",
       "boundary": "client",
       "imports": [
         "@/components/navigation/AppNavigation",
@@ -14124,7 +14124,7 @@
     },
     {
       "file": "src/components/shell/AppShellHeader.tsx",
-      "sha256": "bc071b10d763ebb839a9aa91dde95c93ba34cf291e80fc57b9c60e7e814f0b5e",
+      "sha256": "4e11aadd8e82a8e601a8725053037d28a5e768a81038c8b45b069951a3c09696",
       "boundary": "client",
       "imports": [
         "./PrimaryNav",
@@ -79138,7 +79138,7 @@
     },
     {
       "file": "src/components/profile/settings.tsx",
-      "sha256": "ec56cbeecc7daeda091aa2522dc1f83f01282f8ba73ad92999c7c4d36a6d0844",
+      "sha256": "971683cc50d49cd551fdbf08a1b0c2638541e19b10738d54936036d22e38eae1",
       "boundary": "client",
       "imports": [
         "@/components/navigation/AppNavigation",
@@ -79590,7 +79590,7 @@
     },
     {
       "file": "src/components/shell/AppShellHeader.tsx",
-      "sha256": "bc071b10d763ebb839a9aa91dde95c93ba34cf291e80fc57b9c60e7e814f0b5e",
+      "sha256": "4e11aadd8e82a8e601a8725053037d28a5e768a81038c8b45b069951a3c09696",
       "boundary": "client",
       "imports": [
         "./PrimaryNav",
