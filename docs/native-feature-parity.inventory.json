@@ -12976,7 +12976,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "7865d94383e894c390c93d2311f4415234418e997c92b8d979429c2a8b22bd5a",
+      "sha256": "6e3794b469692a0e2f87e66069fe2c35f5fcb7863247dda83985bc501f5d0b3c",
       "boundary": "client",
       "imports": [
         "./NativeContentPicker",
@@ -77746,7 +77746,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "7865d94383e894c390c93d2311f4415234418e997c92b8d979429c2a8b22bd5a",
+      "sha256": "6e3794b469692a0e2f87e66069fe2c35f5fcb7863247dda83985bc501f5d0b3c",
       "boundary": "client",
       "imports": [
         "./NativeContentPicker",
