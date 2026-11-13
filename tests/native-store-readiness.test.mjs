@@ -38,7 +38,7 @@ const completeFiles = () => ({
   "src/lib/legal/terms.ts": "export const TERMS = { title: 'x', updated: '2026-01-01', sections: [] };",
   "src/lib/appleRevoke.ts": "https://appleid.apple.com/auth/revoke",
   "package.json": '{"dependencies":{"@capacitor/push-notifications":"8"}}',
-  "docs/NATIVE-DEVICE-TEST-REPORT.md": "",
+  "docs/NATIVE-DEVICE-TEST-REPORT.md": "<!-- device-matrix-status: complete -->\n| iphone-small | PASS |\n| iphone-recent | PASS |\n| ipad | PASS |\n| android-phone-a | PASS |\n| android-phone-b | PASS |\n| android-tablet | PASS |\n",
 });
 
 test("de echte repository houdt alle guards waar (releaseprofiel dicht, geen credentials, targetSdk, portrait)", () => {
@@ -59,6 +59,16 @@ test("met alle voorwaarden aanwezig is er geen openstaande blokkade en geen fale
   assert.deepEqual(report.blockers.filter((item) => !item.ok).map((item) => item.id), []);
   assert.equal(report.openBlockers, 0);
   assert.equal(report.guardsFailed, 0);
+});
+
+test("een eerste iPhone-rapport opent de volledige apparaatmatrix niet automatisch", () => {
+  const files = completeFiles();
+  const ok = (report) => evaluate(memoryFs({ ...files, "docs/NATIVE-DEVICE-TEST-REPORT.md": report })).blockers.find((item) => item.id === "device-test-report").ok;
+  assert.equal(ok(""), false, "leeg rapport mag nooit volstaan");
+  assert.equal(ok("<!-- device-matrix-status: in-progress -->\\n| iphone-initial | PASS |"), false);
+  assert.equal(ok("<!-- device-matrix-status: complete -->\\n| iphone-initial | PASS |"), false, "status alleen volstaat niet");
+  assert.equal(ok(files["docs/NATIVE-DEVICE-TEST-REPORT.md"].replace("| ipad | PASS |", "| ipad | PENDING |")), false);
+  assert.equal(ok(files["docs/NATIVE-DEVICE-TEST-REPORT.md"]), true);
 });
 
 test("zonder bestanden blijven alle blokkades open en is er geen enkele 'gereed'-uitkomst", () => {
