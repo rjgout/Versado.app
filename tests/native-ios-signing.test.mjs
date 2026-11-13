@@ -107,6 +107,7 @@ test.before(() => {
   run(['x509','-req','-in','leaf.csr','-CA','ca.pem','-CAkey','ca.key','-CAcreateserial','-out','leaf.pem','-days','1']);
   synthetic = new X509Certificate(readFileSync(join(cryptoRoot, 'leaf.pem')));
   run(['pkcs12','-export','-inkey','leaf.key','-in','leaf.pem','-out','aes256.p12','-passout','env:P12_TEST_PASSWORD','-keypbe','AES-256-CBC','-certpbe','AES-256-CBC','-macalg','sha256','-iter','2048'], { env:{ ...process.env, P12_TEST_PASSWORD:'synthetic-password' } });
+  run(['pkcs12','-export','-legacy','-inkey','leaf.key','-in','leaf.pem','-out','legacy.p12','-passout','env:P12_TEST_PASSWORD','-keypbe','PBE-SHA1-3DES','-certpbe','PBE-SHA1-RC2-40','-macalg','sha1','-iter','2048'], { env:{ ...process.env, P12_TEST_PASSWORD:'synthetic-password' } });
 
 });
 test.after(() => rmSync(cryptoRoot, { recursive:true, force:true }));
@@ -294,6 +295,7 @@ test('onafhankelijke OpenSSL-controle leest AES256/SHA256 zonder sleutelextracti
   assert.equal(receipt.openssl,'valid_mac');
   assert.equal(receipt.aes256Observed,true);
   assert.equal(receipt.sha256MacObserved,true);
+  assert.equal(receipt.legacyRead,'not_attempted');
   assert.deepEqual(readFileSync(path), before);
   const args = calls.find(([,args]) => args[0] === 'pkcs12')[1];
   for (const required of ['-info','-noout','env:IOS_DISTRIBUTION_P12_PASSWORD']) assert.ok(args.includes(required));
@@ -301,6 +303,109 @@ test('onafhankelijke OpenSSL-controle leest AES256/SHA256 zonder sleutelextracti
   const serialized = diagnosticMessage(receipt);
   assert.ok(!serialized.includes(reference));
   assert.ok(!serialized.includes('synthetic-password'));
+});
+test('ouder P12-formaat wordt één keer uitsluitend lezend met legacy-provider en MAC geverifieerd', () => {
+  const path = join(cryptoRoot,'legacy.p12'), original = readFileSync(path), calls = [];
+  const env = { ...process.env, IOS_DISTRIBUTION_P12_PASSWORD:'synthetic-password', IOS_DISTRIBUTION_P12_SHA256:createHash('sha256').update(original).digest('hex') };
+  const run = (name,args,options) => { calls.push(args); return spawnSync(name,args,options); };
+  const receipt = validatePkcs12(path,{ env,run });
+  assert.equal(receipt.canImport,true);
+  assert.equal(receipt.openssl,'valid_mac');
+  assert.equal(receipt.contentReference,'match');
+  assert.equal(receipt.legacyRead,'verified');
+  const parses = calls.filter(args => args[0] === 'pkcs12');
+  assert.equal(parses.length,2);
+  assert.ok(!parses[0].includes('-legacy'));
+  assert.deepEqual(parses[1],[...parses[0],'-legacy']);
+  for (const args of parses) {
+    for (const required of ['-info','-noout','env:IOS_DISTRIBUTION_P12_PASSWORD']) assert.ok(args.includes(required));
+    for (const forbidden of ['-nomacver','-nomac','-nodes','-noenc','-out','-export','synthetic-password']) assert.ok(!args.includes(forbidden));
+  }
+  assert.deepEqual(readFileSync(path),original);
+  assert.match(diagnosticMessage(receipt), /"legacyRead":"verified"/);
+});
+test('verkeerd wachtwoord bij ouder P12 faalt op MAC zonder legacy-poging', () => {
+  const path = join(cryptoRoot,'legacy.p12'), calls = [];
+  const env = { ...process.env, IOS_DISTRIBUTION_P12_PASSWORD:'wrong-synthetic-password', IOS_DISTRIBUTION_P12_SHA256:createHash('sha256').update(readFileSync(path)).digest('hex') };
+  const run = (name,args,options) => { calls.push(args); return spawnSync(name,args,options); };
+  const receipt = validatePkcs12(path,{ env,run });
+  assert.equal(receipt.canImport,false);
+  assert.equal(receipt.openssl,'mac_rejected');
+  assert.equal(receipt.category,'password_or_encoding_rejected');
+  assert.equal(receipt.legacyRead,'not_attempted');
+  assert.equal(calls.filter(args => args[0] === 'pkcs12').length,1);
+});
+test('ontbrekende legacy-provider wordt veilig afgewezen zonder andere fallback', () => {
+  const path = join(cryptoRoot,'legacy.p12'), modules = join(cryptoRoot,'empty-modules');
+  mkdirSync(modules);
+  const receipt = validatePkcs12(path,{ env:{ ...process.env, OPENSSL_MODULES:modules, IOS_DISTRIBUTION_P12_PASSWORD:'synthetic-password' } });
+  assert.equal(receipt.canImport,false);
+  assert.equal(receipt.openssl,'legacy_provider_unavailable');
+  assert.equal(receipt.category,'independent_legacy_provider_unavailable');
+  assert.equal(receipt.legacyRead,'failed');
+  assert.ok(!diagnosticMessage(receipt).includes(modules));
+});
+test('legacy-leespoging behoudt iedere afkeuring, ook ontbrekende MAC, toolfout of verkeerd wachtwoord', () => {
+  for (const result of [
+    { status:1,stderr:'Mac verify error: invalid password? SECRET' },
+    { status:0,stderr:'Warning: MAC is absent! SECRET' },
+    { status:1,stderr:'ASN1 wrong tag SECRET' },
+    { status:null,error:{ code:'ETIMEDOUT' },stderr:'SECRET' },
+    { status:1,stderr:'unknown failure SECRET' },
+    { status:1,stderr:'unsupported algorithm SECRET' },
+  ]) {
+    const parses = [];
+    const run = (name,args) => {
+      if (args[0] === 'version') return { status:0,stdout:'OpenSSL 3.0.0' };
+      parses.push(args);
+      return parses.length === 1 ? { status:1,stderr:'unsupported algorithm SECRET' } : result;
+    };
+    const receipt = validatePkcs12(join(cryptoRoot,'legacy.p12'),{ env:{},run });
+    assert.equal(parses.length,2);
+    assert.equal(receipt.canImport,false);
+    assert.equal(receipt.legacyRead,'failed');
+    assert.ok(!diagnosticMessage(receipt).includes('SECRET'));
+  }
+});
+test('ontbrekend algoritme met afgeleide fouttekst behoudt de bestaande classificatie en verplichte MAC', () => {
+  for (const detail of ['Mac verify error: invalid password?', 'ASN1 decode error']) {
+    for (const valid of [true,false]) {
+      let parses = 0;
+      const run = (name,args) => {
+        if (args[0] === 'version') return { status:0,stdout:'OpenSSL 3.0.0' };
+        parses++;
+        return parses === 1 ? { status:1,stderr:'unsupported algorithm; ' + detail + ' SECRET' }
+          : valid ? { status:0,stderr:'MAC: sha1, Iteration 2048' } : { status:1,stderr:'Mac verify error: invalid password? SECRET' };
+      };
+      const receipt = validatePkcs12(join(cryptoRoot,'legacy.p12'),{ env:{},run });
+      assert.equal(parses,2);
+      assert.equal(receipt.openssl,valid ? 'valid_mac' : 'mac_rejected');
+      assert.equal(receipt.legacyRead,valid ? 'verified' : 'failed');
+      assert.equal(receipt.canImport,valid);
+      assert.ok(!diagnosticMessage(receipt).includes('SECRET'));
+    }
+  }
+});
+test('MAC-, container- en toolfouten of ontbrekende MAC activeren nooit legacy-lezen', () => {
+  for (const result of [
+    { status:1,stderr:'Mac verify error: invalid password? SECRET' },
+    { status:0,stderr:'Warning: MAC is absent! SECRET' },
+    { status:1,stderr:'ASN1 wrong tag SECRET' },
+    { status:null,error:{ code:'ETIMEDOUT' },stderr:'SECRET' },
+    { status:1,stderr:'unknown failure SECRET' },
+  ]) {
+    let parses = 0;
+    const run = (name,args) => {
+      if (args[0] === 'version') return { status:0,stdout:'OpenSSL 3.0.0' };
+      parses++;
+      assert.ok(!args.includes('-legacy'));
+      return result;
+    };
+    const receipt = validatePkcs12(join(cryptoRoot,'legacy.p12'),{ env:{},run });
+    assert.equal(parses,1);
+    assert.equal(receipt.canImport,false);
+    assert.equal(receipt.legacyRead,'not_attempted');
+  }
 });
 test('verkeerde inhoud en referentie worden vóór native import onderscheiden; geen parser bij mismatch', () => {
   const path = join(cryptoRoot,'aes256.p12'), bytes = readFileSync(path);
