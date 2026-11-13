@@ -1,10 +1,10 @@
-import { prisma } from "@/lib/db";
-import { getContentPickerContext, getContentSwitcherSettings, commitContentSelection, ContentSelectionConflict } from "@/lib/contentCollections";
-import { applyContentSwitch } from "@/lib/contentSwitch";
 import { readingAccessWhere } from "@/lib/contentAccess";
-import { activeNativeSession, lockNativeUser, NativeAuthError, type NativeSessionBinding } from "./sessions";
-import { nativeContentStateSchema, type NativeContentSelection } from "./contract";
+import { commitContentSelection,ContentSelectionConflict,getContentPickerContext,getContentSwitcherSettings } from "@/lib/contentCollections";
+import { applyContentSwitch } from "@/lib/contentSwitch";
+import { prisma } from "@/lib/db";
+import { nativeContentStateSchema,type NativeContentSelection } from "./contract";
 import { nativeRoute } from "./navigation";
+import { activeNativeSession,lockNativeUser,NativeAuthError,type NativeSessionBinding } from "./sessions";
 
 export async function getNativeContentState(user: { id: string; isAdmin: boolean }) {
   const [picker, settings] = await Promise.all([getContentPickerContext(user.id), getContentSwitcherSettings()]);
@@ -21,7 +21,7 @@ export async function selectNativeContent(binding: NativeSessionBinding, input: 
   let result;
   try {
     result = await applyContentSwitch({ userId: user.id, isAdmin: user.isAdmin, picker: true,
-      change: { contentCollectionId: input.contentCollectionId }, expectedSelection: input.expectedSelection,
+      change: "contentLanguage" in input ? { contentLanguage: input.contentLanguage } : { contentCollectionId: input.contentCollectionId }, expectedSelection: input.expectedSelection,
       location: { pathname: input.location, search: "" },
       commitSelection: (target, expected) => prisma.$transaction(async tx => {
         await tx.$executeRaw`SET LOCAL lock_timeout = '1500ms'`;

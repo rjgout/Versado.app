@@ -1,3 +1,4 @@
+import {logoutNativeProfile,serveNativeProfileAsset} from "./fixtures/native-profile-browser-actions.mjs";
 // Echte Next-SSR naast dezelfde lokaal gebundelde Vandaag-view; uitsluitend eigen testdatabase.
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
@@ -23,6 +24,7 @@ const css=readFileSync('dist/native/index.css'),secrets=new Map(),calls=[],error
 let failOverview=false,holdNext=false,held=[],priorChapter;
 const front=createServer(async(req,res)=>{try{
  const url=new URL(req.url,'http://127.0.0.1');
+ if(serveNativeProfileAsset(url.pathname,res))return;
  if(url.pathname.startsWith('/api/v1/native/')){
   const record={method:req.method,path:url.pathname};calls.push(record);
   if(failOverview&&url.pathname.endsWith('/today-overview')){res.writeHead(503,{'Content-Type':'application/json'});res.end(JSON.stringify({error:'native_request_failed'}));return;}
@@ -98,7 +100,7 @@ try{
    assert.equal((await prisma.userCourseProgress.findUniqueOrThrow({where:{userId_courseId:{userId:user.id,courseId:course.id}}})).currentLessonId,course.lessons[1].id);
    const other=await seedAccount('nl',collections[0],course.lessons[1]);holdNext=true;await page.evaluate(()=>window.dispatchEvent(new Event('versado:app-resumed')));
    for(let i=0;held.length===0&&i<100;i++)await new Promise(resolve=>setTimeout(resolve,20));assert.ok(held.length);
-   await page.locator('a[data-kompas-target="profile"]').click();await page.getByRole('button',{name:t('nativeFoundation.logout'),exact:true}).click();await page.locator('form').waitFor();await login(page,other,t);
+   await page.locator('a[data-kompas-target="profile"]').click();await logoutNativeProfile(page,t);await page.locator('form').waitFor();await login(page,other,t);
    for(const finish of held.splice(0))finish();await page.waitForTimeout(100);assert.ok((await page.locator('[data-today-overview]').textContent()).includes(other.handle));assert.equal((await page.locator('[data-today-overview]').textContent()).includes(user.handle),false,'Late A-response cannot overwrite B');
    await prisma.nativeSession.updateMany({where:{userId:other.id},data:{revokedAt:new Date()}});await page.evaluate(()=>window.dispatchEvent(new Event('versado:app-resumed')));await page.locator('form').waitFor();assert.equal(await page.locator('[data-today-overview]').count(),0);
   }

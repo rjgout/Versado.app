@@ -29,8 +29,8 @@ const front=createServer(async(req,res)=>{try{
   const chunks=[];for await(const c of req)chunks.push(c);
   const response=await fetch(`${backend}${req.url}`,{method:req.method,headers:{Origin:'capacitor://localhost','X-Versado-Client':'native-v1','x-real-ip':'127.0.0.41',...(req.headers.authorization?{Authorization:req.headers.authorization}:{}),...(req.headers['content-type']?{'Content-Type':req.headers['content-type']}:{})},body:['GET','HEAD'].includes(req.method)?undefined:Buffer.concat(chunks)});
   let body=await response.text();
-  // Expliciete oude-backendcompatibiliteit; native-today.browser test het ongewijzigde nieuwe capabilitycontract.
-  if(url.pathname==='/api/v1/native/capabilities'&&response.ok){const value=JSON.parse(body);value.features=value.features.filter(f=>f!=='today-overview-v1');body=JSON.stringify(value);}
+  // Expliciete oude-backendcompatibiliteit (profiel zonder profile-settings-v1; nieuw profiel afzonderlijk in native-profile.browser); native-today.browser test het ongewijzigde nieuwe capabilitycontract.
+  if(url.pathname==='/api/v1/native/capabilities'&&response.ok){const value=JSON.parse(body);value.features=value.features.filter(f=>!['today-overview-v1','profile-settings-v1'].includes(f));body=JSON.stringify(value);}
   const finish=()=>{res.writeHead(response.status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(body);};
   if(holdMe&&url.pathname==='/api/v1/native/me'){held.push(finish);}else finish();return;
  }

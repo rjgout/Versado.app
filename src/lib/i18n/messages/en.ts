@@ -271,6 +271,7 @@ export const en: PartialMessages = {
   nativeToday: { unavailable: "This destination or action is not available in this app build yet. Your progress is preserved. Please use the website for now." },
   nativeContentFallback: { unsupported: "This backend does not yet support the content picker in the app. You can return to Today.", signIn: "Sign in to choose your content." },
   nativeDiagnostics: {"title": "Internal diagnostics", "open": "Internal diagnostics", "internalBadge": "Internal", "testBadge": "Test build", "recovery": "Connection and recovery"},
+  nativeProfile: { pushUnavailable: "Push notifications are not yet available on this device." },
   nativeFoundation: {
   "welcome": "Welcome to Versado",
   "login": "Sign in",

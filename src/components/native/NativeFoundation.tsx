@@ -1,47 +1,49 @@
 "use client";
+import ProfilePageView from "@/components/profile/ProfilePageView";
+import { parseProfileView,PROFILE_VIEWS } from "@/lib/profileViews";
+import NativeProfileView from "./NativeProfileView";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { nativeReaderRoute } from "@/lib/native/readerNavigation";
-import NativeLearningView from "./NativeLearningView";
-import { nativePrimaryNav } from "@/lib/native/shell";
-import { HANDLE_MAX_LENGTH } from "@/lib/handle";
-import { LogOut, WifiOff } from "lucide-react";
-import MascotSlot from "@/components/versado/MascotSlot";
-import { useT, useUiLanguage } from "@/components/I18nProvider";
-import { primaryButton, secondaryButton } from "@/components/versado/styles";
-import { isNativeApp, dismissNativeKeyboard, isIOSApp, nativeAppleAuthorization, openExternalUrl, startNativeFoundationRuntime } from "@/lib/platform";
-import { nativeCapabilitiesSchema, type NativeAccount, type NativeSecuritySetup, type NativeContentState } from "@/lib/native/contract";
-import { NativeClientError, type NativeSessionClient, type NativeSignInOutcome } from "@/lib/native/client";
-import { AppLink, useAppNavigation } from "@/components/navigation/AppNavigation";
-import PrivacyContent from "@/components/legal/PrivacyContent";
-import DisclaimerContent from "@/components/legal/DisclaimerContent";
+import { AccountActionsProvider } from "@/components/account/AccountActionsProvider";
+import AccountDeletionForm from "@/components/account/AccountDeletionForm";
+import PasswordChangeForm from "@/components/account/PasswordChangeForm";
+import { RecoveryCodesCard,TwoFactorSetupCard } from "@/components/account/TwoFactorCards";
+import { useT,useUiLanguage } from "@/components/I18nProvider";
 import ContactContent from "@/components/legal/ContactContent";
 import CookiesContent from "@/components/legal/CookiesContent";
+import DisclaimerContent from "@/components/legal/DisclaimerContent";
+import PrivacyContent from "@/components/legal/PrivacyContent";
+import { AppLink,useAppNavigation } from "@/components/navigation/AppNavigation";
+import { SettingsSection } from "@/components/profile/settings";
 import AppShellFrame from "@/components/shell/AppShellFrame";
 import SubpageBackBarView from "@/components/shell/SubpageBackBarView";
-import NativeTodayView from "./NativeTodayView";
-import { type NativeTodayOverview } from "@/lib/native/todayContract";
-import NativeContentPicker from "./NativeContentPicker";
-import { SettingsSection } from "@/components/profile/settings";
-import NativeShellHeader from "./NativeShellHeader";
-import { nativeAppleLoginUIAvailable } from "@/lib/native/shell";
-import PasswordChangeForm from "@/components/account/PasswordChangeForm";
-import AccountDeletionForm from "@/components/account/AccountDeletionForm";
-import { AccountActionsProvider } from "@/components/account/AccountActionsProvider";
-import { RecoveryCodesCard, TwoFactorSetupCard } from "@/components/account/TwoFactorCards";
-import { nativeAccountActions } from "@/lib/native/account";
+import MascotSlot from "@/components/versado/MascotSlot";
+import { primaryButton,secondaryButton } from "@/components/versado/styles";
 import { AccountActionError } from "@/lib/account/contracts";
-import { NativeSocketConnection } from "@/lib/native/socketClient";
-import NativeEmailConfirmation from "./NativeEmailConfirmation";
-import NativePasswordReset from "./NativePasswordReset";
-import { nativeContentQueryKey, nativeTodayQueryKey } from "@/lib/data/native";
-import { NativeDataProvider, useNativeData, useNativeLiveQuery } from "@/lib/data/nativeHooks";
-import { nativeDeepLink, nativePasswordResetLink, nativeEmailConfirmationLink } from "@/lib/native/navigation";
+import { nativeContentQueryKey,nativeTodayQueryKey } from "@/lib/data/native";
+import { NativeDataProvider,useNativeData,useNativeLiveQuery } from "@/lib/data/nativeHooks";
+import { HANDLE_MAX_LENGTH } from "@/lib/handle";
+import { nativeAccountActions } from "@/lib/native/account";
+import { NativeClientError,type NativeSessionClient,type NativeSignInOutcome } from "@/lib/native/client";
+import { nativeCapabilitiesSchema,type NativeAccount,type NativeContentState,type NativeSecuritySetup } from "@/lib/native/contract";
+import { nativeDeepLink,nativeEmailConfirmationLink,nativePasswordResetLink } from "@/lib/native/navigation";
+import { nativeReaderRoute } from "@/lib/native/readerNavigation";
 import { focusNativeRouteHeading } from "@/lib/native/routeFocus";
+import { nativeAppleLoginUIAvailable,nativePrimaryNav } from "@/lib/native/shell";
+import { NativeSocketConnection } from "@/lib/native/socketClient";
+import { type NativeTodayOverview } from "@/lib/native/todayContract";
+import { dismissNativeKeyboard,isIOSApp,isNativeApp,nativeAppleAuthorization,openExternalUrl,startNativeFoundationRuntime } from "@/lib/platform";
+import { LogOut,WifiOff } from "lucide-react";
+import { useCallback,useEffect,useMemo,useRef,useState,type ReactNode } from "react";
+import NativeContentPicker from "./NativeContentPicker";
+import NativeEmailConfirmation from "./NativeEmailConfirmation";
+import NativeLearningView from "./NativeLearningView";
+import NativePasswordReset from "./NativePasswordReset";
+import NativeShellHeader from "./NativeShellHeader";
+import NativeTodayView from "./NativeTodayView";
 
-import {ReadAloudPlayerProvider} from "@/lib/readAloudPlayerContext";
 import ReadAloudMiniPlayer from "@/components/ReadAloudMiniPlayer";
-import type {NativeReadAloudOutput} from "@/lib/native/audioOutput";
+import type { NativeReadAloudOutput } from "@/lib/native/audioOutput";
+import { ReadAloudPlayerProvider } from "@/lib/readAloudPlayerContext";
 
 type Account = NativeAccount;
 type FoundationProps = { audioOutput?: NativeReadAloudOutput; client: NativeSessionClient; termsUrl?: string | null; onLanguage?: (language: string) => void; buildBanner?: ReactNode; buildIndicator?: ReactNode; internalTools?: boolean; internalAccess?: ReactNode };
@@ -53,7 +55,8 @@ function NativeFoundationContent({ audioOutput, client, termsUrl = null, onLangu
   const diagnostics = navigation.pathname === "/diagnostics";
   const pickerPage = navigation.pathname === "/content";
   const canDiagnose = internalTools || internalAccess !== null;
-  const profile = navigation.pathname === "/profile";
+  const profile = navigation.pathname === "/profile" || navigation.pathname === "/profile/avatar" || navigation.pathname.startsWith("/profile?view=");
+  const profileView = profile ? parseProfileView(new URLSearchParams(navigation.pathname.split("?")[1] ?? "").get("view")) : null;
   const resetPage = navigation.pathname === "/reset-password";
   const confirmationPage = navigation.pathname === "/verify-email";
   const [mailRequest, setMailRequest] = useState<{ token: string | null; id: number; route: string }>({ token: null, id: 0, route: "" });
@@ -130,6 +133,19 @@ function NativeFoundationContent({ audioOutput, client, termsUrl = null, onLangu
     } catch (err) { if (id === sequence.current) report(err); }
     finally { if (id === sequence.current) setBusy(false); }
   }, [client, load, report, dataRuntime]);
+  const profileAccountRequest=useRef(0);
+  const profileAccountOwner=user?.id;
+  const profileSessionStamp=client.getSessionStamp();
+  // Een profielwijziging ververst alleen de bevestigde accountgegevens.
+  // De bootstrap roteert de sessie en wordt door een routewissel geannuleerd;
+  // dat mag de nieuwe 2FA-status voor wachtwoord-/wisformulieren niet verliezen.
+  const refreshProfileAccount=useCallback(async()=>{
+    const owner=profileAccountOwner,stamp=client.getSessionStamp(),epoch=dataRuntime.getSnapshot(),request=++profileAccountRequest.current;
+    if(!owner)return;
+    const current=()=>request===profileAccountRequest.current && stamp===client.getSessionStamp() && epoch===dataRuntime.getSnapshot();
+    try{const account=await dataRuntime.account();if(current() && account.id===owner)setUser(account);}
+    catch(reason){if(current())report(reason);}
+  },[profileAccountOwner,client,dataRuntime,report]);
   useEffect(() => {
     const id = ++sequence.current;
     void Promise.resolve().then(() => { if (id === sequence.current) setMailRequest(value => value.route === navigation.pathname ? value : { token: null, id: value.id, route: navigation.pathname }); });
@@ -172,6 +188,9 @@ function NativeFoundationContent({ audioOutput, client, termsUrl = null, onLangu
     } }).then(stop => { if (disposed) stop(); else cleanup = stop; }).catch(() => {});
     return () => { disposed = true; invalidate(); cleanup?.(); window.removeEventListener("online", online); window.removeEventListener("offline", offline); };
   }, [bootstrap, client, report]);
+  useEffect(()=>{
+    if(user && profile && (profileView || navigation.pathname==="/profile/avatar") && !features.includes("profile-settings-v1"))navigation.replace("/profile");
+  },[user,profile,profileView,navigation,features]);
   useEffect(() => {
     if (diagnostics && !canDiagnose) navigation.replace(user ? "/profile" : "/login");
   }, [diagnostics, canDiagnose, navigation, user]);
@@ -247,7 +266,7 @@ function NativeFoundationContent({ audioOutput, client, termsUrl = null, onLangu
   return <AccountActionsProvider actions={accountActions}><AppShellFrame
     header={<NativeShellHeader account={shellAccount} onError={report} content={content} buildIndicator={buildIndicator} destinations={destinations} />}
     headerExtras={<>
-      {detail && <SubpageBackBarView title={diagnostics ? t("nativeDiagnostics.title") : pickerPage ? t("contentSwitcher.picker.title") : profile ? t("nav.profile") : readerRoute ? t("pages.lesson") : learningPage ? t("pages.course") : chapterId ? t("pages.lesson") : t("common.back")} onBack={() => navigation.back(readerRoute ? `/courses/${readerRoute.courseId}/pad` : learningPage ? navigation.pathname.endsWith("/archief") ? navigation.pathname.replace(/archief$/, "pad") : "/courses" : "/dashboard")} />}
+      {detail && <SubpageBackBarView title={diagnostics ? t("nativeDiagnostics.title") : pickerPage ? t("contentSwitcher.picker.title") : passwordPage ? t("profile.changePassword") : deletionPage ? t("accountDeletion.title") : profile ? t(navigation.pathname==="/profile/avatar" ? "profile.avatarEditorTitle" : profileView ? PROFILE_VIEWS[profileView].title : "nav.profile") : readerRoute ? t("pages.lesson") : learningPage ? t("pages.course") : chapterId ? t("pages.lesson") : t("common.back")} onBack={() => navigation.back(passwordPage || deletionPage || profile && (profileView || navigation.pathname==="/profile/avatar") ? "/profile" : readerRoute ? `/courses/${readerRoute.courseId}/pad` : learningPage ? navigation.pathname.endsWith("/archief") ? navigation.pathname.replace(/archief$/, "pad") : "/courses" : "/dashboard")} />}
       {/* De terugbalk reserveert in Focus de veilige bovenrand, ook voor de speler eronder. */}
       <ReadAloudMiniPlayer />
     </>}
@@ -316,10 +335,20 @@ function NativeFoundationContent({ audioOutput, client, termsUrl = null, onLangu
       <p role="status">{t(overviewQuery.error ? "nativeFoundation.error" : "nativeFoundation.loading")}</p>
       {!!overviewQuery.error && <button type="button" className={button} onClick={() => { void overviewQuery.refetch(); }}>{t("nativeFoundation.retry")}</button>}
     </section> : <>
-      <h1 tabIndex={-1} className="text-2xl font-extrabold">{passwordPage ? t("profile.changePassword") : deletionPage ? t("accountDeletion.title") : profile ? t("nativeFoundation.account") : (chapterId ? t("pages.lesson") : `${t("nativeFoundation.today")}, ${user.handle}`)}</h1>
-      {deletionPage ? <AccountDeletionForm passwordLoginEnabled={user.passwordLoginEnabled} totpEnabled={user.totpEnabled} /> : passwordPage ? <PasswordChangeForm forced={false} requiresSecondFactor={user.totpEnabled} onChanged={async () => {
+      {!(passwordPage || deletionPage || profile && features.includes("profile-settings-v1")) && <h1 tabIndex={-1} className="text-2xl font-extrabold">{passwordPage ? t("profile.changePassword") : deletionPage ? t("accountDeletion.title") : profile ? t(navigation.pathname==="/profile/avatar" ? "profile.avatarEditorTitle" : profileView ? PROFILE_VIEWS[profileView].title : "nav.profile") : (chapterId ? t("pages.lesson") : `${t("nativeFoundation.today")}, ${user.handle}`)}</h1>}
+      {deletionPage ? <ProfilePageView title={t("accountDeletion.title")}><AccountDeletionForm passwordLoginEnabled={user.passwordLoginEnabled} totpEnabled={user.totpEnabled} /></ProfilePageView> : passwordPage ? <ProfilePageView title={t("profile.changePassword")}><PasswordChangeForm forced={false} requiresSecondFactor={user.totpEnabled} onChanged={async () => {
         await client.logout(() => { setUser(null); dataRuntime.reset(); setRecoveryCodes(null); navigation.replace("/login"); }).catch(report);
-      }} /> : profile ? <>
+      }} /></ProfilePageView> : profile && features.includes("profile-settings-v1") ? <NativeProfileView key={user.id} account={user} content={content} accountExtras={<>
+        {(appleLoginAvailable || user.appleLinked) && <>
+        {user.appleLinked && <p>{t("nativeFoundation.appleLinked")}</p>}
+        <label>{t("nativeFoundation.password")}<input type="password" autoComplete="current-password" className="input w-full" value={password} onChange={e => setPassword(e.target.value)} maxLength={256} /></label>
+        <label>{t("nativeFoundation.code")}<input className="input w-full" value={code} onChange={e => setCode(e.target.value)} maxLength={100} /></label>
+        <button className={button} disabled={busy || !password || !user.passwordLoginEnabled} onClick={() => void action(async isCurrent => { if (user.appleLinked) { await client.api("apple", { password, ...(code ? { code } : {}) }, "DELETE"); setUser(null); setPassword(""); setCode(""); await client.logout(); } else await signInApple(true, isCurrent); })}>{t(user.appleLinked ? "nativeFoundation.appleUnlink" : "nativeFoundation.appleLink")}</button>
+        </>}
+        {!user.passwordLoginEnabled && <p>{t("nativeFoundation.alternativeRequired")}</p>}
+        {canDiagnose && <AppLink className={button} href="/diagnostics">{t("nativeDiagnostics.open")}</AppLink>}
+        {termsUrl && <button className={button} onClick={()=>void openExternalUrl(termsUrl)}>{t("nativeFoundation.terms")}</button>}
+      </>} onAccountChanged={()=>void refreshProfileAccount()} onError={report} onLogout={async()=>{if(client.getSessionStamp()!==profileSessionStamp)throw new NativeClientError("session_changed",409);await client.logout(()=>{setUser(null);dataRuntime.reset();setSetup(null);setRecoveryCodes(null);setPassword("");setCode("");setIdentifier("");navigation.replace("/login");});}}/> : profile ? <>
         {(appleLoginAvailable || user.appleLinked) && <>
         {user.appleLinked && <p>{t("nativeFoundation.appleLinked")}</p>}
         <label>{t("nativeFoundation.password")}<input type="password" autoComplete="current-password" className="input w-full" value={password} onChange={e => setPassword(e.target.value)} maxLength={256} /></label>
@@ -334,7 +363,7 @@ function NativeFoundationContent({ audioOutput, client, termsUrl = null, onLangu
         {(contentEnabled ? todayQuery.data?.activity : activity) ? <button className={`${primaryButton} min-h-12 whitespace-normal`} disabled={busy} onClick={() => navigation.push(`/lesson/${encodeURIComponent((contentEnabled ? todayQuery.data!.activity : activity)!.id)}`)}>{(contentEnabled ? todayQuery.data!.activity : activity)!.title} — {t("nativeFoundation.continue")}</button> : <p>{t("nativeFoundation.empty")}</p>}
       </>}
     </>}
-    {(profile && user || !user && !setup && !recoveryCodes) && <SettingsSection title={profile ? t("nativeFoundation.account") : undefined}>
+    {(profile && user && !features.includes("profile-settings-v1") || !user && !setup && !recoveryCodes) && <SettingsSection title={profile ? t(navigation.pathname==="/profile/avatar" ? "profile.avatarEditorTitle" : profileView ? PROFILE_VIEWS[profileView].title : "nav.profile") : undefined}>
       {user && <button type="button" disabled={busy} className={button} onClick={() => { setPassword(""); setCode(""); void action(() => client.logout(() => { setUser(null); dataRuntime.reset(); setSetup(null); setRecoveryCodes(null); setIdentifier(""); navigation.replace("/login"); })); }}><LogOut className="h-4 w-4" />{t("nativeFoundation.logout")}</button>}
       {canDiagnose && <AppLink className={button} href="/diagnostics">{t("nativeDiagnostics.open")}</AppLink>}
       <AppLink className={button} href="/privacy">{t("nativeFoundation.privacy")}</AppLink>

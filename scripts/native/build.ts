@@ -1,14 +1,15 @@
-import { build } from "esbuild";
-import sharp from "sharp";
-import { NATIVE_TODAY_ARTWORK, nativeArtworkPath } from "../../src/lib/native/todayAssets";
-import postcss from "postcss";
-import tailwind from "tailwindcss";
 import autoprefixer from "autoprefixer";
-import config from "../../tailwind.config";
-import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { build } from "esbuild";
+import { cp,mkdir,readFile,rm,writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import postcss from "postcss";
+import sharp from "sharp";
+import tailwind from "tailwindcss";
+import { NATIVE_PROFILE_ARTWORK,nativeProfileArtworkPath } from "../../src/lib/native/profileAssets";
+import { NATIVE_TODAY_ARTWORK,nativeArtworkPath } from "../../src/lib/native/todayAssets";
+import config from "../../tailwind.config";
 import { nativeStaticAssets } from "./assets";
-import { buildMetadata, bundleDirectory, contentSecurityPolicy, findSecrets, hashBundleFiles, resolveBuildProfile, internalAccessEnabled, INTERNAL_ACCESS_FILE } from "./profiles.cjs";
+import { buildMetadata,bundleDirectory,contentSecurityPolicy,findSecrets,hashBundleFiles,INTERNAL_ACCESS_FILE,internalAccessEnabled,resolveBuildProfile } from "./profiles.cjs";
 
 // Het profiel (en met name de toegestane backend-origin) komt uit scripts/native/profiles.cjs; zonder
 // CAPACITOR_BUILD_PROFILE blijft het bestaande gedrag: een lokale development-bundel.
@@ -37,6 +38,14 @@ if (artworkBytes > 8 * 1024 * 1024) throw new Error("Het begrensde native Vandaa
 console.log(`Geregistreerd Vandaag-artwork: ${NATIVE_TODAY_ARTWORK.length} beelden, ${artworkBytes} bytes; geen externe download.`);
 const csp = contentSecurityPolicy(url.origin);
 await writeFile(join(outdir, "index.html"), `<!doctype html><html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta http-equiv="Content-Security-Policy" content="${csp}"><title>Versado</title><link rel="stylesheet" href="index.css"></head><body><div id="root"></div><script src="index.js" defer></script></body></html>`);
+// De profielhero gebruikt dezelfde personages; alleen de build maakt lokale WebP-varianten.
+let profileArtworkBytes=0;
+for(const source of NATIVE_PROFILE_ARTWORK){
+  const target=join(outdir,nativeProfileArtworkPath(source).slice(1));await mkdir(join(target,".."),{recursive:true});
+  const result=await sharp(join("public",source)).resize({width:1024,withoutEnlargement:true}).webp({quality:88}).toFile(target);
+  profileArtworkBytes+=result.size;
+}
+if(profileArtworkBytes>16*1024*1024)throw new Error("Het lokale profielbeeld overschrijdt de begrensde 16 MiB; controleer de bestaande assetselectie.");
 // Geheimen horen nooit in de bundel; dit is een tweede vangnet naast de verificatie op de verpakte assets.
 for (const name of ["index.html", "index.js", "index.css"]) {
   const found = findSecrets(await readFile(join(outdir, name), "utf8"));

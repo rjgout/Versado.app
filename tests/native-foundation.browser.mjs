@@ -26,7 +26,7 @@ const front=createServer(async(req,res)=>{
    if(!network||(blockMe&&url.pathname==='/api/v1/native/me')){res.destroy();return;}
    const chunks=[];for await(const c of req)chunks.push(c);
    const response=await fetch(`${backend}${req.url}`,{method:req.method,headers:{Origin:'capacitor://localhost','X-Versado-Client':'native-v1','x-real-ip':'127.0.0.21',...(req.headers.authorization?{Authorization:req.headers.authorization}:{}),...(req.headers['content-type']?{'Content-Type':req.headers['content-type']}:{})},body:['GET','HEAD'].includes(req.method)?undefined:Buffer.concat(chunks)});
-   res.writeHead(response.status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(url.pathname==='/api/v1/native/capabilities'&&response.ok?JSON.stringify({...await response.clone().json(),features:(await response.json()).features.filter(f=>f!=='today-overview-v1')}):await response.text());return;
+   res.writeHead(response.status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(url.pathname==='/api/v1/native/capabilities'&&response.ok?JSON.stringify({...await response.clone().json(),features:(await response.json()).features.filter(f=>!['today-overview-v1','profile-settings-v1'].includes(f))}):await response.text());return;
   }
   if(url.pathname.startsWith('/test-keychain/')){
    const id=url.pathname;if(req.method==='PUT'){const chunks=[];for await(const c of req)chunks.push(c);secrets.set(id,Buffer.concat(chunks).toString());}if(req.method==='DELETE')secrets.delete(id);

@@ -117,8 +117,9 @@ export function renderInventory(inventory) {
     const password = ["/change-password", "/reset-password"].includes(row.route);
     const confirmation = row.route === "/verify-email";
     const deletion = row.route === "/account-verwijderen";
+    const sharedProfile = ["/profile", "/profile/avatar"].includes(row.route);
     lines.push([`\`${row.route}\``, `${link(row.file)}; ${row.boundary === "client" ? "expliciete clientgrens" : "Server Component-entry"}`, row.domain,
-      deletion ? "Lokale gedeelde wis-/herauthenticatieflow; apparaatbewijs open" : legal ? "Lokale gedeelde inhoud; apparaatbewijs open" : password ? "Lokale gedeelde wachtwoordflow; apparaatbewijs open" : confirmation ? "Lokale gedeelde bevestigingsflow; apparaatbewijs open" : partial ? "Lokale route; Foundation gedeeltelijk, geen volledige functiepariteit" : "Zelfde doel-URL; ontbreekt in lokale router",
+      sharedProfile ? "Gedeelde profiel-/instellingenpresentatie via profile-settings-v1; apparaatacceptatie en genoemde hiaten open" : deletion ? "Lokale gedeelde wis-/herauthenticatieflow; apparaatbewijs open" : legal ? "Lokale gedeelde inhoud; apparaatbewijs open" : password ? "Lokale gedeelde wachtwoordflow; apparaatbewijs open" : confirmation ? "Lokale gedeelde bevestigingsflow; apparaatbewijs open" : partial ? "Lokale route; Foundation gedeeltelijk, geen volledige functiepariteit" : "Zelfde doel-URL; ontbreekt in lokale router",
       [...row.authEvidence, ...row.directModules.filter(file => file.startsWith("src/lib/"))].map(cell).join("; ") || "Zie bron en rootlayout; nog expliciet beoordelen",
       "Webtests: JSON-index; native: geen volledig route-/apparaatbewijs",
     ].map(cell).join(" | "));
@@ -130,7 +131,7 @@ export function renderInventory(inventory) {
   lines.push("", "### Alle JSX-modules en expliciete clientgrenzen", "", "Module | Eigen grens | Geëxporteerde namen", "--- | --- | ---");
   for (const row of inventory.components) lines.push([link(row.file), row.boundary === "client" ? "use client" : "contextafhankelijk / server-entry waar page/layout", row.exports.join(", ") || "default/locale declaratie; zie bron"].map(cell).join(" | "));
   lines.push("", "### Aanvullende routes en gebeurtenissen", "", ...inventory.metadata.map(row => `- Metadata: ${link(row.file)}.`), "- Rewrite: `/manifest.webmanifest` → `/api/branding/manifest` (`next.config.js`).", "",
-    ...inventory.profileViews.map(route => `- Profielscherm: \`${route}\` — ontbreekt als volwaardig lokaal scherm.`), "", "Socket-events (web; native handshake nog niet aanwezig):", "", ...inventory.socketEvents.map(event => `- \`${event}\``), "", "<!-- END NATIVE PARITY INVENTORY -->");
+    ...inventory.profileViews.map(route => `- Profielscherm: \`${route}\` — gedeelde lokale renderer via \`profile-settings-v1\`; fysieke acceptatie en expliciete hiaten in NATIVE-PROFILE.md blijven open.`), "", "Socket-events (web; native handshake nog niet aanwezig):", "", ...inventory.socketEvents.map(event => `- \`${event}\``), "", "<!-- END NATIVE PARITY INVENTORY -->");
   return lines.join("\n");
 }
 export function updateDocument(source, generated) {

@@ -273,6 +273,7 @@ export const nl = {
   nativeToday: { unavailable: "Deze bestemming of actie is nog niet beschikbaar in deze appbuild. Je voortgang blijft bewaard. Gebruik hiervoor voorlopig de website." },
   nativeContentFallback: { unsupported: "Deze backend ondersteunt de contentkiezer in de app nog niet. Je kunt terug naar Vandaag.", signIn: "Log in om je content te kiezen." },
   nativeDiagnostics: {"title": "Interne diagnose", "open": "Interne diagnose", "internalBadge": "Intern", "testBadge": "Testbuild", "recovery": "Verbinding en herstel"},
+  nativeProfile: { pushUnavailable: "Pushmeldingen zijn nog niet beschikbaar op dit apparaat." },
   nativeFoundation: {
   "welcome": "Welkom bij Versado",
   "login": "Inloggen",

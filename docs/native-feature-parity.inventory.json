@@ -383,33 +383,21 @@
     },
     {
       "file": "src/app/api/account/route.ts",
-      "sha256": "8c2c4af5c07b10248977ea868109e5690701c15af73a8972ab519ae50ec2605f",
+      "sha256": "6f2320fdeae0bf5ad7c1a1b120516649ea59cb20c190afde43f6b5d5093c968a",
       "boundary": "context-dependent",
       "imports": [
-        "@/generated/prisma/client",
         "@/lib/account/contracts",
         "@/lib/account/deletion",
         "@/lib/account/password",
-        "@/lib/achievements",
         "@/lib/apiError",
         "@/lib/auth",
         "@/lib/authBudget",
-        "@/lib/avatarAccessories",
-        "@/lib/avatarUnlocks",
-        "@/lib/characterAssets",
-        "@/lib/companion",
         "@/lib/content-inventory/origin",
-        "@/lib/dailyText",
-        "@/lib/db",
-        "@/lib/dorp/notifications",
-        "@/lib/handle",
-        "@/lib/languages",
-        "@/lib/mascots",
-        "@/lib/presence",
+        "@/lib/profile/settings",
+        "@/lib/profile/settingsContract",
         "@/lib/requestBody",
         "@/lib/requestSecurity",
         "@/lib/session",
-        "@/lib/timeZone",
         "next/server",
         "zod"
       ],
@@ -420,8 +408,6 @@
       ],
       "requests": [],
       "checks": [
-        "canUseAccessory",
-        "canUseAvatarCharacter",
         "getCurrentUser"
       ],
       "exports": [
@@ -432,97 +418,68 @@
     },
     {
       "file": "src/app/api/account/totp/disable/route.ts",
-      "sha256": "b63f201932bbb72e7166de7029eb3ad9cde2916449ba2930943cb26ce05dd83a",
+      "sha256": "c54147ea410f0aad1bf699ebc31ebc6df5f71a0e4cee65a8d869786e398ce412",
       "boundary": "context-dependent",
       "imports": [
-        "@/lib/apiError",
-        "@/lib/db",
-        "@/lib/rateLimit",
-        "@/lib/session",
-        "@/lib/totp",
-        "next/server",
-        "zod"
-      ],
-      "methods": [
-        "POST"
-      ],
-      "requests": [],
-      "checks": [
-        "getCurrentUser",
-        "verifyTotpCode"
-      ],
-      "exports": [
-        "POST"
-      ]
-    },
-    {
-      "file": "src/app/api/account/totp/reset/route.ts",
-      "sha256": "5854d7192c5acff01e43eb3968b6cace8c64834fc667ca0383b5476a34393d5d",
-      "boundary": "context-dependent",
-      "imports": [
-        "@/lib/apiError",
-        "@/lib/db",
-        "@/lib/handle",
-        "@/lib/rateLimit",
-        "@/lib/session",
-        "@/lib/totp",
-        "next/server",
-        "zod"
-      ],
-      "methods": [
-        "POST"
-      ],
-      "requests": [],
-      "checks": [
-        "getCurrentUser"
-      ],
-      "exports": [
-        "POST"
-      ]
-    },
-    {
-      "file": "src/app/api/account/totp/setup/route.ts",
-      "sha256": "e4197a36085c91a138b1062c9f0af0831fcd0510698b6304ab6150e47e715083",
-      "boundary": "context-dependent",
-      "imports": [
-        "@/lib/apiError",
-        "@/lib/db",
-        "@/lib/handle",
-        "@/lib/session",
-        "@/lib/totp",
+        "@/lib/account/twoFactorWeb",
         "next/server"
       ],
       "methods": [
         "POST"
       ],
       "requests": [],
-      "checks": [
-        "getCurrentUser"
+      "checks": [],
+      "exports": [
+        "POST"
+      ]
+    },
+    {
+      "file": "src/app/api/account/totp/reset/route.ts",
+      "sha256": "daca181a8009f60e6685b6ab15ec18a225a73ac756f47e586458d247b873b9cd",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/lib/account/twoFactorWeb",
+        "next/server"
       ],
+      "methods": [
+        "POST"
+      ],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "POST"
+      ]
+    },
+    {
+      "file": "src/app/api/account/totp/setup/route.ts",
+      "sha256": "02ed72ccb2b2c527f6db38d77f45649d474e9eac4cc06c675faea94887bc0128",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/lib/account/twoFactorWeb",
+        "next/server"
+      ],
+      "methods": [
+        "POST"
+      ],
+      "requests": [],
+      "checks": [],
       "exports": [
         "POST"
       ]
     },
     {
       "file": "src/app/api/account/totp/verify/route.ts",
-      "sha256": "b6663748f4bfd962503782e73688d4d145a5fa46a6e0af9b5ddea5172c6581ce",
+      "sha256": "e57424ebf9cb76b1bb1ca9cd21da012045f2a3853e4f509a84c89ed9903c5ece",
       "boundary": "context-dependent",
       "imports": [
-        "@/lib/apiError",
-        "@/lib/db",
-        "@/lib/session",
-        "@/lib/totp",
-        "next/server",
-        "zod"
+        "@/lib/account/twoFactorWeb",
+        "next/server"
       ],
       "methods": [
         "POST"
       ],
       "requests": [],
-      "checks": [
-        "getCurrentUser",
-        "verifyTotpCode"
-      ],
+      "checks": [],
       "exports": [
         "POST"
       ]
@@ -1946,12 +1903,11 @@
     },
     {
       "file": "src/app/api/auth/logout/route.ts",
-      "sha256": "bd77f06c84adc6bedbc3d2e0fe2b8a67f9d6748a4e7deb76d5015f97d284bae6",
+      "sha256": "0e7c82890c1e2cc8d8ef310d7c13cd3905ef1a565eda1b2c0a0ecaa18d86add4",
       "boundary": "context-dependent",
       "imports": [
+        "@/lib/account/logout",
         "@/lib/auth",
-        "@/lib/db",
-        "@/lib/realtime",
         "@/lib/session",
         "next/server"
       ],
@@ -2256,11 +2212,11 @@
     },
     {
       "file": "src/app/api/changelog/route.ts",
-      "sha256": "0d077332e56ff2f1ee1fb38668f7652019fef49756e80d45304a0093d89bd60f",
+      "sha256": "4fab62b2ef8b87a5e5c211ddccad240f7bba82cf4df9450ab9766e34af6123b5",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
-        "@/lib/db",
+        "@/lib/profile/changelog",
         "@/lib/session",
         "next/server"
       ],
@@ -2277,11 +2233,12 @@
     },
     {
       "file": "src/app/api/changelog/seen/route.ts",
-      "sha256": "f53d42b6799d6825f1d6b5c29520b349d6ba69b62d2865b50e09e9297741b75d",
+      "sha256": "f68069086cccf7d777ed09a766d2de2cca8a27a79f93783ad1ee8aed11283fa5",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
         "@/lib/db",
+        "@/lib/profile/changelog",
         "@/lib/session",
         "next/server"
       ],
@@ -4368,11 +4325,12 @@
     },
     {
       "file": "src/app/api/podcast-notifications/[podcastId]/route.ts",
-      "sha256": "47d91093e6e87e5731c7779d75a2b3bdd2cb024ff60c0e7fe9a9c71b4b392083",
+      "sha256": "e3f9d7b82e688471e94e6f388eb4e87c65f8567464e463f837d6811985a983ac",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
         "@/lib/db",
+        "@/lib/profile/podcastNotifications",
         "@/lib/session",
         "next/server",
         "zod"
@@ -4465,17 +4423,11 @@
     },
     {
       "file": "src/app/api/profile/route.ts",
-      "sha256": "b923012ffef0545b8f771104df0a2b17cdd08b2474c1a866487a775065b59669",
+      "sha256": "ca69ffd1bb620ada8e71dfc03e8295bf68349b504e78a7e0d12e36b3cd35e183",
       "boundary": "context-dependent",
       "imports": [
-        "@/lib/achievements",
         "@/lib/apiError",
-        "@/lib/avatarUnlocks",
-        "@/lib/companion",
-        "@/lib/dailyText",
-        "@/lib/dates",
-        "@/lib/db",
-        "@/lib/leagues",
+        "@/lib/profile/load",
         "@/lib/session",
         "next/server"
       ],
@@ -4492,12 +4444,12 @@
     },
     {
       "file": "src/app/api/progress/reset-reading/route.ts",
-      "sha256": "2f5bd65cd6c8cbc6209cd53c1b3fc838d1e4db701dd25be3f331bea315544a22",
+      "sha256": "7a894716fbf9dbf7ae666ee2bfccc97544b41c435f660f48939d7e0d060ed312",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
         "@/lib/db",
-        "@/lib/learning/contentProgress",
+        "@/lib/profile/readingReset",
         "@/lib/session",
         "next/server"
       ],
@@ -9053,27 +9005,15 @@
     },
     {
       "file": "src/components/AvatarEditorClient.tsx",
-      "sha256": "e2932bbfa5c545dbc1db3ff9b5c02aaf67d3c0e9ca01a172a6346cd607d32105",
+      "sha256": "cdfedf90a611d030e878565824f502242c4e3fc0440d956fcc8ce45f89cb8c03",
       "boundary": "client",
       "imports": [
-        "@/components/ConfirmProvider",
-        "@/components/I18nProvider",
-        "@/components/ScriptureAvatar",
+        "./profile/AvatarEditorView",
+        "./profile/profileData",
         "@/components/UserAvatar",
-        "@/components/profile/ProfilePage",
-        "@/components/profile/profileData",
-        "@/lib/avatarAccessories",
-        "@/lib/avatarEditor",
-        "@/lib/avatarTypes",
-        "@/lib/avatarUnlocks",
-        "@/lib/characterAssets",
         "@/lib/data/fetchJson",
         "@/lib/data/hooks",
-        "@/lib/data/mutation",
-        "@/lib/i18n/core",
-        "lucide-react",
-        "next/navigation",
-        "react"
+        "@/lib/data/mutation"
       ],
       "methods": [],
       "requests": [
@@ -9604,11 +9544,11 @@
     },
     {
       "file": "src/components/Footer.tsx",
-      "sha256": "8ee6e0f95c5f1434888df72cc9a914fbf952b1cc893571a0f3054f71baa71e3b",
+      "sha256": "b9c4d48b4b4559182d7132fba297cfe904deba43f8ae866241d3d234e0942966",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
-        "next/link"
+        "@/components/navigation/AppNavigation"
       ],
       "methods": [],
       "requests": [],
@@ -10103,13 +10043,11 @@
     },
     {
       "file": "src/components/LanguageSettings.tsx",
-      "sha256": "5ec8fa7b30cd9bed8bfdb049ca2317ea261b9845378ebfb2b83c462916e4d129",
+      "sha256": "0d486d504976bae02cdd052bff41ff28b7f002fb93896b0a10f097fbbdc6149c",
       "boundary": "client",
       "imports": [
-        "@/components/AppSelect",
         "@/components/I18nProvider",
-        "@/components/profile/settings",
-        "@/lib/languages",
+        "@/components/profile/LanguageSettingsView",
         "react"
       ],
       "methods": [],
@@ -10507,15 +10445,15 @@
     },
     {
       "file": "src/components/ProfileCharacterHero.tsx",
-      "sha256": "b6d2808f7af73baabd6b888f3a006341138eddeb60364a38a66bfea8056c3f79",
+      "sha256": "4f062f9f4f1c5009b0f02cde101f8f33288b32b7ea698676c5e5efd11bcdce0b",
       "boundary": "client",
       "imports": [
         "@/components/ScriptureAvatar",
+        "@/components/navigation/AppNavigation",
         "@/lib/avatarTypes",
         "@/lib/characterAssets",
         "@/lib/profileCamera",
         "@/lib/profileCharacterFraming",
-        "next/link",
         "react"
       ],
       "methods": [],
@@ -10527,44 +10465,33 @@
     },
     {
       "file": "src/components/ProfileClient.tsx",
-      "sha256": "fe4e34f1167f9c19c9c185c29d32d3043dbb5301993c3fac26f2f386e379aba5",
+      "sha256": "c444212a557b3d80046ad6db0ab49efe2e73db6f28cb4df0cca957c4591a027a",
       "boundary": "client",
       "imports": [
         "@/components/ConfirmProvider",
         "@/components/I18nProvider",
         "@/components/LanguageSettings",
-        "@/components/ProfileCharacterHero",
-        "@/components/ThemePreference",
         "@/components/TwoFactorSettings",
         "@/components/dorp/DorpEntry",
         "@/components/kompas/KompasEntryCard",
-        "@/components/kompas/KompasIcon",
+        "@/components/profile/CompanionPreference",
         "@/components/profile/ProfileContentViews",
+        "@/components/profile/ProfileOverview",
         "@/components/profile/ProfilePage",
         "@/components/profile/ProfileSettingsViews",
+        "@/components/profile/TimeZoneRow",
+        "@/components/profile/WebWhatsNewView",
         "@/components/profile/profileData",
-        "@/components/profile/settings",
-        "@/components/versado/CompanionPicker",
-        "@/components/versado/DivisionEmblem",
-        "@/components/versado/MascotSlot",
-        "@/components/versado/PersonalMascot",
-        "@/components/versado/SystemIcon",
-        "@/generated/prisma/client",
         "@/lib/countdown",
         "@/lib/data/client",
         "@/lib/data/fetchJson",
         "@/lib/data/hooks",
         "@/lib/data/mutation",
-        "@/lib/handle",
         "@/lib/languages",
-        "@/lib/mascots",
         "@/lib/profileViews",
         "@/lib/pushClient",
         "@/lib/readAloud",
         "@/lib/socketClient",
-        "@/lib/timeZone",
-        "lucide-react",
-        "next/link",
         "next/navigation",
         "react"
       ],
@@ -11126,7 +11053,7 @@
     },
     {
       "file": "src/components/ThemePreference.tsx",
-      "sha256": "7e34d2ca85fd7a5ee0e06fd01dcc4cd6a278929579ecc37d4cffad59de7ce066",
+      "sha256": "013f975067606509d5add6f67c72a1032b7db1020abe5e063588c82dc8642e9f",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -11138,7 +11065,8 @@
       "requests": [],
       "checks": [],
       "exports": [
-        "ThemePreference"
+        "ThemePreference",
+        "readThemeChoice"
       ]
     },
     {
@@ -11172,17 +11100,17 @@
     },
     {
       "file": "src/components/TwoFactorSettings.tsx",
-      "sha256": "90b1b397099174d9cc9c3fc56662581eb20b1e6bc2c05f70123d4aad4f8ddb06",
+      "sha256": "d11b5cbd4b660d3f91128ff2d99d391cc311ed5c0c30f7846c3208d94c3ea57d",
       "boundary": "client",
       "imports": [
-        "@/components/I18nProvider",
-        "@/components/account/TwoFactorCards",
-        "@/components/profile/settings",
-        "lucide-react",
+        "./I18nProvider",
+        "./profile/TwoFactorSettingsView",
+        "./profile/settings",
         "react"
       ],
       "methods": [],
       "requests": [
+        "/api/account/totp/${kind}",
         "/api/profile"
       ],
       "checks": [],
@@ -13048,13 +12976,14 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "e528dd8f38d361051c4f4104b9941f02fa4743f0c5ece80469095980f9f72c2f",
+      "sha256": "7865d94383e894c390c93d2311f4415234418e997c92b8d979429c2a8b22bd5a",
       "boundary": "client",
       "imports": [
         "./NativeContentPicker",
         "./NativeEmailConfirmation",
         "./NativeLearningView",
         "./NativePasswordReset",
+        "./NativeProfileView",
         "./NativeShellHeader",
         "./NativeTodayView",
         "@/components/I18nProvider",
@@ -13068,6 +12997,7 @@
         "@/components/legal/DisclaimerContent",
         "@/components/legal/PrivacyContent",
         "@/components/navigation/AppNavigation",
+        "@/components/profile/ProfilePageView",
         "@/components/profile/settings",
         "@/components/shell/AppShellFrame",
         "@/components/shell/SubpageBackBarView",
@@ -13088,6 +13018,7 @@
         "@/lib/native/socketClient",
         "@/lib/native/todayContract",
         "@/lib/platform",
+        "@/lib/profileViews",
         "@/lib/readAloudPlayerContext",
         "lucide-react",
         "react"
@@ -13171,9 +13102,10 @@
     },
     {
       "file": "src/components/native/NativeNavigationProvider.tsx",
-      "sha256": "5048c16abbf054f89f08dcbe3dfbde2a9aab5611759336613d735a68690f6bed",
+      "sha256": "0d2476803cf341a5792fa42c3c0bb8ab6a601eaa8109f39c7392e3e0617507e9",
       "boundary": "client",
       "imports": [
+        "@/components/ThemePreference",
         "@/components/navigation/AppNavigation",
         "@/lib/native/navigation",
         "@/lib/navigationEntry",
@@ -13210,6 +13142,49 @@
       "checks": [],
       "exports": [
         "NativePasswordReset"
+      ]
+    },
+    {
+      "file": "src/components/native/NativeProfileView.tsx",
+      "sha256": "f24f8723a3373568c805415bd65b17cd0985c3c18e7505266d20e9e17f05ee25",
+      "boundary": "client",
+      "imports": [
+        "@/components/ConfirmProvider",
+        "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
+        "@/components/profile/AvatarEditorView",
+        "@/components/profile/CompanionPreference",
+        "@/components/profile/LanguageSettingsView",
+        "@/components/profile/ProfileContentViews",
+        "@/components/profile/ProfileOverview",
+        "@/components/profile/ProfilePageView",
+        "@/components/profile/ProfileSettingsViews",
+        "@/components/profile/TimeZoneRow",
+        "@/components/profile/TwoFactorSettingsView",
+        "@/components/profile/settings",
+        "@/components/versado/PersonalMascot",
+        "@/lib/data/nativeHooks",
+        "@/lib/languages",
+        "@/lib/native/audioBridge",
+        "@/lib/native/audioOutput",
+        "@/lib/native/client",
+        "@/lib/native/contract",
+        "@/lib/native/navigation",
+        "@/lib/native/profileAssets",
+        "@/lib/native/profileContract",
+        "@/lib/native/profileErrors",
+        "@/lib/native/routeFocus",
+        "@/lib/native/todayAssets",
+        "@/lib/profile/settingsContract",
+        "@/lib/profileViews",
+        "@/lib/readAloudPlayerContext",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NativeProfileView"
       ]
     },
     {
@@ -13430,6 +13405,69 @@
       ]
     },
     {
+      "file": "src/components/profile/AvatarEditorView.tsx",
+      "sha256": "059df30631ea263a90eb784f0a2697cafd5b555593dc9ffc8b2c1e996cdefb67",
+      "boundary": "client",
+      "imports": [
+        "@/components/ConfirmProvider",
+        "@/components/I18nProvider",
+        "@/components/ScriptureAvatar",
+        "@/components/navigation/AppNavigation",
+        "@/components/profile/ProfilePageView",
+        "@/components/profile/profileData",
+        "@/lib/avatarAccessories",
+        "@/lib/avatarEditor",
+        "@/lib/avatarTypes",
+        "@/lib/avatarUnlocks",
+        "@/lib/characterAssets",
+        "@/lib/i18n/core",
+        "lucide-react",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "AvatarEditorView"
+      ]
+    },
+    {
+      "file": "src/components/profile/CompanionPreference.tsx",
+      "sha256": "54dc8751e5e9cce02f01c695dcd125c00b0e87dd48435ba5c86756a2eb56c09a",
+      "boundary": "client",
+      "imports": [
+        "./settings",
+        "@/components/I18nProvider",
+        "@/components/versado/CompanionPicker",
+        "@/components/versado/PersonalMascot",
+        "@/lib/mascots",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "CompanionPreference"
+      ]
+    },
+    {
+      "file": "src/components/profile/LanguageSettingsView.tsx",
+      "sha256": "ef6c70f42937b4cc94c0933cf93c6f739cefb7fc3da1a37c5021f29d3ade44bd",
+      "boundary": "client",
+      "imports": [
+        "./settings",
+        "@/components/AppSelect",
+        "@/components/I18nProvider",
+        "@/lib/languages"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "LanguageSettingsView"
+      ]
+    },
+    {
       "file": "src/components/profile/ProfileContentViews.tsx",
       "sha256": "c9c705f47e66aa6cfa6194bc079f89147ac023e47d09a9301bdd58467ac4bbc5",
       "boundary": "client",
@@ -13455,11 +13493,44 @@
       ]
     },
     {
-      "file": "src/components/profile/ProfilePage.tsx",
-      "sha256": "d8f562ffcd5cea92920c3274af4630f8b7c5a3a2d14090429f249104fe890091",
+      "file": "src/components/profile/ProfileOverview.tsx",
+      "sha256": "37773605ab4f390745f888648f6b2d771df86fc279278424ad4b2ca3c9306045",
       "boundary": "client",
       "imports": [
-        "@/components/Footer",
+        "./ProfilePageView",
+        "./profileData",
+        "./settings",
+        "@/components/I18nProvider",
+        "@/components/ProfileCharacterHero",
+        "@/components/ThemePreference",
+        "@/components/kompas/KompasIcon",
+        "@/components/navigation/AppNavigation",
+        "@/components/versado/CompanionPicker",
+        "@/components/versado/DivisionEmblem",
+        "@/components/versado/MascotSlot",
+        "@/components/versado/SystemIcon",
+        "@/generated/prisma/client",
+        "@/lib/handle",
+        "@/lib/languages",
+        "@/lib/profileViews",
+        "lucide-react",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [
+        "canNavigate"
+      ],
+      "exports": [
+        "ProfileOverview"
+      ]
+    },
+    {
+      "file": "src/components/profile/ProfilePage.tsx",
+      "sha256": "5bcbdf108cf09def00ab44a517ebc123c5a6f82d2fecd243126ace86eff2961a",
+      "boundary": "client",
+      "imports": [
+        "./ProfilePageView",
         "@/lib/profileViews",
         "next/navigation",
         "react"
@@ -13472,12 +13543,28 @@
       ]
     },
     {
+      "file": "src/components/profile/ProfilePageView.tsx",
+      "sha256": "a89cc66c9466e7855acbe78f5fa7953fa0cf4b7d6d5537a5fc155dc0f42a3111",
+      "boundary": "client",
+      "imports": [
+        "@/components/Footer",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "ProfilePageView"
+      ]
+    },
+    {
       "file": "src/components/profile/ProfileSettingsViews.tsx",
-      "sha256": "c64441aa7d402c367633dd9d65c468ee760b7015210055924189deaf7010e5c8",
+      "sha256": "905c80dacb87c5eedb44da325c59c76a884b0881888f5174f3f01c39363719f2",
       "boundary": "client",
       "imports": [
         "@/components/AppSelect",
         "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
         "@/components/profile/profileData",
         "@/components/profile/settings",
         "@/lib/handle",
@@ -13485,14 +13572,10 @@
         "@/lib/pushClient",
         "@/lib/puzzle/feedback",
         "lucide-react",
-        "next/link",
         "react"
       ],
       "methods": [],
-      "requests": [
-        "/api/changelog",
-        "/api/changelog/seen"
-      ],
+      "requests": [],
       "checks": [],
       "exports": [
         "GameFeedbackView",
@@ -13502,6 +13585,59 @@
         "ReadAloudView",
         "ReadingView",
         "WhatsNewView"
+      ]
+    },
+    {
+      "file": "src/components/profile/TimeZoneRow.tsx",
+      "sha256": "cd23647b16c80096e94e451bcd4e1cbdf874455dd6612d74b6725655f35caf6f",
+      "boundary": "client",
+      "imports": [
+        "./settings",
+        "@/lib/timeZone",
+        "lucide-react",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "TimeZoneRow"
+      ]
+    },
+    {
+      "file": "src/components/profile/TwoFactorSettingsView.tsx",
+      "sha256": "df4e1e8290b23478d3ed9e9668a89c4f3a06fdbc7b2441fbfaf5224caf1029fb",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/account/TwoFactorCards",
+        "@/components/profile/settings",
+        "lucide-react",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "TwoFactorSettingsView"
+      ]
+    },
+    {
+      "file": "src/components/profile/WebWhatsNewView.tsx",
+      "sha256": "8f9e222d3c19860224ce0ad7135c5bc8b089fd037818fbb998d10fd7683756f9",
+      "boundary": "client",
+      "imports": [
+        "./ProfileSettingsViews",
+        "react"
+      ],
+      "methods": [],
+      "requests": [
+        "/api/changelog",
+        "/api/changelog/seen"
+      ],
+      "checks": [],
+      "exports": [
+        "WebWhatsNewView"
       ]
     },
     {
@@ -16076,6 +16212,22 @@
       ]
     },
     {
+      "file": "src/lib/account/logout.ts",
+      "sha256": "b2facc26b477fc583a4599285bbe6f7673cb0fa4403524100002b7137def8952",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/lib/db",
+        "@/lib/native/sessions",
+        "@/lib/realtime"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "logoutAccount"
+      ]
+    },
+    {
       "file": "src/lib/account/mutation.ts",
       "sha256": "e5ff49c90b8ce1a33087bf6945b740782defcab58f97483100571b8f5d3ebb61",
       "boundary": "context-dependent",
@@ -16140,6 +16292,64 @@
       "checks": [],
       "exports": [
         "webPasswordResetActions"
+      ]
+    },
+    {
+      "file": "src/lib/account/twoFactor.ts",
+      "sha256": "4887821c5f4760d9f5945f8ac31edf2599f67a64dd1f80f5af2da6295c11f035",
+      "boundary": "context-dependent",
+      "imports": [
+        "./mutation",
+        "./twoFactorContract",
+        "@/lib/db",
+        "@/lib/handle",
+        "@/lib/i18n/core",
+        "@/lib/rateLimit",
+        "@/lib/totp"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [
+        "verifyTotpCode"
+      ],
+      "exports": [
+        "manageTwoFactor"
+      ]
+    },
+    {
+      "file": "src/lib/account/twoFactorContract.ts",
+      "sha256": "ed44eeaa05b2e582c3d1d766b374e3c75376395b46bad53ccc8886420386768f",
+      "boundary": "context-dependent",
+      "imports": [
+        "zod"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "twoFactorCommand",
+        "twoFactorResult"
+      ]
+    },
+    {
+      "file": "src/lib/account/twoFactorWeb.ts",
+      "sha256": "5815cc7b7e9f5130633e3240d5bd0418c158bb6e0e5961612b3b750b3ff8629b",
+      "boundary": "context-dependent",
+      "imports": [
+        "./twoFactor",
+        "./twoFactorContract",
+        "@/lib/apiError",
+        "@/lib/requestBody",
+        "@/lib/session",
+        "next/server"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [
+        "getCurrentUser"
+      ],
+      "exports": [
+        "webTwoFactor"
       ]
     },
     {
@@ -18071,11 +18281,12 @@
     },
     {
       "file": "src/lib/data/native.ts",
-      "sha256": "a13280a79ee75c3bad50eee8e8827c8c7ae9524cf4c3d16f2605af7e5d50d226",
+      "sha256": "78d22084dbcb534567642f2bfe8d1e07563518a3cd59b69dda4d915bbdcbc3d1",
       "boundary": "context-dependent",
       "imports": [
         "./scopes",
         "./store",
+        "@/lib/account/twoFactorContract",
         "@/lib/annotations/contract",
         "@/lib/native/annotationsContract",
         "@/lib/native/audioPlaybackContract",
@@ -18083,6 +18294,7 @@
         "@/lib/native/contract",
         "@/lib/native/coursesContract",
         "@/lib/native/learningFlow",
+        "@/lib/native/profileContract",
         "@/lib/native/readerContract",
         "@/lib/native/readerPositionContract",
         "@/lib/native/studyCoursesContract",
@@ -18100,6 +18312,7 @@
         "courses/${nativeCourseId.parse(courseId)}/read/${nativeReaderKind.parse(kind)}/${nativeCourseId.parse(targetId)}/resume",
         "courses/${nativeCourseId.parse(courseId)}/weeks/${nativeCourseId.parse(editionId)}/steps",
         "me",
+        "profile",
         "study-media/${id}",
         "today",
         "today-overview"
@@ -18811,9 +19024,10 @@
     },
     {
       "file": "src/lib/featuredAchievements.ts",
-      "sha256": "8a268533c546ff33f88a9fa0f9b0e2a61d61096af3b77c8c167ac0d4d685e8a0",
+      "sha256": "4d7bf25a1876f8bbb7caf4fb5dafa0eae8e71fdec22087fed6587a15bae05e85",
       "boundary": "context-dependent",
       "imports": [
+        "@/generated/prisma/client",
         "@/lib/db"
       ],
       "methods": [],
@@ -19825,7 +20039,7 @@
     },
     {
       "file": "src/lib/i18n/messages/de.ts",
-      "sha256": "183af4c623566e178417f6ed4ec19abff18616241e3fc832ede28121bf626593",
+      "sha256": "c6c28b1983a00d05f7a302f69d05ba604a71ad0e992f0b2fb0291abbe0327347",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19840,7 +20054,7 @@
     },
     {
       "file": "src/lib/i18n/messages/en.ts",
-      "sha256": "a0daf585319d77d447f017d7fed00177864f3ff6e83753ff84a35787c529da72",
+      "sha256": "3c015abc4959ec574f6128010dd7f3a62ec6e8f783a6055bdef6c05260821bf9",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19855,7 +20069,7 @@
     },
     {
       "file": "src/lib/i18n/messages/es.ts",
-      "sha256": "bf98e00da9ea9f1d3b662065c24685141d141934bbab2b71127bb8145ac46aa5",
+      "sha256": "e193a2f42fd31558b865ac66a0130ad2985c3497a8ce59e5c8886279a5e6b4ab",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19870,7 +20084,7 @@
     },
     {
       "file": "src/lib/i18n/messages/fr.ts",
-      "sha256": "449190f5879f897f12b0f3aa5674107cfa74a6af19f67508c6ee488d36e53903",
+      "sha256": "6f2418ffe06d36e5ba871ad13babc9b9135dfd668f814bbda9de2fe272538e0f",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -19953,7 +20167,7 @@
     },
     {
       "file": "src/lib/i18n/messages/nl.ts",
-      "sha256": "604fd30d6566bacceff1819a166f55136026476c2fcf327b61b6bf5bf1aab2f9",
+      "sha256": "ab911be7206a4de7a4f06f2c4c7ffd2517e7868805201149bfd6748d19616b6c",
       "boundary": "context-dependent",
       "imports": [
         "./kompas/nl"
@@ -21359,7 +21573,7 @@
     },
     {
       "file": "src/lib/native/access.ts",
-      "sha256": "11714b3fba117108e87873b591ef6d0d83dbbce1bf3be0ebe26400b68fe1e656",
+      "sha256": "ae08caac1677ced968cfdae2fade3b6cb31f0b00bead4b98b66dee18d1ab6b2c",
       "boundary": "context-dependent",
       "imports": [
         "./client",
@@ -21443,7 +21657,7 @@
     },
     {
       "file": "src/lib/native/api.ts",
-      "sha256": "d0083c1546831a010b2509f2e85c086eb115dd05b98411545bb9ff2a925dfaba",
+      "sha256": "f1d17a6f04ceb325d350e29c23fe001d254abfef56b841a99b1c2407c3151b55",
       "boundary": "context-dependent",
       "imports": [
         "./annotations.server",
@@ -21458,6 +21672,8 @@
         "./learningContract",
         "./origin",
         "./password",
+        "./profile.server",
+        "./profileContract",
         "./reader.server",
         "./readerContract",
         "./readerPosition.server",
@@ -21479,6 +21695,8 @@
         "@/lib/account/emailConfirmation",
         "@/lib/account/password",
         "@/lib/account/passwordReset",
+        "@/lib/account/twoFactor",
+        "@/lib/account/twoFactorContract",
         "@/lib/annotations/service",
         "@/lib/auth",
         "@/lib/authBudget",
@@ -21722,7 +21940,7 @@
     },
     {
       "file": "src/lib/native/content.server.ts",
-      "sha256": "ccc74e00a149de745811412038e4621ea03e467d6b145e842312b0c7c67f3453",
+      "sha256": "f82e953528c7f70b73df4f65c3ec4e331e80e41bce1b53f3768654d8b2b7a0c1",
       "boundary": "context-dependent",
       "imports": [
         "./contract",
@@ -21743,11 +21961,12 @@
     },
     {
       "file": "src/lib/native/contract.ts",
-      "sha256": "bea7661f193e1fd3e8bc40cbe7699da0f81ca7524d440c70d16d4316cda5e51f",
+      "sha256": "6f26b2b3809a1a51e3bec393149de82bc33060914db550bee2b56980e89f2001",
       "boundary": "context-dependent",
       "imports": [
         "./navigation",
         "@/lib/contentPickerContract",
+        "@/lib/languages",
         "@/lib/leagueTiers",
         "zod"
       ],
@@ -21928,9 +22147,11 @@
     },
     {
       "file": "src/lib/native/navigation.ts",
-      "sha256": "eae1d3b207d8e7915a5d9f31109350396489e9e5422a761409a4fb99dcc3a3bb",
+      "sha256": "8cf6cb1ab3e0f13ded91431d4d6d0232bf0ca4c0b49460ca7bae4d266e5410c7",
       "boundary": "context-dependent",
-      "imports": [],
+      "imports": [
+        "@/lib/profileViews"
+      ],
       "methods": [],
       "requests": [],
       "checks": [],
@@ -22001,6 +22222,88 @@
       "checks": [],
       "exports": [
         "nativePasswordResetActions"
+      ]
+    },
+    {
+      "file": "src/lib/native/profile.server.ts",
+      "sha256": "57b05b12460d8350b485bcc10b70c75416a5e387359578019906f128e4b2a14c",
+      "boundary": "context-dependent",
+      "imports": [
+        "./profileContract",
+        "./sessions",
+        "@/lib/account/logout",
+        "@/lib/account/mutation",
+        "@/lib/contentCollections",
+        "@/lib/featuredAchievements",
+        "@/lib/profile/changelog",
+        "@/lib/profile/load",
+        "@/lib/profile/podcastNotifications",
+        "@/lib/profile/readingReset",
+        "@/lib/profile/settings"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "ProfileSettingsError",
+        "getNativeProfile",
+        "mutateNativeProfile"
+      ]
+    },
+    {
+      "file": "src/lib/native/profileAssets.ts",
+      "sha256": "70aa05b68f3a0d3ac02f97b23fe7702600947f7857f5be3441d05e6e3cbbd9ec",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/lib/characterAssets",
+        "@/lib/visualIdentityAssets"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NATIVE_PROFILE_ARTWORK",
+        "NATIVE_PROFILE_STATIC_ASSETS",
+        "nativeProfileArtworkPath",
+        "nativeProfileImageSource"
+      ]
+    },
+    {
+      "file": "src/lib/native/profileContract.ts",
+      "sha256": "e9d0956df758686ab3343d0b61c93f07da7a590bb6e341ff724c5151b6251319",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/components/profile/profileData",
+        "@/lib/account/twoFactorContract",
+        "@/lib/leagueTiers",
+        "@/lib/mascots",
+        "@/lib/profile/settingsContract",
+        "zod"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "nativeProfileAction",
+        "nativeProfileActionResult",
+        "nativeProfileDataSchema",
+        "nativeProfileSchema",
+        "nativeProfileTwoFactorResult"
+      ]
+    },
+    {
+      "file": "src/lib/native/profileErrors.ts",
+      "sha256": "3d22c85ac637c9756b2df7aef8b5121f85a3a6b2123ed6ec95b7aca4ad7cffef",
+      "boundary": "context-dependent",
+      "imports": [
+        "./client",
+        "@/lib/i18n/core"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "nativeProfileErrorText"
       ]
     },
     {
@@ -22775,9 +23078,11 @@
     },
     {
       "file": "src/lib/presence.ts",
-      "sha256": "63682df315e7b2775be81c181208f873e9ac981399085c3c3a63e1f71b91e1b9",
+      "sha256": "59a334cb6fdaab5d5d0f659e35832cbdedaf28d0f3f75c6ed468dd6aef6d9ec4",
       "boundary": "context-dependent",
       "imports": [
+        "./presenceRules",
+        "@/generated/prisma/client",
         "@/lib/dates",
         "@/lib/db",
         "socket.io"
@@ -22787,6 +23092,7 @@
       "checks": [],
       "exports": [
         "INCOGNITO_DURATIONS_HOURS",
+        "IncognitoDurationHours",
         "PRESENCE_SELECT",
         "announceCameOnline",
         "broadcastPresenceUpdate",
@@ -22797,6 +23103,135 @@
         "sendFriendStatusesToUser",
         "setCurrentActivity",
         "setIncognito"
+      ]
+    },
+    {
+      "file": "src/lib/presenceRules.ts",
+      "sha256": "8ea2eaf123083b74c11afcef18089504ecc127da40acabf800049ebe0ad2e62e",
+      "boundary": "context-dependent",
+      "imports": [],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "INCOGNITO_DURATIONS_HOURS"
+      ]
+    },
+    {
+      "file": "src/lib/profile/changelog.ts",
+      "sha256": "96d34059886f732b1095afe3133ee122c574da1552afe62cb3c18404c99b4fdc",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/generated/prisma/client",
+        "@/lib/db"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "loadProfileChangelog",
+        "markProfileChangelogSeen"
+      ]
+    },
+    {
+      "file": "src/lib/profile/load.ts",
+      "sha256": "ee8c3f0e509b61dfea3f7c0ba091a301556184075d702396fb4268c26cdfe858",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/components/profile/profileData",
+        "@/generated/prisma/client",
+        "@/lib/account/mutation",
+        "@/lib/achievements",
+        "@/lib/avatarUnlocks",
+        "@/lib/companion",
+        "@/lib/dailyText",
+        "@/lib/dates",
+        "@/lib/db",
+        "@/lib/leagues"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "loadProfile"
+      ]
+    },
+    {
+      "file": "src/lib/profile/podcastNotifications.ts",
+      "sha256": "8beac6b1972961d0099e15f2eb21330572ce68d2fd13b875c0a5b3d358a11181",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/generated/prisma/client"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "setPodcastNotification"
+      ]
+    },
+    {
+      "file": "src/lib/profile/readingReset.ts",
+      "sha256": "27d3610df2aee807d50f751e7cd43ca25026f4c90a75058419b7ee97d5c231b3",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/generated/prisma/client",
+        "@/lib/learning/contentProgress"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "resetProfileReading"
+      ]
+    },
+    {
+      "file": "src/lib/profile/settings.ts",
+      "sha256": "a40dedad442810ad226cc6829cc77981bfc641405e8a8cec1e1cff7d3fb17f31",
+      "boundary": "context-dependent",
+      "imports": [
+        "./settingsContract",
+        "@/generated/prisma/client",
+        "@/lib/account/mutation",
+        "@/lib/achievements",
+        "@/lib/avatarAccessories",
+        "@/lib/avatarUnlocks",
+        "@/lib/characterAssets",
+        "@/lib/companion",
+        "@/lib/dailyText",
+        "@/lib/dorp/notifications",
+        "@/lib/handle",
+        "@/lib/i18n/core",
+        "@/lib/languages",
+        "@/lib/presence"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [
+        "canUseAccessory",
+        "canUseAvatarCharacter"
+      ],
+      "exports": [
+        "patchProfileSettings"
+      ]
+    },
+    {
+      "file": "src/lib/profile/settingsContract.ts",
+      "sha256": "e91f33a5a113da7c9a2cf0e7a15fc2da8ad296f75ed04a0a0d647a37f975b0eb",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/lib/handle",
+        "@/lib/languages",
+        "@/lib/mascots",
+        "@/lib/presenceRules",
+        "@/lib/timeZone",
+        "zod"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "profilePatchSchema"
       ]
     },
     {
@@ -27600,6 +28035,7 @@
         "src/components/Footer.tsx",
         "src/components/I18nProvider.tsx",
         "src/components/home/HomeContent.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/versado/MascotSlot.tsx",
         "src/components/versado/SystemIcon.tsx",
         "src/components/versado/styles.ts",
@@ -27640,7 +28076,8 @@
       ],
       "clientBoundaries": [
         "src/components/Footer.tsx",
-        "src/components/I18nProvider.tsx"
+        "src/components/I18nProvider.tsx",
+        "src/components/navigation/AppNavigation.tsx"
       ],
       "requestEvidence": [],
       "authEvidence": [
@@ -27677,6 +28114,7 @@
         "src/components/account/accountErrorKeys.ts",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/profile/ProfilePage.tsx",
+        "src/components/profile/ProfilePageView.tsx",
         "src/components/profile/settings.tsx",
         "src/components/versado/ToggleSwitch.tsx",
         "src/lib/account/contracts.ts",
@@ -27704,6 +28142,7 @@
         "src/components/account/AccountDeletionForm.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/profile/ProfilePage.tsx",
+        "src/components/profile/ProfilePageView.tsx",
         "src/components/profile/settings.tsx",
         "src/components/versado/ToggleSwitch.tsx"
       ],
@@ -28425,6 +28864,7 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/readerContract.ts",
         "src/lib/platform.ts",
+        "src/lib/profileViews.ts",
         "src/lib/realtime.ts",
         "src/lib/session.ts",
         "src/lib/socketClient.ts",
@@ -28645,6 +29085,7 @@
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
         "src/lib/platform.ts",
+        "src/lib/profileViews.ts",
         "src/lib/push.ts",
         "src/lib/pushEndpoint.ts",
         "src/lib/puzzle/puzzleNotify.ts",
@@ -29828,6 +30269,7 @@
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
         "src/lib/presence.ts",
+        "src/lib/presenceRules.ts",
         "src/lib/push.ts",
         "src/lib/pushEndpoint.ts",
         "src/lib/puzzle/puzzleNotify.ts",
@@ -30141,33 +30583,21 @@
     },
     {
       "file": "src/app/api/account/route.ts",
-      "sha256": "8c2c4af5c07b10248977ea868109e5690701c15af73a8972ab519ae50ec2605f",
+      "sha256": "6f2320fdeae0bf5ad7c1a1b120516649ea59cb20c190afde43f6b5d5093c968a",
       "boundary": "context-dependent",
       "imports": [
-        "@/generated/prisma/client",
         "@/lib/account/contracts",
         "@/lib/account/deletion",
         "@/lib/account/password",
-        "@/lib/achievements",
         "@/lib/apiError",
         "@/lib/auth",
         "@/lib/authBudget",
-        "@/lib/avatarAccessories",
-        "@/lib/avatarUnlocks",
-        "@/lib/characterAssets",
-        "@/lib/companion",
         "@/lib/content-inventory/origin",
-        "@/lib/dailyText",
-        "@/lib/db",
-        "@/lib/dorp/notifications",
-        "@/lib/handle",
-        "@/lib/languages",
-        "@/lib/mascots",
-        "@/lib/presence",
+        "@/lib/profile/settings",
+        "@/lib/profile/settingsContract",
         "@/lib/requestBody",
         "@/lib/requestSecurity",
         "@/lib/session",
-        "@/lib/timeZone",
         "next/server",
         "zod"
       ],
@@ -30178,8 +30608,6 @@
       ],
       "requests": [],
       "checks": [
-        "canUseAccessory",
-        "canUseAvatarCharacter",
         "getCurrentUser"
       ],
       "exports": [
@@ -30194,6 +30622,7 @@
         "src/app/api/account/route.ts",
         "src/lib/account/contracts.ts",
         "src/lib/account/deletion.ts",
+        "src/lib/account/mutation.ts",
         "src/lib/account/password.ts",
         "src/lib/accountDeletion.ts",
         "src/lib/achievements.ts",
@@ -30259,6 +30688,9 @@
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
         "src/lib/presence.ts",
+        "src/lib/presenceRules.ts",
+        "src/lib/profile/settings.ts",
+        "src/lib/profile/settingsContract.ts",
         "src/lib/push.ts",
         "src/lib/pushEndpoint.ts",
         "src/lib/puzzle/puzzleNotify.ts",
@@ -30306,56 +30738,35 @@
         "src/lib/account/contracts.ts",
         "src/lib/account/deletion.ts",
         "src/lib/account/password.ts",
-        "src/lib/achievements.ts",
         "src/lib/apiError.ts",
         "src/lib/auth.ts",
         "src/lib/authBudget.ts",
-        "src/lib/avatarAccessories.ts",
-        "src/lib/avatarUnlocks.ts",
-        "src/lib/characterAssets.ts",
-        "src/lib/companion.ts",
         "src/lib/content-inventory/origin.ts",
-        "src/lib/dailyText.ts",
-        "src/lib/db.ts",
-        "src/lib/dorp/notifications.ts",
-        "src/lib/handle.ts",
-        "src/lib/languages.ts",
-        "src/lib/mascots.ts",
-        "src/lib/presence.ts",
+        "src/lib/profile/settings.ts",
+        "src/lib/profile/settingsContract.ts",
         "src/lib/requestBody.ts",
         "src/lib/requestSecurity.ts",
-        "src/lib/session.ts",
-        "src/lib/timeZone.ts"
+        "src/lib/session.ts"
       ],
       "clientBoundaries": [],
       "requestEvidence": [],
       "authEvidence": [
-        "canUseAccessory",
-        "canUseAvatarCharacter",
         "getCurrentUser"
       ]
     },
     {
       "file": "src/app/api/account/totp/disable/route.ts",
-      "sha256": "b63f201932bbb72e7166de7029eb3ad9cde2916449ba2930943cb26ce05dd83a",
+      "sha256": "c54147ea410f0aad1bf699ebc31ebc6df5f71a0e4cee65a8d869786e398ce412",
       "boundary": "context-dependent",
       "imports": [
-        "@/lib/apiError",
-        "@/lib/db",
-        "@/lib/rateLimit",
-        "@/lib/session",
-        "@/lib/totp",
-        "next/server",
-        "zod"
+        "@/lib/account/twoFactorWeb",
+        "next/server"
       ],
       "methods": [
         "POST"
       ],
       "requests": [],
-      "checks": [
-        "getCurrentUser",
-        "verifyTotpCode"
-      ],
+      "checks": [],
       "exports": [
         "POST"
       ],
@@ -30364,9 +30775,15 @@
       "domain": "account",
       "dependencies": [
         "src/app/api/account/totp/disable/route.ts",
+        "src/lib/account/mutation.ts",
+        "src/lib/account/twoFactor.ts",
+        "src/lib/account/twoFactorContract.ts",
+        "src/lib/account/twoFactorWeb.ts",
         "src/lib/apiError.ts",
         "src/lib/auth.ts",
+        "src/lib/data/scopes.ts",
         "src/lib/db.ts",
+        "src/lib/handle.ts",
         "src/lib/i18n/core.ts",
         "src/lib/i18n/index.ts",
         "src/lib/i18n/messages/de.ts",
@@ -30381,46 +30798,34 @@
         "src/lib/i18n/messages/nl.ts",
         "src/lib/i18n/serverTexts.ts",
         "src/lib/languages.ts",
+        "src/lib/native/sessions.ts",
         "src/lib/rateLimit.ts",
+        "src/lib/realtime.ts",
+        "src/lib/requestBody.ts",
         "src/lib/requestLanguage.ts",
         "src/lib/session.ts",
         "src/lib/totp.ts"
       ],
       "directModules": [
-        "src/lib/apiError.ts",
-        "src/lib/db.ts",
-        "src/lib/rateLimit.ts",
-        "src/lib/session.ts",
-        "src/lib/totp.ts"
+        "src/lib/account/twoFactorWeb.ts"
       ],
       "clientBoundaries": [],
       "requestEvidence": [],
-      "authEvidence": [
-        "getCurrentUser",
-        "verifyTotpCode"
-      ]
+      "authEvidence": []
     },
     {
       "file": "src/app/api/account/totp/reset/route.ts",
-      "sha256": "5854d7192c5acff01e43eb3968b6cace8c64834fc667ca0383b5476a34393d5d",
+      "sha256": "daca181a8009f60e6685b6ab15ec18a225a73ac756f47e586458d247b873b9cd",
       "boundary": "context-dependent",
       "imports": [
-        "@/lib/apiError",
-        "@/lib/db",
-        "@/lib/handle",
-        "@/lib/rateLimit",
-        "@/lib/session",
-        "@/lib/totp",
-        "next/server",
-        "zod"
+        "@/lib/account/twoFactorWeb",
+        "next/server"
       ],
       "methods": [
         "POST"
       ],
       "requests": [],
-      "checks": [
-        "getCurrentUser"
-      ],
+      "checks": [],
       "exports": [
         "POST"
       ],
@@ -30429,8 +30834,13 @@
       "domain": "account",
       "dependencies": [
         "src/app/api/account/totp/reset/route.ts",
+        "src/lib/account/mutation.ts",
+        "src/lib/account/twoFactor.ts",
+        "src/lib/account/twoFactorContract.ts",
+        "src/lib/account/twoFactorWeb.ts",
         "src/lib/apiError.ts",
         "src/lib/auth.ts",
+        "src/lib/data/scopes.ts",
         "src/lib/db.ts",
         "src/lib/handle.ts",
         "src/lib/i18n/core.ts",
@@ -30447,44 +30857,34 @@
         "src/lib/i18n/messages/nl.ts",
         "src/lib/i18n/serverTexts.ts",
         "src/lib/languages.ts",
+        "src/lib/native/sessions.ts",
         "src/lib/rateLimit.ts",
+        "src/lib/realtime.ts",
+        "src/lib/requestBody.ts",
         "src/lib/requestLanguage.ts",
         "src/lib/session.ts",
         "src/lib/totp.ts"
       ],
       "directModules": [
-        "src/lib/apiError.ts",
-        "src/lib/db.ts",
-        "src/lib/handle.ts",
-        "src/lib/rateLimit.ts",
-        "src/lib/session.ts",
-        "src/lib/totp.ts"
+        "src/lib/account/twoFactorWeb.ts"
       ],
       "clientBoundaries": [],
       "requestEvidence": [],
-      "authEvidence": [
-        "getCurrentUser"
-      ]
+      "authEvidence": []
     },
     {
       "file": "src/app/api/account/totp/setup/route.ts",
-      "sha256": "e4197a36085c91a138b1062c9f0af0831fcd0510698b6304ab6150e47e715083",
+      "sha256": "02ed72ccb2b2c527f6db38d77f45649d474e9eac4cc06c675faea94887bc0128",
       "boundary": "context-dependent",
       "imports": [
-        "@/lib/apiError",
-        "@/lib/db",
-        "@/lib/handle",
-        "@/lib/session",
-        "@/lib/totp",
+        "@/lib/account/twoFactorWeb",
         "next/server"
       ],
       "methods": [
         "POST"
       ],
       "requests": [],
-      "checks": [
-        "getCurrentUser"
-      ],
+      "checks": [],
       "exports": [
         "POST"
       ],
@@ -30493,8 +30893,13 @@
       "domain": "account",
       "dependencies": [
         "src/app/api/account/totp/setup/route.ts",
+        "src/lib/account/mutation.ts",
+        "src/lib/account/twoFactor.ts",
+        "src/lib/account/twoFactorContract.ts",
+        "src/lib/account/twoFactorWeb.ts",
         "src/lib/apiError.ts",
         "src/lib/auth.ts",
+        "src/lib/data/scopes.ts",
         "src/lib/db.ts",
         "src/lib/handle.ts",
         "src/lib/i18n/core.ts",
@@ -30511,43 +30916,34 @@
         "src/lib/i18n/messages/nl.ts",
         "src/lib/i18n/serverTexts.ts",
         "src/lib/languages.ts",
+        "src/lib/native/sessions.ts",
+        "src/lib/rateLimit.ts",
+        "src/lib/realtime.ts",
+        "src/lib/requestBody.ts",
         "src/lib/requestLanguage.ts",
         "src/lib/session.ts",
         "src/lib/totp.ts"
       ],
       "directModules": [
-        "src/lib/apiError.ts",
-        "src/lib/db.ts",
-        "src/lib/handle.ts",
-        "src/lib/session.ts",
-        "src/lib/totp.ts"
+        "src/lib/account/twoFactorWeb.ts"
       ],
       "clientBoundaries": [],
       "requestEvidence": [],
-      "authEvidence": [
-        "getCurrentUser"
-      ]
+      "authEvidence": []
     },
     {
       "file": "src/app/api/account/totp/verify/route.ts",
-      "sha256": "b6663748f4bfd962503782e73688d4d145a5fa46a6e0af9b5ddea5172c6581ce",
+      "sha256": "e57424ebf9cb76b1bb1ca9cd21da012045f2a3853e4f509a84c89ed9903c5ece",
       "boundary": "context-dependent",
       "imports": [
-        "@/lib/apiError",
-        "@/lib/db",
-        "@/lib/session",
-        "@/lib/totp",
-        "next/server",
-        "zod"
+        "@/lib/account/twoFactorWeb",
+        "next/server"
       ],
       "methods": [
         "POST"
       ],
       "requests": [],
-      "checks": [
-        "getCurrentUser",
-        "verifyTotpCode"
-      ],
+      "checks": [],
       "exports": [
         "POST"
       ],
@@ -30556,9 +30952,15 @@
       "domain": "account",
       "dependencies": [
         "src/app/api/account/totp/verify/route.ts",
+        "src/lib/account/mutation.ts",
+        "src/lib/account/twoFactor.ts",
+        "src/lib/account/twoFactorContract.ts",
+        "src/lib/account/twoFactorWeb.ts",
         "src/lib/apiError.ts",
         "src/lib/auth.ts",
+        "src/lib/data/scopes.ts",
         "src/lib/db.ts",
+        "src/lib/handle.ts",
         "src/lib/i18n/core.ts",
         "src/lib/i18n/index.ts",
         "src/lib/i18n/messages/de.ts",
@@ -30573,22 +30975,20 @@
         "src/lib/i18n/messages/nl.ts",
         "src/lib/i18n/serverTexts.ts",
         "src/lib/languages.ts",
+        "src/lib/native/sessions.ts",
+        "src/lib/rateLimit.ts",
+        "src/lib/realtime.ts",
+        "src/lib/requestBody.ts",
         "src/lib/requestLanguage.ts",
         "src/lib/session.ts",
         "src/lib/totp.ts"
       ],
       "directModules": [
-        "src/lib/apiError.ts",
-        "src/lib/db.ts",
-        "src/lib/session.ts",
-        "src/lib/totp.ts"
+        "src/lib/account/twoFactorWeb.ts"
       ],
       "clientBoundaries": [],
       "requestEvidence": [],
-      "authEvidence": [
-        "getCurrentUser",
-        "verifyTotpCode"
-      ]
+      "authEvidence": []
     },
     {
       "file": "src/app/api/activity-feed/route.ts",
@@ -34695,6 +35095,7 @@
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
         "src/lib/presence.ts",
+        "src/lib/presenceRules.ts",
         "src/lib/push.ts",
         "src/lib/pushEndpoint.ts",
         "src/lib/puzzle/puzzleNotify.ts",
@@ -35364,12 +35765,11 @@
     },
     {
       "file": "src/app/api/auth/logout/route.ts",
-      "sha256": "bd77f06c84adc6bedbc3d2e0fe2b8a67f9d6748a4e7deb76d5015f97d284bae6",
+      "sha256": "0e7c82890c1e2cc8d8ef310d7c13cd3905ef1a565eda1b2c0a0ecaa18d86add4",
       "boundary": "context-dependent",
       "imports": [
+        "@/lib/account/logout",
         "@/lib/auth",
-        "@/lib/db",
-        "@/lib/realtime",
         "@/lib/session",
         "next/server"
       ],
@@ -35388,16 +35788,17 @@
       "domain": "account",
       "dependencies": [
         "src/app/api/auth/logout/route.ts",
+        "src/lib/account/logout.ts",
         "src/lib/auth.ts",
         "src/lib/data/scopes.ts",
         "src/lib/db.ts",
+        "src/lib/native/sessions.ts",
         "src/lib/realtime.ts",
         "src/lib/session.ts"
       ],
       "directModules": [
+        "src/lib/account/logout.ts",
         "src/lib/auth.ts",
-        "src/lib/db.ts",
-        "src/lib/realtime.ts",
         "src/lib/session.ts"
       ],
       "clientBoundaries": [],
@@ -36429,11 +36830,11 @@
     },
     {
       "file": "src/app/api/changelog/route.ts",
-      "sha256": "0d077332e56ff2f1ee1fb38668f7652019fef49756e80d45304a0093d89bd60f",
+      "sha256": "4fab62b2ef8b87a5e5c211ddccad240f7bba82cf4df9450ab9766e34af6123b5",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
-        "@/lib/db",
+        "@/lib/profile/changelog",
         "@/lib/session",
         "next/server"
       ],
@@ -36469,12 +36870,13 @@
         "src/lib/i18n/messages/nl.ts",
         "src/lib/i18n/serverTexts.ts",
         "src/lib/languages.ts",
+        "src/lib/profile/changelog.ts",
         "src/lib/requestLanguage.ts",
         "src/lib/session.ts"
       ],
       "directModules": [
         "src/lib/apiError.ts",
-        "src/lib/db.ts",
+        "src/lib/profile/changelog.ts",
         "src/lib/session.ts"
       ],
       "clientBoundaries": [],
@@ -36485,11 +36887,12 @@
     },
     {
       "file": "src/app/api/changelog/seen/route.ts",
-      "sha256": "f53d42b6799d6825f1d6b5c29520b349d6ba69b62d2865b50e09e9297741b75d",
+      "sha256": "f68069086cccf7d777ed09a766d2de2cca8a27a79f93783ad1ee8aed11283fa5",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
         "@/lib/db",
+        "@/lib/profile/changelog",
         "@/lib/session",
         "next/server"
       ],
@@ -36525,12 +36928,14 @@
         "src/lib/i18n/messages/nl.ts",
         "src/lib/i18n/serverTexts.ts",
         "src/lib/languages.ts",
+        "src/lib/profile/changelog.ts",
         "src/lib/requestLanguage.ts",
         "src/lib/session.ts"
       ],
       "directModules": [
         "src/lib/apiError.ts",
         "src/lib/db.ts",
+        "src/lib/profile/changelog.ts",
         "src/lib/session.ts"
       ],
       "clientBoundaries": [],
@@ -39571,6 +39976,7 @@
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
         "src/lib/presence.ts",
+        "src/lib/presenceRules.ts",
         "src/lib/push.ts",
         "src/lib/pushEndpoint.ts",
         "src/lib/puzzle/puzzleNotify.ts",
@@ -44981,11 +45387,12 @@
     },
     {
       "file": "src/app/api/podcast-notifications/[podcastId]/route.ts",
-      "sha256": "47d91093e6e87e5731c7779d75a2b3bdd2cb024ff60c0e7fe9a9c71b4b392083",
+      "sha256": "e3f9d7b82e688471e94e6f388eb4e87c65f8567464e463f837d6811985a983ac",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
         "@/lib/db",
+        "@/lib/profile/podcastNotifications",
         "@/lib/session",
         "next/server",
         "zod"
@@ -45022,12 +45429,14 @@
         "src/lib/i18n/messages/nl.ts",
         "src/lib/i18n/serverTexts.ts",
         "src/lib/languages.ts",
+        "src/lib/profile/podcastNotifications.ts",
         "src/lib/requestLanguage.ts",
         "src/lib/session.ts"
       ],
       "directModules": [
         "src/lib/apiError.ts",
         "src/lib/db.ts",
+        "src/lib/profile/podcastNotifications.ts",
         "src/lib/session.ts"
       ],
       "clientBoundaries": [],
@@ -45197,17 +45606,11 @@
     },
     {
       "file": "src/app/api/profile/route.ts",
-      "sha256": "b923012ffef0545b8f771104df0a2b17cdd08b2474c1a866487a775065b59669",
+      "sha256": "ca69ffd1bb620ada8e71dfc03e8295bf68349b504e78a7e0d12e36b3cd35e183",
       "boundary": "context-dependent",
       "imports": [
-        "@/lib/achievements",
         "@/lib/apiError",
-        "@/lib/avatarUnlocks",
-        "@/lib/companion",
-        "@/lib/dailyText",
-        "@/lib/dates",
-        "@/lib/db",
-        "@/lib/leagues",
+        "@/lib/profile/load",
         "@/lib/session",
         "next/server"
       ],
@@ -45226,6 +45629,8 @@
       "domain": "account",
       "dependencies": [
         "src/app/api/profile/route.ts",
+        "src/components/profile/profileData.ts",
+        "src/lib/account/mutation.ts",
         "src/lib/achievements.ts",
         "src/lib/activityFeed.ts",
         "src/lib/apiError.ts",
@@ -45266,6 +45671,8 @@
         "src/lib/leagueTiers.ts",
         "src/lib/leagues.ts",
         "src/lib/mascots.ts",
+        "src/lib/native/sessions.ts",
+        "src/lib/profile/load.ts",
         "src/lib/realtime.ts",
         "src/lib/references/bible.ts",
         "src/lib/references/contract.ts",
@@ -45295,14 +45702,8 @@
         "src/lib/timeZone.ts"
       ],
       "directModules": [
-        "src/lib/achievements.ts",
         "src/lib/apiError.ts",
-        "src/lib/avatarUnlocks.ts",
-        "src/lib/companion.ts",
-        "src/lib/dailyText.ts",
-        "src/lib/dates.ts",
-        "src/lib/db.ts",
-        "src/lib/leagues.ts",
+        "src/lib/profile/load.ts",
         "src/lib/session.ts"
       ],
       "clientBoundaries": [],
@@ -45371,12 +45772,12 @@
     },
     {
       "file": "src/app/api/progress/reset-reading/route.ts",
-      "sha256": "2f5bd65cd6c8cbc6209cd53c1b3fc838d1e4db701dd25be3f331bea315544a22",
+      "sha256": "7a894716fbf9dbf7ae666ee2bfccc97544b41c435f660f48939d7e0d060ed312",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
         "@/lib/db",
-        "@/lib/learning/contentProgress",
+        "@/lib/profile/readingReset",
         "@/lib/session",
         "next/server"
       ],
@@ -45437,6 +45838,7 @@
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
+        "src/lib/profile/readingReset.ts",
         "src/lib/push.ts",
         "src/lib/pushEndpoint.ts",
         "src/lib/puzzle/puzzleNotify.ts",
@@ -45467,7 +45869,7 @@
       "directModules": [
         "src/lib/apiError.ts",
         "src/lib/db.ts",
-        "src/lib/learning/contentProgress.ts",
+        "src/lib/profile/readingReset.ts",
         "src/lib/session.ts"
       ],
       "clientBoundaries": [],
@@ -51494,6 +51896,7 @@
         "src/app/api/v1/native/[...path]/route.ts",
         "src/components/I18nProvider.tsx",
         "src/components/navigation/AppNavigation.tsx",
+        "src/components/profile/profileData.ts",
         "src/components/study/CfmTodayCard.tsx",
         "src/components/study/ProgramSummaryView.tsx",
         "src/components/today/TodayProgramView.tsx",
@@ -51501,9 +51904,12 @@
         "src/lib/account/contracts.ts",
         "src/lib/account/deletion.ts",
         "src/lib/account/emailConfirmation.ts",
+        "src/lib/account/logout.ts",
         "src/lib/account/mutation.ts",
         "src/lib/account/password.ts",
         "src/lib/account/passwordReset.ts",
+        "src/lib/account/twoFactor.ts",
+        "src/lib/account/twoFactorContract.ts",
         "src/lib/accountDeletion.ts",
         "src/lib/achievements.ts",
         "src/lib/activeGames.ts",
@@ -51529,11 +51935,14 @@
         "src/lib/auth.ts",
         "src/lib/authBudget.ts",
         "src/lib/authTokens.ts",
+        "src/lib/avatarAccessories.ts",
+        "src/lib/avatarUnlocks.ts",
         "src/lib/baseUrl.ts",
         "src/lib/brand.ts",
         "src/lib/chapterPathData.ts",
         "src/lib/chapterScenes.ts",
         "src/lib/chapterTerm.ts",
+        "src/lib/characterAssets.ts",
         "src/lib/companion.ts",
         "src/lib/competitionXp.ts",
         "src/lib/contentAccess.ts",
@@ -51560,12 +51969,14 @@
         "src/lib/dorp/catalog.ts",
         "src/lib/dorp/geometry.ts",
         "src/lib/dorp/growth.ts",
+        "src/lib/dorp/notifications.ts",
         "src/lib/dorp/ownership.ts",
         "src/lib/dorp/service.ts",
         "src/lib/dorp/types.ts",
         "src/lib/email.ts",
         "src/lib/emailTemplates.ts",
         "src/lib/exerciseGen.ts",
+        "src/lib/featuredAchievements.ts",
         "src/lib/friendInvite.ts",
         "src/lib/gameAvailability.ts",
         "src/lib/gameAvailabilityPolicy.ts",
@@ -51658,6 +52069,8 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/password.ts",
+        "src/lib/native/profile.server.ts",
+        "src/lib/native/profileContract.ts",
         "src/lib/native/reader.server.ts",
         "src/lib/native/readerContract.ts",
         "src/lib/native/readerPosition.server.ts",
@@ -51681,6 +52094,14 @@
         "src/lib/parseCookieHeader.ts",
         "src/lib/podcasts.ts",
         "src/lib/presence.ts",
+        "src/lib/presenceRules.ts",
+        "src/lib/profile/changelog.ts",
+        "src/lib/profile/load.ts",
+        "src/lib/profile/podcastNotifications.ts",
+        "src/lib/profile/readingReset.ts",
+        "src/lib/profile/settings.ts",
+        "src/lib/profile/settingsContract.ts",
+        "src/lib/profileViews.ts",
         "src/lib/push.ts",
         "src/lib/pushEndpoint.ts",
         "src/lib/puzzle/activity.ts",
@@ -53271,6 +53692,7 @@
         "src/components/account/accountErrorKeys.ts",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/profile/ProfilePage.tsx",
+        "src/components/profile/ProfilePageView.tsx",
         "src/components/profile/settings.tsx",
         "src/components/versado/ToggleSwitch.tsx",
         "src/lib/account/contracts.ts",
@@ -53297,6 +53719,7 @@
         "src/components/account/PasswordChangeForm.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/profile/ProfilePage.tsx",
+        "src/components/profile/ProfilePageView.tsx",
         "src/components/profile/settings.tsx",
         "src/components/versado/ToggleSwitch.tsx"
       ],
@@ -53546,6 +53969,7 @@
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
         "src/lib/platform.ts",
+        "src/lib/profileViews.ts",
         "src/lib/push.ts",
         "src/lib/pushEndpoint.ts",
         "src/lib/puzzle/puzzleNotify.ts",
@@ -54270,6 +54694,7 @@
         "src/lib/platform.ts",
         "src/lib/podcastChapters.ts",
         "src/lib/podcastPlayerContext.tsx",
+        "src/lib/profileViews.ts",
         "src/lib/readingCourses.ts",
         "src/lib/realtime.ts",
         "src/lib/session.ts",
@@ -55069,6 +55494,8 @@
         "src/lib/platform.ts",
         "src/lib/podcasts.ts",
         "src/lib/presence.ts",
+        "src/lib/presenceRules.ts",
+        "src/lib/profileViews.ts",
         "src/lib/push.ts",
         "src/lib/pushEndpoint.ts",
         "src/lib/puzzle/activity.ts",
@@ -55958,6 +56385,7 @@
         "src/components/I18nProvider.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/profile/ProfilePage.tsx",
+        "src/components/profile/ProfilePageView.tsx",
         "src/components/profile/settings.tsx",
         "src/components/versado/ToggleSwitch.tsx",
         "src/lib/achievements.ts",
@@ -56036,6 +56464,7 @@
         "src/components/I18nProvider.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/profile/ProfilePage.tsx",
+        "src/components/profile/ProfilePageView.tsx",
         "src/components/profile/settings.tsx",
         "src/components/versado/ToggleSwitch.tsx"
       ],
@@ -56256,6 +56685,7 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/readerContract.ts",
         "src/lib/platform.ts",
+        "src/lib/profileViews.ts",
         "src/lib/realtime.ts",
         "src/lib/session.ts",
         "src/lib/socketClient.ts",
@@ -56667,6 +57097,7 @@
         "src/lib/notifyCategories.ts",
         "src/lib/platform.ts",
         "src/lib/podcasts.ts",
+        "src/lib/profileViews.ts",
         "src/lib/push.ts",
         "src/lib/pushEndpoint.ts",
         "src/lib/puzzle/puzzleNotify.ts",
@@ -57224,6 +57655,7 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/readerContract.ts",
         "src/lib/platform.ts",
+        "src/lib/profileViews.ts",
         "src/lib/realtime.ts",
         "src/lib/session.ts",
         "src/lib/social/rules.ts",
@@ -57550,6 +57982,7 @@
         "src/lib/notifyCategories.ts",
         "src/lib/platform.ts",
         "src/lib/podcasts.ts",
+        "src/lib/profileViews.ts",
         "src/lib/push.ts",
         "src/lib/pushEndpoint.ts",
         "src/lib/puzzle/puzzleNotify.ts",
@@ -57807,6 +58240,7 @@
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
         "src/lib/platform.ts",
+        "src/lib/profileViews.ts",
         "src/lib/push.ts",
         "src/lib/pushEndpoint.ts",
         "src/lib/puzzle/access.ts",
@@ -58472,6 +58906,7 @@
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
         "src/lib/platform.ts",
+        "src/lib/profileViews.ts",
         "src/lib/push.ts",
         "src/lib/pushEndpoint.ts",
         "src/lib/puzzle/access.ts",
@@ -58704,6 +59139,7 @@
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
         "src/lib/platform.ts",
+        "src/lib/profileViews.ts",
         "src/lib/push.ts",
         "src/lib/pushEndpoint.ts",
         "src/lib/puzzle/access.ts",
@@ -58972,6 +59408,7 @@
         "src/lib/notifyCategories.ts",
         "src/lib/platform.ts",
         "src/lib/podcasts.ts",
+        "src/lib/profileViews.ts",
         "src/lib/push.ts",
         "src/lib/pushEndpoint.ts",
         "src/lib/puzzle/puzzleNotify.ts",
@@ -59608,6 +60045,7 @@
         "src/lib/notifyCategories.ts",
         "src/lib/platform.ts",
         "src/lib/podcasts.ts",
+        "src/lib/profileViews.ts",
         "src/lib/push.ts",
         "src/lib/pushEndpoint.ts",
         "src/lib/puzzle/puzzleNotify.ts",
@@ -60072,6 +60510,7 @@
         "src/lib/platform.ts",
         "src/lib/podcastChapters.ts",
         "src/lib/podcastPlayerContext.tsx",
+        "src/lib/profileViews.ts",
         "src/lib/push.ts",
         "src/lib/pushEndpoint.ts",
         "src/lib/puzzle/puzzleNotify.ts",
@@ -64736,6 +65175,7 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/readerContract.ts",
         "src/lib/platform.ts",
+        "src/lib/profileViews.ts",
         "src/lib/pushClient.ts",
         "src/lib/pwaInstall.ts",
         "src/lib/realtime.ts",
@@ -64961,6 +65401,7 @@
         "src/lib/notifyCategories.ts",
         "src/lib/platform.ts",
         "src/lib/podcasts.ts",
+        "src/lib/profileViews.ts",
         "src/lib/push.ts",
         "src/lib/pushEndpoint.ts",
         "src/lib/puzzle/puzzleNotify.ts",
@@ -65232,6 +65673,7 @@
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
         "src/lib/platform.ts",
+        "src/lib/profileViews.ts",
         "src/lib/push.ts",
         "src/lib/pushEndpoint.ts",
         "src/lib/puzzle/puzzleNotify.ts",
@@ -65408,9 +65850,16 @@
         "src/components/kompas/KompasEntryCardView.tsx",
         "src/components/kompas/KompasIcon.tsx",
         "src/components/navigation/AppNavigation.tsx",
+        "src/components/profile/CompanionPreference.tsx",
+        "src/components/profile/LanguageSettingsView.tsx",
         "src/components/profile/ProfileContentViews.tsx",
+        "src/components/profile/ProfileOverview.tsx",
         "src/components/profile/ProfilePage.tsx",
+        "src/components/profile/ProfilePageView.tsx",
         "src/components/profile/ProfileSettingsViews.tsx",
+        "src/components/profile/TimeZoneRow.tsx",
+        "src/components/profile/TwoFactorSettingsView.tsx",
+        "src/components/profile/WebWhatsNewView.tsx",
         "src/components/profile/profileData.ts",
         "src/components/profile/settings.tsx",
         "src/components/versado/AchievementIcon.tsx",
@@ -65536,9 +65985,16 @@
         "src/components/kompas/KompasEntryCard.tsx",
         "src/components/kompas/KompasEntryCardView.tsx",
         "src/components/navigation/AppNavigation.tsx",
+        "src/components/profile/CompanionPreference.tsx",
+        "src/components/profile/LanguageSettingsView.tsx",
         "src/components/profile/ProfileContentViews.tsx",
+        "src/components/profile/ProfileOverview.tsx",
         "src/components/profile/ProfilePage.tsx",
+        "src/components/profile/ProfilePageView.tsx",
         "src/components/profile/ProfileSettingsViews.tsx",
+        "src/components/profile/TimeZoneRow.tsx",
+        "src/components/profile/TwoFactorSettingsView.tsx",
+        "src/components/profile/WebWhatsNewView.tsx",
         "src/components/profile/settings.tsx",
         "src/components/versado/AchievementIcon.tsx",
         "src/components/versado/CompanionPicker.tsx",
@@ -65558,6 +66014,7 @@
       ],
       "requestEvidence": [
         "/api/account",
+        "/api/account/totp/${kind}",
         "/api/auth/logout",
         "/api/changelog",
         "/api/changelog/seen",
@@ -65605,7 +66062,9 @@
         "src/components/I18nProvider.tsx",
         "src/components/ScriptureAvatar.tsx",
         "src/components/UserAvatar.tsx",
-        "src/components/profile/ProfilePage.tsx",
+        "src/components/navigation/AppNavigation.tsx",
+        "src/components/profile/AvatarEditorView.tsx",
+        "src/components/profile/ProfilePageView.tsx",
         "src/components/profile/profileData.ts",
         "src/components/versado/UserAvatarView.tsx",
         "src/lib/alleskenner/content.ts",
@@ -65665,7 +66124,6 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
-        "src/lib/profileViews.ts",
         "src/lib/realtime.ts",
         "src/lib/session.ts",
         "src/lib/socketClient.ts",
@@ -65688,7 +66146,9 @@
         "src/components/Footer.tsx",
         "src/components/I18nProvider.tsx",
         "src/components/UserAvatar.tsx",
-        "src/components/profile/ProfilePage.tsx",
+        "src/components/navigation/AppNavigation.tsx",
+        "src/components/profile/AvatarEditorView.tsx",
+        "src/components/profile/ProfilePageView.tsx",
         "src/components/versado/UserAvatarView.tsx",
         "src/lib/data/client.ts",
         "src/lib/data/hooks.ts",
@@ -65888,6 +66348,7 @@
         "src/lib/notifyCategories.ts",
         "src/lib/platform.ts",
         "src/lib/podcasts.ts",
+        "src/lib/profileViews.ts",
         "src/lib/push.ts",
         "src/lib/pushEndpoint.ts",
         "src/lib/puzzle/puzzleNotify.ts",
@@ -66526,6 +66987,7 @@
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
         "src/lib/platform.ts",
+        "src/lib/profileViews.ts",
         "src/lib/push.ts",
         "src/lib/pushEndpoint.ts",
         "src/lib/puzzle/puzzleNotify.ts",
@@ -67304,6 +67766,7 @@
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
         "src/lib/platform.ts",
+        "src/lib/profileViews.ts",
         "src/lib/push.ts",
         "src/lib/pushEndpoint.ts",
         "src/lib/puzzle/puzzleNotify.ts",
@@ -68300,6 +68763,7 @@
         "src/lib/notifyCategories.ts",
         "src/lib/platform.ts",
         "src/lib/podcasts.ts",
+        "src/lib/profileViews.ts",
         "src/lib/push.ts",
         "src/lib/pushEndpoint.ts",
         "src/lib/puzzle/puzzleNotify.ts",
@@ -69617,6 +70081,7 @@
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
         "src/lib/platform.ts",
+        "src/lib/profileViews.ts",
         "src/lib/push.ts",
         "src/lib/pushEndpoint.ts",
         "src/lib/puzzle/puzzleNotify.ts",
@@ -73414,27 +73879,15 @@
     },
     {
       "file": "src/components/AvatarEditorClient.tsx",
-      "sha256": "e2932bbfa5c545dbc1db3ff9b5c02aaf67d3c0e9ca01a172a6346cd607d32105",
+      "sha256": "cdfedf90a611d030e878565824f502242c4e3fc0440d956fcc8ce45f89cb8c03",
       "boundary": "client",
       "imports": [
-        "@/components/ConfirmProvider",
-        "@/components/I18nProvider",
-        "@/components/ScriptureAvatar",
+        "./profile/AvatarEditorView",
+        "./profile/profileData",
         "@/components/UserAvatar",
-        "@/components/profile/ProfilePage",
-        "@/components/profile/profileData",
-        "@/lib/avatarAccessories",
-        "@/lib/avatarEditor",
-        "@/lib/avatarTypes",
-        "@/lib/avatarUnlocks",
-        "@/lib/characterAssets",
         "@/lib/data/fetchJson",
         "@/lib/data/hooks",
-        "@/lib/data/mutation",
-        "@/lib/i18n/core",
-        "lucide-react",
-        "next/navigation",
-        "react"
+        "@/lib/data/mutation"
       ],
       "methods": [],
       "requests": [
@@ -73965,11 +74418,11 @@
     },
     {
       "file": "src/components/Footer.tsx",
-      "sha256": "8ee6e0f95c5f1434888df72cc9a914fbf952b1cc893571a0f3054f71baa71e3b",
+      "sha256": "b9c4d48b4b4559182d7132fba297cfe904deba43f8ae866241d3d234e0942966",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
-        "next/link"
+        "@/components/navigation/AppNavigation"
       ],
       "methods": [],
       "requests": [],
@@ -74464,13 +74917,11 @@
     },
     {
       "file": "src/components/LanguageSettings.tsx",
-      "sha256": "5ec8fa7b30cd9bed8bfdb049ca2317ea261b9845378ebfb2b83c462916e4d129",
+      "sha256": "0d486d504976bae02cdd052bff41ff28b7f002fb93896b0a10f097fbbdc6149c",
       "boundary": "client",
       "imports": [
-        "@/components/AppSelect",
         "@/components/I18nProvider",
-        "@/components/profile/settings",
-        "@/lib/languages",
+        "@/components/profile/LanguageSettingsView",
         "react"
       ],
       "methods": [],
@@ -74868,15 +75319,15 @@
     },
     {
       "file": "src/components/ProfileCharacterHero.tsx",
-      "sha256": "b6d2808f7af73baabd6b888f3a006341138eddeb60364a38a66bfea8056c3f79",
+      "sha256": "4f062f9f4f1c5009b0f02cde101f8f33288b32b7ea698676c5e5efd11bcdce0b",
       "boundary": "client",
       "imports": [
         "@/components/ScriptureAvatar",
+        "@/components/navigation/AppNavigation",
         "@/lib/avatarTypes",
         "@/lib/characterAssets",
         "@/lib/profileCamera",
         "@/lib/profileCharacterFraming",
-        "next/link",
         "react"
       ],
       "methods": [],
@@ -74888,44 +75339,33 @@
     },
     {
       "file": "src/components/ProfileClient.tsx",
-      "sha256": "fe4e34f1167f9c19c9c185c29d32d3043dbb5301993c3fac26f2f386e379aba5",
+      "sha256": "c444212a557b3d80046ad6db0ab49efe2e73db6f28cb4df0cca957c4591a027a",
       "boundary": "client",
       "imports": [
         "@/components/ConfirmProvider",
         "@/components/I18nProvider",
         "@/components/LanguageSettings",
-        "@/components/ProfileCharacterHero",
-        "@/components/ThemePreference",
         "@/components/TwoFactorSettings",
         "@/components/dorp/DorpEntry",
         "@/components/kompas/KompasEntryCard",
-        "@/components/kompas/KompasIcon",
+        "@/components/profile/CompanionPreference",
         "@/components/profile/ProfileContentViews",
+        "@/components/profile/ProfileOverview",
         "@/components/profile/ProfilePage",
         "@/components/profile/ProfileSettingsViews",
+        "@/components/profile/TimeZoneRow",
+        "@/components/profile/WebWhatsNewView",
         "@/components/profile/profileData",
-        "@/components/profile/settings",
-        "@/components/versado/CompanionPicker",
-        "@/components/versado/DivisionEmblem",
-        "@/components/versado/MascotSlot",
-        "@/components/versado/PersonalMascot",
-        "@/components/versado/SystemIcon",
-        "@/generated/prisma/client",
         "@/lib/countdown",
         "@/lib/data/client",
         "@/lib/data/fetchJson",
         "@/lib/data/hooks",
         "@/lib/data/mutation",
-        "@/lib/handle",
         "@/lib/languages",
-        "@/lib/mascots",
         "@/lib/profileViews",
         "@/lib/pushClient",
         "@/lib/readAloud",
         "@/lib/socketClient",
-        "@/lib/timeZone",
-        "lucide-react",
-        "next/link",
         "next/navigation",
         "react"
       ],
@@ -75487,7 +75927,7 @@
     },
     {
       "file": "src/components/ThemePreference.tsx",
-      "sha256": "7e34d2ca85fd7a5ee0e06fd01dcc4cd6a278929579ecc37d4cffad59de7ce066",
+      "sha256": "013f975067606509d5add6f67c72a1032b7db1020abe5e063588c82dc8642e9f",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -75499,7 +75939,8 @@
       "requests": [],
       "checks": [],
       "exports": [
-        "ThemePreference"
+        "ThemePreference",
+        "readThemeChoice"
       ]
     },
     {
@@ -75533,17 +75974,17 @@
     },
     {
       "file": "src/components/TwoFactorSettings.tsx",
-      "sha256": "90b1b397099174d9cc9c3fc56662581eb20b1e6bc2c05f70123d4aad4f8ddb06",
+      "sha256": "d11b5cbd4b660d3f91128ff2d99d391cc311ed5c0c30f7846c3208d94c3ea57d",
       "boundary": "client",
       "imports": [
-        "@/components/I18nProvider",
-        "@/components/account/TwoFactorCards",
-        "@/components/profile/settings",
-        "lucide-react",
+        "./I18nProvider",
+        "./profile/TwoFactorSettingsView",
+        "./profile/settings",
         "react"
       ],
       "methods": [],
       "requests": [
+        "/api/account/totp/${kind}",
         "/api/profile"
       ],
       "checks": [],
@@ -77305,13 +77746,14 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "e528dd8f38d361051c4f4104b9941f02fa4743f0c5ece80469095980f9f72c2f",
+      "sha256": "7865d94383e894c390c93d2311f4415234418e997c92b8d979429c2a8b22bd5a",
       "boundary": "client",
       "imports": [
         "./NativeContentPicker",
         "./NativeEmailConfirmation",
         "./NativeLearningView",
         "./NativePasswordReset",
+        "./NativeProfileView",
         "./NativeShellHeader",
         "./NativeTodayView",
         "@/components/I18nProvider",
@@ -77325,6 +77767,7 @@
         "@/components/legal/DisclaimerContent",
         "@/components/legal/PrivacyContent",
         "@/components/navigation/AppNavigation",
+        "@/components/profile/ProfilePageView",
         "@/components/profile/settings",
         "@/components/shell/AppShellFrame",
         "@/components/shell/SubpageBackBarView",
@@ -77345,6 +77788,7 @@
         "@/lib/native/socketClient",
         "@/lib/native/todayContract",
         "@/lib/platform",
+        "@/lib/profileViews",
         "@/lib/readAloudPlayerContext",
         "lucide-react",
         "react"
@@ -77428,9 +77872,10 @@
     },
     {
       "file": "src/components/native/NativeNavigationProvider.tsx",
-      "sha256": "5048c16abbf054f89f08dcbe3dfbde2a9aab5611759336613d735a68690f6bed",
+      "sha256": "0d2476803cf341a5792fa42c3c0bb8ab6a601eaa8109f39c7392e3e0617507e9",
       "boundary": "client",
       "imports": [
+        "@/components/ThemePreference",
         "@/components/navigation/AppNavigation",
         "@/lib/native/navigation",
         "@/lib/navigationEntry",
@@ -77467,6 +77912,49 @@
       "checks": [],
       "exports": [
         "NativePasswordReset"
+      ]
+    },
+    {
+      "file": "src/components/native/NativeProfileView.tsx",
+      "sha256": "f24f8723a3373568c805415bd65b17cd0985c3c18e7505266d20e9e17f05ee25",
+      "boundary": "client",
+      "imports": [
+        "@/components/ConfirmProvider",
+        "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
+        "@/components/profile/AvatarEditorView",
+        "@/components/profile/CompanionPreference",
+        "@/components/profile/LanguageSettingsView",
+        "@/components/profile/ProfileContentViews",
+        "@/components/profile/ProfileOverview",
+        "@/components/profile/ProfilePageView",
+        "@/components/profile/ProfileSettingsViews",
+        "@/components/profile/TimeZoneRow",
+        "@/components/profile/TwoFactorSettingsView",
+        "@/components/profile/settings",
+        "@/components/versado/PersonalMascot",
+        "@/lib/data/nativeHooks",
+        "@/lib/languages",
+        "@/lib/native/audioBridge",
+        "@/lib/native/audioOutput",
+        "@/lib/native/client",
+        "@/lib/native/contract",
+        "@/lib/native/navigation",
+        "@/lib/native/profileAssets",
+        "@/lib/native/profileContract",
+        "@/lib/native/profileErrors",
+        "@/lib/native/routeFocus",
+        "@/lib/native/todayAssets",
+        "@/lib/profile/settingsContract",
+        "@/lib/profileViews",
+        "@/lib/readAloudPlayerContext",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NativeProfileView"
       ]
     },
     {
@@ -77669,6 +78157,69 @@
       ]
     },
     {
+      "file": "src/components/profile/AvatarEditorView.tsx",
+      "sha256": "059df30631ea263a90eb784f0a2697cafd5b555593dc9ffc8b2c1e996cdefb67",
+      "boundary": "client",
+      "imports": [
+        "@/components/ConfirmProvider",
+        "@/components/I18nProvider",
+        "@/components/ScriptureAvatar",
+        "@/components/navigation/AppNavigation",
+        "@/components/profile/ProfilePageView",
+        "@/components/profile/profileData",
+        "@/lib/avatarAccessories",
+        "@/lib/avatarEditor",
+        "@/lib/avatarTypes",
+        "@/lib/avatarUnlocks",
+        "@/lib/characterAssets",
+        "@/lib/i18n/core",
+        "lucide-react",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "AvatarEditorView"
+      ]
+    },
+    {
+      "file": "src/components/profile/CompanionPreference.tsx",
+      "sha256": "54dc8751e5e9cce02f01c695dcd125c00b0e87dd48435ba5c86756a2eb56c09a",
+      "boundary": "client",
+      "imports": [
+        "./settings",
+        "@/components/I18nProvider",
+        "@/components/versado/CompanionPicker",
+        "@/components/versado/PersonalMascot",
+        "@/lib/mascots",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "CompanionPreference"
+      ]
+    },
+    {
+      "file": "src/components/profile/LanguageSettingsView.tsx",
+      "sha256": "ef6c70f42937b4cc94c0933cf93c6f739cefb7fc3da1a37c5021f29d3ade44bd",
+      "boundary": "client",
+      "imports": [
+        "./settings",
+        "@/components/AppSelect",
+        "@/components/I18nProvider",
+        "@/lib/languages"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "LanguageSettingsView"
+      ]
+    },
+    {
       "file": "src/components/profile/ProfileContentViews.tsx",
       "sha256": "c9c705f47e66aa6cfa6194bc079f89147ac023e47d09a9301bdd58467ac4bbc5",
       "boundary": "client",
@@ -77694,11 +78245,44 @@
       ]
     },
     {
-      "file": "src/components/profile/ProfilePage.tsx",
-      "sha256": "d8f562ffcd5cea92920c3274af4630f8b7c5a3a2d14090429f249104fe890091",
+      "file": "src/components/profile/ProfileOverview.tsx",
+      "sha256": "37773605ab4f390745f888648f6b2d771df86fc279278424ad4b2ca3c9306045",
       "boundary": "client",
       "imports": [
-        "@/components/Footer",
+        "./ProfilePageView",
+        "./profileData",
+        "./settings",
+        "@/components/I18nProvider",
+        "@/components/ProfileCharacterHero",
+        "@/components/ThemePreference",
+        "@/components/kompas/KompasIcon",
+        "@/components/navigation/AppNavigation",
+        "@/components/versado/CompanionPicker",
+        "@/components/versado/DivisionEmblem",
+        "@/components/versado/MascotSlot",
+        "@/components/versado/SystemIcon",
+        "@/generated/prisma/client",
+        "@/lib/handle",
+        "@/lib/languages",
+        "@/lib/profileViews",
+        "lucide-react",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [
+        "canNavigate"
+      ],
+      "exports": [
+        "ProfileOverview"
+      ]
+    },
+    {
+      "file": "src/components/profile/ProfilePage.tsx",
+      "sha256": "5bcbdf108cf09def00ab44a517ebc123c5a6f82d2fecd243126ace86eff2961a",
+      "boundary": "client",
+      "imports": [
+        "./ProfilePageView",
         "@/lib/profileViews",
         "next/navigation",
         "react"
@@ -77711,12 +78295,28 @@
       ]
     },
     {
+      "file": "src/components/profile/ProfilePageView.tsx",
+      "sha256": "a89cc66c9466e7855acbe78f5fa7953fa0cf4b7d6d5537a5fc155dc0f42a3111",
+      "boundary": "client",
+      "imports": [
+        "@/components/Footer",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "ProfilePageView"
+      ]
+    },
+    {
       "file": "src/components/profile/ProfileSettingsViews.tsx",
-      "sha256": "c64441aa7d402c367633dd9d65c468ee760b7015210055924189deaf7010e5c8",
+      "sha256": "905c80dacb87c5eedb44da325c59c76a884b0881888f5174f3f01c39363719f2",
       "boundary": "client",
       "imports": [
         "@/components/AppSelect",
         "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
         "@/components/profile/profileData",
         "@/components/profile/settings",
         "@/lib/handle",
@@ -77724,14 +78324,10 @@
         "@/lib/pushClient",
         "@/lib/puzzle/feedback",
         "lucide-react",
-        "next/link",
         "react"
       ],
       "methods": [],
-      "requests": [
-        "/api/changelog",
-        "/api/changelog/seen"
-      ],
+      "requests": [],
       "checks": [],
       "exports": [
         "GameFeedbackView",
@@ -77741,6 +78337,59 @@
         "ReadAloudView",
         "ReadingView",
         "WhatsNewView"
+      ]
+    },
+    {
+      "file": "src/components/profile/TimeZoneRow.tsx",
+      "sha256": "cd23647b16c80096e94e451bcd4e1cbdf874455dd6612d74b6725655f35caf6f",
+      "boundary": "client",
+      "imports": [
+        "./settings",
+        "@/lib/timeZone",
+        "lucide-react",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "TimeZoneRow"
+      ]
+    },
+    {
+      "file": "src/components/profile/TwoFactorSettingsView.tsx",
+      "sha256": "df4e1e8290b23478d3ed9e9668a89c4f3a06fdbc7b2441fbfaf5224caf1029fb",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/account/TwoFactorCards",
+        "@/components/profile/settings",
+        "lucide-react",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "TwoFactorSettingsView"
+      ]
+    },
+    {
+      "file": "src/components/profile/WebWhatsNewView.tsx",
+      "sha256": "8f9e222d3c19860224ce0ad7135c5bc8b089fd037818fbb998d10fd7683756f9",
+      "boundary": "client",
+      "imports": [
+        "./ProfileSettingsViews",
+        "react"
+      ],
+      "methods": [],
+      "requests": [
+        "/api/changelog",
+        "/api/changelog/seen"
+      ],
+      "checks": [],
+      "exports": [
+        "WebWhatsNewView"
       ]
     },
     {
@@ -80427,6 +81076,9 @@
     "tests/native-learning.test.ts",
     "tests/native-navigation.test.ts",
     "tests/native-parity.test.mjs",
+    "tests/native-profile.browser.mjs",
+    "tests/native-profile.integration.test.ts",
+    "tests/native-profile.test.tsx",
     "tests/native-reader.browser.mjs",
     "tests/native-reader.integration.test.ts",
     "tests/native-reader.test.ts",

@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
-import { prisma } from "@/lib/db";
-import { getCurrentUser } from "@/lib/session";
 import { apiError } from "@/lib/apiError";
+import { prisma } from "@/lib/db";
+import { setPodcastNotification } from "@/lib/profile/podcastNotifications";
+import { getCurrentUser } from "@/lib/session";
+import { NextRequest,NextResponse } from "next/server";
+import { z } from "zod";
 
 const bodySchema = z.object({ enabled: z.boolean() });
 
@@ -16,14 +17,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ po
   const parsed = bodySchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return await apiError("apiErrors.invalidInputDot", 400);
   const { podcastId } = await params;
-  const podcast = await prisma.podcast.findUnique({ where: { id: podcastId }, select: { id: true } });
-  if (!podcast) return await apiError("apiErrors.podcastNotFound", 404);
-
-  const preference = await prisma.podcastNotificationPreference.upsert({
-    where: { userId_podcastId: { userId: user.id, podcastId } },
-    create: { userId: user.id, podcastId, enabled: parsed.data.enabled, promptedAt: new Date() },
-    update: { enabled: parsed.data.enabled, promptedAt: new Date() },
-    select: { enabled: true },
-  });
+  const preference = await prisma.$transaction(tx => setPodcastNotification(tx, user.id, podcastId, parsed.data.enabled));
+  if (!preference) return await apiError("apiErrors.podcastNotFound", 404);
   return NextResponse.json(preference);
 }

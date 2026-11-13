@@ -1,11 +1,12 @@
 "use client";
+import { readThemeChoice } from "@/components/ThemePreference";
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
-import { AppNavigationProvider, useAppNavigation, type AppLinkProps } from "@/components/navigation/AppNavigation";
+import { AppNavigationProvider,useAppNavigation,type AppLinkProps } from "@/components/navigation/AppNavigation";
+import { NativeNavigator,nativeRoute } from "@/lib/native/navigation";
 import { currentEntryKey } from "@/lib/navigationEntry";
-import { beginScrollEntry, noteScrollInteraction, registerScrollRestorer } from "@/lib/scrollRestore";
-import { NativeNavigator, nativeRoute } from "@/lib/native/navigation";
 import { openExternalUrl } from "@/lib/platform";
+import { beginScrollEntry,noteScrollInteraction,registerScrollRestorer } from "@/lib/scrollRestore";
+import { useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState,useSyncExternalStore,type ReactNode } from "react";
 
 function NativeLink({ href, replace, onClick, onNavigate, prefetch, ...props }: AppLinkProps) {
   void prefetch;
@@ -46,7 +47,7 @@ export default function NativeNavigationProvider({ children }: { children: React
   }, [snapshot]);
   useLayoutEffect(() => {
     const media = window.matchMedia("(prefers-color-scheme: dark)");
-    const apply = () => document.documentElement.classList.toggle("dark", media.matches);
+    const apply = () => { const choice=readThemeChoice();document.documentElement.classList.toggle("dark",choice==="system"?media.matches:choice==="dark"); };
     apply(); media.addEventListener("change", apply);
     return () => media.removeEventListener("change", apply);
   }, []);

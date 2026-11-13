@@ -1,3 +1,4 @@
+import {logoutNativeProfile,serveNativeProfileAsset} from "./fixtures/native-profile-browser-actions.mjs";
 // Echte Foundation + bestaande authroutes in een eigen wegwerpdatabase.
 // Alleen platformdetectie en capability-aanbod zijn testvarianten; geen Apple-providerclaim.
 import assert from 'node:assert/strict';
@@ -24,6 +25,7 @@ const backend=process.env.NATIVE_TEST_BASE_URL,stylesheet=readFileSync('dist/nat
 const cases=new Map();
 const front=createServer(async(req,res)=>{try{
  const url=new URL(req.url,'http://127.0.0.1'),id=url.searchParams.get('device')??(req.headers.referer?new URL(req.headers.referer).searchParams.get('device'):null),scenario=cases.get(id);
+ if(serveNativeProfileAsset(url.pathname,res))return;
  if(url.pathname.startsWith('/api/v1/native/')){
   assert.ok(scenario);calls.push({method:req.method,path:url.pathname});
   const chunks=[];for await(const chunk of req)chunks.push(chunk);
@@ -75,7 +77,7 @@ try{
   assert.equal(await page.getByRole('button',{name:t('nativeFoundation.appleUnlink'),exact:true}).count(),0);
   assert.equal(await page.getByLabel(t('nativeFoundation.password'),{exact:true}).count(),0,'Geen ongebruikte Apple-wachtwoordvelden');
   await page.screenshot({path:`${out}/disabled-profile-${language}.png`,fullPage:true});
-  await page.getByRole('button',{name:t('nativeFoundation.logout'),exact:true}).click();await expectApple(page,t,false);
+  await logoutNativeProfile(page,t);await expectApple(page,t,false);
   await login(page,user,t);await context.close();
  }
  // Beide poorten en iOS zijn noodzakelijk: geen knop of hersteladvies bij slechts één signaal/Android.
@@ -102,7 +104,7 @@ try{
  const unlink=page.getByRole('button',{name:t('nativeFoundation.appleUnlink'),exact:true});assert.equal(await unlink.isDisabled(),true);
  await page.getByLabel(t('nativeFoundation.password'),{exact:true}).fill(password);await unlink.click();await page.getByRole('alert').waitFor();
  assert.equal(await prisma.externalIdentity.count({where:{userId:linked.id}}),1,'Ontkoppelen zonder 2FA wordt server-side geweigerd');
- await page.getByRole('button',{name:t('nativeFoundation.logout'),exact:true}).click();await page.locator('form').waitFor();
+ await logoutNativeProfile(page,t);await page.locator('form').waitFor();
  assert.equal(await page.getByLabel(t('nativeFoundation.password'),{exact:true}).inputValue(),'','Logout wist ook ingevulde Apple-herauthenticatie');
  await login(page,linked,t,secret);await profile(page).click();await page.getByLabel(t('nativeFoundation.password'),{exact:true}).fill(password);
  await page.getByLabel(t('nativeFoundation.code')).fill(generateTotpCode(secret));await unlink.click();await page.locator('form').waitFor();

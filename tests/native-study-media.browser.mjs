@@ -1,3 +1,4 @@
+import {logoutNativeProfile,serveNativeProfileAsset} from "./fixtures/native-profile-browser-actions.mjs";
 // Echte Next-SSR naast dezelfde lokaal gebundelde Vandaag-view; uitsluitend eigen testdatabase.
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
@@ -23,6 +24,7 @@ const css=readFileSync('dist/native/index.css'),secrets=new Map(),calls=[],error
 let failMedia=false,holdNext=false,held=[];
 const front=createServer(async(req,res)=>{try{
  const url=new URL(req.url,'http://127.0.0.1');
+ if(serveNativeProfileAsset(url.pathname,res))return;
  if(url.pathname.startsWith('/api/v1/native/')){
   const record={method:req.method,path:url.pathname};calls.push(record);
   if(failMedia&&url.pathname.includes('/study-media/')){res.writeHead(503,{'Content-Type':'application/json'});res.end(JSON.stringify({error:'native_request_failed'}));return;}
@@ -67,9 +69,9 @@ try{
  await fixture.attach(user.id);await page.evaluate(()=>window.dispatchEvent(new Event('today:test-resume')));await image(page).waitFor();
  // Hold already authorized image bytes, then switch accounts before the bridge reply.
  holdNext=true;await page.evaluate(()=>window.dispatchEvent(new Event('today:test-resume')));for(let i=0;held.length===0&&i<100;i++)await page.waitForTimeout(20);assert.equal(held.length,1);await image(page).waitFor({state:'detached'});
- await page.locator('a[data-kompas-target="profile"]').click();await page.getByRole('button',{name:getT('nl')('nativeFoundation.logout'),exact:true}).click();await page.locator('form').waitFor();const other=await account();await login(page,other);for(const finish of held.splice(0))finish();await page.waitForTimeout(100);assert.equal(await page.locator('[data-cfm-today]').count(),0);assert.equal(await image(page).count(),0);assert.ok((await page.locator('[data-today-overview]').textContent()).includes(other.handle));
+ await page.locator('a[data-kompas-target="profile"]').click();await logoutNativeProfile(page,getT('nl'));await page.locator('form').waitFor();const other=await account();await login(page,other);for(const finish of held.splice(0))finish();await page.waitForTimeout(100);assert.equal(await page.locator('[data-cfm-today]').count(),0);assert.equal(await image(page).count(),0);assert.ok((await page.locator('[data-today-overview]').textContent()).includes(other.handle));
  // Re-enter A and withdraw publication/access before resume: no cached image remains.
- await page.locator('a[data-kompas-target="profile"]').click();await page.getByRole('button',{name:getT('nl')('nativeFoundation.logout'),exact:true}).click();await page.locator('form').waitFor();await login(page,user);await image(page).waitFor();
+ await page.locator('a[data-kompas-target="profile"]').click();await logoutNativeProfile(page,getT('nl'));await page.locator('form').waitFor();await login(page,user);await image(page).waitFor();
  await prisma.contentCollection.update({where:{id:fixture.key},data:{visibleToUsers:false}});await page.evaluate(()=>window.dispatchEvent(new Event('today:test-resume')));await page.locator('[data-cfm-today]').waitFor({state:'detached'});assert.equal(await image(page).count(),0);
  assert.equal(sockets,0);assert.deepEqual(rawPrivate,[],'No cookie image URL ever reaches native img/fetch');assert.deepEqual(errors,[]);assert.equal(calls.some(c=>!['GET','POST'].includes(c.method)),false);assert.deepEqual(calls.filter(c=>c.method==='POST'&&!['login','logout','refresh'].some(p=>c.path.endsWith('/'+p))),[],'No progress, import or reward writes');
  await context.close();await web.close();console.log('Protected study media: real published Today programme, 30 web/native comparison screenshots (5 languages,320px/200%,tablet), bounded image decode, single-store dedupe, failure/placeholder, offline purge, source switch, late A bytes/B login, access withdrawal; no raw private URL or socket. No physical acceptance.');

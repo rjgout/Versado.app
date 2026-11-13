@@ -1,3 +1,4 @@
+import {logoutNativeProfile,serveNativeProfileAsset} from "./fixtures/native-profile-browser-actions.mjs";
 // Echte Next-SSR naast dezelfde lokaal gebundelde Vandaag-view; uitsluitend eigen testdatabase.
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
@@ -23,6 +24,7 @@ const css=readFileSync('dist/native/index.css'),secrets=new Map(),calls=[],error
 let failOverview=false,failAction=false,holdNext=false,holdAction=false,held=[],heldActions=[],priorChapter;
 const front=createServer(async(req,res)=>{try{
  const url=new URL(req.url,'http://127.0.0.1');
+ if(serveNativeProfileAsset(url.pathname,res))return;
  if(url.pathname.startsWith('/api/v1/native/')){
   const record={method:req.method,path:url.pathname};calls.push(record);
   if(failAction&&url.pathname.includes('/today-actions/')){res.writeHead(503,{'Content-Type':'application/json'});res.end(JSON.stringify({error:'native_request_failed'}));return;}
@@ -93,7 +95,7 @@ try{
  // A successful write whose response arrives after switching accounts affects only A.
  const late=await prisma.friendship.create({data:{senderId:rejectSender.id,receiverId:user.id}});await page.evaluate(()=>window.dispatchEvent(new Event('today:test-resume')));await friendRow(page,rejectSender.handle).waitFor();
  holdAction=true;await friendRow(page,rejectSender.handle).getByRole('button',{name:t('today.cta.accept'),exact:true}).click();for(let i=0;heldActions.length===0&&i<100;i++)await page.waitForTimeout(20);assert.equal(heldActions.length,1);
- await page.locator('a[data-kompas-target="profile"]').click();await page.getByRole('button',{name:t('nativeFoundation.logout'),exact:true}).click();await page.locator('form').waitFor();await login(page,sender,t);for(const finish of heldActions.splice(0))finish();await page.waitForTimeout(150);
+ await page.locator('a[data-kompas-target="profile"]').click();await logoutNativeProfile(page,t);await page.locator('form').waitFor();await login(page,sender,t);for(const finish of heldActions.splice(0))finish();await page.waitForTimeout(150);
  assert.ok((await page.locator('[data-today-overview]').textContent()).includes(sender.handle));assert.equal((await page.locator('[data-today-overview]').textContent()).includes(user.handle),false);assert.equal((await prisma.friendship.findUniqueOrThrow({where:{id:late.id}})).status,'ACCEPTED');assert.equal(await page.locator('.card-title-link').count(),1,'B keeps its own course card');
  // Revocation at an actual action is fail-closed and clears the old account UI.
  await prisma.nativeSession.updateMany({where:{userId:sender.id},data:{revokedAt:new Date()}});await hide();await page.locator('form').waitFor();assert.equal(await page.locator('[data-today-overview]').count(),0);

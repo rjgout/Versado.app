@@ -1,16 +1,19 @@
+import { parseProfileView } from "@/lib/profileViews";
 /** Alleen daadwerkelijk lokaal geïmplementeerde routes worden geaccepteerd.
  * Breid deze grens samen met scherm, contract en tests uit, nooit als placeholder.
  */
-const ROUTES = [/^\/courses\/[A-Za-z0-9_-]{1,128}\/read\/(?:steps|chapters)\/[A-Za-z0-9_-]{1,128}$/, /^\/courses$/, /^\/courses\/[A-Za-z0-9_-]{1,128}(?:\/(?:pad|archief))?$/, /^\/content$/, /^\/diagnostics$/, /^\/dashboard$/, /^\/profile$/, /^\/account-verwijderen$/, /^\/change-password$/, /^\/reset-password$/, /^\/verify-email$/, /^\/lesson\/[A-Za-z0-9_-]{1,128}$/, /^\/privacy$/, /^\/cookies$/, /^\/disclaimer$/, /^\/contact$/, /^\/login$/, /^\/register$/, /^\/forgot-password$/];
+const ROUTES = [/^\/courses\/[A-Za-z0-9_-]{1,128}\/read\/(?:steps|chapters)\/[A-Za-z0-9_-]{1,128}$/, /^\/courses$/, /^\/courses\/[A-Za-z0-9_-]{1,128}(?:\/(?:pad|archief))?$/, /^\/content$/, /^\/diagnostics$/, /^\/dashboard$/, /^\/profile(?:\/avatar)?$/, /^\/account-verwijderen$/, /^\/change-password$/, /^\/reset-password$/, /^\/verify-email$/, /^\/lesson\/[A-Za-z0-9_-]{1,128}$/, /^\/privacy$/, /^\/cookies$/, /^\/disclaimer$/, /^\/contact$/, /^\/login$/, /^\/register$/, /^\/forgot-password$/];
 export function nativeRoute(raw: string): string | null {
+  const profile = /^\/profile\?view=([A-Za-z]+)$/.exec(raw);
+  if (profile) return parseProfileView(profile[1]) ? raw : null;
   if (!raw.startsWith("/") || raw.startsWith("//") || /[\\\s%?#]/.test(raw)) return null;
   return ROUTES.some(pattern => pattern.test(raw)) ? raw : null;
 }
 export function nativeDeepLink(raw: string, backendOrigin: string): string | null {
   try {
     const url = new URL(raw);
-    if (url.origin !== new URL(backendOrigin).origin || url.username || url.password || url.search || url.hash) return null;
-    return url.pathname === "/diagnostics" ? null : nativeRoute(url.pathname);
+    if (url.origin !== new URL(backendOrigin).origin || url.username || url.password || url.hash) return null;
+    return url.pathname === "/diagnostics" ? null : nativeRoute(url.pathname + url.search);
   } catch { return null; }
 }
 export interface NativeRouteSnapshot { href: string; index: number; revision: number; traversal: boolean }
