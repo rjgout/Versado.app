@@ -14,6 +14,7 @@ export const GAME_PAGE_LOADERS:Record<GamePageId,(params:Record<string,string>,q
 "/kompas/play.quick-missionary":async()=>(await import("@/app/kompas/[topicId]/page")).default({params:Promise.resolve({topicId:"play.quick-missionary"})}),
 "/kompas/play.mystery":async()=>(await import("@/app/kompas/[topicId]/page")).default({params:Promise.resolve({topicId:"play.mystery"})}),
 
+"/shop":async()=>(await import("@/app/shop/page")).default(),
 "/acties":async()=>(await import("@/app/acties/page")).default(),
 "/lesson/[chapterId]":async(p,q)=>(await import("@/app/lesson/[chapterId]/page")).default({params:Promise.resolve({chapterId:p.chapterId}),searchParams:Promise.resolve(q)}),
 "/alleskenner/alleen/[id]": async (p) => (await import("@/app/alleskenner/alleen/[id]/page")).default(({ params: Promise.resolve({ id: p.id }) })),

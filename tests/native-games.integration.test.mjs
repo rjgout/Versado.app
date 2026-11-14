@@ -247,3 +247,19 @@ test('Alleskenner-luisteren gebruikt de actuele vraag van de echte spelserver en
   assert.equal((await call(path,{user:player})).response.status,401);
  }finally{socket?.disconnect();await prisma.alleskennerItem.update({where:{id:listening.id},data:{data:listening.data}});}
 });
+
+
+test('dezelfde XP-winkel ondersteunt spelhints en Genees zonder vreemde accounts of dubbele beloning',async()=>{
+ const player=await account(0);await prisma.user.update({where:{id:player.user.id},data:{xpTotal:2000}});
+ const page=await call('games/page?route=%2Fshop',{user:player});assert.equal(page.response.status,200);assert.equal(nativeGamePageSchema.parse(page.data).result.screen.view,'shop');
+ const shop=(await call('games/shop',{user:player})).data.data;assert.equal(shop.xpTotal,2000);
+ const hints=await call('games/shop/hints',{user:player,cookie:b.cookie,method:'POST',body:{quantity:2}});assert.equal(hints.data.status,200);assert.equal(hints.data.data.hintBalance,2);assert.equal(hints.data.data.xpTotal,2000-2*shop.hintPriceXp);
+ const key=randomUUID(),genees=await call('games/shop/genees',{user:player,method:'POST',body:{idempotencyKey:key}});assert.equal(genees.data.status,200);
+ const replay=await call('games/shop/genees',{user:player,method:'POST',body:{idempotencyKey:key}});assert.equal(replay.data.status,200);assert.equal(replay.data.data.xpTotal,genees.data.data.xpTotal);assert.equal(replay.data.data.geneesBalance,genees.data.data.geneesBalance);
+ const freeze=await call('games/shop/freezes',{user:player,method:'POST',body:{quantity:1}});assert.equal(freeze.data.status,200);assert.equal(freeze.data.data.freezeCount,shop.freezeCount+1);assert.equal(freeze.data.data.xpTotal,genees.data.data.xpTotal-shop.freezePriceXp);
+ const unchanged=await prisma.user.findUniqueOrThrow({where:{id:player.user.id}});
+ for(const quantity of [-1,0,1001]){const invalid=await call('games/shop/hints',{user:player,method:'POST',body:{quantity}});assert.equal(invalid.data.status,400);}
+ assert.equal((await call('games/shop/hints',{user:null,cookie:player.cookie,method:'POST',body:{quantity:1}})).response.status,401);
+ assert.equal((await prisma.user.findUniqueOrThrow({where:{id:player.user.id}})).xpTotal,unchanged.xpTotal);
+ assert.equal((await prisma.user.findUniqueOrThrow({where:{id:b.user.id}})).hintBalance,2);
+});

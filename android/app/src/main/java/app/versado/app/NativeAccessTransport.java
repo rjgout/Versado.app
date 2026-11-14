@@ -219,6 +219,7 @@ final class NativeGamesPolicy {
         new Rule("scrabble/[A-Za-z0-9_-]{1,128}/pass", "POST", "", false),
         new Rule("scrabble/[A-Za-z0-9_-]{1,128}", "GET", "", false),
         new Rule("scrabble", "GET,POST", "", false),
+        new Rule("shop/freezes", "POST", "", false),
         new Rule("shop/genees", "POST", "", false),
         new Rule("shop/hints", "POST", "", false),
         new Rule("shop", "GET", "", false),
@@ -246,6 +247,7 @@ final class NativeGamesPolicy {
         new Rule("word-search", "GET,POST", "", false)
     };
     private static final Rule[] PAGES = {
+        new Rule("/shop", "GET", "", false),
         new Rule("/kompas/play", "GET", "", false),
         new Rule("/kompas/play\\.jigsaw", "GET", "", false),
         new Rule("/kompas/play\\.word-search", "GET", "", false),

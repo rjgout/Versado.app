@@ -8077,12 +8077,14 @@
     },
     {
       "file": "src/app/shop/page.tsx",
-      "sha256": "9e0bf5f2bcf350d1c2bfb82fade6990f000f8c30d8997d02ef3fe2376163dbaf",
+      "sha256": "ea60633c180cce2df14c700dfe9a5a46a0285037d9965517fdb452a6d673b13a",
       "boundary": "context-dependent",
       "imports": [
         "@/components/ShopClient",
-        "@/lib/session",
-        "next/navigation"
+        "@/components/games/GameScreen",
+        "@/components/games/WebGameBoundary",
+        "@/lib/games/navigation.server",
+        "@/lib/session"
       ],
       "methods": [],
       "requests": [],
@@ -10945,12 +10947,13 @@
     },
     {
       "file": "src/components/ShopClient.tsx",
-      "sha256": "96362a2385ad45b33ae0588c686aed717df154017cb7fd5fbe97fc5e342c6d62",
+      "sha256": "b6568416517b61724cc5c4ca4fbab7c7a969e395a0e9a2e815c86461e2bcf046",
       "boundary": "client",
       "imports": [
         "@/components/AppSelect",
         "@/components/I18nProvider",
         "@/components/versado/SystemIcon",
+        "@/lib/data/applicationRuntime",
         "@/lib/data/fetchJson",
         "@/lib/data/hooks",
         "@/lib/data/mutation",
@@ -12319,7 +12322,7 @@
     },
     {
       "file": "src/components/games/GameViews.ts",
-      "sha256": "53cdf147fd7bf2c3ee05f2fc1ae074f547e60e5c968c05227905e6cd3e45cdbc",
+      "sha256": "e0ea1deffbe111cdeaf8712f4ebd4120b67f664a63586103da3c0d7a10179699",
       "boundary": "context-dependent",
       "imports": [
         "@/components/ActionsClient",
@@ -12335,6 +12338,7 @@
         "@/components/LiveLobbyForm",
         "@/components/ScrabbleBoardClient",
         "@/components/ScrabbleListClient",
+        "@/components/ShopClient",
         "@/components/WordGameClient",
         "@/components/WordSearchClient",
         "@/components/alleskenner/AlleskennerRoom",
@@ -22715,7 +22719,7 @@
     },
     {
       "file": "src/lib/native/gamesHandlers.server.ts",
-      "sha256": "01872dc5c8fcd4659fb5f860925c5389cceb887a9197fefdcfc4536c01944355",
+      "sha256": "ada29419129a837ba05350760c4cc212fc6006994d6aa3d37eeb0da3c84a75d9",
       "boundary": "context-dependent",
       "imports": [
         "./gamesRoutes",
@@ -22778,6 +22782,7 @@
         "@/app/api/scrabble/[gameId]/pass/route",
         "@/app/api/scrabble/[gameId]/route",
         "@/app/api/scrabble/route",
+        "@/app/api/shop/freezes/route",
         "@/app/api/shop/genees/route",
         "@/app/api/shop/hints/route",
         "@/app/api/shop/route",
@@ -22868,7 +22873,7 @@
     },
     {
       "file": "src/lib/native/gamesPages.server.ts",
-      "sha256": "d45c7ad42efba916a44297dc325f67651dc9f427486f427ae040147fcb9867dd",
+      "sha256": "8021bd8f45f8399e79c4f6c9cf9f3ed3e1ed49f27880b11950698f388351feec",
       "boundary": "context-dependent",
       "imports": [
         "./gamesPagesRoutes",
@@ -22937,6 +22942,7 @@
         "@/app/mysteries/page",
         "@/app/scrabble/[gameId]/page",
         "@/app/scrabble/page",
+        "@/app/shop/page",
         "@/app/snelle-zendeling/page",
         "@/app/snelle-zendeling/run/[runId]/page",
         "@/app/snelle-zendeling/samen/[code]/page",
@@ -22954,7 +22960,7 @@
     },
     {
       "file": "src/lib/native/gamesPagesRoutes.ts",
-      "sha256": "fc72cd978b88dd6a4d566fadab65076133afc7a7f462a55261b52bef84a0b4bf",
+      "sha256": "1a4f682b4e156e0359b6dc1d50776844b9e88b691ac4b000732fefbe11fa7fb9",
       "boundary": "context-dependent",
       "imports": [],
       "methods": [],
@@ -22968,7 +22974,7 @@
     },
     {
       "file": "src/lib/native/gamesRoutes.ts",
-      "sha256": "aa7e628eb1467edb82480787cfe66fa22bc52e4cfb6b0d58ff167759e471cfd6",
+      "sha256": "9695b500828035c558d7a218767a038eaa9154ad4186af31e07c54f0fa1e97c5",
       "boundary": "context-dependent",
       "imports": [],
       "methods": [],
@@ -22981,7 +22987,7 @@
     },
     {
       "file": "src/lib/native/gamesViewIds.ts",
-      "sha256": "8e022a1d10763c82fa8939a9a8fb9aacba41df3c73d57cca4ea3a485d8db2d00",
+      "sha256": "f2d8d262cf85d5875962cce6265ca32a94bc5cd125fabf0d4f02b4bb4eb7ded9",
       "boundary": "context-dependent",
       "imports": [],
       "methods": [],
@@ -53635,6 +53641,7 @@
         "src/app/api/scrabble/[gameId]/pass/route.ts",
         "src/app/api/scrabble/[gameId]/route.ts",
         "src/app/api/scrabble/route.ts",
+        "src/app/api/shop/freezes/route.ts",
         "src/app/api/shop/genees/route.ts",
         "src/app/api/shop/hints/route.ts",
         "src/app/api/shop/route.ts",
@@ -53721,6 +53728,7 @@
         "src/app/mysteries/page.tsx",
         "src/app/scrabble/[gameId]/page.tsx",
         "src/app/scrabble/page.tsx",
+        "src/app/shop/page.tsx",
         "src/app/snelle-zendeling/page.tsx",
         "src/app/snelle-zendeling/run/[runId]/page.tsx",
         "src/app/snelle-zendeling/samen/[code]/page.tsx",
@@ -53755,6 +53763,7 @@
         "src/components/ScrabbleBoardClient.tsx",
         "src/components/ScrabbleListClient.tsx",
         "src/components/ScriptureAvatar.tsx",
+        "src/components/ShopClient.tsx",
         "src/components/StreakCelebrationFlow.tsx",
         "src/components/StreakContinuation.tsx",
         "src/components/StreakEarnedBanner.tsx",
@@ -54325,6 +54334,7 @@
         "src/components/ReaderBackTarget.tsx",
         "src/components/ScrabbleBoardClient.tsx",
         "src/components/ScrabbleListClient.tsx",
+        "src/components/ShopClient.tsx",
         "src/components/StreakCelebrationFlow.tsx",
         "src/components/StreakContinuation.tsx",
         "src/components/StreakEarnedBanner.tsx",
@@ -54475,6 +54485,10 @@
         "/api/scrabble/${gameId}/move",
         "/api/scrabble/${gameId}/pass",
         "/api/scrabble/${id}/${action}",
+        "/api/shop",
+        "/api/shop/freezes",
+        "/api/shop/genees",
+        "/api/shop/hints",
         "/api/snelle-zendeling/leaderboard?board=${board}",
         "/api/snelle-zendeling/leaderboard?type=duo&board=all-time",
         "/api/snelle-zendeling/runs",
@@ -70943,12 +70957,14 @@
     },
     {
       "file": "src/app/shop/page.tsx",
-      "sha256": "9e0bf5f2bcf350d1c2bfb82fade6990f000f8c30d8997d02ef3fe2376163dbaf",
+      "sha256": "ea60633c180cce2df14c700dfe9a5a46a0285037d9965517fdb452a6d673b13a",
       "boundary": "context-dependent",
       "imports": [
         "@/components/ShopClient",
-        "@/lib/session",
-        "next/navigation"
+        "@/components/games/GameScreen",
+        "@/components/games/WebGameBoundary",
+        "@/lib/games/navigation.server",
+        "@/lib/session"
       ],
       "methods": [],
       "requests": [],
@@ -70966,6 +70982,11 @@
         "src/components/AppSelect.tsx",
         "src/components/I18nProvider.tsx",
         "src/components/ShopClient.tsx",
+        "src/components/games/GameNavigation.tsx",
+        "src/components/games/GameScreen.tsx",
+        "src/components/games/WebGameBoundary.tsx",
+        "src/components/games/WebGameSearchProvider.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/versado/SystemIcon.tsx",
         "src/lib/alleskenner/content.ts",
         "src/lib/alleskenner/validate.ts",
@@ -70992,6 +71013,7 @@
         "src/lib/gameCatalog.ts",
         "src/lib/gameContentResolver.ts",
         "src/lib/gameSettings.ts",
+        "src/lib/games/navigation.server.ts",
         "src/lib/games/requestIdentity.server.ts",
         "src/lib/hymnAvailability.ts",
         "src/lib/hymns/access.ts",
@@ -71021,6 +71043,7 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/native/gamesViewIds.ts",
         "src/lib/native/origin.ts",
         "src/lib/realtime.ts",
         "src/lib/session.ts",
@@ -71038,12 +71061,18 @@
       ],
       "directModules": [
         "src/components/ShopClient.tsx",
+        "src/components/games/GameScreen.tsx",
+        "src/components/games/WebGameBoundary.tsx",
+        "src/lib/games/navigation.server.ts",
         "src/lib/session.ts"
       ],
       "clientBoundaries": [
         "src/components/AppSelect.tsx",
         "src/components/I18nProvider.tsx",
         "src/components/ShopClient.tsx",
+        "src/components/games/GameNavigation.tsx",
+        "src/components/games/WebGameSearchProvider.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/lib/data/client.ts",
         "src/lib/data/hooks.ts",
         "src/lib/data/mutation.ts",
@@ -71062,9 +71091,9 @@
         "getCurrentUser"
       ],
       "iosCoverage": {
-        "status": "ontbreekt",
-        "native": null,
-        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+        "status": "gedeeltelijk",
+        "native": "/shop",
+        "reason": "Canonieke spel-/lees-/actiepresentatie lokaal via games-v1; gezamenlijke spel- en platformacceptatie nog open (NATIVE-GAMES.md)"
       }
     },
     {
@@ -77118,12 +77147,14 @@
     },
     {
       "file": "src/app/shop/page.tsx",
-      "sha256": "9e0bf5f2bcf350d1c2bfb82fade6990f000f8c30d8997d02ef3fe2376163dbaf",
+      "sha256": "ea60633c180cce2df14c700dfe9a5a46a0285037d9965517fdb452a6d673b13a",
       "boundary": "context-dependent",
       "imports": [
         "@/components/ShopClient",
-        "@/lib/session",
-        "next/navigation"
+        "@/components/games/GameScreen",
+        "@/components/games/WebGameBoundary",
+        "@/lib/games/navigation.server",
+        "@/lib/session"
       ],
       "methods": [],
       "requests": [],
@@ -79972,12 +80003,13 @@
     },
     {
       "file": "src/components/ShopClient.tsx",
-      "sha256": "96362a2385ad45b33ae0588c686aed717df154017cb7fd5fbe97fc5e342c6d62",
+      "sha256": "b6568416517b61724cc5c4ca4fbab7c7a969e395a0e9a2e815c86461e2bcf046",
       "boundary": "client",
       "imports": [
         "@/components/AppSelect",
         "@/components/I18nProvider",
         "@/components/versado/SystemIcon",
+        "@/lib/data/applicationRuntime",
         "@/lib/data/fetchJson",
         "@/lib/data/hooks",
         "@/lib/data/mutation",

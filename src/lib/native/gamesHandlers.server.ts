@@ -63,6 +63,7 @@ export const GAME_HANDLERS: Record<GameApiId, Partial<Record<string, Handler>>> 
 "scrabble/[gameId]/pass": { POST: async (req, p) => (await import("@/app/api/scrabble/[gameId]/pass/route")).POST(req, { params: Promise.resolve({ gameId: p.gameId }) }) },
 "scrabble/[gameId]": { GET: async (req, p) => (await import("@/app/api/scrabble/[gameId]/route")).GET(req, { params: Promise.resolve({ gameId: p.gameId }) }) },
 "scrabble": { GET: async () => (await import("@/app/api/scrabble/route")).GET(), POST: async (req) => (await import("@/app/api/scrabble/route")).POST(req) },
+"shop/freezes": { POST: async (req) => (await import("@/app/api/shop/freezes/route")).POST(req) },
 "shop/genees": { POST: async (req) => (await import("@/app/api/shop/genees/route")).POST(req) },
 "shop/hints": { POST: async (req) => (await import("@/app/api/shop/hints/route")).POST(req) },
 "shop": { GET: async () => (await import("@/app/api/shop/route")).GET() },

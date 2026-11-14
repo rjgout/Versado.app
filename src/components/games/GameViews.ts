@@ -1,3 +1,4 @@
+import ShopClient from "@/components/ShopClient";
 import KompasTopicView from "@/components/kompas/KompasTopicView";
 import ActionsClient from "@/components/ActionsClient";
 import LessonFlow from "@/components/LessonFlow";
@@ -34,6 +35,7 @@ import GameView29 from "@/components/mysteries/MysteryDetailView";
 
 /** Vaste, lokaal gebundelde schermen; dezelfde componenten als de webapp. */
 export const GAME_VIEWS = {
+"shop": ShopClient,
 "gameGuide": KompasTopicView,
 "actions": ActionsClient,
 "chapterLesson":LessonFlow,

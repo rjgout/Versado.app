@@ -185,6 +185,7 @@ enum NativeGamesPolicy {
         Rule("scrabble/[A-Za-z0-9_-]{1,128}/pass", "POST", "", false),
         Rule("scrabble/[A-Za-z0-9_-]{1,128}", "GET", "", false),
         Rule("scrabble", "GET,POST", "", false),
+        Rule("shop/freezes", "POST", "", false),
         Rule("shop/genees", "POST", "", false),
         Rule("shop/hints", "POST", "", false),
         Rule("shop", "GET", "", false),
@@ -212,6 +213,7 @@ enum NativeGamesPolicy {
         Rule("word-search", "GET,POST", "", false)
     ]
     private static let pages: [Rule] = [
+        Rule("/shop", "GET", "", false),
         Rule("/kompas/play", "GET", "", false),
         Rule("/kompas/play\\.jigsaw", "GET", "", false),
         Rule("/kompas/play\\.word-search", "GET", "", false),

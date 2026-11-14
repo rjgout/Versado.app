@@ -8,8 +8,10 @@ import type { NativeChapter } from "../../src/lib/native/contract";
 
 type State = { adapter: "web" | "native"; content: string; language: string; chapter: string; user: string };
 let account = "A";
+let sessionStamp = 0;
 const sessionListeners = new Set<() => void>();
 const client = {
+  getSessionStamp() { return sessionStamp; },
   async api(path: string) { const response = await fetch(`/query?account=${account}&path=${encodeURIComponent(path)}`); if (!response.ok) throw Error("synthetic read failure"); return response.json(); },
   onSessionChange(listener: () => void) { sessionListeners.add(listener); return () => { sessionListeners.delete(listener); }; },
 } as unknown as NativeSessionClient;
@@ -31,7 +33,7 @@ function App() {
   const [state, setState] = useState<State>({ adapter: "web", content: "A", language: "nl", chapter: "one", user: "A" });
   useEffect(() => {
     window.wp6Probe = { set(patch) {
-      if (patch.user && patch.user !== account) { account = patch.user; for (const listener of sessionListeners) listener(); }
+      if (patch.user && patch.user !== account) { account = patch.user; sessionStamp++; for (const listener of sessionListeners) listener(); }
       setState(previous => ({ ...previous, ...patch }));
     } };
   }, []);

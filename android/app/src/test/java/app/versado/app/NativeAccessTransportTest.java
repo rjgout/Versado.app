@@ -277,6 +277,7 @@ public class NativeAccessTransportTest {
         assertEquals(true, NativeAccessTransport.routeAllowed("games/scrabble/synthetic", "GET"));
         assertEquals(true, NativeAccessTransport.routeAllowed("games/scrabble", "GET"));
         assertEquals(true, NativeAccessTransport.routeAllowed("games/scrabble", "POST"));
+        assertEquals(true, NativeAccessTransport.routeAllowed("games/shop/freezes", "POST"));
         assertEquals(true, NativeAccessTransport.routeAllowed("games/shop/genees", "POST"));
         assertEquals(true, NativeAccessTransport.routeAllowed("games/shop/hints", "POST"));
         assertEquals(true, NativeAccessTransport.routeAllowed("games/shop", "GET"));
@@ -305,6 +306,7 @@ public class NativeAccessTransportTest {
         assertEquals(true, NativeAccessTransport.routeAllowed("games/word-search/synthetic", "GET"));
         assertEquals(true, NativeAccessTransport.routeAllowed("games/word-search", "GET"));
         assertEquals(true, NativeAccessTransport.routeAllowed("games/word-search", "POST"));
+        assertEquals(true, NativeAccessTransport.routeAllowed("games/page?route=%2Fshop", "GET"));
         assertEquals(true, NativeAccessTransport.routeAllowed("games/page?route=%2Fkompas%2Fplay", "GET"));
         assertEquals(true, NativeAccessTransport.routeAllowed("games/page?route=%2Fkompas%2Fplay.jigsaw", "GET"));
         assertEquals(true, NativeAccessTransport.routeAllowed("games/page?route=%2Fkompas%2Fplay.word-search", "GET"));

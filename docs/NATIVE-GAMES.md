@@ -21,6 +21,10 @@ Merge, DEV-publicatie en TestFlight blijven afzonderlijke eigenaarshandelingen.
 | Vliegende gids | Quick Missionary-clients; run, hervatten, revive, samen en ranglijst | Dezelfde engine, bronrechten en serveracties |
 | Het Mysterie | Alle 18 bestaande varianten en gezamenlijke presentatie | Dezelfde pogingen, revisies, clues, hints en antwoorden |
 
+De gedeelde XP-winkel hoort bij de spelketen: hintvoorraad en Genees gebruiken
+dezelfde bestaande winkel, voorraad en serverprijzen. Er is geen tweede
+web/native-winkel en geen betaal- of accountintegratie toegevoegd.
+
 ## Begrensde integratie
 
 `gamesRoutes.ts` en `gamesHandlers.server.ts` noemen iedere methode en handler
@@ -75,14 +79,17 @@ Browserbewijs met gesimuleerde OS-uitvoer is geen fysieke toestelacceptatie.
 
 ## Huidig lokaal bewijs
 
-- Laatste volledige lokale suite: 238 native unit-/contract-/distributietests en 80 datalaagtests geslaagd; daarna 24 gerichte spelcontracttests voor de extra methode-/voorkeurgrens.
+- Laatste volledige lokale suite: 240 native unit-/contract-/distributietests en 80 datalaagtests geslaagd; daarna 25 gerichte spelcontracttests voor de extra methode-/voorkeurgrens.
 - 218 bestaande spel-/puzzel-/mysterietests en 92 Kompas-/navigatie-/spelcontracttests geslaagd.
-- 14 uitgebreide HTTP-integratietests op eigen PostgreSQL/Redis geslaagd.
+- 15 uitgebreide HTTP-integratietests op eigen PostgreSQL/Redis geslaagd.
 - Tien echte spelingangen, vijf talen, 320px/200%, licht/donker: nul ontbrekende assets en nul browserfouten.
 - Woordzoeker via pointerbediening voltooid, inclusief één XP-beloning.
 - Uitdaging via de echte schermen: lezen, privébladwijzer, native audio-uitvoer
   (alleen de OS-decoder gesimuleerd), drie juiste antwoorden en opgeslagen serveruitslag.
 - Speluitleg en native rondleiding werken met dezelfde Kompas-presentatie.
+- De winkelbrowser koopt werkelijk één hint; voorraad en XP zijn daarna in de
+  database gecontroleerd. De HTTP-proef controleert ook Genees-idempotentie,
+  reeksbevriezingen, ongeldige aantallen en een vreemde webcookie.
 - Volledige lintcontrole: nul fouten, 173 zichtbare waarschuwingen; geen regels uitgeschakeld.
 - Schone lokale productiebuild geslaagd. GitHub bevestigt op `d7415e4b` de
   productiebuild en unsigned iOS-/Android-compilatie; de laatste vervolgcommit

@@ -62,6 +62,7 @@ export const GAME_API_ROUTES = [
   {"path":"scrabble/[gameId]/pass","segments":["scrabble","[gameId]","pass"],"methods":["POST"],"query":[]},
   {"path":"scrabble/[gameId]","segments":["scrabble","[gameId]"],"methods":["GET"],"query":[]},
   {"path":"scrabble","segments":["scrabble"],"methods":["GET","POST"],"query":[]},
+  {"path":"shop/freezes","segments":["shop","freezes"],"methods":["POST"],"query":[]},
   {"path":"shop/genees","segments":["shop","genees"],"methods":["POST"],"query":[]},
   {"path":"shop/hints","segments":["shop","hints"],"methods":["POST"],"query":[]},
   {"path":"shop","segments":["shop"],"methods":["GET"],"query":[]},

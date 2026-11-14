@@ -1,5 +1,6 @@
 /** Alle bestaande spelpagina's; uitbreiding is expliciet en reviewbaar. */
 export const GAME_PAGE_ROUTES = [
+  {"path":"/shop","segments":["shop"],"query":[]},
   {"path":"/kompas/play","segments":["kompas","play"],"query":[]},
   {"path":"/kompas/play.jigsaw","segments":["kompas","play.jigsaw"],"query":[]},
   {"path":"/kompas/play.word-search","segments":["kompas","play.word-search"],"query":[]},

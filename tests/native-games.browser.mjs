@@ -50,6 +50,7 @@ try{
  await page.getByLabel(t('nativeFoundation.email')).fill(user.email);await page.getByLabel(t('nativeFoundation.password'),{exact:true}).fill(password);await page.getByRole('button',{name:t('nativeFoundation.login'),exact:true}).click();await page.locator('a[data-kompas-target="profile"]').waitFor();
  async function hub(refresh=false){if(new URL(page.url()).hash!=="#/live")await page.goBack();if(refresh)await page.reload();await page.locator('[data-kompas-target="play-games"]').waitFor();for(const game of GAME_CATALOG)assert.ok(await page.locator(`a[href="#${game.href}"]`).count(),game.id);}
  await hub();await page.screenshot({path:out+'/spelen-overzicht-licht.png',fullPage:true});report.screens.push('spelen-overzicht-licht.png');
+ await page.screenshot({path:out+'/spelen-overzicht-viewport.png'});report.screens.push('spelen-overzicht-viewport.png');
  for(const game of GAME_CATALOG){
   await hub();await page.locator(`[data-kompas-target="play-games"] a[href="#${game.href}"]`).first().click();
   await page.waitForFunction(()=>!document.querySelector('main')?.textContent?.includes('Bezig met laden'));
@@ -96,6 +97,13 @@ try{
  await page.screenshot({path:out+'/uitdaging-vragen-resultaat.png',fullPage:true});report.screens.push('uitdaging-vragen-resultaat.png');report.flows.push('challenge-three-real-exercises-and-server-result');
 
  await page.goBack();await page.goBack();await page.locator('[data-kompas-target="play-games"]').waitFor();
+ // De hintvoorraad wordt via dezelfde echte winkel gekocht en server-side afgeschreven.
+ const stockBefore=await prisma.user.findUniqueOrThrow({where:{id:user.id}});
+ await page.goto(origin+'/?material=ios&cold=shop#/shop');
+ await page.getByRole('button',{name:t('shop.buyFor',{xp:50}),exact:true}).click();
+ await page.getByText(t('shop.hintBought',{n:1}),{exact:true}).waitFor();
+ const stockAfter=await prisma.user.findUniqueOrThrow({where:{id:user.id}});assert.equal(stockAfter.hintBalance,stockBefore.hintBalance+1);assert.equal(stockAfter.xpTotal,stockBefore.xpTotal-50);
+ await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:out+'/spelhints-winkel.png',fullPage:true});report.screens.push('spelhints-winkel.png');report.flows.push('game-shop-hints-real-xp-and-inventory');
  // Koude start op een toegestane lokale uitlegroute, met dezelfde duurzame login.
  await page.goto(origin+'/?material=ios&cold=guide#/kompas/play');await page.getByRole('heading',{name:topicTitle(getTopic('play'),t,'novi'),exact:true}).waitFor();
  await page.getByRole('button',{name:t('kompas.topic.tourStart'),exact:true}).click();
