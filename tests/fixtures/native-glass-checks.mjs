@@ -56,6 +56,18 @@ export async function checkGlassAccessibility(page,t,out) {
     await page.getByRole('button',{name:t('profile.logout'),exact:true}).click();
     const legacy=page.getByRole('dialog');await legacy.waitFor();
     assert.equal(await legacy.evaluate(el=>el.tagName),'DIV','iOS zonder showModal behoudt een bruikbare bevestiging');
+    const oldWebKitFocus=await legacy.evaluate(el=>{
+      const at=Array.prototype.at,buttons=el.querySelectorAll('button');
+      const first=buttons[0],last=buttons[buttons.length-1];
+      try{
+        Array.prototype.at=undefined;
+        first.focus();window.dispatchEvent(new KeyboardEvent('keydown',{key:'Tab',shiftKey:true,bubbles:true,cancelable:true}));
+        const backward=document.activeElement===last;
+        last.focus();window.dispatchEvent(new KeyboardEvent('keydown',{key:'Tab',bubbles:true,cancelable:true}));
+        return {backward,forward:document.activeElement===first};
+      }finally{Array.prototype.at=at;}
+    });
+    assert.deepEqual(oldWebKitFocus,{backward:true,forward:true},'Ook zonder Array.at (oude WebKit) werkt de compatibiliteitsfocusgrens in beide richtingen');
     for(let i=0;i<4;i++){await page.keyboard.press('Tab');assert.equal(await legacy.evaluate(el=>el.contains(document.activeElement)),true,'Ook de compatibiliteitsdialoog houdt de focus binnen');}
     assert.equal(await legacy.evaluate(el=>el.scrollWidth>el.clientWidth+1),false,'Ook de compatibiliteitsdialoog houdt grote tekst binnen het paneel');
     await page.screenshot({path:`${out}/native-nl-compatible-sheet-large.png`,fullPage:false});

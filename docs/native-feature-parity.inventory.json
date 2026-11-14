@@ -9220,7 +9220,7 @@
     },
     {
       "file": "src/components/ConfirmProvider.tsx",
-      "sha256": "c5fc8e5923f270911694a5619b97becead35da4e62dec77e0df39fa53174f36c",
+      "sha256": "a588bcb738ded2973f8b9f72d5d0d480ddfc2cd81c0636f9adb01ecddc9cd5a9",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -74836,7 +74836,7 @@
     },
     {
       "file": "src/components/ConfirmProvider.tsx",
-      "sha256": "c5fc8e5923f270911694a5619b97becead35da4e62dec77e0df39fa53174f36c",
+      "sha256": "a588bcb738ded2973f8b9f72d5d0d480ddfc2cd81c0636f9adb01ecddc9cd5a9",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",

@@ -23,7 +23,7 @@ levert de bestaande lokale Capacitor-plugin deze instellingen.
 | Gedeelde taalinstellingen | [profile-native-language.png](profile-native-language.png) |
 | Reduce Transparency + Increase Contrast | [profile-native-opaque.png](profile-native-opaque.png) |
 | Echte HTML-bevestigingsdialoog, 200%, focusval en Escape | [profile-native-sheet-200.png](profile-native-sheet-200.png) |
-| Compatibiliteitsdialoog zonder showModal, 310% | [profile-native-compatible-sheet-310.png](profile-native-compatible-sheet-310.png) |
+| Compatibiliteitsdialoog zonder showModal, 310%; focusgrens ook zonder Array.at | [profile-native-compatible-sheet-310.png](profile-native-compatible-sheet-310.png) |
 | Viewportverkleining met actief invoerveld; tabbar volgt bestaande keyboardregel | [profile-native-keyboard.png](profile-native-keyboard.png) |
 | 310%: dezelfde tablabels als leesbare rijen; interne fixturebediening zichtbaar | [profile-native-large-310.png](profile-native-large-310.png) |
 

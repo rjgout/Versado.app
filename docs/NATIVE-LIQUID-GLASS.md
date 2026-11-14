@@ -25,6 +25,8 @@ dezelfde interface, geen tweede navigator, gekopieerde kaarten of aparte screens
 - Echte bevestigingsdialogen: het native profiel gebruikt de bestaande HTML-dialogvariant
   met focusval, Escape en terugkeer van focus. iOS 15.0–15.3 behoudt de bestaande
   div-terugval, nu met focusbegrenzing, veilige hoogte en afbrekende knoppen.
+  De focusgrens werkt ook zonder `Array.at`, dat op oudere WebKit ontbreekt;
+  de browserproef controleert Tab en Shift+Tab expliciet zonder die API.
 - Feedback: bestaande knop-/selectie-/focusregels, met begrensde schaduw-/druktransities. Paletwissels zijn atomisch om contrastflitsen te voorkomen.
   Geen nieuwe oneindige animatie, JS-scrollfilter of page-remount voor een overgang.
 

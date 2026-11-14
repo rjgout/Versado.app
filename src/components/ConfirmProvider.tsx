@@ -67,7 +67,7 @@ export function ConfirmProvider({ children, nativeDialogs = false }: { children:
       if (event.key !== "Tab" || !node) return;
       const controls = Array.from(node.querySelectorAll<HTMLElement>("button:not([disabled]), [href], input:not([disabled]), [tabindex]"))
         .filter(element => element.tabIndex >= 0 && element.getClientRects().length > 0);
-      const first = controls[0], last = controls.at(-1);
+      const first = controls[0], last = controls[controls.length - 1];
       if (!first || !last) { event.preventDefault(); node.focus(); return; }
       if (!node.contains(document.activeElement) || document.activeElement === node) {
         event.preventDefault(); (event.shiftKey ? last : first).focus();
