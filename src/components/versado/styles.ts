@@ -9,7 +9,7 @@ export const focusRing =
   "outline-none focus-visible:ring-2 focus-visible:ring-vs-accent focus-visible:ring-offset-2 focus-visible:ring-offset-vs-app";
 
 export const surfaceCard =
-  "rounded-2xl border border-vs-line bg-vs-surface shadow-[0_1px_2px_rgb(var(--vs-shadow)/0.05)] dark:shadow-none";
+  "vs-material-card rounded-2xl border border-vs-line bg-vs-surface shadow-[0_1px_2px_rgb(var(--vs-shadow)/0.05)] dark:shadow-none";
 
 /** Kaart die als geheel klikbaar is: subtiele reactie op hover en indrukken. */
 export const interactiveCard = `${surfaceCard} vs-motion transition duration-200 hover:border-vs-line-strong hover:shadow-[0_6px_20px_-8px_rgb(var(--vs-shadow)/0.18)] active:scale-[0.985] ${focusRing}`;

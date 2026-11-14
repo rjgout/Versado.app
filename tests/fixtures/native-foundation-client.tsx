@@ -1,3 +1,4 @@
+import { useTestMaterial } from "./native-material-client";
 // Alleen browserharnas: simuleert Keychain via eigen testservergeheugen.
 // Dit bestand wordt nooit in dist/native of de productie-app gebundeld.
 import { useCallback, useState } from "react";
@@ -19,6 +20,7 @@ const client = new NativeSessionClient(location.origin, {
 // De nieuwe Vandaag-proef volgt net als productie-entry het bevestigde account; legacyproeven houden hun vaste locale.
 const followAccount = new URLSearchParams(location.search).get("accountLanguage") === "1";
 function FoundationTestRoot() {
+  useTestMaterial();
   const [language, setLanguage] = useState(toLanguageCode(navigator.language));
   const changeLanguage = useCallback((value: string) => { const code = toLanguageCode(value); document.documentElement.lang = code; setLanguage(code); }, []);
   return <I18nProvider language={language} messages={messagesFor(language)}><NativeNavigationProvider><NativeFoundation client={client} onLanguage={followAccount ? changeLanguage : undefined} internalTools buildIndicator={<NativeBuildBanner compact channel="internal" version="0.1.0" build={1}/>} buildBanner={<NativeBuildBanner channel="internal" version="0.1.0" build={1}/>}/></NativeNavigationProvider></I18nProvider>;

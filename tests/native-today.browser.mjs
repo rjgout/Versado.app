@@ -1,3 +1,4 @@
+import {checkGlassShell,checkGlassPalette} from "./fixtures/native-glass-checks.mjs";
 import {logoutNativeProfile,serveNativeProfileAsset,recordNativeProfileLogout} from "./fixtures/native-profile-browser-actions.mjs";
 // Echte Next-SSR naast dezelfde lokaal gebundelde Vandaag-view; uitsluitend eigen testdatabase.
 import assert from 'node:assert/strict';
@@ -13,7 +14,7 @@ import {getT} from '../src/lib/i18n/index.ts';
 const db=new URL(process.env.NATIVE_TEST_DATABASE_URL??'http://invalid');
 if(db.hostname!=='127.0.0.1'||db.pathname!=='/versado_content_access_test'||db.href!==process.env.DATABASE_URL)throw Error('Alleen eigen geïsoleerde database');
 const backend=process.env.NATIVE_TEST_BASE_URL,require=createRequire(import.meta.url),{chromium}=require(process.env.PLAYWRIGHT_MODULE??'playwright');
-const out='/tmp/versado-native-browser/today';mkdirSync(out,{recursive:true});
+const out=process.env.NATIVE_GLASS_TEST==='1'?'/tmp/versado-native-browser/liquid-glass/today':'/tmp/versado-native-browser/today';mkdirSync(out,{recursive:true});
 const inputs=JSON.parse(readFileSync('dist/native.inputs.json','utf8'));
 for(const component of ['TodayView','Greeting','TodaySection','ContinueSection','OpenActions','SocialPreview','SocialView','DiscoverySection','TodayProgramView','StreakContinuationCardView'])assert.ok(inputs.some(f=>f.endsWith(`today/${component}.tsx`)),`${component} ontbreekt in de echte lokale bundel`);
 assert.equal(inputs.some(f=>/node_modules\/(?:next|@prisma)\/|src\/lib\/socketClient\.ts|\.server\.ts$/.test(f)),false,'Geen web-cookie/socket/serverruntime');
@@ -59,7 +60,7 @@ try{
  for(const language of ['nl','en','de','fr','es']){
   const t=getT(language),user=await seedAccount(language,collections[0],course.lessons[1]);
   const context=await browser.newContext({viewport:{width:390,height:844},locale:language}),web=await browser.newContext({viewport:{width:390,height:844},locale:language});
-  let sockets=0;const page=await context.newPage();page.on('websocket',()=>sockets++);page.on('pageerror',error=>errors.push(error.message));await page.goto(`${origin}/?device=today-${language}&language=${language}&accountLanguage=1`);await login(page,user,t);
+  let sockets=0;const page=await context.newPage();page.on('websocket',()=>sockets++);page.on('pageerror',error=>errors.push(error.message));await page.goto(`${origin}/?device=today-${language}&language=${language}&accountLanguage=1${process.env.NATIVE_GLASS_TEST==='1'?'&material=ios':''}`);await login(page,user,t);if(process.env.NATIVE_GLASS_TEST==='1')await checkGlassShell(page);
   await web.addCookies([{name:SESSION_COOKIE,value:await createSessionToken(user.id),url:backend}]);const webPage=await web.newPage();webPage.on('pageerror',error=>errors.push(error.message));await webPage.goto(`${backend}/dashboard`);await webPage.locator('[data-today-overview]').waitFor();
   const content=async p=>p.locator('[data-today-overview]').evaluate(root=>({headings:[...root.querySelectorAll('h1,h2,h3')].map(h=>h.textContent),sections:[...root.querySelectorAll('section[aria-labelledby]')].map(s=>s.getAttribute('aria-labelledby')),positions:[...root.querySelectorAll('.card-title-link')].map(a=>a.parentElement.parentElement.textContent),art:[...root.querySelectorAll('[data-artwork]')].map(i=>i.getAttribute('data-artwork'))}));
   // Relative timestamps can advance during rendering; their course-position container excludes the footer time.
@@ -72,12 +73,12 @@ try{
   assert.notEqual(await quote.evaluate(el=>getComputedStyle(el).userSelect),'none');
   const selected=await quote.evaluate(el=>{const range=document.createRange();range.selectNodeContents(el);const selection=getSelection();selection.removeAllRanges();selection.addRange(range);const text=selection.toString();selection.removeAllRanges();return text;});assert.ok(selected.includes('Synthetische Vandaagtekst nl'));
   for(const [width,height,scale,scheme]of [[320,844,1,'light'],[320,844,2,'dark'],[375,844,1,'dark'],[375,844,2,'light'],[390,844,1,'light'],[390,844,2,'dark'],[400,844,1,'dark'],[400,844,2,'light'],[1024,1366,1,'light'],[1366,1024,2,'dark']])for(const [kind,p]of [['native',page],['web',webPage]]){
-   await p.setViewportSize({width,height});await p.emulateMedia({colorScheme:scheme});await p.evaluate(scale=>{document.documentElement.style.fontSize=`${scale*100}%`;window.dispatchEvent(new Event('resize'));},scale);await p.waitForTimeout(80);
+   await p.setViewportSize({width,height});await p.emulateMedia({colorScheme:scheme});if(kind==='native'&&process.env.NATIVE_GLASS_TEST==='1')await checkGlassPalette(p,scheme);await p.evaluate(scale=>{document.documentElement.style.fontSize=`${scale*100}%`;window.dispatchEvent(new Event('resize'));},scale);await p.waitForTimeout(80);
    const overflow=await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1);
-   if(overflow){await p.screenshot({path:`${out}/FAILED-${kind}-${language}-${width}-${scale}-${scheme}.png`,fullPage:true});console.error('Today overflow:',await p.evaluate(()=>[...document.querySelectorAll('body *')].filter(el=>{const r=el.getBoundingClientRect();return r.right>innerWidth+1&&r.width>0;}).slice(0,18).map(el=>({tag:el.tagName,classes:el.className,text:el.textContent?.slice(0,80),width:el.getBoundingClientRect().width,right:el.getBoundingClientRect().right}))));}
+   if(overflow){await p.screenshot({path:`${out}/FAILED-${kind}-${language}-${width}-${scale}-${scheme}.png`,fullPage:process.env.NATIVE_GLASS_TEST!=='1'});console.error('Today overflow:',await p.evaluate(()=>[...document.querySelectorAll('body *')].filter(el=>{const r=el.getBoundingClientRect();return r.right>innerWidth+1&&r.width>0;}).slice(0,18).map(el=>({tag:el.tagName,classes:el.className,text:el.textContent?.slice(0,80),width:el.getBoundingClientRect().width,right:el.getBoundingClientRect().right}))));}
    assert.equal(overflow,false,`${kind} ${language} ${width} ${scale}: overflow`);
    await p.locator('[data-today-overview] [data-artwork] img').evaluateAll(images=>Promise.all(images.map(image=>{image.loading='eager';return image.decode();})));
-   const name=`${kind}-${language}-${width}-${scale}-${scheme}.png`;await p.screenshot({path:`${out}/${name}`,fullPage:true});artifacts.push(name);
+   const name=`${kind}-${language}-${width}-${scale}-${scheme}.png`;await p.screenshot({path:`${out}/${name}`,fullPage:process.env.NATIVE_GLASS_TEST!=='1'});artifacts.push(name);
   }
   await page.setViewportSize({width:390,height:844});await page.evaluate(()=>{document.documentElement.style.fontSize='100%';window.dispatchEvent(new Event('resize'));});
   await page.keyboard.press('Tab');await page.locator('.card-title-link').first().evaluate(el=>el.focus({preventScroll:true}));

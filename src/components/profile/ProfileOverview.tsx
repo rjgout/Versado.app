@@ -48,8 +48,8 @@ export default function ProfileOverview({ data, editingHandle, handleInput, savi
           changeLabel={t("profile.changeAvatar")}
           changeHref={canNavigate("/profile/avatar") ? "/profile/avatar" : undefined}
         />
-        <div className="p-4 sm:p-6">
-          <div className="flex items-start justify-between gap-4">
+        <div data-profile-summary className="p-4 sm:p-6">
+          <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="min-w-0">
               {!editingHandle ? <>
                 <h2 className="flex min-w-0 items-center gap-1.5 text-xl font-extrabold"><span className="truncate">{data.displayName}</span><button type="button" onClick={startEditingHandle} className="shrink-0 opacity-80 hover:opacity-100" title={t("profile.changeHandle")} aria-label={t("profile.changeHandle")}><Pencil className="h-4 w-4" aria-hidden /></button></h2>
@@ -60,10 +60,10 @@ export default function ProfileOverview({ data, editingHandle, handleInput, savi
                 <div className="flex gap-2"><button className="btn-primary !px-3 !py-1 !text-xs" disabled={savingHandle} onClick={saveHandle}>{savingHandle ? t("courses.busy") : t("profile.save")}</button><button className="btn-secondary !px-3 !py-1 !text-xs" onClick={() => setEditingHandle(false)}>{t("activeGames.cancel")}</button></div>
               </div>}
             </div>
-            {data.tier && <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-black/15 py-1 pl-1.5 pr-3 text-sm font-bold text-gold-400"><DivisionEmblem tier={data.tier} className="h-7 w-7" />{tier(data.tier)}</span>}
+            {data.tier && <span className="inline-flex max-w-full flex-wrap items-center gap-1.5 rounded-full bg-black/15 py-1 pl-1.5 pr-3 text-sm font-bold text-gold-400"><DivisionEmblem tier={data.tier} className="h-7 w-7" />{tier(data.tier)}</span>}
           </div>
         {/* Twee kolommen op een telefoon: "reeksbevriezingen" past niet naast drie andere cijfers in één rij. */}
-        <div className="mt-5 grid grid-cols-2 gap-y-2 rounded-2xl bg-black/10 py-2 sm:grid-cols-4">
+        <div data-profile-stats className="mt-5 grid grid-cols-2 gap-y-2 rounded-2xl bg-black/10 py-2 sm:grid-cols-4">
           <CompactHeroStat value={<><SystemIcon kind="streak" className="h-4 w-4" fill="currentColor" aria-hidden /> {data.currentStreak}</>} label={t("profile.streak")} href={canNavigate("/streak") ? "/streak" : undefined} />
           <CompactHeroStat value={<><SystemIcon kind="xp" className="h-4 w-4" fill="currentColor" aria-hidden /> {data.xpTotal}</>} label="XP" href={canNavigate("/xp") ? "/xp" : undefined} />
           <CompactHeroStat value={<><SystemIcon kind="freeze" className="h-4 w-4" aria-hidden /> {data.freezeCount}</>} label={t("lesson.freezes")} />
@@ -85,12 +85,12 @@ export default function ProfileOverview({ data, editingHandle, handleInput, savi
       <ProfileCard title={<><Trophy className="h-5 w-5 text-vs-xp" aria-hidden />{t("nav.competition")}</>}>
         {/* Smal scherm: beste divisie onder de huidige, anders breekt de
             huidige divisie af in losse woorden. */}
-        <button type="button" onClick={() => openView("competition")} className="flex min-h-12 w-full items-center gap-3 rounded-xl px-2 py-2 text-left transition hover:bg-vs-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vs-accent">
+        <button data-vs-settings-row type="button" onClick={() => openView("competition")} className="flex min-h-12 w-full items-center gap-3 rounded-xl px-2 py-2 text-left transition hover:bg-vs-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vs-accent">
           <span className="flex min-w-0 flex-1 flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-            <span className="flex min-w-0 items-center gap-3">{data.tier && <DivisionEmblem tier={data.tier} className="h-12 w-12" />}<span className="min-w-0"><span className="block font-bold text-vs-fg">{data.tier ? tier(data.tier) : "—"}</span><span className="block text-sm text-vs-fg-2">{data.groupPosition ? `#${data.groupPosition} · ` : ""}{t("profile.thisWeek")}</span></span></span>
+            <span className="flex min-w-0 flex-wrap items-center gap-3">{data.tier && <DivisionEmblem tier={data.tier} className="h-12 w-12" />}<span className="min-w-0"><span className="block font-bold text-vs-fg">{data.tier ? tier(data.tier) : "—"}</span><span className="block text-sm text-vs-fg-2">{data.groupPosition ? `#${data.groupPosition} · ` : ""}{t("profile.thisWeek")}</span></span></span>
             <span className="text-sm font-bold text-vs-fg-2">{data.bestTierEver ? `${t("profile.bestTier")}: ${tier(data.bestTierEver)}` : "—"}</span>
           </span>
-          <ChevronRight className="h-5 w-5 shrink-0 text-vs-fg-3" aria-hidden />
+          <ChevronRight data-vs-settings-icon className="h-5 w-5 shrink-0 text-vs-fg-3" aria-hidden />
         </button>
       </ProfileCard>
 
@@ -101,8 +101,8 @@ export default function ProfileOverview({ data, editingHandle, handleInput, savi
 
       <SettingsSection title={t("profile.preferencesSection")}>
         {/* Weergave direct hier te kiezen: één tik, en je ziet meteen wat aan staat. */}
-        <div className="flex flex-col gap-2 px-2 py-3 sm:flex-row sm:items-center sm:gap-3">
-          <span className="flex min-w-0 flex-1 items-center gap-3"><SunMoon className="h-5 w-5 shrink-0 text-vs-accent" aria-hidden /><span className="truncate font-bold text-vs-fg">{t("theme.appearance")}</span></span>
+        <div data-vs-settings-row className="flex flex-col gap-2 px-2 py-3 sm:flex-row sm:items-center sm:gap-3">
+          <span className="flex min-w-0 flex-1 items-center gap-3"><SunMoon data-vs-settings-icon className="h-5 w-5 shrink-0 text-vs-accent" aria-hidden /><span className="truncate font-bold text-vs-fg">{t("theme.appearance")}</span></span>
           <div className="sm:w-80"><ThemePreference /></div>
         </div>
         <SettingsRow

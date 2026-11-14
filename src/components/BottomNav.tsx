@@ -23,7 +23,7 @@ export default function BottomNav({ items = PRIMARY_NAV }: { items?: readonly Pr
       data-main-nav
       aria-label={t("nav.main")}
     >
-      <div className={`mx-auto grid w-full max-w-xl ${{ 1: "grid-cols-1", 2: "grid-cols-2", 3: "grid-cols-3", 4: "grid-cols-4" }[items.length] ?? "grid-cols-4"} gap-x-1 px-2 pt-1.5 pb-[calc(0.375rem+var(--vs-safe-area-bottom))]`}>
+      <div data-vs-surface="navigation" className={`mx-auto grid w-full max-w-xl ${{ 1: "grid-cols-1", 2: "grid-cols-2", 3: "grid-cols-3", 4: "grid-cols-4" }[items.length] ?? "grid-cols-4"} gap-x-1 px-2 pt-1.5 pb-[calc(0.375rem+var(--vs-safe-area-bottom))]`}>
         {items.map((item) => {
           const isActive = item.id === active;
           return (

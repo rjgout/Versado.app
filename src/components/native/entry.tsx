@@ -1,7 +1,9 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { I18nProvider } from "@/components/I18nProvider";
 import { messagesFor } from "@/lib/i18n";
+import { appPlatform } from "@/lib/platform";
+import { startNativeAppearance } from "@/lib/native/appearance";
 import { toLanguageCode } from "@/lib/languages";
 import NativeFoundation from "./NativeFoundation";
 import NativeNavigationProvider from "./NativeNavigationProvider";
@@ -29,6 +31,11 @@ const client = new NativeSessionClient(NATIVE_API_BASE_URL, nativeSecureSessionS
 if(NATIVE_INTERNAL_ACCESS || directTest)audioGate.attach(client);
 const audioOutput = new NativeReadAloudOutput(client,nativeBridge,NATIVE_INTERNAL_ACCESS || directTest);
 function NativeRoot() {
+  useEffect(() => startNativeAppearance({
+    read: () => nativeBridge.interfacePreferences(),
+    listen: callback => nativeBridge.addListener("interfacePreferences", callback),
+  }, { platform: appPlatform(), root: document.documentElement,
+    onChange: () => window.dispatchEvent(new Event("resize")) }), []);
   const [language, setLanguage] = useState(toLanguageCode(navigator.language));
   const [accessEpoch, setAccessEpoch] = useState(0);
   const beforeAccessClear = useCallback(async () => {

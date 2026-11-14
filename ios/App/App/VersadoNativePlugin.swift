@@ -17,6 +17,7 @@ public class VersadoNativePlugin: CAPPlugin, CAPBridgedPlugin, ASAuthorizationCo
         CAPPluginMethod(name: "enrollAccess", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "clearAccess", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "accessRequest", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "interfacePreferences", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "audioSession", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "audioContext", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "audioStatus", returnType: CAPPluginReturnPromise),
@@ -25,6 +26,7 @@ public class VersadoNativePlugin: CAPPlugin, CAPBridgedPlugin, ASAuthorizationCo
     ]
     private let audio = NativeAudioContext()
     private var nativePlayer: NativeAudioPlayer?
+    private var interfaceLifecycle: [NSObjectProtocol] = []
     private var audioLifecycle: [NSObjectProtocol] = []
     private func player() -> NativeAudioPlayer {
         if let player = nativePlayer { return player }
@@ -64,13 +66,35 @@ public class VersadoNativePlugin: CAPPlugin, CAPBridgedPlugin, ASAuthorizationCo
     public override func load() {
         // Een andere build mag eerder opgeslagen interne credentials niet gebruiken.
         if !accessEnabled() { SecItemDelete(accessQuery as CFDictionary) }
+        // UIKit levert de echte toegankelijkheidsvoorkeuren aan dezelfde React-shell.
+        interfaceLifecycle = [UIAccessibility.reduceTransparencyStatusDidChangeNotification,
+            UIAccessibility.reduceMotionStatusDidChangeNotification,
+            UIAccessibility.darkerSystemColorsStatusDidChangeNotification,
+            UIContentSizeCategory.didChangeNotification,
+            UIApplication.didBecomeActiveNotification].map { name in
+            NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
+                guard let self = self else { return }
+                self.notifyListeners("interfacePreferences", data: self.interfaceState())
+            }
+        }
         audio.setForeground(UIApplication.shared.applicationState == .active)
         audioLifecycle = [UIApplication.willResignActiveNotification, UIApplication.didEnterBackgroundNotification].map { name in
             NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in self?.audioLifecycleChanged(false) }
         }
         audioLifecycle.append(NotificationCenter.default.addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: .main) { [weak self] _ in self?.audioLifecycleChanged(true) })
     }
-    deinit { audioLifecycle.forEach { NotificationCenter.default.removeObserver($0) }; let output = nativePlayer; DispatchQueue.main.async { output?.destroy() } }
+    deinit { interfaceLifecycle.forEach { NotificationCenter.default.removeObserver($0) }; audioLifecycle.forEach { NotificationCenter.default.removeObserver($0) }; let output = nativePlayer; DispatchQueue.main.async { output?.destroy() } }
+    private func interfaceState() -> [String: Any] {
+        return ["version": 1,
+            "reduceTransparency": UIAccessibility.isReduceTransparencyEnabled,
+            "reduceMotion": UIAccessibility.isReduceMotionEnabled,
+            "increaseContrast": UIAccessibility.isDarkerSystemColorsEnabled,
+            "fontScale": UIFont.preferredFont(forTextStyle: .body).pointSize / 17.0]
+    }
+    @objc func interfacePreferences(_ call: CAPPluginCall) {
+        guard localOnly(call) else { return }
+        DispatchQueue.main.async { call.resolve(self.interfaceState()) }
+    }
     private func audioLifecycleChanged(_ active: Bool) {
         audio.setForeground(active)
         notifyListeners("audioState", data:["lifecycle":true,"active":active,"contextEpoch":audio.contextEpoch])
