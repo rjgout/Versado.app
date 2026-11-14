@@ -10157,49 +10157,16 @@
     },
     {
       "file": "src/components/LessonFlow.tsx",
-      "sha256": "3b7fbbb7b3f84852887682434c388725d048979be7357b690fc6a10a57bef638",
+      "sha256": "6f21009893e108cf28e5d654cab74377e5fd4b27df988f5f02cfb2f25bfcbae9",
       "boundary": "client",
       "imports": [
-        "@/components/I18nProvider",
-        "@/components/ReadAloudPlayer",
-        "@/components/StreakContinuation",
-        "@/components/annotations/AnnotationActions",
-        "@/components/annotations/AnnotationTransport",
-        "@/components/annotations/useVerseAnnotationMenu",
-        "@/components/learning/ContentStatus",
-        "@/components/learning/ExerciseSessionQuestions",
-        "@/components/learning/LessonSummary",
-        "@/components/navigation/AppNavigation",
-        "@/components/reading/ScriptureReaderView",
-        "@/components/versado/FocusLayout",
-        "@/lib/annotations/clientContract",
-        "@/lib/chapterTerm",
-        "@/lib/data/applicationRuntime",
-        "@/lib/data/fetchJson",
-        "@/lib/data/hooks",
-        "@/lib/readAloudPlayerContext",
-        "@/lib/useActivity",
-        "@/lib/xpBroadcast",
-        "react"
+        "./learning/SharedLessonFlow"
       ],
       "methods": [],
-      "requests": [
-        "/api/annotations?view=reader&chapterId=${encodeURIComponent(chapterId)}",
-        "/api/chapters/${chapterId}/read",
-        "/api/chapters/${chapterId}/submit",
-        "/api/reading-sessions"
-      ],
+      "requests": [],
       "checks": [],
       "exports": [
-        "Exercise",
-        "ExerciseCard",
-        "ExerciseSessionQuestions",
-        "ExerciseType",
-        "LessonFlow",
-        "LessonResultMascot",
-        "ReaderView",
-        "SummaryResult",
-        "SummaryScreen"
+        "default"
       ]
     },
     {
@@ -12322,7 +12289,7 @@
     },
     {
       "file": "src/components/games/GameViews.ts",
-      "sha256": "e0ea1deffbe111cdeaf8712f4ebd4120b67f664a63586103da3c0d7a10179699",
+      "sha256": "3c04c05c909d459dfc916c28f5d6922c74ecc3fa31129da74fafbc3a07ad753c",
       "boundary": "context-dependent",
       "imports": [
         "@/components/ActionsClient",
@@ -12334,7 +12301,6 @@
         "@/components/FamilyGameSetupClient",
         "@/components/GameRoom",
         "@/components/JigsawV2Client",
-        "@/components/LessonFlow",
         "@/components/LiveLobbyForm",
         "@/components/ScrabbleBoardClient",
         "@/components/ScrabbleListClient",
@@ -12350,6 +12316,7 @@
         "@/components/mysteries/Mystery001aClient",
         "@/components/mysteries/MysteryDetailView",
         "@/components/mysteries/MysteryOverviewView",
+        "@/components/native/NativeGameLesson",
         "@/components/puzzle/CoopClient",
         "@/components/puzzle/LeaderboardClient",
         "@/components/puzzle/MatchClient",
@@ -12994,6 +12961,53 @@
       ]
     },
     {
+      "file": "src/components/learning/SharedLessonFlow.tsx",
+      "sha256": "e30a76efbd781c93431cb0e72cbe91b09f33c572d041682802789e413b464b1f",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/ReadAloudPlayer",
+        "@/components/StreakContinuation",
+        "@/components/annotations/AnnotationActions",
+        "@/components/annotations/AnnotationTransport",
+        "@/components/annotations/useVerseAnnotationMenu",
+        "@/components/learning/ContentStatus",
+        "@/components/learning/ExerciseSessionQuestions",
+        "@/components/learning/LessonSummary",
+        "@/components/navigation/AppNavigation",
+        "@/components/reading/ScriptureReaderView",
+        "@/components/versado/FocusLayout",
+        "@/lib/annotations/clientContract",
+        "@/lib/chapterTerm",
+        "@/lib/data/applicationRuntime",
+        "@/lib/data/fetchJson",
+        "@/lib/data/hooks",
+        "@/lib/readAloudPlayerContext",
+        "@/lib/useActivity",
+        "@/lib/xpBroadcast",
+        "react"
+      ],
+      "methods": [],
+      "requests": [
+        "/api/annotations?view=reader&chapterId=${encodeURIComponent(chapterId)}",
+        "/api/chapters/${chapterId}/read",
+        "/api/chapters/${chapterId}/submit",
+        "/api/reading-sessions"
+      ],
+      "checks": [],
+      "exports": [
+        "Exercise",
+        "ExerciseCard",
+        "ExerciseSessionQuestions",
+        "ExerciseType",
+        "LessonResultMascot",
+        "ReaderView",
+        "SharedLessonFlow",
+        "SummaryResult",
+        "SummaryScreen"
+      ]
+    },
+    {
       "file": "src/components/legal/ContactContent.tsx",
       "sha256": "742e0eb3369e0fca0e6d46255af0761122665f500b613b059e1dd55981bdc15e",
       "boundary": "client",
@@ -13293,7 +13307,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "20d955044aebc5598d2cfb199dd6009be4cc814edd8c610902b5d0d61ec6bd66",
+      "sha256": "6063ff70276a63c6b53020eb645bcdfa58a0feb1e531997774bac05c6635976e",
       "boundary": "client",
       "imports": [
         "./NativeContentPicker",
@@ -13355,6 +13369,25 @@
       "checks": [],
       "exports": [
         "NativeFoundation"
+      ]
+    },
+    {
+      "file": "src/components/native/NativeGameLesson.tsx",
+      "sha256": "375041d17baed0eac75b4706619f1801620ad2451abfe62f407194e64dc3ad52",
+      "boundary": "client",
+      "imports": [
+        "@/components/annotations/AnnotationTransport",
+        "@/components/games/GameMediaContext",
+        "@/components/learning/SharedLessonFlow",
+        "@/lib/data/nativeHooks",
+        "@/lib/native/client",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NativeGameLesson"
       ]
     },
     {
@@ -13540,7 +13573,7 @@
     },
     {
       "file": "src/components/native/NativeProfileView.tsx",
-      "sha256": "951f7ff93d15cce892e2d77823438290fc8f5e6a810a60394c17b766253972d2",
+      "sha256": "5a1b07b6397935e7556274f241b671524e7c877a3098074996da20184b23623c",
       "boundary": "client",
       "imports": [
         "@/components/ConfirmProvider",
@@ -13563,10 +13596,10 @@
         "@/lib/native/audioOutput",
         "@/lib/native/client",
         "@/lib/native/contract",
-        "@/lib/native/navigation",
         "@/lib/native/profileAssets",
         "@/lib/native/profileContract",
         "@/lib/native/profileErrors",
+        "@/lib/native/profileNavigation",
         "@/lib/native/routeFocus",
         "@/lib/native/todayAssets",
         "@/lib/profile/settingsContract",
@@ -15648,15 +15681,15 @@
     },
     {
       "file": "src/components/study/StudyRoom.tsx",
-      "sha256": "1bea35655a3ce4deef3174bfd72d1cc23cfbaa34fad973a0b55873a5551f0e2f",
+      "sha256": "0a691a67107ae7c3187ef0f9bd6c7c04daf96254d277334e85ed37ce29b6b653",
       "boundary": "client",
       "imports": [
         "@/components/ConfirmProvider",
         "@/components/I18nProvider",
-        "@/components/LessonFlow",
         "@/components/LobbyClosedNotice",
         "@/components/LobbyInviteCard",
         "@/components/UserAvatar",
+        "@/components/learning/SharedLessonFlow",
         "@/components/navigation/AppNavigation",
         "@/components/versado/styles",
         "@/lib/data/applicationRuntime",
@@ -23249,6 +23282,21 @@
       ]
     },
     {
+      "file": "src/lib/native/profileNavigation.ts",
+      "sha256": "10e0735d022b08def6619e7a64b89ebba9f36b16866944e15b2eb3d68a611f97",
+      "boundary": "context-dependent",
+      "imports": [
+        "./gamesPagesRoutes",
+        "./navigation"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "nativeProfileDestination"
+      ]
+    },
+    {
       "file": "src/lib/native/reader.server.ts",
       "sha256": "f910dc27a2cfd2bee8896aa9de06a5c59cd176845e4e16c4c556a7e54073d8b0",
       "boundary": "context-dependent",
@@ -23411,6 +23459,21 @@
         "nativeSessionIdentity",
         "nativeUser",
         "rotateNativeSession"
+      ]
+    },
+    {
+      "file": "src/lib/native/sharedSocketClient.ts",
+      "sha256": "3421c4952416620db520c63bae1a7bdfe5b28c4fed79a5f5659c45df6a23f2eb",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/lib/data/applicationRuntime",
+        "socket.io-client"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "getSocket"
       ]
     },
     {
@@ -29996,6 +30059,7 @@
         "src/components/learning/ContentStatus.tsx",
         "src/components/learning/ExerciseSessionQuestions.tsx",
         "src/components/learning/LessonSummary.tsx",
+        "src/components/learning/SharedLessonFlow.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ScriptureReaderView.tsx",
         "src/components/social/shared.tsx",
@@ -30193,6 +30257,7 @@
         "src/components/learning/ContentStatus.tsx",
         "src/components/learning/ExerciseSessionQuestions.tsx",
         "src/components/learning/LessonSummary.tsx",
+        "src/components/learning/SharedLessonFlow.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ScriptureReaderView.tsx",
         "src/components/social/shared.tsx",
@@ -53798,6 +53863,7 @@
         "src/components/learning/ContentStatus.tsx",
         "src/components/learning/ExerciseSessionQuestions.tsx",
         "src/components/learning/LessonSummary.tsx",
+        "src/components/learning/SharedLessonFlow.tsx",
         "src/components/mysteries/Mystery001aClient.tsx",
         "src/components/mysteries/MysteryDetailPage.tsx",
         "src/components/mysteries/MysteryDetailView.tsx",
@@ -54363,6 +54429,7 @@
         "src/components/learning/ContentStatus.tsx",
         "src/components/learning/ExerciseSessionQuestions.tsx",
         "src/components/learning/LessonSummary.tsx",
+        "src/components/learning/SharedLessonFlow.tsx",
         "src/components/mysteries/Mystery001aClient.tsx",
         "src/components/mysteries/MysteryDetailView.tsx",
         "src/components/mysteries/MysteryOverviewView.tsx",
@@ -60565,6 +60632,7 @@
         "src/components/learning/ContentStatus.tsx",
         "src/components/learning/ExerciseSessionQuestions.tsx",
         "src/components/learning/LessonSummary.tsx",
+        "src/components/learning/SharedLessonFlow.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ScriptureReaderView.tsx",
         "src/components/social/shared.tsx",
@@ -60773,6 +60841,7 @@
         "src/components/learning/ContentStatus.tsx",
         "src/components/learning/ExerciseSessionQuestions.tsx",
         "src/components/learning/LessonSummary.tsx",
+        "src/components/learning/SharedLessonFlow.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ScriptureReaderView.tsx",
         "src/components/social/shared.tsx",
@@ -62175,6 +62244,7 @@
         "src/components/learning/ContentStatus.tsx",
         "src/components/learning/ExerciseSessionQuestions.tsx",
         "src/components/learning/LessonSummary.tsx",
+        "src/components/learning/SharedLessonFlow.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ScriptureReaderView.tsx",
         "src/components/social/shared.tsx",
@@ -62381,6 +62451,7 @@
         "src/components/learning/ContentStatus.tsx",
         "src/components/learning/ExerciseSessionQuestions.tsx",
         "src/components/learning/LessonSummary.tsx",
+        "src/components/learning/SharedLessonFlow.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ScriptureReaderView.tsx",
         "src/components/social/shared.tsx",
@@ -62853,6 +62924,7 @@
         "src/components/learning/ContentStatus.tsx",
         "src/components/learning/ExerciseSessionQuestions.tsx",
         "src/components/learning/LessonSummary.tsx",
+        "src/components/learning/SharedLessonFlow.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ScriptureReaderView.tsx",
         "src/components/social/shared.tsx",
@@ -63096,6 +63168,7 @@
         "src/components/learning/ContentStatus.tsx",
         "src/components/learning/ExerciseSessionQuestions.tsx",
         "src/components/learning/LessonSummary.tsx",
+        "src/components/learning/SharedLessonFlow.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ScriptureReaderView.tsx",
         "src/components/social/shared.tsx",
@@ -63352,7 +63425,6 @@
         "src/components/GameRoom.tsx",
         "src/components/I18nProvider.tsx",
         "src/components/IntroAudioButton.tsx",
-        "src/components/LessonFlow.tsx",
         "src/components/LobbyClosedNotice.tsx",
         "src/components/LobbyInviteCard.tsx",
         "src/components/ReadAloudPlayer.tsx",
@@ -63377,6 +63449,7 @@
         "src/components/learning/ContentStatus.tsx",
         "src/components/learning/ExerciseSessionQuestions.tsx",
         "src/components/learning/LessonSummary.tsx",
+        "src/components/learning/SharedLessonFlow.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ScriptureReaderView.tsx",
         "src/components/social/shared.tsx",
@@ -63582,7 +63655,6 @@
         "src/components/GameRoom.tsx",
         "src/components/I18nProvider.tsx",
         "src/components/IntroAudioButton.tsx",
-        "src/components/LessonFlow.tsx",
         "src/components/LobbyClosedNotice.tsx",
         "src/components/LobbyInviteCard.tsx",
         "src/components/ReadAloudPlayer.tsx",
@@ -63602,6 +63674,7 @@
         "src/components/learning/ContentStatus.tsx",
         "src/components/learning/ExerciseSessionQuestions.tsx",
         "src/components/learning/LessonSummary.tsx",
+        "src/components/learning/SharedLessonFlow.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ScriptureReaderView.tsx",
         "src/components/social/shared.tsx",
@@ -68964,6 +69037,7 @@
         "src/components/learning/ContentStatus.tsx",
         "src/components/learning/ExerciseSessionQuestions.tsx",
         "src/components/learning/LessonSummary.tsx",
+        "src/components/learning/SharedLessonFlow.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ScriptureReaderView.tsx",
         "src/components/social/shared.tsx",
@@ -69170,6 +69244,7 @@
         "src/components/learning/ContentStatus.tsx",
         "src/components/learning/ExerciseSessionQuestions.tsx",
         "src/components/learning/LessonSummary.tsx",
+        "src/components/learning/SharedLessonFlow.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ScriptureReaderView.tsx",
         "src/components/social/shared.tsx",
@@ -69263,6 +69338,7 @@
         "src/components/learning/ContentStatus.tsx",
         "src/components/learning/ExerciseSessionQuestions.tsx",
         "src/components/learning/LessonSummary.tsx",
+        "src/components/learning/SharedLessonFlow.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ScriptureReaderView.tsx",
         "src/components/social/shared.tsx",
@@ -69457,6 +69533,7 @@
         "src/components/learning/ContentStatus.tsx",
         "src/components/learning/ExerciseSessionQuestions.tsx",
         "src/components/learning/LessonSummary.tsx",
+        "src/components/learning/SharedLessonFlow.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ScriptureReaderView.tsx",
         "src/components/social/shared.tsx",
@@ -69979,6 +70056,7 @@
         "src/components/learning/ExerciseSessionQuestions.tsx",
         "src/components/learning/LessonSummary.tsx",
         "src/components/learning/ReadingCompletionSummary.tsx",
+        "src/components/learning/SharedLessonFlow.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ScriptureReaderView.tsx",
         "src/components/social/shared.tsx",
@@ -70208,6 +70286,7 @@
         "src/components/learning/ExerciseSessionQuestions.tsx",
         "src/components/learning/LessonSummary.tsx",
         "src/components/learning/ReadingCompletionSummary.tsx",
+        "src/components/learning/SharedLessonFlow.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ScriptureReaderView.tsx",
         "src/components/social/shared.tsx",
@@ -70708,6 +70787,7 @@
         "src/components/learning/ContentStatus.tsx",
         "src/components/learning/ExerciseSessionQuestions.tsx",
         "src/components/learning/LessonSummary.tsx",
+        "src/components/learning/SharedLessonFlow.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ScriptureReaderView.tsx",
         "src/components/social/shared.tsx",
@@ -70907,6 +70987,7 @@
         "src/components/learning/ContentStatus.tsx",
         "src/components/learning/ExerciseSessionQuestions.tsx",
         "src/components/learning/LessonSummary.tsx",
+        "src/components/learning/SharedLessonFlow.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ScriptureReaderView.tsx",
         "src/components/social/shared.tsx",
@@ -72642,6 +72723,7 @@
         "src/components/learning/ContentStatus.tsx",
         "src/components/learning/ExerciseSessionQuestions.tsx",
         "src/components/learning/LessonSummary.tsx",
+        "src/components/learning/SharedLessonFlow.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ScriptureReaderView.tsx",
         "src/components/social/shared.tsx",
@@ -72869,6 +72951,7 @@
         "src/components/learning/ContentStatus.tsx",
         "src/components/learning/ExerciseSessionQuestions.tsx",
         "src/components/learning/LessonSummary.tsx",
+        "src/components/learning/SharedLessonFlow.tsx",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/reading/ScriptureReaderView.tsx",
         "src/components/social/shared.tsx",
@@ -79213,49 +79296,16 @@
     },
     {
       "file": "src/components/LessonFlow.tsx",
-      "sha256": "3b7fbbb7b3f84852887682434c388725d048979be7357b690fc6a10a57bef638",
+      "sha256": "6f21009893e108cf28e5d654cab74377e5fd4b27df988f5f02cfb2f25bfcbae9",
       "boundary": "client",
       "imports": [
-        "@/components/I18nProvider",
-        "@/components/ReadAloudPlayer",
-        "@/components/StreakContinuation",
-        "@/components/annotations/AnnotationActions",
-        "@/components/annotations/AnnotationTransport",
-        "@/components/annotations/useVerseAnnotationMenu",
-        "@/components/learning/ContentStatus",
-        "@/components/learning/ExerciseSessionQuestions",
-        "@/components/learning/LessonSummary",
-        "@/components/navigation/AppNavigation",
-        "@/components/reading/ScriptureReaderView",
-        "@/components/versado/FocusLayout",
-        "@/lib/annotations/clientContract",
-        "@/lib/chapterTerm",
-        "@/lib/data/applicationRuntime",
-        "@/lib/data/fetchJson",
-        "@/lib/data/hooks",
-        "@/lib/readAloudPlayerContext",
-        "@/lib/useActivity",
-        "@/lib/xpBroadcast",
-        "react"
+        "./learning/SharedLessonFlow"
       ],
       "methods": [],
-      "requests": [
-        "/api/annotations?view=reader&chapterId=${encodeURIComponent(chapterId)}",
-        "/api/chapters/${chapterId}/read",
-        "/api/chapters/${chapterId}/submit",
-        "/api/reading-sessions"
-      ],
+      "requests": [],
       "checks": [],
       "exports": [
-        "Exercise",
-        "ExerciseCard",
-        "ExerciseSessionQuestions",
-        "ExerciseType",
-        "LessonFlow",
-        "LessonResultMascot",
-        "ReaderView",
-        "SummaryResult",
-        "SummaryScreen"
+        "default"
       ]
     },
     {
@@ -81899,6 +81949,53 @@
       ]
     },
     {
+      "file": "src/components/learning/SharedLessonFlow.tsx",
+      "sha256": "e30a76efbd781c93431cb0e72cbe91b09f33c572d041682802789e413b464b1f",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/ReadAloudPlayer",
+        "@/components/StreakContinuation",
+        "@/components/annotations/AnnotationActions",
+        "@/components/annotations/AnnotationTransport",
+        "@/components/annotations/useVerseAnnotationMenu",
+        "@/components/learning/ContentStatus",
+        "@/components/learning/ExerciseSessionQuestions",
+        "@/components/learning/LessonSummary",
+        "@/components/navigation/AppNavigation",
+        "@/components/reading/ScriptureReaderView",
+        "@/components/versado/FocusLayout",
+        "@/lib/annotations/clientContract",
+        "@/lib/chapterTerm",
+        "@/lib/data/applicationRuntime",
+        "@/lib/data/fetchJson",
+        "@/lib/data/hooks",
+        "@/lib/readAloudPlayerContext",
+        "@/lib/useActivity",
+        "@/lib/xpBroadcast",
+        "react"
+      ],
+      "methods": [],
+      "requests": [
+        "/api/annotations?view=reader&chapterId=${encodeURIComponent(chapterId)}",
+        "/api/chapters/${chapterId}/read",
+        "/api/chapters/${chapterId}/submit",
+        "/api/reading-sessions"
+      ],
+      "checks": [],
+      "exports": [
+        "Exercise",
+        "ExerciseCard",
+        "ExerciseSessionQuestions",
+        "ExerciseType",
+        "LessonResultMascot",
+        "ReaderView",
+        "SharedLessonFlow",
+        "SummaryResult",
+        "SummaryScreen"
+      ]
+    },
+    {
       "file": "src/components/legal/ContactContent.tsx",
       "sha256": "742e0eb3369e0fca0e6d46255af0761122665f500b613b059e1dd55981bdc15e",
       "boundary": "client",
@@ -82198,7 +82295,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "20d955044aebc5598d2cfb199dd6009be4cc814edd8c610902b5d0d61ec6bd66",
+      "sha256": "6063ff70276a63c6b53020eb645bcdfa58a0feb1e531997774bac05c6635976e",
       "boundary": "client",
       "imports": [
         "./NativeContentPicker",
@@ -82260,6 +82357,25 @@
       "checks": [],
       "exports": [
         "NativeFoundation"
+      ]
+    },
+    {
+      "file": "src/components/native/NativeGameLesson.tsx",
+      "sha256": "375041d17baed0eac75b4706619f1801620ad2451abfe62f407194e64dc3ad52",
+      "boundary": "client",
+      "imports": [
+        "@/components/annotations/AnnotationTransport",
+        "@/components/games/GameMediaContext",
+        "@/components/learning/SharedLessonFlow",
+        "@/lib/data/nativeHooks",
+        "@/lib/native/client",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NativeGameLesson"
       ]
     },
     {
@@ -82445,7 +82561,7 @@
     },
     {
       "file": "src/components/native/NativeProfileView.tsx",
-      "sha256": "951f7ff93d15cce892e2d77823438290fc8f5e6a810a60394c17b766253972d2",
+      "sha256": "5a1b07b6397935e7556274f241b671524e7c877a3098074996da20184b23623c",
       "boundary": "client",
       "imports": [
         "@/components/ConfirmProvider",
@@ -82468,10 +82584,10 @@
         "@/lib/native/audioOutput",
         "@/lib/native/client",
         "@/lib/native/contract",
-        "@/lib/native/navigation",
         "@/lib/native/profileAssets",
         "@/lib/native/profileContract",
         "@/lib/native/profileErrors",
+        "@/lib/native/profileNavigation",
         "@/lib/native/routeFocus",
         "@/lib/native/todayAssets",
         "@/lib/profile/settingsContract",
@@ -84436,15 +84552,15 @@
     },
     {
       "file": "src/components/study/StudyRoom.tsx",
-      "sha256": "1bea35655a3ce4deef3174bfd72d1cc23cfbaa34fad973a0b55873a5551f0e2f",
+      "sha256": "0a691a67107ae7c3187ef0f9bd6c7c04daf96254d277334e85ed37ce29b6b653",
       "boundary": "client",
       "imports": [
         "@/components/ConfirmProvider",
         "@/components/I18nProvider",
-        "@/components/LessonFlow",
         "@/components/LobbyClosedNotice",
         "@/components/LobbyInviteCard",
         "@/components/UserAvatar",
+        "@/components/learning/SharedLessonFlow",
         "@/components/navigation/AppNavigation",
         "@/components/versado/styles",
         "@/lib/data/applicationRuntime",

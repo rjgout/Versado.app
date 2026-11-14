@@ -1,7 +1,7 @@
 import ShopClient from "@/components/ShopClient";
 import KompasTopicView from "@/components/kompas/KompasTopicView";
 import ActionsClient from "@/components/ActionsClient";
-import LessonFlow from "@/components/LessonFlow";
+import NativeGameLesson from "@/components/native/NativeGameLesson";
 import GameView0 from "@/components/alleskenner/AlleskennerRoom";
 import GameView1 from "@/components/alleskenner/SoloClient";
 import GameView2 from "@/components/alleskenner/AlleskennerSetupClient";
@@ -38,7 +38,7 @@ export const GAME_VIEWS = {
 "shop": ShopClient,
 "gameGuide": KompasTopicView,
 "actions": ActionsClient,
-"chapterLesson":LessonFlow,
+"chapterLesson":NativeGameLesson,
 "alleskennerRoom": GameView0,
 "alleskennerSolo": GameView1,
 "alleskennerSetup": GameView2,

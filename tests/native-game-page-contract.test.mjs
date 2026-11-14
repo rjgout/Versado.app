@@ -28,3 +28,17 @@ test('paginaprotocol verwerpt HTML, vrije componentnamen, tokens en onbekende co
   assert.equal(nativeGamePageSchema.safeParse(base).success,true);
   for(const change of [{version:2},{path:'/adminbackend'},{result:{kind:'html',html:'<script/>'}},{result:{kind:'screen',screen:{view:'RemoteWebView',data:{},frame:'plain'}}},{result:{kind:'redirect',href:'/login?token=secret'}}])assert.equal(nativeGamePageSchema.safeParse({...base,...change}).success,false);
 });
+
+test('de gedeelde native spelles weigert ontbrekende platformpoorten en een vreemd annotatiehoofdstuk',async()=>{
+ const {createElement:h}=await import('react'),{renderToStaticMarkup:render}=await import('react-dom/server');
+ const {default:Lesson}=await import('../src/components/native/NativeGameLesson.tsx');
+ const {NativeDataProvider}=await import('../src/lib/data/nativeHooks.tsx');
+ const {GameMediaContext}=await import('../src/components/games/GameMediaContext.tsx');
+ const {AnnotationTransportContext}=await import('../src/components/annotations/AnnotationTransport.tsx');
+ assert.throws(()=>render(h(Lesson,{chapterId:'own'})),/NativeDataProvider ontbreekt/);
+ const client={getSessionStamp:()=> 'synthetic-session'};
+ for(const [media,annotations] of [[null,null],[{Reading:()=>null,Intro:()=>null},null],[{Reading:()=>null,Intro:()=>null},{chapterId:'foreign'}]]){
+  const scene=h(NativeDataProvider,{client},h(GameMediaContext.Provider,{value:media},h(AnnotationTransportContext.Provider,{value:annotations},h(Lesson,{chapterId:'own'}))));
+  assert.throws(()=>render(scene),error=>error.code==='native_runtime_unavailable'&&error.status===503);
+ }
+});

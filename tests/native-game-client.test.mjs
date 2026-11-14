@@ -28,3 +28,13 @@ test('vreemde responseactor/pad/methode faalt dicht; HTTP-domeinfouten blijven b
  const request=nativeGameFetch({getSessionStamp:()=> 'A',api:async()=>base},()=>actor);
  const response=await request('/api/hints');assert.equal(response.status,403);assert.deepEqual(await response.json(),{error:'forbidden'});
 });
+
+
+test('de native buildadapter geeft uitsluitend dezelfde bestaande ticketsocket door en faalt dicht zonder runtime',async()=>{
+ const {getSocket}=await import('../src/lib/native/sharedSocketClient.ts');
+ const {installNativeApplicationRuntime}=await import('../src/lib/data/applicationRuntime.ts');
+ assert.throws(()=>getSocket(),/native_realtime_unavailable/);
+ const socket={id:'synthetic-existing-ticket-socket'},stop=installNativeApplicationRuntime({socket:()=>socket});
+ assert.equal(getSocket(),socket);assert.equal(getSocket(),socket);
+ stop();assert.throws(()=>getSocket(),/native_realtime_unavailable/);
+});

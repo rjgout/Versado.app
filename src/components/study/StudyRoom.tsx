@@ -8,7 +8,7 @@ import { BookOpen, CheckCircle2, Crown, Headphones, LogOut, Play, SkipForward, S
 import { getSocket } from "@/lib/socketClient";
 import { useT } from "@/components/I18nProvider";
 import { useConfirm } from "@/components/ConfirmProvider";
-import { ExerciseCard, ReaderView, type Exercise } from "@/components/LessonFlow";
+import { ExerciseCard, ReaderView, type Exercise } from "@/components/learning/SharedLessonFlow";
 import LobbyInviteCard from "@/components/LobbyInviteCard";
 import LobbyClosedNotice from "@/components/LobbyClosedNotice";
 import UserAvatar from "@/components/UserAvatar";

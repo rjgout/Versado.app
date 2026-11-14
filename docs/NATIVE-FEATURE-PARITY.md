@@ -380,7 +380,7 @@ registratie of website-link telt niet als lokaal geïmplementeerde functie.
 <!-- BEGIN NATIVE PARITY INVENTORY -->
 ## Volledige broninventaris (gegenereerd)
 
-Gevonden: **145 pagina's**, **244 fysieke routehandlers**, **499 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
+Gevonden: **145 pagina's**, **244 fysieke routehandlers**, **501 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
 
 De JSON-bijlage bevat per route alle transitief bereikbare lokale modules, clientgrenzen en statische requestpaden. Dat is een afhankelijkheidsinventaris, geen autorisatiebewijs; voorwaarden per HTTP-methode blijven apart te controleren. Een Client Component kan via een gedeelde helper nog een serverafhankelijkheid hebben. Een module zonder eigen `use client` is contextafhankelijk, niet automatisch browsergeschikt.
 
@@ -1004,7 +1004,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/KidsLessonFlow.tsx](../src/components/KidsLessonFlow.tsx) | use client | KidsLessonFlow
 [src/components/LanguageSettings.tsx](../src/components/LanguageSettings.tsx) | use client | LanguageSettings
 [src/components/LeaderboardClient.tsx](../src/components/LeaderboardClient.tsx) | use client | LeaderboardClient
-[src/components/LessonFlow.tsx](../src/components/LessonFlow.tsx) | use client | Exercise, ExerciseCard, ExerciseSessionQuestions, ExerciseType, LessonFlow, LessonResultMascot, ReaderView, SummaryResult, SummaryScreen
+[src/components/LessonFlow.tsx](../src/components/LessonFlow.tsx) | use client | default
 [src/components/LiveDataProvider.tsx](../src/components/LiveDataProvider.tsx) | use client | LiveDataProvider
 [src/components/LiveLobbyForm.tsx](../src/components/LiveLobbyForm.tsx) | use client | LiveLobbyForm
 [src/components/LiveRefresh.tsx](../src/components/LiveRefresh.tsx) | use client | LiveRefresh
@@ -1128,6 +1128,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/learning/ExerciseSessionQuestions.tsx](../src/components/learning/ExerciseSessionQuestions.tsx) | use client | ExerciseCard, ExerciseSessionQuestions, LessonResultMascot
 [src/components/learning/LessonSummary.tsx](../src/components/learning/LessonSummary.tsx) | use client | SummaryScreen
 [src/components/learning/ReadingCompletionSummary.tsx](../src/components/learning/ReadingCompletionSummary.tsx) | use client | ReadingCompletionSummary
+[src/components/learning/SharedLessonFlow.tsx](../src/components/learning/SharedLessonFlow.tsx) | use client | Exercise, ExerciseCard, ExerciseSessionQuestions, ExerciseType, LessonResultMascot, ReaderView, SharedLessonFlow, SummaryResult, SummaryScreen
 [src/components/legal/ContactContent.tsx](../src/components/legal/ContactContent.tsx) | use client | ContactContent
 [src/components/legal/CookiesContent.tsx](../src/components/legal/CookiesContent.tsx) | use client | CookiesContent
 [src/components/legal/DisclaimerContent.tsx](../src/components/legal/DisclaimerContent.tsx) | use client | DisclaimerContent
@@ -1144,6 +1145,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/native/NativeContentPicker.tsx](../src/components/native/NativeContentPicker.tsx) | use client | NativeContentPicker
 [src/components/native/NativeEmailConfirmation.tsx](../src/components/native/NativeEmailConfirmation.tsx) | use client | NativeEmailConfirmation
 [src/components/native/NativeFoundation.tsx](../src/components/native/NativeFoundation.tsx) | use client | NativeFoundation
+[src/components/native/NativeGameLesson.tsx](../src/components/native/NativeGameLesson.tsx) | use client | NativeGameLesson
 [src/components/native/NativeGamesMedia.tsx](../src/components/native/NativeGamesMedia.tsx) | use client | NativeGamesMedia
 [src/components/native/NativeGamesView.tsx](../src/components/native/NativeGamesView.tsx) | use client | NativeGamesView
 [src/components/native/NativeKompasProvider.tsx](../src/components/native/NativeKompasProvider.tsx) | use client | NativeKompasProvider

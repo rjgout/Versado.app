@@ -79,7 +79,7 @@ test("late POST-bevestiging mag account B nooit cachedata of opgeslagen-status v
 });
 test("web/native gebruiken dezelfde menu- en versbediening zonder webtransport in native presentatie",()=>{
  const read=(p:string)=>readFileSync(p,"utf8");
- for(const p of ["src/components/LessonFlow.tsx","src/components/native/NativeReaderView.tsx"])assert.match(read(p),/useVerseAnnotationMenu/);
+ for(const p of ["src/components/learning/SharedLessonFlow.tsx","src/components/native/NativeReaderView.tsx"])assert.match(read(p),/useVerseAnnotationMenu/);
  assert.match(read("src/components/annotations/AnnotationActions.tsx"),/<AnnotationActionsView/);
  assert.match(read("src/components/native/NativeReaderView.tsx"),/<AnnotationActionsView/);
  assert.doesNotMatch(read("src/components/annotations/AnnotationActionsView.tsx"),/data\/client|fetchJson|jsonMutation|next\//);

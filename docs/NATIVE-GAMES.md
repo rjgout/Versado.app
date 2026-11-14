@@ -35,6 +35,11 @@ sessieopvraag; achtergrondwerk houdt die bevoegdheid niet na het antwoord.
 Pagina's projecteren alleen vaste getypeerde GameScreen-gegevens. Geen HTML,
 script, vrije componentnaam of uitvoerbare functie in het protocol.
 
+De native bundel vervangt de gedeelde `socketClient`-import expliciet door
+`sharedSocketClient.ts`: uitsluitend doorgeven van de bestaande ticketsocket.
+Het webbestand met cookie-ondersteuning komt daardoor niet in de appbundel;
+de oorspronkelijke bundelasserties blijven ongewijzigd actief.
+
 Dezelfde LiveDataStore, inhoudsselectie en bestaande eenmalige Socket.IO-tickets
 worden hergebruikt. In-flight antwoorden blijven aan account, sessiestamp,
 epoch, taal en bronversie gebonden. Geen automatische herhaling van writes.
@@ -43,7 +48,11 @@ endpoints vereisen code, tests en review.
 
 ## Lezen, annotaties en audio
 
-De canonieke hoofdstukles blijft dezelfde LessonFlow. Annotaties gebruiken de
+De canonieke hoofdstukles gebruikt één `SharedLessonFlow`. `LessonFlow.tsx`
+blijft de compatibele web-entry; `NativeGameLesson` vereist de bestaande native
+runtime, audiopoort en annotatiepoort voor exact hetzelfde hoofdstuk. De oude
+web-entry komt niet in de appbundel; de oorspronkelijke reader-bundelassertie
+blijft intact. Annotaties gebruiken de
 bestaande native commitgrens: User → NativeSession → bron-/versrijen, context-
 controle voor en na de mutatie en dezelfde UUID-/versie-/tombstoneregels. Vrij
 lezen krijgt een echte leesidentiteit; er wordt geen cursus verzonnen. De
@@ -79,7 +88,7 @@ Browserbewijs met gesimuleerde OS-uitvoer is geen fysieke toestelacceptatie.
 
 ## Huidig lokaal bewijs
 
-- Laatste volledige lokale suite: 240 native unit-/contract-/distributietests en 80 datalaagtests geslaagd; daarna 25 gerichte spelcontracttests voor de extra methode-/voorkeurgrens.
+- Laatste volledige lokale suite: 241 native unit-/contract-/distributietests en 80 datalaagtests geslaagd; daarna 27 gerichte spelcontracttests voor de extra methode-/voorkeurgrens.
 - 218 bestaande spel-/puzzel-/mysterietests en 92 Kompas-/navigatie-/spelcontracttests geslaagd.
 - 15 uitgebreide HTTP-integratietests op eigen PostgreSQL/Redis geslaagd.
 - Tien echte spelingangen, vijf talen, 320px/200%, licht/donker: nul ontbrekende assets en nul browserfouten.
@@ -99,6 +108,8 @@ Browserbewijs met gesimuleerde OS-uitvoer is geen fysieke toestelacceptatie.
 Dit is bron-/browserbewijs en geen fysieke iPhone-/Android-acceptatie.
 De oorspronkelijke SQL-/HTTP-keten (167 controles) en socketketen (64 controles)
 zijn geslaagd. De bestaande browserketen wordt daarnaast gecontroleerd.
+De profiellink naar de winkel verschijnt uitsluitend met een werkende native
+spelbinding; de profieltest bewaakt beide toestanden in vijf talen.
 Oudere backends behouden hun bestaande afgeschermde Foundation-leesroute;
 alleen `games-v1` activeert daar de volledige gedeelde spel-/leespoort.
 De browserfixtures gebruiken expliciet UTF-8, zoals de echte native bundel.

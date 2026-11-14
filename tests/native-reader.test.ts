@@ -175,7 +175,7 @@ test("late antwoorden worden verworpen na logout, account-, taal-, bron- of sele
 });
 test("native gebruikt werkelijk dezelfde React-presentatie en bevat geen hoofdstukafronding", () => {
   for (const file of [
-    "src/components/LessonFlow.tsx",
+    "src/components/learning/SharedLessonFlow.tsx",
     "src/components/native/NativeReaderView.tsx",
   ])
     assert.match(readFileSync(file, "utf8"), /<ScriptureReaderView\b/);

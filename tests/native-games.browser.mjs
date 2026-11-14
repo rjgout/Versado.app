@@ -16,7 +16,7 @@ if(!backend||new URL(backend).hostname!=='127.0.0.1')throw Error('Alleen eigen l
 const require=createRequire(import.meta.url),{chromium}=require(process.env.PLAYWRIGHT_MODULE??'playwright');
 const out='/tmp/versado-native-browser/spelen';mkdirSync(out,{recursive:true});
 for(const file of ['resultaten.json','foutcategorieen.json','mislukte-proef.png'])if(existsSync(out+'/'+file))unlinkSync(out+'/'+file);
-const compilation=await build({entryPoints:['tests/fixtures/native-games-client.tsx'],bundle:true,write:false,platform:'browser',define:{'process.env.NODE_ENV':'"production"',TEST_GAME_BACKEND:JSON.stringify(backend)},minify:true});
+const compilation=await build({alias:{'@/lib/socketClient':'./src/lib/native/sharedSocketClient.ts'},entryPoints:['tests/fixtures/native-games-client.tsx'],bundle:true,write:false,platform:'browser',define:{'process.env.NODE_ENV':'"production"',TEST_GAME_BACKEND:JSON.stringify(backend)},minify:true});
 const fixture=await nativeGamesContent(prisma),password='Synthetic-game-browser-42',calls=[],errors=[],missing=[];let saved=null;
 const user=await prisma.user.create({data:{email:`native-games-${randomUUID()}@example.invalid`,passwordHash:await hashPassword(password),handle:'Spelentest',discriminator:'42',emailVerifiedAt:new Date(),onboardingSeenAt:new Date(),activeContentCollectionId:'content_bom',xpTotal:1000,hintBalance:20}});
 const peer=await prisma.user.create({data:{email:`native-game-peer-${randomUUID()}@example.invalid`,passwordHash:'synthetic-only',handle:'Spelvriend',discriminator:'42',emailVerifiedAt:new Date(),onboardingSeenAt:new Date(),activeContentCollectionId:'content_bom'}});

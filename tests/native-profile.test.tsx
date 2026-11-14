@@ -17,6 +17,7 @@ import { LANGUAGES } from "../src/lib/languages";
 import { accessRouteAllowed } from "../src/lib/native/access";
 import { NativeClientError,NativeSessionClient } from "../src/lib/native/client";
 import { nativeDeepLink,nativeRoute } from "../src/lib/native/navigation";
+import { nativeProfileDestination } from "../src/lib/native/profileNavigation";
 import { nativeProfileImageSource } from "../src/lib/native/profileAssets";
 import { nativeProfileAction,nativeProfileSchema } from "../src/lib/native/profileContract";
 import { PROFILE_VIEWS,profileViewHref } from "../src/lib/profileViews";
@@ -86,13 +87,13 @@ test("bevestigde privacy-/aanwezigheidswijzigingen signaleren alleen de bestaand
 });
 test("dezelfde profielrenderer toont gegevens en alle instellingen in vijf talen zonder dode native links",()=>{
  const navigation={pathname:"/profile",push:noop,replace:noop,back:noop,refresh:noop,canGoBack:()=>true,Link:({href,children,...props}:AppLinkProps)=>createElement("a",{...props,href},children)};
- for(const language of LANGUAGES){
+ for(const gamesEnabled of [false,true])for(const language of LANGUAGES){
   const value=profileFixture({uiLanguage:language.code});
-  const html=renderToStaticMarkup(<I18nProvider language={language.code} messages={messagesFor(language.code)}><AppNavigationProvider adapter={{...navigation,imageSource:src=>nativeProfileImageSource(src)??src}}><ProfileOverview data={value.profile} editingHandle={false} handleInput="" savingHandle={false} handleError={null} startEditingHandle={noop} setHandleInput={noop} setEditingHandle={noop} saveHandle={done} openView={noop} savingNotifications={false} toggleCategory={done} logout={done} deleteAccount={noop} timeZone={language.code} canNavigate={href=>nativeRoute(href)!==null}/></AppNavigationProvider></I18nProvider>);
+  const html=renderToStaticMarkup(<I18nProvider language={language.code} messages={messagesFor(language.code)}><AppNavigationProvider adapter={{...navigation,imageSource:src=>nativeProfileImageSource(src)??src}}><ProfileOverview data={value.profile} editingHandle={false} handleInput="" savingHandle={false} handleError={null} startEditingHandle={noop} setHandleInput={noop} setEditingHandle={noop} saveHandle={done} openView={noop} savingNotifications={false} toggleCategory={done} logout={done} deleteAccount={noop} timeZone={language.code} canNavigate={href=>nativeProfileDestination(href,gamesEnabled)}/></AppNavigationProvider></I18nProvider>);
   assert.ok(html.includes("Profielwerker"));assert.ok(html.includes("12345"));assert.ok(html.includes("/native-profile/"));
   assert.ok(html.includes(getT(language.code)("profile.privacy")));assert.ok(html.includes(getT(language.code)("languageSettings.title")));
-  assert.ok(!html.includes('href="/adminbackend"'));assert.ok(!html.includes('href="/shop"'));
-  for(const match of html.matchAll(/<a[^>]+href="([^"]+)"/g))assert.ok(nativeRoute(match[1]),match[1]);
+  assert.ok(!html.includes('href="/adminbackend"'));assert.equal(html.includes('href="/shop"'),gamesEnabled,"Winkel verschijnt uitsluitend met werkende native spelbinding");
+  for(const match of html.matchAll(/<a[^>]+href="([^"]+)"/g))assert.ok(nativeProfileDestination(match[1],gamesEnabled),match[1]);
  }
 });
 test("gedeelde profielshell toont juridische footer uitsluitend op het overzicht",()=>{
