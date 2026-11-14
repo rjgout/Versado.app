@@ -26,16 +26,16 @@ const front=createServer(async(req,res)=>{
    if(!network||(blockMe&&url.pathname==='/api/v1/native/me')){res.destroy();return;}
    const chunks=[];for await(const c of req)chunks.push(c);
    const response=await fetch(`${backend}${req.url}`,{method:req.method,headers:{Origin:'capacitor://localhost','X-Versado-Client':'native-v1','x-real-ip':'127.0.0.21',...(req.headers.authorization?{Authorization:req.headers.authorization}:{}),...(req.headers['content-type']?{'Content-Type':req.headers['content-type']}:{})},body:['GET','HEAD'].includes(req.method)?undefined:Buffer.concat(chunks)});
-   res.writeHead(response.status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(url.pathname==='/api/v1/native/capabilities'&&response.ok?JSON.stringify({...await response.clone().json(),features:(await response.json()).features.filter(f=>!['today-overview-v1','profile-settings-v1'].includes(f))}):await response.text());return;
+   res.writeHead(response.status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(url.pathname==='/api/v1/native/capabilities'&&response.ok?JSON.stringify({...await response.clone().json(),features:(await response.json()).features.filter(f=>!['today-overview-v1','profile-settings-v1','games-v1'].includes(f))}):await response.text());return;
   }
   if(url.pathname.startsWith('/test-keychain/')){
    const id=url.pathname;if(req.method==='PUT'){const chunks=[];for await(const c of req)chunks.push(c);secrets.set(id,Buffer.concat(chunks).toString());}if(req.method==='DELETE')secrets.delete(id);
    res.setHeader('Content-Type','application/json');res.end(JSON.stringify({value:secrets.get(id)??null}));return;
   }
-  if(url.pathname==='/app.js'){res.setHeader('Content-Type','text/javascript');res.end(bundle.outputFiles[0].text);return;}
+  if(url.pathname==='/app.js'){res.setHeader('Content-Type','text/javascript; charset=utf-8');res.end(bundle.outputFiles[0].text);return;}
   if(url.pathname==='/index.css'){res.setHeader('Content-Type','text/css');res.end(stylesheet);return;}
   if(url.pathname.startsWith('/icons/')||url.pathname.startsWith('/mascots/')||url.pathname.startsWith('/scripture/')){if(url.pathname.includes('..')){res.writeHead(404);res.end();return;}res.setHeader('Content-Type',url.pathname.endsWith('.png')?'image/png':'image/webp');res.end(readFileSync(`public${url.pathname}`));return;}
-  res.setHeader('Content-Type','text/html');res.end('<!doctype html><html lang="nl"><head><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="stylesheet" href="/index.css"></head><body><div id="root"></div><script src="/app.js"></script></body></html>');
+  res.setHeader('Content-Type','text/html; charset=utf-8');res.end('<!doctype html><html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="stylesheet" href="/index.css"></head><body><div id="root"></div><script src="/app.js"></script></body></html>');
  }catch{res.writeHead(500);res.end();}
 });
 await new Promise(resolve=>front.listen(0,'127.0.0.1',resolve));const origin=`http://127.0.0.1:${front.address().port}`;
@@ -49,7 +49,9 @@ try{
  for(const [width,height,scheme,scale,locale]of [[320,844,'light',2,'nl-NL'],[390,844,'dark',1,'nl-NL'],[1280,900,'light',1,'de-DE'],[844,390,'dark',1,'fr-FR']]){
   const context=await browser.newContext({viewport:{width,height},locale,hasTouch:width<900,isMobile:width<900,colorScheme:scheme});
   await context.addInitScript(({scale})=>{window.wp6CompletionAttempts=0;const originalFetch=window.fetch;window.fetch=(input,init)=>{if(typeof input==='string'&&input.includes('/api/v1/native/chapters/')&&input.endsWith('/complete')&&init?.method==='POST')window.wp6CompletionAttempts++;return originalFetch(input,init);};const apply=()=>{document.documentElement.style.fontSize=`${100*scale}%`;for(const [edge,size]of Object.entries({top:24,bottom:18,left:12,right:12}))document.documentElement.style.setProperty(`--safe-area-inset-${edge}`,`${size}px`);};if(document.documentElement)apply();else document.addEventListener('DOMContentLoaded',apply,{once:true});},{scale});
-  let page=await context.newPage();const errors=[],failedResponses=[],expectedAuthFailures=[];let expectExpired=false,expectDeletedLogout=false;const recordResponse=r=>{if(r.status()>=400){const path=new URL(r.url()).pathname;if(expectDeletedLogout&&r.status()===401&&path==='/api/v1/native/logout'){expectedAuthFailures.push(path);return;}if(expectExpired&&r.status()===401&&['/api/v1/native/account/password','/api/v1/native/refresh'].includes(path)){expectedAuthFailures.push(path);return;}failedResponses.push({path,status:r.status()});console.error('Native testresponse:',path,r.status());}};page.on('pageerror',e=>{errors.push(e.message);console.error('Native browserfout:',e.message);});page.on('response',recordResponse);network=false;
+  // Koppel de verwachte 401 na accountverwijdering aan het verzoek, niet aan
+  // de latere response-eventtijd: de beveiligde queue kan intussen al leeg zijn.
+  let page=await context.newPage();const errors=[],failedResponses=[],expectedAuthFailures=[];let expectExpired=false,expectDeletedLogout=false;const logoutRequests=new WeakMap();const recordRequest=r=>{if(new URL(r.url()).pathname==='/api/v1/native/logout')logoutRequests.set(r,expectDeletedLogout);};const recordResponse=r=>{if(r.status()>=400){const path=new URL(r.url()).pathname;if(logoutRequests.get(r.request())===true&&r.status()===401&&path==='/api/v1/native/logout'){expectedAuthFailures.push(path);return;}if(expectExpired&&r.status()===401&&['/api/v1/native/account/password','/api/v1/native/refresh'].includes(path)){expectedAuthFailures.push(path);return;}failedResponses.push({path,status:r.status()});console.error('Native testresponse:',path,r.status());}};page.on('pageerror',e=>{errors.push(e.message);console.error('Native browserfout:',e.message);});page.on('request',recordRequest);page.on('response',recordResponse);network=false;
   try{
   const device=`${width}-${randomUUID()}`;
   await page.goto(`${origin}/?device=${device}`);await page.getByRole('heading',{level:1}).waitFor();await page.getByRole('alert').waitFor();
@@ -91,7 +93,7 @@ try{
    assert.equal(await page.evaluate(()=>localStorage.length+sessionStorage.length),0,'Geen sessiegeheimen in webopslag');
    await page.screenshot({path:`${out}/reader-${width}-${scheme}-${scale}.png`,fullPage:true});
    // Vernietig de WebView; alleen de gesimuleerde beveiligde platformopslag blijft bestaan.
-   await page.close();page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));page.on('response',recordResponse);
+   await page.close();page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));page.on('request',recordRequest);page.on('response',recordResponse);
    await page.goto(`${origin}/?device=${device}`);await page.getByRole('heading',{name:/Vandaag/}).waitFor();
    await page.getByRole('link',{name:'Profiel',exact:true}).click();
    await page.getByRole('link',{name:'Wachtwoord wijzigen',exact:true}).click();

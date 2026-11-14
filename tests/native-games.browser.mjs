@@ -38,7 +38,7 @@ const front=createServer(async(req,res)=>{try{
   res.setHeader('Content-Type',url.pathname.endsWith('.json')?'application/json':url.pathname.endsWith('.svg')?'image/svg+xml':url.pathname.endsWith('.png')?'image/png':url.pathname.endsWith('.jpg')||url.pathname.endsWith('.jpeg')?'image/jpeg':'image/webp');res.end(readFileSync(file));return;
  }
  if(url.pathname.startsWith('/api/')){calls.push({path:url.pathname,status:404});res.writeHead(404);res.end();return;}
- res.setHeader('Content-Type','text/html');res.end('<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="stylesheet" href="/index.css"></head><body><script>window.CapacitorCustomPlatform={name:"ios"};</script><div id="root"></div><script src="/app.js"></script></body></html>');
+ res.setHeader('Content-Type','text/html; charset=utf-8');res.end('<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="stylesheet" href="/index.css"></head><body><script>window.CapacitorCustomPlatform={name:"ios"};</script><div id="root"></div><script src="/app.js"></script></body></html>');
 }catch(error){errors.push(error.message);res.writeHead(500);res.end();}});
 await new Promise(done=>front.listen(0,'127.0.0.1',done));const origin=`http://127.0.0.1:${front.address().port}`;
 const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH,args:['--no-sandbox']});

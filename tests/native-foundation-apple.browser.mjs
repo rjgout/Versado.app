@@ -35,10 +35,10 @@ const front=createServer(async(req,res)=>{try{
   res.writeHead(response.status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(body);return;
  }
  if(url.pathname.startsWith('/test-keychain/')){const key=url.pathname.slice('/test-keychain/'.length);if(req.method==='PUT'){const chunks=[];for await(const chunk of req)chunks.push(chunk);sessions.set(key,Buffer.concat(chunks).toString());}if(req.method==='DELETE')sessions.delete(key);res.setHeader('Content-Type','application/json');res.end(JSON.stringify({value:sessions.get(key)??null}));return;}
- if(url.pathname==='/app.js'){assert.ok(scenario);res.setHeader('Content-Type','text/javascript');res.end(bundles[scenario.platform]);return;}
+ if(url.pathname==='/app.js'){assert.ok(scenario);res.setHeader('Content-Type','text/javascript; charset=utf-8');res.end(bundles[scenario.platform]);return;}
  if(url.pathname==='/index.css'){res.setHeader('Content-Type','text/css');res.end(stylesheet);return;}
  if(['/icons/','/mascots/','/scripture/'].some(prefix=>url.pathname.startsWith(prefix))&&!url.pathname.includes('..')){res.setHeader('Content-Type',url.pathname.endsWith('.png')?'image/png':url.pathname.endsWith('.svg')?'image/svg+xml':'image/webp');res.end(readFileSync(`public${url.pathname}`));return;}
- res.setHeader('Content-Type','text/html');res.end(`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="stylesheet" href="/index.css"></head><body><div id="root"></div><script src="/app.js?device=${encodeURIComponent(id)}"></script></body></html>`);
+ res.setHeader('Content-Type','text/html; charset=utf-8');res.end(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="stylesheet" href="/index.css"></head><body><div id="root"></div><script src="/app.js?device=${encodeURIComponent(id)}"></script></body></html>`);
 }catch{res.writeHead(500);res.end();}});
 await new Promise(resolve=>front.listen(0,'127.0.0.1',resolve));const origin=`http://127.0.0.1:${front.address().port}`;
 const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH,args:['--no-sandbox']});

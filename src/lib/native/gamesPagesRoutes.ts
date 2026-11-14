@@ -107,3 +107,10 @@ export function gamePageRoute(raw:string) {
   }
   return null;
 }
+
+/** Een oude Foundation-leeslink houdt zijn bestaande blokkade totdat de
+ * backend de nieuwe volledige spel-/leespoort werkelijk aanbiedt. */
+export function nativeGameOwnsRoute(href:string,features:readonly string[]){
+ const route=gamePageRoute(href);
+ return !!route&&(route.id!=="/lesson/[chapterId]"||features.includes("games-v1"));
+}

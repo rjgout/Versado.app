@@ -13289,7 +13289,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "219502753588bfb3c15c9c4964963f06d04193cea6b29fdf48c9eaeb4bff8509",
+      "sha256": "20d955044aebc5598d2cfb199dd6009be4cc814edd8c610902b5d0d61ec6bd66",
       "boundary": "client",
       "imports": [
         "./NativeContentPicker",
@@ -22954,7 +22954,7 @@
     },
     {
       "file": "src/lib/native/gamesPagesRoutes.ts",
-      "sha256": "d0fcd1ddc2bd2a4709d449ab27512a057cf324ccff89fe4aa96d3e516be491ff",
+      "sha256": "fc72cd978b88dd6a4d566fadab65076133afc7a7f462a55261b52bef84a0b4bf",
       "boundary": "context-dependent",
       "imports": [],
       "methods": [],
@@ -22962,7 +22962,8 @@
       "checks": [],
       "exports": [
         "GAME_PAGE_ROUTES",
-        "gamePageRoute"
+        "gamePageRoute",
+        "nativeGameOwnsRoute"
       ]
     },
     {
@@ -82165,7 +82166,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "219502753588bfb3c15c9c4964963f06d04193cea6b29fdf48c9eaeb4bff8509",
+      "sha256": "20d955044aebc5598d2cfb199dd6009be4cc814edd8c610902b5d0d61ec6bd66",
       "boundary": "client",
       "imports": [
         "./NativeContentPicker",

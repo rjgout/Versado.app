@@ -3,6 +3,7 @@ import test from 'node:test';
 import {readFileSync} from 'node:fs';
 import {GAME_POLICY_CASES,swiftPolicy,javaPolicy,updatePolicy} from '../scripts/native/games-policy.mjs';
 import {accessRouteAllowed} from '../src/lib/native/access.ts';
+import {nativeGameOwnsRoute} from "../src/lib/native/gamesPagesRoutes.ts";
 import {nativeRoute} from '../src/lib/native/navigation.ts';
 import {nativePrimaryNav} from '../src/lib/native/shell.ts';
 
@@ -25,4 +26,12 @@ test('de bestaande pre-signing-backendcontrole blokkeert een onvolledige Spelen-
  const base={origin:'https://test.example.invalid',capabilities:{status:200,redirected:false,body:{apiVersion:1,features}},native:{allowOrigin:'capacitor://localhost'},cross:{allowOrigin:null},root:{status:200,permissionsPolicy:'camera=(), microphone=(self), geolocation=()',hsts:'max-age=31536000'}};
  assert.equal(evaluate(base).ok,true);
  for(const feature of features){const missing={...base,capabilities:{...base.capabilities,body:{apiVersion:1,features:features.filter(item=>item!==feature)}}};assert.ok(evaluate(missing).problems.some(problem=>problem.includes(feature)),feature);}
+});
+
+
+test('oude Foundation-leeslinks krijgen pas volledige spel-leesacties met de bewezen backendcapability',()=>{
+ assert.equal(nativeGameOwnsRoute('/lesson/chapter',[]),false);
+ assert.equal(nativeGameOwnsRoute('/lesson/chapter',['scripture-reader-v1']),false);
+ assert.equal(nativeGameOwnsRoute('/lesson/chapter',['games-v1']),true);
+ assert.equal(nativeGameOwnsRoute('/adminbackend',['games-v1']),false);
 });

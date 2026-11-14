@@ -221,3 +221,29 @@ test('extra spelmethoden behouden de bestaande 405-grens en beperken voorkeuren 
  for(const listKey of ['courses','today-continue'])assert.equal((await call('games/list-order',{method:'PUT',body:{listKey,itemKeys:[]}})).response.status,400);
  assert.equal(await prisma.userListOrder.count({where:{userId:a.user.id,listKey:'games'}}),10);
 });
+
+test('Alleskenner-luisteren gebruikt de actuele vraag van de echte spelserver en weigert vreemde of oude vragen',async()=>{
+ const player=await account(4),started=await call('games/alleskenner/solo',{user:player,method:'POST',body:{mode:'PRACTICE'}});
+ assert.equal(started.data.status,200,JSON.stringify(started.data));const runId=started.data.data.runId;
+ const run=await prisma.alleskennerSoloRun.findUnique({where:{id:runId}}),items=JSON.parse(run.items);
+ const questions=await prisma.alleskennerItem.findMany({where:{id:{in:items.questions},kind:'QUESTION'}});
+ const listening=questions.find(item=>JSON.parse(item.data).listen),normal=questions.find(item=>!JSON.parse(item.data).listen);assert.ok(listening&&normal);
+ // Deterministische eigen fixture: dezelfde toegekende set, luistervraag op de
+ // tweede toegestane positie en uitsluitend een bestaande synthetische passage.
+ const ordered={...items,questions:[normal.id,listening.id,...items.questions.filter(id=>id!==normal.id&&id!==listening.id)]};
+ await prisma.alleskennerSoloRun.update({where:{id:runId},data:{items:JSON.stringify(ordered)}});
+ await prisma.alleskennerItem.update({where:{id:listening.id},data:{data:JSON.stringify({...JSON.parse(listening.data),listen:{ref:'Synthetisch spelboek 1:1'}})}});
+ let socket;
+ try{
+  socket=await gameSocket(player);
+  const first=socketEvent(socket,'ak:state',state=>state.phase==='R369'&&state.r369?.number===1&&!state.r369.reveal&&!state.intermission);socket.emit('ak:solo_join',{runId});await first;
+  const next=socketEvent(socket,'ak:state',state=>state.phase==='R369'&&state.r369?.number===2&&!state.r369.reveal&&!state.intermission);socket.emit('ak:tap_369',{option:JSON.parse(normal.data).answer});const state=await next;
+  assert.equal(state.r369.listenText,'Synthetische speltekst 1.');
+  const path=`games/ak-solo/${runId}/2/audio/playback`,metadata=await call(path,{user:player});assert.equal(metadata.response.status,200,JSON.stringify(metadata.data));assert.equal(metadata.data.reader.verses[0].text,state.r369.listenText);assert.deepEqual(metadata.data.audio.sources,[]);
+  assert.equal((await call(path,{user:b})).response.status,404);
+  assert.equal((await call(`games/ak-solo/${runId}/1/audio/playback`,{user:player})).response.status,404);
+  assert.equal((await call(`games/ak-live/${runId}/2/audio/playback`,{user:player})).response.status,404);
+  await prisma.nativeSession.updateMany({where:{userId:player.user.id},data:{revokedAt:new Date()}});
+  assert.equal((await call(path,{user:player})).response.status,401);
+ }finally{socket?.disconnect();await prisma.alleskennerItem.update({where:{id:listening.id},data:{data:listening.data}});}
+});

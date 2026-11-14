@@ -107,7 +107,7 @@ const front = createServer(async (req, res) => {
       return;
     }
     if (url.pathname === "/app.js") {
-      res.setHeader("Content-Type", "text/javascript");
+      res.setHeader("Content-Type", "text/javascript; charset=utf-8");
       res.end(bundle.outputFiles[0].contents);
       return;
     }
@@ -137,9 +137,9 @@ const front = createServer(async (req, res) => {
       );
       return;
     }
-    res.setHeader("Content-Type", "text/html");
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
     res.end(
-      '<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="stylesheet" href="/index.css"></head><body><div id="root"></div><script src="/app.js"></script></body></html>',
+      '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="stylesheet" href="/index.css"></head><body><div id="root"></div><script src="/app.js"></script></body></html>',
     );
   } catch (error) {
     console.error(error);

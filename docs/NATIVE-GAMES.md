@@ -66,7 +66,9 @@ De uitgebreide HTTP-proef controleert alle tien ingangen, starten/hervatten,
 cookie-/Bearer-scheiding, onbevoegde routes en Origins, privéannotaties,
 bronwisseling en ABA, verborgen quizantwoorden, één Woordzoeker-beloning,
 Scrabble-racks/beurten, native/web-livequiz met nieuw reconnectticket en echte
-MP3 206/HEAD/416, vreemde sessies en bestandswijziging. De browserproef speelt
+MP3 206/HEAD/416, vreemde sessies en bestandswijziging. Een echte Alleskenner-ronde controleert
+ook dat alleen de actuele luistervraag van de spelserver metadata krijgt;
+een oude vraag, vreemde speler of ingetrokken sessie wordt geweigerd. De browserproef speelt
 via de echte bediening en bewaart screenshots in
 `/tmp/versado-native-browser/spelen`; CI bewaart dit bestaande artifact.
 Browserbewijs met gesimuleerde OS-uitvoer is geen fysieke toestelacceptatie.
@@ -75,19 +77,24 @@ Browserbewijs met gesimuleerde OS-uitvoer is geen fysieke toestelacceptatie.
 
 - Laatste volledige lokale suite: 238 native unit-/contract-/distributietests en 80 datalaagtests geslaagd; daarna 24 gerichte spelcontracttests voor de extra methode-/voorkeurgrens.
 - 218 bestaande spel-/puzzel-/mysterietests en 92 Kompas-/navigatie-/spelcontracttests geslaagd.
-- 13 uitgebreide HTTP-integratietests op eigen PostgreSQL/Redis geslaagd.
+- 14 uitgebreide HTTP-integratietests op eigen PostgreSQL/Redis geslaagd.
 - Tien echte spelingangen, vijf talen, 320px/200%, licht/donker: nul ontbrekende assets en nul browserfouten.
 - Woordzoeker via pointerbediening voltooid, inclusief één XP-beloning.
 - Uitdaging via de echte schermen: lezen, privébladwijzer, native audio-uitvoer
   (alleen de OS-decoder gesimuleerd), drie juiste antwoorden en opgeslagen serveruitslag.
 - Speluitleg en native rondleiding werken met dezelfde Kompas-presentatie.
 - Volledige lintcontrole: nul fouten, 173 zichtbare waarschuwingen; geen regels uitgeschakeld.
-- Schone lokale productiebuild geslaagd; GitHub moet de exacte gepushte head nog bevestigen.
+- Schone lokale productiebuild geslaagd. GitHub bevestigt op `d7415e4b` de
+  productiebuild en unsigned iOS-/Android-compilatie; de laatste vervolgcommit
+  moet dezelfde controles opnieuw doorlopen.
 - Release-/backendguards: 61 tests geslaagd, twee macOS-toolproeven lokaal niet uitvoerbaar en daarom expliciet overgelaten aan macOS-CI.
 
 Dit is bron-/browserbewijs en geen fysieke iPhone-/Android-acceptatie.
-De oorspronkelijke native integratieketen wordt ook opnieuw volledig uitgevoerd
-om bestaande account-, reader-, annotatie-, audio- en privacyfuncties te bewaken.
+De oorspronkelijke SQL-/HTTP-keten (167 controles) en socketketen (64 controles)
+zijn geslaagd. De bestaande browserketen wordt daarnaast gecontroleerd.
+Oudere backends behouden hun bestaande afgeschermde Foundation-leesroute;
+alleen `games-v1` activeert daar de volledige gedeelde spel-/leespoort.
+De browserfixtures gebruiken expliciet UTF-8, zoals de echte native bundel.
 
 ## Nog af te ronden vóór vrijgave
 

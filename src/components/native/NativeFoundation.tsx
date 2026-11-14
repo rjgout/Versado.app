@@ -3,7 +3,7 @@ import NativeKompasProvider from "./NativeKompasProvider";
 import {CompanionProvider} from "@/components/versado/PersonalMascot";
 import {useBackTargetOverride} from "@/lib/backTarget";
 import NativeGamesView from "./NativeGamesView";
-import {gamePageRoute} from "@/lib/native/gamesPagesRoutes";
+import {nativeGameOwnsRoute} from "@/lib/native/gamesPagesRoutes";
 import ProfilePageView from "@/components/profile/ProfilePageView";
 import { parseProfileView,PROFILE_VIEWS } from "@/lib/profileViews";
 import NativeProfileView from "./NativeProfileView";
@@ -268,7 +268,7 @@ function NativeFoundationContent({ audioOutput, client, termsUrl = null, onLangu
   const appleLoginAvailable = isIOSApp() && nativeAppleLoginUIAvailable(apple, features);
   const readerRoute = nativeReaderRoute(navigation.pathname);
   const gameBack=useBackTargetOverride(navigation.pathname.split("?")[0]);
-  const gamesPage=gamePageRoute(navigation.pathname)!==null;
+  const gamesPage=nativeGameOwnsRoute(navigation.pathname,features);
   const gamesEnabled=features.includes("games-v1")&&realtime&&gameSocketOwner===`${user?.id}:${client.getSessionStamp()}`;
   const learningPage = /^\/courses(?:\/|$)/.test(navigation.pathname);
   const destinations = nativePrimaryNav(features);

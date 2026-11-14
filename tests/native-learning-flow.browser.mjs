@@ -21,7 +21,7 @@ const bundle = await build({
   css = readFileSync("dist/native/index.css");
 const server = createServer((req, res) => {
   if (req.url === "/app.js") {
-    res.setHeader("Content-Type", "text/javascript");
+    res.setHeader("Content-Type", "text/javascript; charset=utf-8");
     res.end(bundle.outputFiles[0].contents);
   } else if (req.url === "/app.css") {
     res.setHeader("Content-Type", "text/css");
@@ -31,7 +31,7 @@ const server = createServer((req, res) => {
     res.end(readFileSync("public/icons/native/versado-flame.png"));
   } else
     res.end(
-      '<!doctype html><html lang="nl"><head><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="stylesheet" href="/app.css"></head><body><div id="root"></div><script src="/app.js"></script></body></html>',
+      '<!doctype html><html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="stylesheet" href="/app.css"></head><body><div id="root"></div><script src="/app.js"></script></body></html>',
     );
 });
 await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
