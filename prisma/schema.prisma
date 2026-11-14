@@ -1792,6 +1792,9 @@ model ContentProgress {
   // ernaar terug te linken. Geen relatie: de voortgang hoort bij de inhoud.
   lastChapterId String?
 
+  // Hervatpunten per exacte uitgave/cursus/leesdoel. Geen leesafronding.
+  readerPositions Json @default("{}")
+
   // --- Lezen: geeft nooit XP en verlengt geen reeks ---
   readStatus    ContentReadStatus?
   // Tot welk vers gelezen is via leesgedeelten (Stap voor stap).
@@ -1853,6 +1856,8 @@ model ExerciseSession {
   chapterId      String?
   chapter        Chapter?      @relation(fields: [chapterId], references: [id], onDelete: Cascade)
   studyContext   Json?
+  // Immutable native autorisatie-/uitdeelcontext; resultaat uitsluitend na submit.
+  nativeContext  Json?
   result         Json?
   contentKey     String
   // JSON-array met de uitgedeelde Exercise-id's.

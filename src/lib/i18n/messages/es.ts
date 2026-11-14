@@ -3,6 +3,42 @@ import { kompasEs } from "./kompas/es";
 
 // Spaanse app-teksten; ontbrekende teksten vallen terug volgens fallbackChain.
 export const es: PartialMessages = {
+  nativeLearningFlow: {
+    "questions": "Preguntas",
+    "result": "Resultado",
+    "next": "Siguiente paso",
+    "toPath": "Volver al itinerario",
+    "error": "No se ha podido completar. Tu respuesta se ha conservado. Inténtalo de nuevo.",
+    "uncertain": "La finalización aún no está confirmada. Consulta primero el resultado guardado; no se volverá a enviar nada automáticamente.",
+    "recover": "Consultar el resultado y volver a intentarlo con seguridad",
+    "pendingNavigation": "Comprueba primero la finalización pendiente para conservar el mismo intento y las mismas respuestas.",
+    "ready": "Abrir, desplazarse, escuchar y anotar no completan nada. Continúa solo con el botón correspondiente.",
+    "streakOne": "Racha de {n} día",
+    "streak": "Racha de {n} días",
+    "noQuestions": "No hay preguntas disponibles para este pasaje."
+},
+  nativeReader: {
+    annotationsEnabled: "Puedes gestionar marcadores, resaltados y notas. El audio, guardar la posición de lectura, las preguntas y la finalización llegarán más adelante. Estas acciones no otorgan XP ni completan la lectura.",
+    annotationsPositionEnabled: "Tu posición se guarda tras una lectura estable. Los marcadores, resaltados y notas se comparten con el sitio web. El audio, las preguntas y la finalización llegarán más adelante. Estas acciones no otorgan XP ni completan la lectura.",
+    positionEnabled: "Tu posición se guarda tras una lectura estable. El audio, las anotaciones, las preguntas y la finalización llegarán más adelante. Leer y navegar no otorgan XP ni completan la lectura.",
+    saving: "Guardando posición…",
+    saved: "Posición guardada.",
+    saveFailed: "No se guardó la posición. Vuelve a intentarlo manualmente.",
+    conflict: "La posición cambió en otro lugar. Recarga la posición confirmada y continúa leyendo.",
+    previous: "Capítulo anterior",
+    next: "Capítulo siguiente",
+    "unsupported": "Este servidor todavía no admite el lector compartido. Vuelve a Aprender.",
+    "readOnly": "Aquí puedes leer y copiar texto. El audio, las anotaciones, guardar la posición, las preguntas y la finalización llegarán después. Abrir o desplazarse no concede XP ni progreso.",
+    "range": "Paso de lectura: versículos {start}–{end}.",
+    "legacy": "Abre este capítulo desde la ruta correcta en Aprender. Esta antigua ruta de prueba ya no completa nada."
+},
+  nativeLearning: {
+    catalogueTruncated: "Esta lista está incompleta. Se muestran como máximo 600 lecciones.",
+    refreshFailed: "No se ha podido actualizar temporalmente. Se muestran los últimos datos confirmados.",
+    "readOnly": "Puedes consultar cursos e itinerarios. Añadir, ocultar y seguir lecciones estará disponible en una próxima versión. Tu progreso se conserva.",
+    "unsupported": "Este servidor aún no admite la lista de cursos.",
+    "pathUnavailable": "Este itinerario aún no está disponible en esta versión de la aplicación."
+},
   mailLog: {
     "title": "Correos enviados",
     "intro": "Historial desde la activación; se conserva hasta 90 días. Los nuevos envíos aparecen automáticamente.",
@@ -194,6 +230,26 @@ export const es: PartialMessages = {
     "review": "Revisión necesaria",
     "protectedCount": "Capítulos neerlandeses protegidos"
 },
+  accountDeletion: {
+    whatTitle: "¿Qué se elimina?",
+    whatBody: "Tu cuenta y los datos vinculados a ella, como el progreso, las amistades, las notas y los ajustes, se borran y no se pueden recuperar. Puedes leer más sobre tus datos en la {link}.",
+    privacyLink: "declaración de privacidad",
+    howTitle: "¿Cómo eliminas tu cuenta?",
+    howApp: "En la aplicación: abre tu perfil y elige «Eliminar cuenta».",
+    howWeb: "En el sitio web: inicia sesión y confirma con tu contraseña y, si usas la verificación en dos pasos, con tu código.",
+    noAccessTitle: "¿Ya no tienes acceso?",
+    noAccessBody: "¿No puedes entrar en tu cuenta? Primero establece una contraseña nueva; después podrás eliminar tu cuenta aquí. Una cuenta a la que solo accedes con Apple todavía no se puede eliminar aquí.",
+    signedOutHint: "Inicia sesión para eliminar tu cuenta.",
+    loginCta: "Iniciar sesión",
+    forgotCta: "Contraseña olvidada",
+    title: "Eliminar cuenta",
+    intro: "Confirma con tu contraseña para eliminar tu cuenta de forma permanente. No se puede deshacer.",
+    withCode: "Introduce también el código de tu aplicación de autenticación o un código de recuperación.",
+    tooManyAttempts: "Demasiados intentos. Inténtalo de nuevo más tarde.",
+    lastAdmin: "Eres el único administrador. Crea primero otro administrador antes de eliminar esta cuenta.",
+    reauthenticationUnavailable: "Una cuenta sin contraseña (inicio de sesión con Apple) todavía no se puede eliminar desde la aplicación. Esta opción se está preparando.",
+    submit: "Eliminar la cuenta de forma permanente",
+  },
   audioLibrary: {
     "local": "Disponible localmente",
     "legacyCount": "Audio de capítulo existente",
@@ -219,6 +275,23 @@ export const es: PartialMessages = {
   "active": "Grabación activa",
   "legacy": "Registros; se conserva el audio de capítulo existente."
 },
+  nativeAccess: {
+  "title": "Acceso interno del dispositivo",
+  "help": "Añade el acceso de Cloudflare de este dispositivo de prueba en el diálogo seguro del sistema. Reemplazarlo o borrarlo cierra tu sesión de Versado.",
+  "missing": "Falta el acceso del dispositivo. Añade las credenciales proporcionadas por el propietario.",
+  "configured": "El acceso está guardado. Su validez se comprueba con cada solicitud.",
+  "enroll": "Añadir o reemplazar acceso",
+  "clear": "Borrar acceso",
+  "busy": "Actualizando el acceso…",
+  "error": "No se pudo usar el acceso del dispositivo. Comprueba la conexión y pide al propietario que revise el acceso.",
+  "denied": "El acceso del dispositivo fue denegado o revocado. Pide nuevas credenciales al propietario.",
+  "disabled": "Esta compilación no permite acceso interno. Compila la versión interna correcta.",
+  "realtime": "Las conexiones en tiempo real aún no están disponibles en esta compilación interna con Access."
+},
+  nativeToday: { unavailable: "Este destino o acción aún no está disponible en esta versión de la aplicación. Tu progreso se conserva. Utiliza el sitio web por ahora." },
+  nativeContentFallback: { unsupported: "Este servidor aún no admite el selector de contenido en la app. Puedes volver a Hoy.", signIn: "Inicia sesión para elegir tu contenido." },
+  nativeDiagnostics: {"title": "Diagnóstico interno", "open": "Diagnóstico interno", "internalBadge": "Interna", "testBadge": "Versión de prueba", "recovery": "Conexión y recuperación"},
+  nativeProfile: { pushUnavailable: "Las notificaciones push aún no están disponibles en este dispositivo." },
   nativeFoundation: {
   "welcome": "Bienvenido a Versado",
   "login": "Iniciar sesión",
@@ -1387,6 +1460,9 @@ export const es: PartialMessages = {
     }
   },
   "today": {
+    actionFailed: "La acción no se ha confirmado. Inténtalo de nuevo cuando tengas conexión.",
+    friendAccepted: "Solicitud de amistad aceptada",
+    friendDeclined: "Solicitud de amistad rechazada",
     "greeting": {
       "morning": "Buenos días, {name}",
       "afternoon": "Buenas tardes, {name}",
@@ -3786,6 +3862,10 @@ export const es: PartialMessages = {
     "loadFailed": "No se pudieron cargar las personas."
   },
   "player": {
+    "nativeOutput": "Fuente de lectura",
+    "nativeRecording": "Audio grabado",
+    "nativeDeviceVoice": "Voz de este dispositivo",
+    "nativeUnavailable": "La lectura no está disponible. Comprueba tu conexión y las voces disponibles.",
     "audioLanguage": "Idioma de audio",
     "audioLanguageHint": "Lee y escucha en diferentes idiomas. Su elección se guarda en este dispositivo. Sin una grabación, se utiliza la voz de una computadora.",
     "retryLanguages": "No se pudieron cargar los idiomas de audio. Inténtalo de nuevo",
@@ -3991,9 +4071,27 @@ export const es: PartialMessages = {
       "failed_critical": "Error: se necesita intervención"
     }
   },
+  cfmRecovery: {
+    "title": "Restaurar CFM 2026 con seguridad",
+    "description": "La comprobación es de solo lectura. Las instantáneas de importación validadas tienen prioridad para los originales. La preparación solo puede restaurar esos archivos originales y crear borradores. Se conservan las publicaciones y el progreso.",
+    "check": "1. Ver plan de restauración (solo lectura)",
+    "published": "Publicado",
+    "source": "Ver fuente oficial",
+    "original": "Huella original",
+    "candidate": "Sustitución revisada",
+    "snapshot": "Instantánea original de importación",
+    "ORIGINAL_VALID": "Original válido en el volumen",
+    "ORIGINAL_SNAPSHOT": "Original en instantánea validada",
+    "REVIEW_REQUIRED": "Original no encontrado — revisión de medios necesaria",
+    "review": "He revisado imágenes oficiales, vínculos con las lecciones, sumas de comprobación y dimensiones. Apruebo solo estos medios de sustitución como borradores. Sin los archivos antiguos no se puede demostrar igualdad de píxeles.",
+    "prepare": "2. Restaurar originales y preparar borradores",
+    "confirm": "¿Ejecutar el plan de restauración de CFM 2026? Se pueden restaurar medios originales; las sustituciones solo se registran como borradores. No se publica ni se hace visible nada.",
+    "after": "Después, comprueba los borradores en Publicaciones de lecciones de estudio. Publicar, habilitar la colección y hacerla visible son acciones separadas. Un error puede dejar borradores parciales; actualiza el plan antes de reanudar manualmente.",
+    "publications": "Abrir Publicaciones de lecciones de estudio"
+},
   "adminReseed": {
     "title": "Obtener contenido nuevo",
-    "text": "Obtiene nuevos episodios de pódcast, contenido FSY, borradores de la Biblia y CFM y otro contenido nuevo. Los textos de las Escrituras, sus ejercicios y el audio leído no se tocan: actualízalos con «Actualizar fuentes de las Escrituras». Las lecciones nunca se publican ni se hacen visibles automáticamente. Se conservan los usuarios, el progreso, las rachas y las puntuaciones. Puedes salir de esta página y consultar el progreso más tarde.",
+    text: "Obtiene nuevos pódcasts, contenido FSY y otras novedades. CFM solo añade lecciones que faltan; las completas no cambian. Las nuevas lecciones oficiales pueden publicarse automáticamente tras validarse si está habilitado. La restauración de medios y las revisiones requieren la revisión separada de abajo. Los textos, ejercicios y audio de capítulos usan Actualizar fuentes de las Escrituras. Se conservan usuarios y progreso.",
     "failed": "Error al obtener el contenido nuevo.",
     "done": "Listo: se obtuvo el contenido nuevo."
   },

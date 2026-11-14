@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
-import test from "node:test";
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { PROFILE_VIEWS, isProfileOverview, parseProfileView, type ProfileView } from "../src/lib/profileViews";
+import test from "node:test";
+import { PROFILE_VIEWS,isProfileOverview,parseProfileView,type ProfileView } from "../src/lib/profileViews";
 
 const read = (file: string) => readFileSync(path.join(process.cwd(), file), "utf8");
 
@@ -39,7 +39,8 @@ test("terug naar het overzicht brengt de footer terug", () => {
 test("de profielshell bepaalt de footer centraal en de focus-shell blijft los daarvan", () => {
   const shell = read("src/components/profile/ProfilePage.tsx");
   assert.match(shell, /isProfileOverview/);
-  assert.match(shell, /showFooter &&/);
+  assert.match(shell, /<ProfilePageView[^>]*overview=\{showFooter\}/);
+  assert.match(read("src/components/profile/ProfilePageView.tsx"), /overview &&/);
   // Pagina's regelen de footer nooit zelf.
   for (const file of ["src/components/ProfileClient.tsx", "src/components/FeedbackClient.tsx", "src/components/ChangePasswordClient.tsx"]) {
     assert.doesNotMatch(read(file), /components\/Footer/, file);

@@ -51,7 +51,7 @@ export interface StudySnapshot {
   editionKey: string;
   language: "nl";
   adapterName: "synthetic-v1" | "fsy-legacy-v1" | CfmAdapterName;
-  adapterVersion: "1" | "2";
+  adapterVersion: "1" | "2" | "2-media-review-v1";
   sourceVersion: string;
   synthetic: boolean;
   period: { sourceKey: string; label: string; year: number };

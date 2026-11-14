@@ -5,6 +5,42 @@
 import { kompasNl } from "./kompas/nl";
 
 export const nl = {
+  nativeLearningFlow: {
+    "questions": "Vragen",
+    "result": "Resultaat",
+    "next": "Volgende stap",
+    "toPath": "Terug naar het leerpad",
+    "error": "Dat is niet gelukt. Je antwoord is bewaard. Probeer het opnieuw.",
+    "uncertain": "De afronding is nog niet bevestigd. Controleer eerst het opgeslagen resultaat; er wordt niets automatisch opnieuw ingestuurd.",
+    "recover": "Resultaat controleren en veilig opnieuw proberen",
+    "pendingNavigation": "Controleer eerst de onzekere afronding. Zo blijven dezelfde poging en antwoorden behouden.",
+    "ready": "Openen, scrollen, voorlezen en annotaties ronden niets af. Ga alleen verder met de expliciete knop.",
+    "streakOne": "{n} dag reeks",
+    "streak": "{n} dagen reeks",
+    "noQuestions": "Voor dit gedeelte zijn geen vragen beschikbaar."
+},
+  nativeReader: {
+    annotationsEnabled: "Je kunt bladwijzers, markeringen en notities beheren. Audio, leespositie opslaan, vragen en afronden volgen later. Dit levert geen XP of leesafronding op.",
+    annotationsPositionEnabled: "Je leespositie wordt na rustig lezen bewaard. Bladwijzers, markeringen en notities worden met de website gedeeld. Audio, vragen en afronden volgen later. Dit levert geen XP of leesafronding op.",
+    positionEnabled: "Je leespositie wordt bewaard na rustig lezen. Audio, annotaties, vragen en afronden volgen later. Lezen en bladeren leveren geen XP of leesafronding op.",
+    saving: "Leespositie opslaan…",
+    saved: "Leespositie opgeslagen.",
+    saveFailed: "Leespositie niet opgeslagen. Probeer zelf opnieuw.",
+    conflict: "De leespositie is elders gewijzigd. Laad de bevestigde positie opnieuw; daarna kun je verder lezen.",
+    previous: "Vorig hoofdstuk",
+    next: "Volgende hoofdstuk",
+    "unsupported": "Deze backend ondersteunt de gedeelde lezer nog niet. Ga terug naar Leren.",
+    "readOnly": "Je kunt hier lezen en tekst kopiëren. Audio, annotaties, leespositie opslaan, vragen en afronden volgen later. Openen en scrollen leveren geen XP of voortgang op.",
+    "range": "Leesstap: verzen {start}–{end}.",
+    "legacy": "Open dit hoofdstuk vanuit het juiste leerpad in Leren. Deze oude proefroute rondt niets meer af."
+},
+  nativeLearning: {
+    catalogueTruncated: "Niet alle studieweken passen in dit overzicht. Er worden maximaal 600 lessen getoond.",
+    refreshFailed: "Verversen is tijdelijk niet gelukt. Je ziet de laatst bevestigde gegevens.",
+    "readOnly": "Je kunt cursussen en leerpaden bekijken. Toevoegen, verbergen en lessen volgen komen in een volgende appversie. Je voortgang blijft behouden.",
+    "unsupported": "Deze server ondersteunt het cursusoverzicht nog niet.",
+    "pathUnavailable": "Dit leerpad is in deze appversie nog niet beschikbaar."
+},
   mailLog: {
     "title": "Verzonden e-mails",
     "intro": "Verzendhistorie vanaf ingebruikname; maximaal 90 dagen. Nieuwe verzendingen verschijnen automatisch.",
@@ -221,6 +257,23 @@ export const nl = {
   "active": "Actieve opname",
   "legacy": "Registraties; bestaande hoofdstukaudio blijft behouden."
 },
+  nativeAccess: {
+  "title": "Interne toesteltoegang",
+  "help": "Voeg de Cloudflare-toegang voor dit testtoestel toe in het beveiligde systeemvenster. Wijzigen of wissen logt je uit bij Versado.",
+  "missing": "Toesteltoegang ontbreekt. Voeg de gegevens van de eigenaar toe.",
+  "configured": "Toesteltoegang is opgeslagen. Geldigheid wordt bij elk verzoek gecontroleerd.",
+  "enroll": "Toegang toevoegen of vervangen",
+  "clear": "Toegang wissen",
+  "busy": "Toesteltoegang bijwerken…",
+  "error": "De toesteltoegang kon niet worden gebruikt. Controleer je verbinding en laat de eigenaar de toegang controleren.",
+  "denied": "De toesteltoegang is geweigerd of ingetrokken. Vraag de eigenaar om nieuwe gegevens.",
+  "disabled": "Deze build staat interne toesteltoegang niet toe. Bouw de juiste interne versie.",
+  "realtime": "Realtimeverbindingen zijn nog niet beschikbaar in deze interne Access-build."
+},
+  nativeToday: { unavailable: "Deze bestemming of actie is nog niet beschikbaar in deze appbuild. Je voortgang blijft bewaard. Gebruik hiervoor voorlopig de website." },
+  nativeContentFallback: { unsupported: "Deze backend ondersteunt de contentkiezer in de app nog niet. Je kunt terug naar Vandaag.", signIn: "Log in om je content te kiezen." },
+  nativeDiagnostics: {"title": "Interne diagnose", "open": "Interne diagnose", "internalBadge": "Intern", "testBadge": "Testbuild", "recovery": "Verbinding en herstel"},
+  nativeProfile: { pushUnavailable: "Pushmeldingen zijn nog niet beschikbaar op dit apparaat." },
   nativeFoundation: {
   "welcome": "Welkom bij Versado",
   "login": "Inloggen",
@@ -1003,6 +1056,9 @@ export const nl = {
     },
   },
   today: {
+    actionFailed: "De actie is niet bevestigd. Probeer het zelf opnieuw wanneer je verbinding hebt.",
+    friendAccepted: "Vriendenverzoek geaccepteerd",
+    friendDeclined: "Vriendenverzoek afgewezen",
     greeting: {
       morning: "Goedemorgen, {name}",
       afternoon: "Goedemiddag, {name}",
@@ -3502,6 +3558,26 @@ export const nl = {
     haveAccount: "Heb je al een account?",
     logIn: "Log in",
   },
+  accountDeletion: {
+    whatTitle: "Wat wordt verwijderd?",
+    whatBody: "Je account en de gegevens die eraan gekoppeld zijn, zoals voortgang, vriendschappen, notities en instellingen, worden gewist en kunnen niet worden hersteld. Meer over je gegevens lees je in de {link}.",
+    privacyLink: "privacyverklaring",
+    howTitle: "Hoe verwijder je je account?",
+    howApp: "In de app: open je profiel en kies “Account verwijderen”.",
+    howWeb: "Op de website: log in en bevestig met je wachtwoord, en met je code als je tweestapsverificatie gebruikt.",
+    noAccessTitle: "Geen toegang meer?",
+    noAccessBody: "Kom je niet meer in je account? Stel eerst een nieuw wachtwoord in; daarna kun je je account hier verwijderen. Een account waarmee je alleen met Apple inlogt kan hier nog niet worden verwijderd.",
+    signedOutHint: "Log in om je account te verwijderen.",
+    loginCta: "Inloggen",
+    forgotCta: "Wachtwoord vergeten",
+    title: "Account verwijderen",
+    intro: "Bevestig met je wachtwoord om je account definitief te verwijderen. Dit kan niet ongedaan worden gemaakt.",
+    withCode: "Vul ook de code van je authenticator-app of een herstelcode in.",
+    tooManyAttempts: "Te veel pogingen. Probeer het later opnieuw.",
+    lastAdmin: "Je bent de enige beheerder. Maak eerst een andere beheerder aan voordat je dit account verwijdert.",
+    reauthenticationUnavailable: "Een account zonder wachtwoord (inloggen met Apple) kan nog niet via de app worden verwijderd. Deze mogelijkheid wordt voorbereid.",
+    submit: "Account definitief verwijderen",
+  },
   password: {
     resetLinkLabel: "Resetlink uit je e-mail",
     openResetLink: "Resetlink openen",
@@ -4279,6 +4355,11 @@ export const nl = {
     loadFailed: "De personages konden niet worden geladen.",
   },
   player: {
+    nativeOutput: "Voorleesbron",
+    nativeRecording: "Opgenomen audio",
+    nativeDeviceVoice: "Stem op dit toestel",
+    nativeUnavailable: "Voorlezen is nu niet beschikbaar. Controleer je verbinding en de beschikbare stemmen.",
+
     audioLanguage: "Audiotaal",
     audioLanguageHint: "Lees en luister in verschillende talen. Je keuze wordt op dit apparaat bewaard. Zonder opname wordt de computerstem gebruikt.",
     retryLanguages: "Audiotalen laden mislukt. Opnieuw proberen",
@@ -4484,9 +4565,27 @@ export const nl = {
       failed_critical: "Mislukt — ingrijpen nodig",
     },
   },
+  cfmRecovery: {
+    "title": "CFM 2026 veilig herstellen",
+    "description": "Controleren leest alleen. Originele bestanden in geldige importsnapshots krijgen voorrang. Voorbereiden kan uitsluitend die originele mediabestanden herstellen en nieuwe concepten maken. Bestaande publicaties en voortgang blijven behouden.",
+    "check": "1. Herstelplan bekijken (alleen lezen)",
+    "published": "Gepubliceerd",
+    "source": "Officiële bron bekijken",
+    "original": "Oorspronkelijke pin",
+    "candidate": "Beoordeelde vervanging",
+    "snapshot": "Originele importsnapshot",
+    "ORIGINAL_VALID": "Origineel op volume geldig",
+    "ORIGINAL_SNAPSHOT": "Origineel in gevalideerde snapshot",
+    "REVIEW_REQUIRED": "Origineel niet gevonden — mediabeoordeling nodig",
+    "review": "Ik heb de officiële beelden, leskoppelingen, controlesommen en afmetingen beoordeeld. Ik keur uitsluitend deze vervangende media als concept goed. Zonder oude bestanden is pixelgelijkheid met het origineel niet bewijsbaar.",
+    "prepare": "2. Originelen herstellen en concepten voorbereiden",
+    "confirm": "CFM 2026-herstelplan uitvoeren? Originele media kunnen worden hersteld; vervangende media worden uitsluitend als concept geregistreerd. Er wordt niets gepubliceerd of zichtbaar gemaakt.",
+    "after": "Controleer na afloop de concepten bij Studielespublicaties. Publiceren, collectie vrijgeven en zichtbaar maken zijn afzonderlijke beheerhandelingen. Een fout kan gedeeltelijk voorbereide concepten achterlaten; vernieuw het herstelplan vóór een handmatige hervatting.",
+    "publications": "Naar Studielespublicaties"
+},
   adminReseed: {
     title: "Nieuwe content ophalen",
-    text: "Haalt nieuwe podcastafleveringen, FSY-content, CFM-concepten en overige nieuwe content op. De Schriftteksten, hun oefeningen en voorgelezen audio blijven hierbij onaangeroerd: die werk je bij met \"Schriftbronnen bijwerken\". Studielessen worden niet automatisch gepubliceerd of zichtbaar gemaakt. Bestaande gebruikers, voortgang, reeksen en scores blijven behouden. Je kunt deze pagina verlaten en later de voortgang opnieuw bekijken.",
+    text: "Haalt nieuwe podcastafleveringen, FSY-content en overige nieuwe content op. CFM voegt alleen ontbrekende lessen toe; complete lessen blijven ongewijzigd. Nieuwe officiële CFM-lessen kunnen na validatie automatisch worden gepubliceerd als die instelling aanstaat. Mediaherstel en revisies vereisen de afzonderlijke beoordeling hieronder. Schriftteksten, oefeningen en hoofdstukaudio lopen via Schriftbronnen bijwerken. Gebruikers en voortgang blijven behouden.",
     failed: "Nieuwe content ophalen is mislukt.",
     done: "Klaar — nieuwe content is opgehaald.",
   },

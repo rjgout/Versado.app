@@ -3,6 +3,42 @@ import { kompasFr } from "./kompas/fr";
 
 // Ontbrekende teksten vallen terug volgens fallbackChain (src/lib/languages.ts).
 export const fr: PartialMessages = {
+  nativeLearningFlow: {
+    "questions": "Questions",
+    "result": "Résultat",
+    "next": "Étape suivante",
+    "toPath": "Revenir au parcours",
+    "error": "Cela n’a pas fonctionné. Votre réponse a été conservée. Réessayez.",
+    "uncertain": "La validation n’est pas encore confirmée. Vérifiez d’abord le résultat enregistré ; rien ne sera renvoyé automatiquement.",
+    "recover": "Vérifier le résultat et réessayer en toute sécurité",
+    "pendingNavigation": "Vérifiez d’abord la validation incertaine pour conserver la même tentative et les mêmes réponses.",
+    "ready": "Ouvrir, défiler, écouter et annoter ne valident rien. Continuez uniquement avec le bouton prévu.",
+    "streakOne": "Série de {n} jour",
+    "streak": "Série de {n} jours",
+    "noQuestions": "Aucune question n’est disponible pour ce passage."
+},
+  nativeReader: {
+    annotationsEnabled: "Vous pouvez gérer les signets, surlignages et notes. Audio, enregistrement de la position, questions et validation viendront plus tard. Ces actions ne donnent ni XP ni validation de lecture.",
+    annotationsPositionEnabled: "Votre position est enregistrée après une lecture stable. Les signets, surlignages et notes sont partagés avec le site web. Audio, questions et validation viendront plus tard. Ces actions ne donnent ni XP ni validation de lecture.",
+    positionEnabled: "Votre position est enregistrée après une lecture stable. Audio, annotations, questions et validation viendront plus tard. Lire et feuilleter ne donnent ni XP ni validation.",
+    saving: "Enregistrement de la position…",
+    saved: "Position enregistrée.",
+    saveFailed: "Position non enregistrée. Réessayez manuellement.",
+    conflict: "La position a été modifiée ailleurs. Rechargez la position confirmée, puis continuez à lire.",
+    previous: "Chapitre précédent",
+    next: "Chapitre suivant",
+    "unsupported": "Ce serveur ne prend pas encore en charge le lecteur partagé. Revenez à Apprendre.",
+    "readOnly": "Vous pouvez lire et copier le texte ici. Audio, annotations, enregistrement de la position, questions et validation viendront ensuite. Ouvrir ou faire défiler ne donne ni XP ni progression.",
+    "range": "Étape de lecture : versets {start}–{end}.",
+    "legacy": "Ouvrez ce chapitre depuis le bon parcours dans Apprendre. Cet ancien parcours de test ne valide plus rien."
+},
+  nativeLearning: {
+    catalogueTruncated: "Cet aperçu est incomplet. Au maximum 600 leçons sont affichées.",
+    refreshFailed: "L’actualisation a temporairement échoué. Les dernières données confirmées restent affichées.",
+    "readOnly": "Vous pouvez consulter les cours et les parcours. Ajouter, masquer et suivre des leçons sera possible dans une prochaine version. Votre progression est conservée.",
+    "unsupported": "Ce serveur ne prend pas encore en charge la liste des cours.",
+    "pathUnavailable": "Ce parcours n’est pas encore disponible dans cette version de l’application."
+},
   mailLog: {
     "title": "E-mails envoyés",
     "intro": "Historique depuis l’activation ; conservation pendant 90 jours maximum. Les nouveaux envois apparaissent automatiquement.",
@@ -219,6 +255,23 @@ export const fr: PartialMessages = {
   "active": "Enregistrement actif",
   "legacy": "Inscriptions ; les enregistrements de chapitre existants sont conservés."
 },
+  nativeAccess: {
+  "title": "Accès interne de l’appareil",
+  "help": "Ajoutez l’accès Cloudflare de cet appareil de test dans la fenêtre système sécurisée. Le remplacer ou l’effacer vous déconnecte de Versado.",
+  "missing": "L’accès de l’appareil manque. Ajoutez les identifiants fournis par le propriétaire.",
+  "configured": "L’accès de l’appareil est enregistré. Sa validité est vérifiée à chaque requête.",
+  "enroll": "Ajouter ou remplacer l’accès",
+  "clear": "Effacer l’accès",
+  "busy": "Mise à jour de l’accès…",
+  "error": "L’accès de l’appareil n’a pas pu être utilisé. Vérifiez la connexion et demandez au propriétaire de vérifier l’accès.",
+  "denied": "L’accès de l’appareil a été refusé ou révoqué. Demandez de nouveaux identifiants au propriétaire.",
+  "disabled": "Cette version n’autorise pas l’accès interne. Compilez la bonne version interne.",
+  "realtime": "Les connexions en temps réel ne sont pas encore disponibles dans cette version Access interne."
+},
+  nativeToday: { unavailable: "Cette destination ou action n’est pas encore disponible dans cette version de l’application. Votre progression est conservée. Utilisez le site web pour le moment." },
+  nativeContentFallback: { unsupported: "Ce serveur ne prend pas encore en charge le choix du contenu dans l’application. Vous pouvez revenir à Aujourd’hui.", signIn: "Connectez-vous pour choisir votre contenu." },
+  nativeDiagnostics: {"title": "Diagnostic interne", "open": "Diagnostic interne", "internalBadge": "Interne", "testBadge": "Version de test", "recovery": "Connexion et récupération"},
+  nativeProfile: { pushUnavailable: "Les notifications push ne sont pas encore disponibles sur cet appareil." },
   nativeFoundation: {
   "welcome": "Bienvenue sur Versado",
   "login": "Se connecter",
@@ -1375,6 +1428,9 @@ export const fr: PartialMessages = {
     },
   },
   today: {
+    actionFailed: "L’action n’a pas été confirmée. Réessayez lorsque vous êtes connecté.",
+    friendAccepted: "Demande d’amitié acceptée",
+    friendDeclined: "Demande d’amitié refusée",
     greeting: {
       morning: "Bonjour, {name}",
       afternoon: "Bon après-midi, {name}",
@@ -3001,6 +3057,26 @@ export const fr: PartialMessages = {
     haveAccount: "Tu as déjà un compte ?",
     logIn: "Se connecter",
   },
+  accountDeletion: {
+    whatTitle: "Que supprime-t-on ?",
+    whatBody: "Ton compte et les données qui y sont liées, comme la progression, les amitiés, les notes et les réglages, sont effacés et ne peuvent pas être restaurés. Tu en sauras plus sur tes données dans la {link}.",
+    privacyLink: "déclaration de confidentialité",
+    howTitle: "Comment supprimer ton compte ?",
+    howApp: "Dans l’application : ouvre ton profil et choisis « Supprimer le compte ».",
+    howWeb: "Sur le site : connecte-toi et confirme avec ton mot de passe, et avec ton code si tu utilises la vérification en deux étapes.",
+    noAccessTitle: "Plus d’accès ?",
+    noAccessBody: "Tu n’arrives plus à accéder à ton compte ? Définis d’abord un nouveau mot de passe ; tu pourras ensuite supprimer ton compte ici. Un compte auquel tu te connectes uniquement avec Apple ne peut pas encore être supprimé ici.",
+    signedOutHint: "Connecte-toi pour supprimer ton compte.",
+    loginCta: "Se connecter",
+    forgotCta: "Mot de passe oublié",
+    title: "Supprimer le compte",
+    intro: "Confirme avec ton mot de passe pour supprimer définitivement ton compte. Cette action est irréversible.",
+    withCode: "Saisis aussi le code de ton application d’authentification ou un code de récupération.",
+    tooManyAttempts: "Trop de tentatives. Réessaie plus tard.",
+    lastAdmin: "Tu es le seul administrateur. Crée d’abord un autre administrateur avant de supprimer ce compte.",
+    reauthenticationUnavailable: "Un compte sans mot de passe (connexion avec Apple) ne peut pas encore être supprimé depuis l’application. Cette option est en préparation.",
+    submit: "Supprimer définitivement le compte",
+  },
   password: {
     resetLinkLabel: "Lien de réinitialisation reçu par e-mail",
     openResetLink: "Ouvrir le lien de réinitialisation",
@@ -3777,6 +3853,11 @@ export const fr: PartialMessages = {
     loadFailed: "Les personnes n’ont pas pu être chargées.",
   },
   player: {
+    nativeOutput: "Source de lecture",
+    nativeRecording: "Audio enregistré",
+    nativeDeviceVoice: "Voix sur cet appareil",
+    nativeUnavailable: "La lecture audio est indisponible. Vérifiez votre connexion et les voix disponibles.",
+
     audioLanguage: "Langue audio",
     audioLanguageHint: "Lis et écoute dans des langues différentes. Ton choix est enregistré sur cet appareil. Sans enregistrement, une voix de synthèse est utilisée.",
     retryLanguages: "Impossible de charger les langues audio. Réessayer",
@@ -3982,9 +4063,27 @@ export const fr: PartialMessages = {
       failed_critical: "Échec — intervention nécessaire",
     },
   },
+  cfmRecovery: {
+    "title": "Restaurer CFM 2026 en sécurité",
+    "description": "La vérification est en lecture seule. Les instantanés d’import validés sont prioritaires pour les originaux. La préparation peut uniquement restaurer ces médias originaux et créer des brouillons. Publications et progression sont préservées.",
+    "check": "1. Voir le plan de restauration (lecture seule)",
+    "published": "Publié",
+    "source": "Voir la source officielle",
+    "original": "Empreinte originale",
+    "candidate": "Remplacement vérifié",
+    "snapshot": "Instantané d’import original",
+    "ORIGINAL_VALID": "Original valide sur le volume",
+    "ORIGINAL_SNAPSHOT": "Original dans un instantané validé",
+    "REVIEW_REQUIRED": "Original introuvable — vérification des médias requise",
+    "review": "J’ai vérifié les images officielles, leurs liens aux leçons, empreintes et dimensions. J’approuve uniquement ces médias de remplacement comme brouillons. Sans les anciens fichiers, l’égalité des pixels ne peut être prouvée.",
+    "prepare": "2. Restaurer les originaux et préparer les brouillons",
+    "confirm": "Exécuter le plan de restauration CFM 2026 ? Les médias originaux peuvent être restaurés ; les remplacements sont uniquement enregistrés comme brouillons. Rien ne sera publié ou rendu visible.",
+    "after": "Vérifiez ensuite les brouillons dans Publications des leçons d’étude. Publier, autoriser la collection et la rendre visible sont des actions distinctes. Une erreur peut laisser des brouillons partiels ; actualisez le plan avant de reprendre manuellement.",
+    "publications": "Ouvrir Publications des leçons d’étude"
+},
   adminReseed: {
     title: "Récupérer le nouveau contenu",
-    text: "Récupère les nouveaux épisodes de podcast, le contenu FSY, les brouillons CFM et d'autres nouveaux contenus. Les textes des Écritures, leurs exercices et l'audio lu restent intacts : mets-les à jour avec « Mettre à jour les sources des Écritures ». Les leçons d'étude ne sont jamais publiées ni rendues visibles automatiquement. Les utilisateurs, la progression, les séries et les scores sont conservés. Tu peux quitter cette page et consulter la progression plus tard.",
+    text: "Récupère les nouveaux podcasts, contenus FSY et autres nouveautés. CFM ajoute uniquement les leçons manquantes ; les leçons complètes restent inchangées. Les nouvelles leçons officielles peuvent être publiées automatiquement après validation si cette option est activée. La restauration des médias et les révisions nécessitent la vérification distincte ci-dessous. Les textes, exercices et audios de chapitres utilisent Actualiser les sources scripturaires. Utilisateurs et progression sont préservés.",
     failed: "La récupération du nouveau contenu a échoué.",
     done: "Terminé : le nouveau contenu a été récupéré.",
   },

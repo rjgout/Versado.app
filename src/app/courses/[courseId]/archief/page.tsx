@@ -35,7 +35,7 @@ export default async function CfmArchivePage({ params }: { params: Promise<{ cou
   return (
     <>
       <LiveRefresh scopes={["courses", "progress", "studySteps", "studyContext", "studyContent"]} token={data.token} />
-      <CfmArchiveView courseName={localizedCourse({ ...course, work: course.contentCollection.work }, user.uiLanguage).name} mode={modeOfStudyCourse(course.type)} groups={groups} />
+      <CfmArchiveView courseName={localizedCourse({ ...course, work: course.contentCollection.work }, user.uiLanguage).name} mode={modeOfStudyCourse(course.type)} groups={groups} truncated={data.truncated} />
     </>
   );
 }

@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { getDutchVoices, getSelectedDutchVoice } from "@/lib/readAloud";
 import { beginSpeechPlayback, endSpeechPlayback } from "@/lib/speechAudioSession";
+import type { ReadAloudOutput } from "./readAloudOutput";
 import { getLanguage } from "@/lib/languages";
 
 export interface ReadAloudVerse {
@@ -24,6 +25,8 @@ export interface ReadAloudSource {
   audio?: { url: string; end: number | null; fallback?: { url:string; end:number|null; verses:ReadAloudVerse[] } | null } | null;
   /** Taal van de tekst (src/lib/languages.ts); bepaalt de computerstem. Zonder: Nederlands. */
   language?: string;
+  /** Lokale decoderselectie; geen URL, token of autorisatiebewijs. */
+  native?: { ownerId: string; contextEpoch: number; readerHash: string; sourceId?: string; voiceId?: string };
 }
 
 // Echte audio alleen als élk vers een begintijd heeft; anders de computerstem,
@@ -34,7 +37,10 @@ function hasRecordedAudio(source: ReadAloudSource | null): boolean {
 
 interface ReadAloudPlayerContextValue {
   source: ReadAloudSource | null;
+  error: boolean;
+  output?: ReadAloudOutput;
   isPlaying: boolean;
+  isPreparing: boolean;
   currentIndex: number;
   speed: number;
   start: (source: ReadAloudSource, index?: number) => void;
@@ -72,7 +78,11 @@ export function getVoice(language?: string): SpeechSynthesisVoice | null {
     ?? null;
 }
 
-export function ReadAloudPlayerProvider({ children }: { children: React.ReactNode }) {
+export function ReadAloudPlayerProvider({ children, output }: { children: React.ReactNode; output?: ReadAloudOutput }) {
+  const commandRef = useRef<string | null>(null);
+  const [error, setError] = useState(false);
+  const [isPreparing,setIsPreparing]=useState(false);
+  const preparingRef=useRef(false);
   const [source, setSource] = useState<ReadAloudSource | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -98,12 +108,32 @@ export function ReadAloudPlayerProvider({ children }: { children: React.ReactNod
   }, []);
 
   useEffect(() => {
-    if (!("speechSynthesis" in window)) return;
+    if (output || !("speechSynthesis" in window)) return;
     window.speechSynthesis.getVoices();
     const onVoicesChanged = () => window.speechSynthesis.getVoices();
     window.speechSynthesis.addEventListener?.("voiceschanged", onVoicesChanged);
     return () => window.speechSynthesis.removeEventListener?.("voiceschanged", onVoicesChanged);
-  }, []);
+  }, [output]);
+
+  useEffect(() => {
+    if (!output) return;
+    return output.subscribe(event => {
+      const current = sourceRef.current;
+      if (!current || commandRef.current !== event.commandId) return;
+      if (!Number.isInteger(event.index) || event.index < 0 || event.index >= current.verses.length) return;
+      playingRef.current = event.playing && !event.stopped; setIsPlaying(playingRef.current);
+      currentIndexRef.current = event.index; setCurrentIndex(event.index); setError(event.failed === true);
+      if (event.stopped) { preparingRef.current=false;setIsPreparing(false);commandRef.current = null; sourceRef.current = null; setSource(null); }
+    });
+  }, [output]);
+  const nativeControl = useCallback((action: "pause" | "resume" | "seek" | "speed", index = currentIndexRef.current) => {
+    const commandId = commandRef.current; if (!output || !commandId || preparingRef.current) return;
+    window.dispatchEvent(new Event("versado:read-aloud-interaction"));
+    void output.control(action, index, speedRef.current, commandId).catch(() => {
+      if (commandRef.current !== commandId) return;
+      playingRef.current = false; setIsPlaying(false); setError(true);
+    });
+  }, [output]);
 
   const finishAudio = useCallback(() => {
     audioRef.current?.pause();
@@ -226,6 +256,22 @@ export function ReadAloudPlayerProvider({ children }: { children: React.ReactNod
   }, []);
 
   const start = useCallback((newSource: ReadAloudSource, index = 0) => {
+    if (output && !output.accepts(newSource)) return;
+    setError(false);
+    if (output) {
+      if (!newSource.native || newSource.verses.length === 0) return;
+      const number = Math.max(0, Math.min(index, newSource.verses.length - 1));
+      const commandId = crypto.randomUUID(); commandRef.current = commandId;preparingRef.current=true;setIsPreparing(true);
+      window.dispatchEvent(new Event("jehovaapp:stop-podcast"));
+      window.dispatchEvent(new Event("versado:read-aloud-interaction"));
+      sourceRef.current = newSource; setSource(newSource); currentIndexRef.current = number; setCurrentIndex(number);
+      playingRef.current = false; setIsPlaying(false);
+      void output.start(newSource, number, speedRef.current, commandId).catch(() => {
+        if (commandRef.current !== commandId) return;
+        playingRef.current = false; setIsPlaying(false); setError(true); commandRef.current = null; sourceRef.current = null; setSource(null);
+      }).finally(()=>{if(commandRef.current===commandId){preparingRef.current=false;setIsPreparing(false);}});
+      return;
+    }
     const recorded = hasRecordedAudio(newSource);
     if ((!recorded && !("speechSynthesis" in window)) || newSource.verses.length === 0) return;
     // Voorlezen en de podcast delen één audio-uitvoer: een nieuwe voorleesactie
@@ -246,9 +292,10 @@ export function ReadAloudPlayerProvider({ children }: { children: React.ReactNod
     setIsPlaying(true);
     if (recorded) playAudioFrom(index);
     else speakFrom(index);
-  }, [speakFrom, playAudioFrom]);
+  }, [speakFrom, playAudioFrom, output]);
 
   const togglePlay = useCallback(() => {
+    if (output) { nativeControl(playingRef.current ? "pause" : "resume"); return; }
     const currentSource = sourceRef.current;
     if (hasRecordedAudio(currentSource)) {
       const el = audioRef.current;
@@ -286,10 +333,12 @@ export function ReadAloudPlayerProvider({ children }: { children: React.ReactNod
     setIsPlaying(true);
     if (window.speechSynthesis.paused) window.speechSynthesis.resume();
     else speakFrom(currentIndexRef.current);
-  }, [isPlaying, speakFrom, playAudioFrom]);
+  }, [isPlaying, speakFrom, playAudioFrom, output, nativeControl]);
 
   const jumpTo = useCallback((index: number) => {
     const currentSource = sourceRef.current;
+    if (output && preparingRef.current)return;
+    if (output) { if (currentSource) { const target = Math.max(0, Math.min(index, currentSource.verses.length - 1)); currentIndexRef.current = target; setCurrentIndex(target); nativeControl("seek", target); } return; }
     if (currentSource && hasRecordedAudio(currentSource)) {
       const clamped = Math.max(0, Math.min(index, currentSource.verses.length - 1));
       currentIndexRef.current = clamped;
@@ -310,12 +359,17 @@ export function ReadAloudPlayerProvider({ children }: { children: React.ReactNod
       setIsPlaying(true);
       speakFrom(clamped);
     }
-  }, [speakFrom, playAudioFrom]);
+  }, [speakFrom, playAudioFrom, output, nativeControl]);
 
   const previousVerse = useCallback(() => jumpTo(currentIndexRef.current - 1), [jumpTo]);
   const nextVerse = useCallback(() => jumpTo(currentIndexRef.current + 1), [jumpTo]);
 
   const stop = useCallback(() => {
+    if (output) {
+      preparingRef.current=false;setIsPreparing(false);commandRef.current = null; playingRef.current = false; setIsPlaying(false); sourceRef.current = null; setSource(null); currentIndexRef.current = 0; setCurrentIndex(0); setError(false);
+      window.dispatchEvent(new Event("versado:read-aloud-interaction"));
+      void output.stop().catch(() => {}); return;
+    }
     if ("speechSynthesis" in window) window.speechSynthesis.cancel();
     audioRef.current?.pause();
     endSpeechPlayback();
@@ -325,29 +379,20 @@ export function ReadAloudPlayerProvider({ children }: { children: React.ReactNod
     sourceRef.current = null;
     setSource(null);
     setCurrentIndex(0);
-  }, []);
+  }, [output]);
 
   useEffect(() => {
-    const stopForPodcast = () => {
-      audioRef.current?.pause();
-      if ("speechSynthesis" in window) window.speechSynthesis.cancel();
-      endSpeechPlayback();
-      utteranceIdRef.current += 1;
-      playingRef.current = false;
-      setIsPlaying(false);
-      sourceRef.current = null;
-      setSource(null);
-      setCurrentIndex(0);
-    };
+    const stopForPodcast = () => stop();
     window.addEventListener("jehovaapp:stop-read-aloud", stopForPodcast);
     return () => window.removeEventListener("jehovaapp:stop-read-aloud", stopForPodcast);
-  }, []);
+  }, [stop]);
 
   const setSpeed = useCallback((nextSpeed: number) => {
-    if (!SPEEDS.includes(nextSpeed)) return;
+    if (!SPEEDS.includes(nextSpeed) || (output&&preparingRef.current)) return;
     speedRef.current = nextSpeed;
     setSpeedState(nextSpeed);
     window.localStorage.setItem("jehovaapp-read-aloud-speed", String(nextSpeed));
+    if (output) { nativeControl("speed"); return; }
     if (hasRecordedAudio(sourceRef.current)) {
       if (audioRef.current) audioRef.current.playbackRate = nextSpeed;
       return;
@@ -360,16 +405,17 @@ export function ReadAloudPlayerProvider({ children }: { children: React.ReactNod
       setIsPlaying(true);
       speakFrom(index);
     }
-  }, [speakFrom]);
+  }, [speakFrom, output, nativeControl]);
 
   useEffect(() => () => {
+    if (output) { commandRef.current = null; void output.stop().catch(() => {}); return; }
     if ("speechSynthesis" in window) window.speechSynthesis.cancel();
     audioRef.current?.pause();
     endSpeechPlayback();
-  }, []);
+  }, [output]);
 
   return (
-    <ReadAloudPlayerContext.Provider value={{ source, isPlaying, currentIndex, speed, start, togglePlay, previousVerse, nextVerse, stop, setSpeed }}>
+    <ReadAloudPlayerContext.Provider value={{ source, error, output, isPlaying, isPreparing, currentIndex, speed, start, togglePlay, previousVerse, nextVerse, stop, setSpeed }}>
       {children}
     </ReadAloudPlayerContext.Provider>
   );

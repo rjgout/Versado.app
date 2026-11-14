@@ -5,4 +5,4 @@ export const dynamic = "force-dynamic";
 async function handle(req: NextRequest, context: { params: Promise<{ path: string[] }> }) {
   return nativeApi(req, (await context.params).path);
 }
-export { handle as GET, handle as POST, handle as DELETE, handle as OPTIONS };
+export { handle as GET, handle as HEAD, handle as POST, handle as DELETE, handle as OPTIONS };

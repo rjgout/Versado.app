@@ -11,7 +11,7 @@ import { requestLegacyAudio, requestOfficialAudio, runOfficialAudioTick, publish
 import { publishAudio, activeChapterAudio, accessibleRecording } from "../src/lib/audio/library";
 import { mirrorFileName } from "../src/lib/audioMirror";
 import { officialPage } from "./fixtures/audio/official-source";
-import { mockOfficialNetwork,type OfficialMock } from "./fixtures/audio/official-network";
+import { mockOfficialNetwork,writeOfficialControl,type OfficialMock } from "./fixtures/audio/official-network";
 const url=new URL(process.env.AUDIO_TEST_DATABASE_URL??"http://invalid"),root=process.env.AUDIO_TEST_ROOT!;
 if(url.hostname!=="127.0.0.1"||url.pathname!=="/versado_audio_test"||process.env.DATABASE_URL!==url.href)throw Error("Eigen audiorunner vereist");
 let actor:{id:string;sessionVersion:number;isAdmin:boolean},baseline:string;
@@ -147,7 +147,7 @@ test("afzonderlijke proefgoedkeuring ontsluit uitsluitend overige geldige legacy
 async function pausedRepair() {
  await prisma.officialAudioTask.update({where:{id:ids[0]},data:{status:"FAILED",phase:"DOWNLOAD",checkedAt:null,leaseUntil:null}});
  await request("resume",[ids[0]]);
- await fs.writeFile(config.controlFile,JSON.stringify({pauseUrl:config.sources[0].url}));
+ await writeOfficialControl(config.controlFile,{pauseUrl:config.sources[0].url});
  const launched=launchWorker();let paused=false;
  for(let i=0;i<160;i++){const task=await prisma.officialAudioTask.findUniqueOrThrow({where:{id:ids[0]}});if(task.status==="RUNNING"&&task.bytesDownloaded===1){paused=true;break;}await delay(25);}
  if(!paused){launched.child.kill("SIGKILL");await launched.done;throw Error("Download niet gepauzeerd");}
@@ -156,14 +156,14 @@ async function pausedRepair() {
 test("procesuitval tijdens nieuwe legacy-download hervat met fencing en behoudt bestanden en publicatie",async()=>{
  const pointers=await prisma.audioPublication.findMany({orderBy:{targetKey:"asc"}}),count=await prisma.audioRecording.count();
  const launched=await pausedRepair();launched.child.kill("SIGKILL");await launched.done;
- await fs.writeFile(config.controlFile,"{}");await prisma.officialAudioTask.update({where:{id:ids[0]},data:{leaseUntil:new Date(0)}});await worker();
+ await writeOfficialControl(config.controlFile,{});await prisma.officialAudioTask.update({where:{id:ids[0]},data:{leaseUntil:new Date(0)}});await worker();
  assert.equal((await prisma.officialAudioTask.findUniqueOrThrow({where:{id:ids[0]}})).status,"REGISTERED");assert.equal(await prisma.audioRecording.count(),count);
  assert.deepEqual(await prisma.audioPublication.findMany({orderBy:{targetKey:"asc"}}),pointers);assert.equal(await snapshot(),baseline);
 });
 test("rolintrekking tijdens een vertraagde legacy-download blokkeert commit; expliciete retry is veilig",async()=>{
  const pointers=await prisma.audioPublication.findMany({orderBy:{targetKey:"asc"}}),count=await prisma.audioRecording.count();
  const launched=await pausedRepair();await prisma.user.update({where:{id:actor.id},data:{isAdmin:false}});
- try{await fs.writeFile(config.controlFile,"{}");await launched.done;const task=await prisma.officialAudioTask.findUniqueOrThrow({where:{id:ids[0]}});assert.equal(task.status,"FAILED");assert.equal(task.errorCode,"FORBIDDEN");}
+ try{await writeOfficialControl(config.controlFile,{});await launched.done;const task=await prisma.officialAudioTask.findUniqueOrThrow({where:{id:ids[0]}});assert.equal(task.status,"FAILED");assert.equal(task.errorCode,"FORBIDDEN");}
  finally{await prisma.user.update({where:{id:actor.id},data:{isAdmin:true}});}
  await request("resume",[ids[0]]);await tick();assert.equal((await prisma.officialAudioTask.findUniqueOrThrow({where:{id:ids[0]}})).status,"REGISTERED");
  assert.equal(await prisma.audioRecording.count(),count);assert.deepEqual(await prisma.audioPublication.findMany({orderBy:{targetKey:"asc"}}),pointers);assert.equal(await snapshot(),baseline);

@@ -3,6 +3,42 @@ import { kompasEn } from "./kompas/en";
 
 // Ontbrekende teksten vallen terug volgens fallbackChain (src/lib/languages.ts).
 export const en: PartialMessages = {
+  nativeLearningFlow: {
+    "questions": "Questions",
+    "result": "Result",
+    "next": "Next step",
+    "toPath": "Back to the learning path",
+    "error": "That did not work. Your answer has been kept. Try again.",
+    "uncertain": "Completion has not been confirmed. Check the saved result first; nothing is automatically submitted again.",
+    "recover": "Check the result and safely try again",
+    "pendingNavigation": "Check the uncertain completion first so the same attempt and answers are kept.",
+    "ready": "Opening, scrolling, listening and annotations do not complete anything. Continue only with the explicit button.",
+    "streakOne": "{n} day streak",
+    "streak": "{n}-day streak",
+    "noQuestions": "No questions are available for this passage."
+},
+  nativeReader: {
+    annotationsEnabled: "You can manage bookmarks, highlights and notes. Audio, saving your reading position, questions and completion will follow later. These actions do not award XP or complete reading.",
+    annotationsPositionEnabled: "Your reading position is saved after steady reading. Bookmarks, highlights and notes are shared with the website. Audio, questions and completion will follow later. These actions do not award XP or complete reading.",
+    positionEnabled: "Your reading position is saved after steady reading. Audio, annotations, questions and completion will follow later. Reading and browsing do not award XP or complete reading.",
+    saving: "Saving reading position…",
+    saved: "Reading position saved.",
+    saveFailed: "Reading position was not saved. Please retry manually.",
+    conflict: "The reading position changed elsewhere. Reload the confirmed position, then continue reading.",
+    previous: "Previous chapter",
+    next: "Next chapter",
+    "unsupported": "This backend does not support the shared reader yet. Return to Learn.",
+    "readOnly": "You can read and copy text here. Audio, annotations, saving your reading position, questions and completion will follow later. Opening or scrolling awards no XP or progress.",
+    "range": "Reading step: verses {start}–{end}.",
+    "legacy": "Open this chapter from the correct learning path in Learn. This old trial route no longer completes anything."
+},
+  nativeLearning: {
+    catalogueTruncated: "This overview is incomplete. At most 600 lessons are shown.",
+    refreshFailed: "Refresh failed temporarily. You are viewing the last confirmed data.",
+    "readOnly": "You can view courses and learning paths. Adding, hiding and taking lessons will follow in a later app version. Your progress is preserved.",
+    "unsupported": "This server does not support the course overview yet.",
+    "pathUnavailable": "This learning path is not available in this app version yet."
+},
   mailLog: {
     "title": "Sent emails",
     "intro": "History from activation onward; retained for up to 90 days. New messages appear automatically.",
@@ -219,6 +255,23 @@ export const en: PartialMessages = {
   "active": "Active recording",
   "legacy": "Registrations; existing chapter audio is preserved."
 },
+  nativeAccess: {
+  "title": "Internal device access",
+  "help": "Add Cloudflare access for this test device in the secure system dialog. Replacing or clearing access signs you out of Versado.",
+  "missing": "Device access is missing. Add the credentials supplied by the owner.",
+  "configured": "Device access is stored. Validity is checked with every request.",
+  "enroll": "Add or replace access",
+  "clear": "Clear access",
+  "busy": "Updating device access…",
+  "error": "Device access could not be used. Check your connection and ask the owner to check access.",
+  "denied": "Device access was denied or revoked. Ask the owner for new credentials.",
+  "disabled": "This build does not allow internal device access. Build the correct internal version.",
+  "realtime": "Realtime connections are not yet available in this internal Access build."
+},
+  nativeToday: { unavailable: "This destination or action is not available in this app build yet. Your progress is preserved. Please use the website for now." },
+  nativeContentFallback: { unsupported: "This backend does not yet support the content picker in the app. You can return to Today.", signIn: "Sign in to choose your content." },
+  nativeDiagnostics: {"title": "Internal diagnostics", "open": "Internal diagnostics", "internalBadge": "Internal", "testBadge": "Test build", "recovery": "Connection and recovery"},
+  nativeProfile: { pushUnavailable: "Push notifications are not yet available on this device." },
   nativeFoundation: {
   "welcome": "Welcome to Versado",
   "login": "Sign in",
@@ -1375,6 +1428,9 @@ export const en: PartialMessages = {
     },
   },
   today: {
+    actionFailed: "The action was not confirmed. Please try again when connected.",
+    friendAccepted: "Friend request accepted",
+    friendDeclined: "Friend request declined",
     greeting: {
       morning: "Good morning, {name}",
       afternoon: "Good afternoon, {name}",
@@ -3001,6 +3057,26 @@ export const en: PartialMessages = {
     haveAccount: "Already have an account?",
     logIn: "Log in",
   },
+  accountDeletion: {
+    whatTitle: "What gets deleted?",
+    whatBody: "Your account and the data linked to it, such as progress, friendships, notes and settings, are erased and cannot be restored. You can read more about your data in the {link}.",
+    privacyLink: "privacy statement",
+    howTitle: "How do you delete your account?",
+    howApp: "In the app: open your profile and choose “Delete account”.",
+    howWeb: "On the website: sign in and confirm with your password, and with your code if you use two-step verification.",
+    noAccessTitle: "No access anymore?",
+    noAccessBody: "Can’t get into your account? First set a new password; then you can delete your account here. An account that you only sign in to with Apple cannot be deleted here yet.",
+    signedOutHint: "Sign in to delete your account.",
+    loginCta: "Sign in",
+    forgotCta: "Forgot password",
+    title: "Delete account",
+    intro: "Confirm with your password to permanently delete your account. This cannot be undone.",
+    withCode: "Also enter the code from your authenticator app or a recovery code.",
+    tooManyAttempts: "Too many attempts. Try again later.",
+    lastAdmin: "You are the only administrator. Create another administrator before deleting this account.",
+    reauthenticationUnavailable: "An account without a password (signed in with Apple) cannot be deleted from the app yet. This option is being prepared.",
+    submit: "Permanently delete account",
+  },
   password: {
     resetLinkLabel: "Reset link from your email",
     openResetLink: "Open reset link",
@@ -3777,6 +3853,11 @@ export const en: PartialMessages = {
     loadFailed: "The people couldn’t be loaded.",
   },
   player: {
+    nativeOutput: "Read-aloud source",
+    nativeRecording: "Recorded audio",
+    nativeDeviceVoice: "Voice on this device",
+    nativeUnavailable: "Read aloud is currently unavailable. Check your connection and available voices.",
+
     audioLanguage: "Audio language",
     audioLanguageHint: "Read and listen in different languages. Your choice is saved on this device. Without a recording, a computer voice is used.",
     retryLanguages: "Could not load audio languages. Try again",
@@ -3982,9 +4063,27 @@ export const en: PartialMessages = {
       failed_critical: "Failed — intervention needed",
     },
   },
+  cfmRecovery: {
+    "title": "Safely recover CFM 2026",
+    "description": "Checking is read-only. Verified import snapshots take priority for original files. Preparation can only restore those original media files and create drafts. Existing publications and progress are preserved.",
+    "check": "1. View recovery plan (read-only)",
+    "published": "Published",
+    "source": "View official source",
+    "original": "Original pin",
+    "candidate": "Reviewed replacement",
+    "snapshot": "Original import snapshot",
+    "ORIGINAL_VALID": "Original on volume is valid",
+    "ORIGINAL_SNAPSHOT": "Original in verified snapshot",
+    "REVIEW_REQUIRED": "Original not found — media review required",
+    "review": "I reviewed the official images, lesson associations, checksums and dimensions. I approve only these replacement media as drafts. Without the old files, pixel equality with the originals cannot be proven.",
+    "prepare": "2. Restore originals and prepare drafts",
+    "confirm": "Execute the CFM 2026 recovery plan? Original media may be restored; replacements are registered as drafts only. Nothing is published or made visible.",
+    "after": "Afterwards, check the drafts in Study lesson publications. Publishing, releasing the collection and making it visible are separate administrator actions. A failure may leave partially prepared drafts; refresh the recovery plan before manually resuming.",
+    "publications": "Go to Study lesson publications"
+},
   adminReseed: {
     title: "Fetch new content",
-    text: "Fetches new podcast episodes, FSY content, CFM drafts and other new content. Scripture texts, their exercises and read-aloud audio are left untouched: update those with \"Update scripture sources\". Study lessons are never automatically published or made visible. Existing users, progress, streaks and scores are preserved. You can leave this page and check progress later.",
+    text: "Fetches new podcasts, FSY content and other new content. CFM only adds missing lessons; complete lessons stay unchanged. New official CFM lessons may be published automatically after validation if enabled. Media recovery and revisions require the separate review below. Scripture texts, exercises and chapter audio use Update scripture sources. Users and progress are preserved.",
     failed: "Fetching new content failed.",
     done: "Done — new content has been fetched.",
   },

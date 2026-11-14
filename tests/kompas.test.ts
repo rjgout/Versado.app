@@ -164,7 +164,7 @@ test("vertalingen: tijdelijke plaatshouders blijven behouden en teksten zijn nie
 
 test("elke tekstsleutel die de Kompas-componenten letterlijk gebruiken bestaat", () => {
   const files = [...walk("src/components/kompas", (f) => f.endsWith(".tsx")), ...walk("src/app/kompas", (f) => f.endsWith(".tsx"))];
-  files.push("src/components/OnboardingClient.tsx", "src/components/ProfileClient.tsx", "src/components/LiveLobbyForm.tsx", "src/components/SubpageBackBar.tsx");
+  files.push("src/components/OnboardingClient.tsx", "src/components/ProfileClient.tsx", "src/components/profile/ProfileOverview.tsx", "src/components/LiveLobbyForm.tsx", "src/components/SubpageBackBar.tsx");
   const known = new Set(flatten(kompasNl).map((key) => `kompas.${key}`));
   for (const file of files) {
     const source = file.startsWith("src") && !file.startsWith(root) ? read(file) : readFileSync(file, "utf8");
@@ -559,7 +559,7 @@ test("Kompas-pagina's zijn neutraal voor de contentroutering en horen bij de gew
 test("accountonboarding en vrijwillige Kompas-rondleiding blijven gescheiden", () => {
   const dashboard = read("src/app/dashboard/page.tsx");
   assert.match(dashboard, /if \(!user\.onboardingSeenAt\) redirect\("\/onboarding"\)/);
-  const profile = read("src/components/ProfileClient.tsx");
+  const profile = read("src/components/ProfileClient.tsx") + read("src/components/profile/ProfileOverview.tsx");
   assert.match(profile, /label=\{t\("kompas\.entry\.title"\)\} href="\/kompas"/);
   assert.doesNotMatch(profile, /href="\/onboarding"/);
   const onboarding = read("src/app/onboarding/page.tsx");
@@ -631,13 +631,13 @@ test("de layout draagt Kompas: provider rond de app, uitnodiging naast de andere
   const layout = read("src/app/layout.tsx");
   assert.match(layout, /<KompasProvider>/);
   assert.match(layout, /<ContextOffer work=\{workOf\(contentContext\.active\)\} \/>/);
-  assert.match(read("src/components/ContentSwitcher.tsx"), /data-kompas-target="content-switcher"/);
+  assert.match(read("src/components/content/ContentSwitcherView.tsx"), /data-kompas-target="content-switcher"/);
   assert.match(read("src/components/SubpageBackBar.tsx"), /pathname === "\/kompas"/);
 });
 
 test("de ingang staat op Vandaag en op het profiel", () => {
-  assert.match(read("src/app/dashboard/page.tsx"), /<KompasEntryCard \/>/);
-  assert.match(read("src/components/ProfileClient.tsx"), /<KompasEntryCard \/>/);
+  assert.match(read("src/app/dashboard/page.tsx"), /<KompasEntryCard\s*\/>/);
+  assert.match(read("src/components/ProfileClient.tsx"), /<KompasEntryCard\s*\/>/);
 });
 
 test("elke visuele Kompas-pagina gebruikt de semantische Versado-tokens en geen vaste Nederlandse UI-tekst", () => {
@@ -678,7 +678,7 @@ test("de algemene uitleg belooft geen schriftwerk-specifieke functies en bronuit
 });
 
 test("bestaande accounts: één rustig label en één eenmalige vraag, geen pop-up en geen nieuwe onboarding", () => {
-  const entry = read("src/components/kompas/KompasEntryCard.tsx");
+  const entry = read("src/components/kompas/KompasEntryCardView.tsx");
   assert.match(entry, /kompas\.entry\.new/);
   const hub = read("src/app/kompas/page.tsx");
   assert.match(hub, /firstVisit && !user\.kompasOffersEnabled/);

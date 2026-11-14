@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Native centrering zonder uitrekken bij andere telefoon-/tabletverhoudingen. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/ic_launcher_background" />
+    <item>
+        <bitmap android:src="@drawable/versado_splash_flame" android:gravity="center" android:filter="true" />
+    </item>
+</layer-list>

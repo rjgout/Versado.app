@@ -147,3 +147,15 @@ test("status: gelezen en oefeningen staan los van elkaar", () => {
   assert.equal(resolveContentState({ ...base, readStatus: "READ" }, 0).done, true);
   assert.equal(resolveContentState(null, 12).read, "UNREAD");
 });
+
+test("kleinere vraagset trekt geen historische XP of credits af; terugzetten geeft geen dubbele basis-XP",()=>{
+  const state={answered:3,rewardCorrect:3,bonusAwarded:true};
+  const smaller=applyAttempt(state,2,{newAnswered:0,newCorrect:0,correct:2});
+  assert.equal(smaller.baseXp,0);assert.equal(smaller.repeatXp,2);
+  assert.deepEqual(smaller.next,state);
+  const restored=applyAttempt(smaller.next,3,{newAnswered:0,newCorrect:0,correct:3});
+  assert.equal(restored.baseXp,0);assert.equal(restored.bonusXp,0);assert.deepEqual(restored.next,state);
+  const larger=applyAttempt(restored.next,4,{newAnswered:1,newCorrect:1,correct:4});
+  assert.equal(larger.baseXp,XP_PER_CORRECT);assert.equal(larger.bonusXp,0);
+  assert.equal(larger.next.rewardCorrect,4);
+});

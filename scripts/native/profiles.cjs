@@ -25,6 +25,8 @@ const API_VERSION = 1;
 const COMPILE_PROBE_ORIGIN = "https://example.invalid";
 const DEFAULT_BUNDLE_DIR = "dist/native";
 const ORIGINS_FILE = "scripts/native/distribution-origins.json";
+const INTERNAL_ACCESS_ORIGIN = "https://dev.versado.app";
+const INTERNAL_ACCESS_FILE = "internal-access.json";
 
 const PROFILE_IDS = ["remote-preview", "local-development", "local-internal", "local-store-test"];
 const DISTRIBUTION_PROFILE_IDS = ["local-internal", "local-store-test"];
@@ -37,6 +39,20 @@ const DISTRIBUTION_PROFILES = {
 
 class ProfileError extends Error {
   constructor(message) { super(message); this.name = "ProfileError"; }
+}
+
+// De vlag is openbaar; echte servicecredentials mogen nooit bouwinvoer zijn.
+function internalAccessEnabled(resolved, env = process.env) {
+  for (const name of ["CF_ACCESS_CLIENT_ID", "CF_ACCESS_CLIENT_SECRET", "CF-Access-Client-Id", "CF-Access-Client-Secret", "CLOUDFLARE_ACCESS_CLIENT_SECRET"]) {
+    if (Object.hasOwn(env, name)) throw new ProfileError("Cloudflare-servicecredentials zijn verboden als bouwinvoer; gebruik native enrollment.");
+  }
+  const flag = env.NATIVE_INTERNAL_ACCESS;
+  if (flag === undefined || flag === "0") return false;
+  if (flag !== "1") throw new ProfileError("NATIVE_INTERNAL_ACCESS accepteert uitsluitend 0 of 1.");
+  if (resolved.profile !== "local-internal" || resolved.channel !== "internal" || resolved.apiOrigin !== INTERNAL_ACCESS_ORIGIN || resolved.compileProbe !== false) {
+    throw new ProfileError("Cloudflare Access is uitsluitend beschikbaar voor een expliciete local-internal-build voor https://dev.versado.app.");
+  }
+  return true;
 }
 
 const value = (env, key) => { const raw = env[key]; return raw === undefined || raw.trim() === "" ? undefined : raw.trim(); };
@@ -293,7 +309,7 @@ const SECRET_PATTERNS = [
   ["AWS-sleutel", /\bAKIA[0-9A-Z]{16}\b/],
   ["Google API-sleutel", /\bAIza[0-9A-Za-z_-]{35}\b/],
   ["service-account", /"type"\s*:\s*"service_account"/],
-  ["naam van een geheim", /\b(?:NATIVE_SESSION_SECRET|SESSION_SECRET|APPLE_PRIVATE_KEY|ASC_KEY_P8|PLAY_SERVICE_ACCOUNT_JSON|(?:ANDROID|VERSADO)_UPLOAD_KEY(?:STORE)?_[A-Z_]*)\b/],
+  ["naam van een geheim", /\b(?:NATIVE_SESSION_SECRET|SESSION_SECRET|APPLE_PRIVATE_KEY|ASC_KEY_P8|ASC_API_KEY_P8_BASE64|IOS_DISTRIBUTION_P12_BASE64|IOS_DISTRIBUTION_P12_PASSWORD|IOS_PROVISIONING_PROFILE_BASE64|CF_ACCESS_CLIENT_ID|CF_ACCESS_CLIENT_SECRET|CLOUDFLARE_ACCESS_CLIENT_SECRET|PLAY_SERVICE_ACCOUNT_JSON|(?:ANDROID|VERSADO)_UPLOAD_KEY(?:STORE)?_[A-Z_]*)\b/],
   ["credentials in URL", /https?:\/\/[^\s/"'`:@]+:[^\s/"'`@]+@/],
 ];
 function findSecrets(text) {
@@ -301,6 +317,9 @@ function findSecrets(text) {
 }
 
 module.exports = {
+  INTERNAL_ACCESS_ORIGIN,
+  INTERNAL_ACCESS_FILE,
+  internalAccessEnabled,
   APP_ID,
   SCHEMA_VERSION,
   API_VERSION,

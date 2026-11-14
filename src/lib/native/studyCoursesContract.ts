@@ -1,0 +1,10 @@
+import { z } from "zod";
+import { nativeCourseId as id } from "./coursesContract";
+const count=z.number().int().nonnegative();
+const date=z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+const week=z.object({id,lessonId:id,collectionId:id,lessonKey:z.string(),workKey:z.string(),revisionId:id,title:z.string(),startsOn:date.nullable(),endsOnExclusive:date.nullable(),read:z.boolean(),stepsDone:count.max(6),imageMediaId:id.nullable(),lastStudiedAt:z.string().nullable(),order:z.number().int()}).strict();
+const context={version:z.literal(1),userId:id,activeCollectionId:id.nullable(),selectionVersion:count,language:z.enum(["nl","en","de","fr","es"]),courseId:id};
+export const nativeStudyCourseSchema=z.object({...context,courseName:z.string(),mode:z.enum(["STEPS","FREE"]),scope:z.enum(["weeks","archive"]),today:date,timeZone:z.string(),weeks:z.array(week).max(600),groups:z.array(z.object({workKey:z.string(),year:z.number().int(),scripture:z.enum(["old-testament","new-testament","book-of-mormon","doctrine-and-covenants"]).nullable(),weeks:z.array(week).max(600)}).strict()),activeWeekId:id.nullable(),resumeReason:z.enum(["calendar","selected","studied"]).nullable(),archivedCount:count,truncated:z.boolean()}).strict();
+export const nativeStudyStepsSchema=z.object({...context,editionId:id,revisionId:id,state:z.object({steps:z.array(z.object({index:z.number().int().min(1).max(6),fingerprint:z.string().min(8).max(128),status:z.enum(["NOT_STARTED","IN_PROGRESS","COMPLETED"]),completedAt:z.string().nullable()}).strict()).length(6),lastOpenedIndex:z.number().int().min(1).max(6).nullable(),completedCount:count.max(6),allCompleted:z.boolean()}).strict(),steps:z.array(z.object({index:z.number().int().min(1).max(6),title:z.string().nullable(),continued:z.boolean(),labels:z.array(z.string()),fingerprint:z.string().min(8).max(128)}).strict()).length(6)}).strict();
+export type NativeStudyCourse=z.infer<typeof nativeStudyCourseSchema>;
+export type NativeStudySteps=z.infer<typeof nativeStudyStepsSchema>;

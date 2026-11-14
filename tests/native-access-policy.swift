@@ -1,0 +1,142 @@
+import Foundation
+
+private final class FakeAccessProtocol: URLProtocol {
+    static var response: (Int, String, String?, String) = (200, "application/json", "capacitor://localhost", "{\"ok\":true}")
+    static var captured: URLRequest?
+    static var beforeReply: (() -> Void)?
+    override class func canInit(with request: URLRequest) -> Bool { true }
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
+    override func startLoading() {
+        Self.captured = request; Self.beforeReply?()
+        var headers = ["Content-Type": Self.response.1]
+        if let origin = Self.response.2 { headers["Access-Control-Allow-Origin"] = origin }
+        let response = HTTPURLResponse(url: request.url!, statusCode: Self.response.0, httpVersion: "HTTP/1.1", headerFields: headers)!
+        client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+        client?.urlProtocol(self, didLoad: Data(Self.response.3.utf8)); client?.urlProtocolDidFinishLoading(self)
+    }
+    override func stopLoading() { }
+}
+
+@main struct NativeAccessPolicyTests {
+    static func require(_ value: Bool, _ label: String) { if !value { fatalError(label) } }
+    static func perform(current: @escaping () -> Bool = { true }, direct: Bool = false) throws -> Result<(Int, String), NativeAccessFailure> {
+        let pair = try NativeAccessCredentials(id: "synthetic-device.access", secret: "synthetic-secret-for-native-tests")
+        let done = DispatchSemaphore(value: 0); var result: Result<(Int, String), NativeAccessFailure>?
+        let request = NativeAccessRequest(credentials: direct ? nil : pair, isCurrent: current) { value in result = value; done.signal() }
+        let config = URLSessionConfiguration.ephemeral; config.protocolClasses = [FakeAccessProtocol.self]
+        request.start(path: "login", method: "POST", authorization: "Bearer synthetic.native", body: "{}", configuration: config)
+        require(done.wait(timeout: .now() + 5) == .success, "native request timed out")
+        return result!
+    }
+    static func failure(_ result: Result<(Int, String), NativeAccessFailure>, _ code: String) {
+        if case .failure(let error) = result { require(error.code == code, "unexpected native error code") } else { fatalError("unsafe response accepted") }
+    }
+    static func main() throws {
+        let directMetadata: [String: Any] = ["appId":"app.versado.app", "profile":"local-store-test", "channel":"testflight", "apiOrigin":NativeAccessPolicy.testOrigin, "distribution":true, "compileProbe":false, "releaseApproved":false]
+        require(NativeAccessPolicy.directAllowed(directMetadata), "direct TestFlight profile")
+        for (key, value) in [("apiOrigin", "https://versado.app" as Any), ("profile", "local-internal" as Any), ("channel", "play-test" as Any), ("compileProbe", true as Any), ("releaseApproved", true as Any), ("distribution", false as Any)] {
+            var invalid = directMetadata; invalid[key] = value; require(!NativeAccessPolicy.directAllowed(invalid), "invalid direct profile")
+        }
+        require(!NativeAccessPolicy.routeAllowed("realtime/session", "POST"), "internal realtime stays blocked")
+        require(NativeAccessPolicy.requestRouteAllowed("realtime/session", "POST", direct:true), "direct realtime ticket")
+        if case .success = try perform(direct:true) {} else { fatalError("direct request failed") }
+        require(FakeAccessProtocol.captured?.url?.host == "api-test.versado.app", "direct host")
+        require(FakeAccessProtocol.captured?.value(forHTTPHeaderField:"CF-Access-Client-Secret") == nil, "no CF secret")
+        require(FakeAccessProtocol.captured?.value(forHTTPHeaderField:"Cookie") == nil, "no web cookie")
+        let metadata: [String: Any] = ["profile": "local-internal", "channel": "internal", "apiOrigin": NativeAccessPolicy.origin, "compileProbe": false, "releaseApproved": false]
+        require(NativeAccessPolicy.profileAllowed(enabled: true, metadata: metadata), "internal profile rejected")
+        require(!NativeAccessPolicy.profileAllowed(enabled: false, metadata: metadata), "implicit access enabled")
+        for profile in ["local-development", "local-store-test", "release", "remote-preview"] {
+            var changed = metadata; changed["profile"] = profile
+            require(!NativeAccessPolicy.profileAllowed(enabled: true, metadata: changed), "non-internal profile enabled")
+        }
+        for path in ["../admin", "me?url=https://evil.invalid", "https://evil.invalid", "chapters/%2e%2e", "realtime/session", "capabilities\n"] {
+            require(!NativeAccessPolicy.routeAllowed(path, "GET"), "unsafe route enabled")
+        }
+        require(NativeAccessPolicy.routeAllowed("chapters/synthetic-1/complete", "POST"), "chapter completion rejected")
+        for path in ["courses/c/weeks", "courses/c/archive", "courses/c/weeks/e/steps"] {
+            require(NativeAccessPolicy.routeAllowed(path, "GET"), "CFM route rejected")
+            for method in ["POST", "PUT", "DELETE", "HEAD"] { require(!NativeAccessPolicy.routeAllowed(path, method), "CFM write enabled") }
+        }
+        for path in ["courses/c/weeks?x=1", "courses/c/weeks/e/steps/x", "courses/c/weeks/../steps"] { require(!NativeAccessPolicy.routeAllowed(path,"GET"), "broad CFM route enabled") }
+        for kind in ["steps","chapters"] {
+            let path="courses/c/read/"+kind+"/t/audio/playback"
+            require(NativeAccessPolicy.routeAllowed(path,"GET"),"playback metadata rejected")
+            for method in ["POST","PUT","PATCH","DELETE","HEAD"] { require(!NativeAccessPolicy.routeAllowed(path,method),"playback write enabled") }
+            for suffix in ["/","?url=other","/stream","/../me","\n"] { require(!NativeAccessPolicy.routeAllowed(path+suffix,"GET"),"broad playback route") }
+            require(!NativeAccessPolicy.routeAllowed("courses/c/read/"+kind+"/t/audio/"+String(repeating:"a",count:64)+"/stream","GET"),"binary stream through JSON")
+        }
+        for path in ["courses/c/read/steps/s", "courses/c/read/chapters/ch"] {
+            require(NativeAccessPolicy.routeAllowed(path,"GET"), "reader GET rejected")
+            for method in ["POST","PUT","PATCH","DELETE","HEAD"] { require(!NativeAccessPolicy.routeAllowed(path,method), "reader write enabled") }
+            for suffix in ["/", "?x=1", "/complete", "%2f", "/../me"] { require(!NativeAccessPolicy.routeAllowed(path+suffix,"GET"), "broad reader route") }
+        }
+        for path in ["courses/c/read/steps/s", "courses/c/read/chapters/ch"] {
+            require(NativeAccessPolicy.routeAllowed(path + "/resume", "GET"), "resume rejected")
+            require(NativeAccessPolicy.routeAllowed(path + "/position", "POST"), "position rejected")
+            require(!NativeAccessPolicy.routeAllowed(path + "/resume", "POST"), "resume write enabled")
+            require(!NativeAccessPolicy.routeAllowed(path + "/position", "GET"), "position read enabled")
+            for suffix in ["/", "?x=1", "\n", "/complete"] {
+                require(!NativeAccessPolicy.routeAllowed(path + "/resume" + suffix, "GET"), "broad resume enabled")
+                require(!NativeAccessPolicy.routeAllowed(path + "/position" + suffix, "POST"), "broad position enabled")
+            }
+        }
+        for kind in ["steps", "chapters"] {
+            let prefix = "courses/c/read/"+kind+"/t/learning/"
+            let status = prefix+"sessions/00112233-4455-4677-8899-aabbccddeeff"
+            require(NativeAccessPolicy.routeAllowed(status,"GET"), "learning resume rejected")
+            require(!NativeAccessPolicy.routeAllowed(status,"POST"), "learning resume write")
+            for action in ["start", "submit", "read", "check"] {
+                require(NativeAccessPolicy.routeAllowed(prefix+action,"POST"), "learning POST rejected")
+                require(!NativeAccessPolicy.routeAllowed(prefix+action,"GET"), "learning GET mutates")
+                for suffix in ["/x", "?a=1", "#x", "\n", "%2f"] {
+                    require(!NativeAccessPolicy.routeAllowed(prefix+action+suffix,"POST"), "broad learning route")
+                }
+            }
+        }
+        for path in ["courses/c/read/steps/s/annotations", "courses/c/read/chapters/ch/annotations"] {
+            require(NativeAccessPolicy.routeAllowed(path,"GET"), "annotations GET rejected")
+            require(NativeAccessPolicy.routeAllowed(path+"/v","GET"), "verse annotations rejected")
+            require(NativeAccessPolicy.routeAllowed(path,"POST"), "annotation action rejected")
+            require(!NativeAccessPolicy.routeAllowed(path+"/v","POST"), "per-verse POST enabled")
+            for method in ["PUT","PATCH","DELETE","HEAD"] { require(!NativeAccessPolicy.routeAllowed(path,method), "broad annotation method") }
+            for suffix in ["/", "?user=B", "/v/extra", "/../v", "/%2f", "\n"] { require(!NativeAccessPolicy.routeAllowed(path+suffix,"GET"), "broad annotation route") }
+        }
+        require(NativeAccessPolicy.routeAllowed("today-overview", "GET"), "today overview rejected")
+        for method in ["POST", "PUT", "DELETE", "HEAD"] { require(!NativeAccessPolicy.routeAllowed("today-overview", method), "today overview write enabled") }
+        for path in ["today-overview/", "today-overview?user=A", "today-overview/complete"] { require(!NativeAccessPolicy.routeAllowed(path, "GET"), "broad today route enabled") }
+        for method in ["GET", "POST"] { require(NativeAccessPolicy.routeAllowed("content-context", method), "content context rejected") }
+        for method in ["PUT", "PATCH", "DELETE", "HEAD"] { require(!NativeAccessPolicy.routeAllowed("content-context", method), "extra content verb allowed") }
+        for path in ["content-context/", "content-context/preview", "content-context?preview=1", "../content-context", "content-context%2f"] {
+            for method in ["GET", "POST"] { require(!NativeAccessPolicy.routeAllowed(path, method), "broad content route allowed") }
+        }
+        let valid = try perform()
+        if case .success(let response) = valid { require(response.0 == 200 && response.1 == "{\"ok\":true}", "valid response changed") } else { fatalError("native access failed") }
+        let headers = FakeAccessProtocol.captured!
+        require(headers.url?.absoluteString == "https://dev.versado.app/api/v1/native/login", "wrong backend")
+        require(headers.value(forHTTPHeaderField: "CF-Access-Client-Id") == "synthetic-device.access", "client id missing")
+        require(headers.value(forHTTPHeaderField: "CF-Access-Client-Secret") == "synthetic-secret-for-native-tests", "native secret missing")
+        require(headers.value(forHTTPHeaderField: "Authorization") == "Bearer synthetic.native", "Versado authorization changed")
+        require(headers.value(forHTTPHeaderField: "Cookie") == nil, "cookies sent")
+        for status in [401, 403] { FakeAccessProtocol.response = (status, "text/html", nil, "Access denied"); failure(try perform(), "access_denied") }
+        for status in [500, 502, 503] {
+            FakeAccessProtocol.response = (status, "text/html", nil, "synthetic-secret-for-native-tests")
+            failure(try perform(), "access_network_unavailable")
+        }
+        FakeAccessProtocol.response = (503, "application/json", "capacitor://localhost", "{\"error\":\"synthetic_backend_unavailable\"}")
+        if case .success(let response) = try perform() { require(response.0 == 503 && response.1.contains("synthetic_backend_unavailable"), "valid backend 503 hidden") } else { fatalError("backend 503 hidden") }
+        FakeAccessProtocol.response = (503, "application/json", "capacitor://localhost", "{\"error\":\"synthetic-secret-for-native-tests\"}")
+        failure(try perform(), "access_invalid_response")
+        FakeAccessProtocol.response = (401, "application/json", "capacitor://localhost", "{\"error\":\"session_expired\"}")
+        if case .success(let response) = try perform() { require(response.0 == 401, "Versado 401 changed") } else { fatalError("backend 401 hidden") }
+        FakeAccessProtocol.response = (302, "text/html", nil, "redirect"); failure(try perform(), "access_redirect_blocked")
+        for text in ["{\"nested\":[\"synthetic-secret-for-native-tests\"]}", "{\"nested\":\"\\u0073ynthetic-secret-for-native-tests\"}", "{\"synthetic-device.access\":true}", "not json", String(repeating: "x", count: NativeAccessPolicy.maxResponse + 1)] {
+            FakeAccessProtocol.response = (200, "application/json", "capacitor://localhost", text); failure(try perform(), "access_invalid_response")
+        }
+        FakeAccessProtocol.response = (200, "application/json", "capacitor://localhost", "{\"ok\":true}")
+        FakeAccessProtocol.captured = nil; failure(try perform(current: { false }), "access_changed"); require(FakeAccessProtocol.captured == nil, "stale request sent")
+        var current = true; FakeAccessProtocol.beforeReply = { current = false }
+        failure(try perform(current: { current }), "access_changed")
+        print("Native Access Swift: profile-, route-, HTTPS-header-, denial-, redirect-, echo-, omvang- en generatietests geslaagd.")
+    }
+}

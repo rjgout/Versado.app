@@ -1,19 +1,19 @@
 // De gedeelde profielcomponenten (src/components/profile/settings.tsx): de
 // toegankelijkheid die elke profielpagina erft. Gerenderd naar HTML met
 // react-dom/server, zonder browser.
-import test from "node:test";
 import assert from "node:assert/strict";
+import test from "node:test";
 import { createElement as h } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { AppNavigationProvider, type AppLinkProps } from "../src/components/navigation/AppNavigation";
+import { AppNavigationProvider,type AppLinkProps } from "../src/components/navigation/AppNavigation";
 import {
-  ProfileCard,
-  SettingsButton,
-  SettingsField,
-  SettingsRow,
-  SettingsSection,
-  SettingsStatus,
-  SettingsToggleRow,
+ProfileCard,
+SettingsButton,
+SettingsField,
+SettingsRow,
+SettingsSection,
+SettingsStatus,
+SettingsToggleRow,
 } from "../src/components/profile/settings";
 
 const noop = () => {};
@@ -80,6 +80,7 @@ test("Jouw gids: eigen profielonderdeel, compacte rij onder Weergave en geen gro
   assert.equal(profileViewHref("guide"), "/profile?view=guide");
   assert.equal(PROFILE_VIEWS.guide.title, "companion.profileTitle");
   const client = readFileSync(new URL("../src/components/ProfileClient.tsx", import.meta.url), "utf8");
-  assert.equal((client.match(/<CompanionSection/g) ?? []).length, 1, "alleen op de gidspagina");
-  assert.ok(client.indexOf('openView("guide")') > client.indexOf("<ThemePreference") && client.indexOf('openView("guide")') < client.indexOf('openView("language")'), "na Weergave, vóór Taal");
+  assert.equal((client.match(/<CompanionPreference/g) ?? []).length, 1, "alleen op de gidspagina");
+  const overview=readFileSync(new URL("../src/components/profile/ProfileOverview.tsx",import.meta.url),"utf8");
+  assert.ok(overview.indexOf('openView("guide")') > overview.indexOf("<ThemePreference") && overview.indexOf('openView("guide")') < overview.indexOf('openView("language")'), "na Weergave, vóór Taal");
 });

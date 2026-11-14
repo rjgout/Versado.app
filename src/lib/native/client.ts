@@ -1,5 +1,7 @@
 import { z } from "zod";
 import { nativeTokensSchema, nativeSetupSchema, type NativeSecuritySetup } from "./contract";
+/** Alleen requestordening, nooit een sessie- of toegangsbewijs. */
+export interface NativeSessionRequestInit extends RequestInit { nativeSessionStamp?: string }
 export interface SecureSessionStore { read(): Promise<string | null>; write(value: string): Promise<void>; clear(): Promise<void> }
 const retirementSchema = z.object({ refreshToken: z.string().min(1).max(128), actionId: z.uuid(), kind: z.literal("setup").optional() }).strict();
 const savedSchema = z.object({
@@ -29,17 +31,20 @@ export class NativeSessionClient {
   private revocationQueue: Promise<void> | null = null;
   private storageQueue: Promise<unknown> = Promise.resolve();
   private generation = 0;
-  private sessionListeners = new Set<() => void>();
-  onSessionChange(listener: () => void) { this.sessionListeners.add(listener); return () => { this.sessionListeners.delete(listener); }; }
+  private sessionStamp = crypto.randomUUID();
+  private sessionListeners = new Set<(stamp: string) => void>();
+  getSessionStamp() { return this.sessionStamp; }
+  onSessionChange(listener: (stamp: string) => void) { this.sessionListeners.add(listener); return () => { this.sessionListeners.delete(listener); }; }
   private advanceSession(authenticating: boolean) {
     const generation = ++this.generation;
+    this.sessionStamp = crypto.randomUUID();
     this.access = null; this.securitySetup = null; this.authenticating = authenticating ? generation : null;
-    for (const listener of this.sessionListeners) { try { listener(); } catch {} }
+    for (const listener of this.sessionListeners) { try { listener(this.sessionStamp); } catch {} }
     return generation;
   }
   private authenticating: number | null = null;
   private securitySetup: { value: NativeSecuritySetup; generation: number } | null = null;
-  constructor(readonly baseUrl: string, private store: SecureSessionStore, private transport: typeof fetch = (input, init) => fetch(input, init)) {}
+  constructor(readonly baseUrl: string, private store: SecureSessionStore, private transport: typeof fetch = (input, init) => fetch(input, init), readonly realtimeSupported = true) {}
 
   // Lees + voorwaardelijke wijziging vormen samen één transactie in deze client.
   // Een losse queue per read/write beschermt niet tegen laat bevestigde logout.
@@ -75,8 +80,12 @@ export class NativeSessionClient {
   private async request<T>(path: string, body?: unknown, token?: string, method = body === undefined ? "GET" : "POST"): Promise<T> {
     let response;
     try {
-      response = await this.transport(`${this.baseUrl}/api/v1/native/${path}`, { method, credentials: "omit", cache: "no-store", redirect: "error", signal: AbortSignal.timeout(15_000), headers: { "X-Versado-Client": "native-v1", ...(body === undefined ? {} : { "Content-Type": "application/json" }), ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: body === undefined ? undefined : JSON.stringify(body) });
-    } catch { throw new NativeClientError("network_unavailable"); }
+      const init: NativeSessionRequestInit = { nativeSessionStamp: this.sessionStamp, method, credentials: "omit", cache: "no-store", redirect: "error", signal: AbortSignal.timeout(15_000), headers: { "X-Versado-Client": "native-v1", ...(body === undefined ? {} : { "Content-Type": "application/json" }), ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: body === undefined ? undefined : JSON.stringify(body) };
+      response = await this.transport(`${this.baseUrl}/api/v1/native/${path}`, init);
+    } catch (error) {
+      if (error instanceof NativeClientError && error.code.startsWith("access_")) throw error;
+      throw new NativeClientError("network_unavailable");
+    }
     let data; try { data = await response.json(); } catch { throw new NativeClientError("invalid_response", response.status); }
     if (!response.ok) throw new NativeClientError(typeof data.error === "string" ? data.error : "request_failed", response.status);
     return data as T;
@@ -212,7 +221,12 @@ export class NativeSessionClient {
     this.refreshQueue = slot;
     return slot.promise;
   }
-  async api<T>(path: string, body?: unknown, method?: string): Promise<T> {
+  /** B2b writes are sent once. A 401 never refreshes/resends this write:
+   * the user must explicitly restore the session and inspect server state. */
+  async actionOnce<T>(path: string, body: unknown): Promise<T> {
+    return this.api<T>(path, body, "POST", false);
+  }
+  async api<T>(path: string, body?: unknown, method?: string, retryExpired = true): Promise<T> {
     const generation = this.generation;
     if (this.authenticating !== null) throw new NativeClientError("authentication_in_progress", 409);
     if (!this.access) await this.refresh();
@@ -224,10 +238,19 @@ export class NativeSessionClient {
     } catch (error) {
       this.assertGeneration(generation);
       if (!(error instanceof NativeClientError) || error.status !== 401 || error.code !== "session_expired") throw error;
+      if (!retryExpired) throw error;
       await this.refresh(); this.assertGeneration(generation);
       const data = await this.request<T>(path, body, this.access ?? undefined, method);
       this.assertGeneration(generation); return data;
     }
+  }
+  /** Alleen deze read-lease mag proactief de bestaande sessierotatie gebruiken.
+   * Geen algemene proxy, nieuwe refreshflow of herhaling van voortgangs-POST's. */
+  async renewReaderAudio<T>(path: string): Promise<T> {
+    if (!/^courses\/[A-Za-z0-9_-]{1,128}\/read\/(?:steps|chapters)\/[A-Za-z0-9_-]{1,128}\/audio\/playback$/.test(path)) throw new NativeClientError("invalid_input",400);
+    const generation=this.generation;
+    await this.refresh(); this.assertGeneration(generation);
+    return this.api<T>(path);
   }
   private flushRevocations(): Promise<void> {
     if (this.revocationQueue) return this.revocationQueue;

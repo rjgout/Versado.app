@@ -48,11 +48,11 @@ test("Kompas-tekst en -knoppen volgen de reflow-regels (wrappen, min-hoogte, dec
   for (const file of kompasFiles.filter((f) => f.endsWith(".tsx"))) {
     assert.ok(!/w-\[clamp\(\d+(\.\d+)?rem/.test(readFileSync(file, "utf8")), `${file}: rem-minimum voor decoratief beeld`);
   }
-  assert.match(read("src/components/kompas/KompasEntryCard.tsx"), /min-h-\[4\.5rem\]/);
+  assert.match(read("src/components/kompas/KompasEntryCardView.tsx"), /min-h-\[4\.5rem\]/);
 });
 
 test("de integratie behoudt beide ankers op de contentkiezer en zijn minimumbreedte", () => {
-  const switcher = read("src/components/ContentSwitcher.tsx");
+  const switcher = read("src/components/content/ContentSwitcherView.tsx");
   assert.match(switcher, /data-kompas-target="content-switcher"/);
   assert.match(switcher, /min-w-\[4\.5rem\]/);
 });

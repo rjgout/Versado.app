@@ -1,5 +1,16 @@
 # Versado op web, PWA, iOS en Android
 
+## Actuele multiplatformopdracht — fase A op develop
+
+De opdracht in [#238](https://github.com/rjgout/Versado.app/issues/238) is leidend:
+volledige bestaande web/PWA-, iOS/iPadOS- en Android-functionaliteit, inclusief native push.
+De eerste implementatie deelt de echte shellpresentatie; volledige contentkiezer,
+cursusnavigatie, Vandaag, spellen en sociale schermen zijn hiermee nog niet geleverd.
+Zie [implementatie, afhankelijkheden en toestelacceptatie](NATIVE-SHARED-SHELL.md).
+De eigenaar bevestigde de eerdere Foundation-iPhonetest bij #233; de nieuwe fase A
+vereist opnieuw fysieke acceptatie. Geen releasevrijgave of platformuitzondering.
+
+
 ## Actuele functiepariteit
 
 De volledige actuele inventaris, migratiestatus per functie, routes, API's,

@@ -1,6 +1,11 @@
-import { registerPlugin } from "@capacitor/core";
+import { registerPlugin, type PluginListenerHandle } from "@capacitor/core";
 import { NativeClientError, type SecureSessionStore } from "./client";
-interface NativeBridge {
+import type { NativeAudioBridge } from "./audioBridge";
+import type { NativeAccessBridge } from "./access";
+interface NativeBridge extends NativeAccessBridge, NativeAudioBridge {
+  interfacePreferences(): Promise<unknown>;
+  addListener(event: "audioState", callback: (value: unknown) => void): Promise<PluginListenerHandle>;
+  addListener(event: "interfacePreferences", callback: (value: unknown) => void): Promise<PluginListenerHandle>;
   readSession(): Promise<{ value?: string }>;
   writeSession(options: { value: string }): Promise<void>;
   clearSession(): Promise<void>;

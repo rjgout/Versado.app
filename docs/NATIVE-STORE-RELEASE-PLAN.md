@@ -1,12 +1,12 @@
 # Versado Mobile 1.0 — stuurdocument voor de store-release
 
-Status: **optie B bevestigd als ontwikkelrichting** (opdracht Versado Mobile 1.0).
-De oorspronkelijke architectuurinventaris dateert van 23 oktober 2026; de actuele consolidatie tegen
-`origin/main` `096f66c9ebcb11577fbfbeaf1af1e7de34ac2a28` staat in
-[MOBILE-1-0-INTEGRATIE.md](MOBILE-1-0-INTEGRATIE.md) (28 oktober 2026).
-Dit document wijzigt het bestaande pariteitsbeleid **niet**: tijdelijke platformuitzonderingen blijven
-expliciet ter beoordeling in [NATIVE-MOBILE-1-0-OPTIE-B.md](NATIVE-MOBILE-1-0-OPTIE-B.md).
-Technische voorbereiding, een compileproef en een echte toestel-/storeacceptatie zijn afzonderlijke bewijzen.
+Status: **historisch Mobile 1.0-plan, scope bijgesteld door #238**.
+De actuele opdracht vraagt volledige bestaande gebruikersfunctionaliteit op web/PWA,
+iOS/iPadOS en Android, plus APNs/FCM-push. Spellen, sociale functies en push zijn geen
+stilzwijgende uitzonderingen of uitgestelde releaseonderdelen. Apple-login mag later;
+accountverwijdering en privacy blijven verplicht. Onderstaande optie-B-mijlpalen zijn
+historische planning, geen actuele scopevrijgave. Zie [fase A en vervolg](NATIVE-SHARED-SHELL.md).
+Releaseguards, onafhankelijke review en echte toestelacceptatie blijven verplicht.
 
 Het stuurdocument verwijst naar de architectuurdocumenten in plaats van ze te herhalen:
 [PLATFORMEN.md](PLATFORMEN.md) (architectuur en doelmodel),
@@ -22,8 +22,9 @@ Het stuurdocument verwijst naar de architectuurdocumenten in plaats van ze te he
 2. Wat werkt is **bewezen**: accountflows (inloggen, registreren, wachtwoordherstel,
    e-mailbevestiging, verplichte beveiligingsstappen), één leeslus (eerste hoofdstuk →
    tekst → bewust afronden), sessieherstel, privacy/cookies offline en realtime-authenticatie.
-   Android-debug en iOS-simulator **compileren** op CI (iOS 26.5 SDK). Niets is op een
-   echt toestel uitgevoerd.
+   Android-debug en iOS-simulator **compileren** op CI (iOS 26.5 SDK). De eigenaar bevestigde de eerdere Foundation op een echte iPhone
+   bij #233 (Service Auth, login, 2FA, sessieherstel); de nieuwe shell en overige functies
+   vereisen eigen fysieke acceptatie.
 3. WP1-distributieprofielen staan op main. Signing-/privacyvoorbereiding wordt geïntegreerd via #196/#197;
    accountverwijdering en openbare toegang via #202/#205. Apple-only-verwijdering/tokenintrekking, echte credentials,
    definitieve voorwaarden, versiebeleid en fysiek apparaatbewijs blijven afzonderlijke releaseblokkades.
@@ -129,7 +130,7 @@ beslissing. Een blokkade met "alleen bij …" geldt alleen als die functie in de
 | `android-play-test-workflow` | Beschermde handmatige workflow voor een getekende Play-testbundel (**opgelost in WP3**; draaien vereist de secrets van de eigenaar) | code | WP3 |
 | `android-app-links` | Geen `autoVerify`-intent-filter | code + eigenaar (fingerprint) | WP7 |
 | `well-known-association` | Geen `apple-app-site-association` / `assetlinks.json` | code + eigenaar (Team ID, fingerprint) | WP7 |
-| `native-account-deletion` | Accountverwijdering niet vanuit de native app te starten | code | WP4 |
+| `native-account-deletion` | Accountverwijdering niet vanuit de native app te starten. **Deel 1 (WP4, `docs/ACCOUNT-VERWIJDERING.md`):** beveiligd API-contract en gedeeld formulier staan er; het native scherm ontbreekt nog, dus de blokkade blijft open | code | WP4 |
 | `web-account-deletion` | Geen publieke verwijderpagina (Google Play vraagt een weblink) | code + besluit | WP4 |
 | `terms-of-use` | Geen voorwaardenpagina | besluit + eigenaar (juridische tekst) | WP4 |
 | `apple-token-revocation` | Sign in with Apple: tokenintrekking en server-naar-server-meldingen ontbreken (alleen bij `apple-signin`) | code | WP4 |
@@ -147,7 +148,7 @@ er geen credentials in git komen.
 | `release-profile-blocked` | Het profiel komt uitsluitend uit `scripts/native/profiles.cjs`; `PROFILE_IDS` bevat geen `release` en geen enkele omgevingsvariabele opent het; `release` blijft geweigerd |
 | `bundle-never-release-approved` | De lokale bundel schrijft altijd `releaseApproved:false` |
 | `android-signing-refuses-probe` | Gradle en `android-release-guard.mjs` tekenen alleen een niet-compileproef `local-store-test`/`play-test`-bundel; de release-workflow is alleen handmatig en bevat geen Play-upload |
-| `ios-signing-refuses-probe` | `ios-release-guard.mjs` archiveert alleen een niet-compileproef `local-store-test`/`testflight`-bundel; de iOS-workflow is alleen handmatig en exporteert zonder App Store Connect-upload |
+| `ios-signing-refuses-probe` | `ios-release-guard.mjs` archiveert alleen een niet-compileproef `local-store-test`/`testflight`-bundel; de iOS-workflow is alleen handmatig vanaf develop en uploadt uitsluitend na expliciete keuze en IPA-validatie |
 | `bundle-identity-consistent` | Eén bundle-/applicatie-ID `app.versado.app` in Capacitor, Android en iOS |
 | `phones-portrait` | Telefoons portrait-only (iPhone via Info.plist, Android via `MainActivity`) |
 | `android-target-sdk` | `targetSdkVersion` ≥ 36 (Google Play, vanaf 31 augustus 2026) |
@@ -443,14 +444,17 @@ Alles wat zonder eigenaarsbeslissing kan, is gebouwd; wat een beslissing of acco
 - `scripts/native/ios-release-guard.mjs before|after`: archiveert alleen een niet-compileproef `local-store-test`/`testflight`-bundel met echte
   HTTPS-origin, versie en buildnummer gelijk aan `NATIVE_APP_VERSION`/`NATIVE_BUILD_NUMBER` en `sourceCommit` = `GITHUB_SHA`; achteraf
   controle van het archief (`CFBundleIdentifier`, `CFBundleShortVersionString`, `CFBundleVersion`, `public/build.json`, privacy manifest, geen `CAPACITOR_DEBUG`).
-- `.github/workflows/native-ios-release.yml`: alleen `workflow_dispatch`, alleen vanaf `main`, omgeving `ios-testflight`; controleert SDK ≥ 26 en pint optioneel
-  Xcode via variabele `IOS_XCODE_APP`; archiveert met `MARKETING_VERSION`/`CURRENT_PROJECT_VERSION`/`DEVELOPMENT_TEAM` als argumenten (nooit in git) en
-  ondertekent via de App Store Connect API-sleutel (tijdelijk bestand met `umask 077`, altijd verwijderd); exporteert met `destination export`.
-  **Geen upload naar App Store Connect.**
-- CI (`native-platform-builds`): de poort weigert het compileproef-archief, en het echte archief bevat de juiste versie, het bundel-ID en het privacy manifest.
+- `.github/workflows/native-ios-release.yml`: handmatige **iOS TestFlight** vanaf uitsluitend `develop`,
+  environment `testflight`, exacte geselecteerde SHA. Upload standaard uit en alleen na onafhankelijke
+  IPA-validatie; publieke release blijft geblokkeerd. SDK ≥ 26, Node 24, tijdelijke API-sleutel,
+  automatische signing en expliciete Apple Distribution-export. Signing en upload zijn nog niet echt getest.
+- CI (`native-platform-builds`): de poort weigert het compileproef-archief; bestaande compileproeven blijven afzonderlijk.
 
-**Secrets en variabelen (omgeving `ios-testflight`, door de eigenaar):** `APPLE_TEAM_ID`, `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_P8` (base64);
-variabelen `NATIVE_STORE_TEST_API_ORIGIN` en optioneel `IOS_XCODE_APP`. Het buildnummer is het workflow-runnummer (oplopend per upload).
+**Secrets/variabelen en eigenaarshandleiding:** zie [iOS TestFlight](IOS-TESTFLIGHT.md).
+Environment `testflight`: `IOS_TEAM_ID`, `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_API_KEY_P8_BASE64`;
+variabelen `NATIVE_STORE_TEST_API_ORIGIN` en optioneel `IOS_XCODE_APP`.
+De lege `store-test`-allowlist en de alleen interne Access-bridge blokkeren de eerste echte build.
+Geen backendvrijgave door deze wijziging; afzonderlijk architectuur-/uitrolbesluit nodig.
 
 **Open voor de eigenaar (bewust niet ingevuld):**
 - `ITSAppUsesNonExemptEncryption`: de eigenaar bevestigt het exportantwoord (de app gebruikt uitsluitend HTTPS/standaardversleuteling van het systeem; de sleutel in Info.plist is een juridische verklaring en wordt niet door code gekozen).

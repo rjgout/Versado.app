@@ -2,7 +2,7 @@ import type { PrismaClient } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { getPublishedStudyLesson, type PublishedStudyDTO } from "./revisions";
 import { PERSONAL_STUDY_STEPS, PERSONAL_STUDY_VERSION, validatePersonalPlan, type PersonalStudyPlan } from "./personalStudy";
-import { CFM_2027_PERSONAL_VERSION, legacyPersonalPlan, previousPersonalPlan, personalStudyFor } from "./personalStudyOverrides";
+import { CFM_2027_PERSONAL_VERSION, personalStudyPlanVersion, legacyPersonalPlan, previousPersonalPlan, personalStudyFor } from "./personalStudyOverrides";
 
 type Actor = { id: string; isAdmin: boolean };
 export type StepStatus = "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
@@ -56,14 +56,17 @@ export async function getStepProgress(
   lesson: Pick<PublishedStudyDTO, "editionId" | "revisionId" | "workKey" | "sourceKey" | "body">,
   plan: PersonalStudyPlan,
   client: Pick<PrismaClient, "studyStepProgress"> = prisma,
+  options: { readOnly?: boolean } = {},
 ): Promise<StepProgressState | null> {
   if (!plan.supported) return null;
-  await coverLegacyProgress(actor, lesson, plan, client);
+  const projected = await coverLegacyProgress(actor, lesson, plan, client, options.readOnly);
   const rows = await client.studyStepProgress.findMany({
     where: { userId: actor.id, lessonEditionId: lesson.editionId, stepFingerprint: { in: plan.steps.map((s) => s.fingerprint) } },
     select: { stepFingerprint: true, status: true, openedAt: true, completedAt: true },
   });
-  return view(plan, rows);
+  // Zelfde skipDuplicates-semantiek als materialisatie: bestaande rijen winnen.
+  const existing = new Set(rows.map(row => row.stepFingerprint));
+  return view(plan, options.readOnly ? [...rows, ...projected.filter(row => !existing.has(row.stepFingerprint))] : rows);
 }
 
 /**
@@ -77,12 +80,13 @@ async function coverLegacyProgress(
   lesson: Pick<PublishedStudyDTO, "editionId" | "revisionId" | "workKey" | "sourceKey" | "body">,
   plan: Extract<PersonalStudyPlan, { supported: true }>,
   client: Pick<PrismaClient, "studyStepProgress">,
+  readOnly = false,
 ) {
   const legacyRows = await client.studyStepProgress.findMany({
     where: { userId: actor.id, lessonEditionId: lesson.editionId, planVersion: { lt: plan.version }, status: plan.version > PERSONAL_STUDY_VERSION ? { in: ["IN_PROGRESS", "COMPLETED"] } : "COMPLETED" },
     select: { stepFingerprint: true, status: true, openedAt: true, completedAt: true },
   });
-  if (!legacyRows.length) return;
+  if (!legacyRows.length) return [];
   const byFingerprint = new Map(legacyRows.map(r => [r.stepFingerprint, r]));
   const covered = new Map<string, { step: typeof plan.steps[number]; status: "IN_PROGRESS" | "COMPLETED"; openedAt: Date; completedAt: Date | null }>();
   for (const legacy of [legacyPersonalPlan(lesson), previousPersonalPlan(lesson)]) {
@@ -98,13 +102,12 @@ async function coverLegacyProgress(
       covered.set(step.fingerprint, { step, status: completed ? "COMPLETED" : "IN_PROGRESS", openedAt: new Date(Math.max(...rows.map(r => r.openedAt.getTime()))), completedAt: completed ? new Date(Math.max(...rows.map(r => r.completedAt!.getTime()))) : null });
     }
   }
-  if (!covered.size) return;
-  await client.studyStepProgress.createMany({
-    data: [...covered.values()].map(({ step, status, openedAt, completedAt }) => ({
+  const data = [...covered.values()].map(({ step, status, openedAt, completedAt }) => ({
       userId: actor.id, lessonEditionId: lesson.editionId, stepFingerprint: step.fingerprint, stepIndex: step.index,
       planVersion: plan.version, revisionId: lesson.revisionId, status, openedAt, completedAt,
-    })), skipDuplicates: true,
-  });
+    }));
+  if (data.length && !readOnly) await client.studyStepProgress.createMany({ data, skipDuplicates: true });
+  return data;
 }
 
 /** Aantal afgeronde stappen per editie voor de weekkaarten; telt alleen rijen van de nu gepubliceerde revisie. */
@@ -198,14 +201,14 @@ export async function applyStepProgress(
   return false;
 }
 
-/** Leesroute voor de stapkaarten: eigen rechten, geen schrijfactie; null als de les niet beschikbaar of niet ondersteund is. */
-export async function getStepProgressForEdition(actor: Actor, lessonEditionId: string, client: PrismaClient = prisma) {
+/** Stapkaarten met eigen rechten; expliciete readOnly projecteert legacydekking zonder opslag. */
+export async function getStepProgressForEdition(actor: Actor, lessonEditionId: string, client: PrismaClient = prisma, options: { readOnly?: boolean } = {}) {
   const edition = await client.studyLessonEdition.findUnique({ where: { id: lessonEditionId }, select: { lessonId: true, collectionId: true } });
   if (!edition) return null;
   const published = await getPublishedStudyLesson(actor, edition.lessonId, edition.collectionId, client);
   if (!published || published.editionId !== lessonEditionId) return null;
   const plan = plannedSteps(published);
-  const state = await getStepProgress(actor, published, plan, client);
+  const state = await getStepProgress(actor, published, plan, client, options);
   if (!state || !plan.supported) return null;
   // De stapkaarten (titel, schriftgedeelten) komen mee zodat het weekpad een week lui kan uitklappen zonder de les te laden.
   return {
@@ -227,4 +230,18 @@ export function activeStepIndex(steps: ReadonlyArray<{ index: number; fingerprin
     steps.find((s) => statusOf(s.fingerprint) !== "COMPLETED") ??
     null;
   return active?.index ?? steps[steps.length - 1]?.index ?? 1;
+}
+
+/** Alleen edities met oudere rijen hebben de begrensde legacyprojectie nodig.
+ * De werk-/planversie komt uit dezelfde planner; geen tweede statusberekening. */
+export async function readOnlyCompletedStepCounts(actor: Actor, editions: ReadonlyArray<{editionId:string;revisionId:string;workKey:string}>, client: PrismaClient = prisma) {
+  const counts = await completedStepCounts(actor, editions, client);
+  if (!editions.length) return counts;
+  const legacy = await client.studyStepProgress.groupBy({by:["lessonEditionId","planVersion"],where:{userId:actor.id,lessonEditionId:{in:editions.map(e=>e.editionId)},planVersion:{lt:CFM_2027_PERSONAL_VERSION}}});
+  const wanted = new Set(legacy.filter(row=>{const edition=editions.find(e=>e.editionId===row.lessonEditionId);return edition && row.planVersion < personalStudyPlanVersion(edition.workKey);}).map(row=>row.lessonEditionId));
+  for (const edition of editions) if (wanted.has(edition.editionId)) {
+    const projected = await getStepProgressForEdition(actor,edition.editionId,client,{readOnly:true});
+    if (projected?.revisionId === edition.revisionId) counts.set(edition.editionId,projected.state.completedCount);
+  }
+  return counts;
 }

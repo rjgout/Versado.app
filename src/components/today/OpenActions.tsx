@@ -1,11 +1,10 @@
-import Link from "next/link";
+import { AppLink as Link } from "@/components/navigation/AppNavigation";
 import { ArrowRight, Gamepad2 } from "lucide-react";
 import { getT } from "@/lib/i18n";
 import { getLanguage } from "@/lib/languages";
 import { relativeTime } from "@/lib/timeFormat";
-import UserAvatar from "@/components/UserAvatar";
+import { TodayAvatar as UserAvatar, TodayFriendActions as FriendRequestButtons } from "./TodayInteractions";
 import SectionHeader from "@/components/today/SectionHeader";
-import FriendRequestButtons from "@/components/today/FriendRequestButtons";
 import { primaryButton, surfaceCard } from "@/components/versado/styles";
 import type { OpenAction } from "@/lib/today";
 import type { MessageKey } from "@/lib/i18n/core";
@@ -49,7 +48,7 @@ export default function OpenActions({ actions, total, language }: { actions: Ope
           const when = relativeTime(action.at, locale);
           const detail = [action.subject, when].filter(Boolean).join(" · ");
           return (
-            <li key={action.key} className="flex items-center gap-3 px-4 py-3 sm:gap-4 sm:px-5">
+            <li key={action.key} className="flex flex-wrap items-center gap-3 px-4 py-3 sm:gap-4 sm:px-5">
               {action.person ? (
                 <UserAvatar id={action.person.id} handle={action.person.handle} size="md" />
               ) : (

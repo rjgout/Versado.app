@@ -61,10 +61,15 @@ export function clearExercisePlanCache(): void {
 
 export async function getExercisePlans(db: Db, chapterIds: string[]): Promise<Map<string, ExercisePlan>> {
   const now = Date.now();
+  // Een mutatie gebruikt de actuele database binnen haar eigen commitgrens.
+  // Een andere appinstantie kan intussen nieuwe vragen hebben geïmporteerd.
+  // Prisma 7 exposeert $transaction ook op de transactieproxy; alleen de
+  // canonieke rootclient mag de procescache gebruiken.
+  const useCache = db === prisma;
   const result = new Map<string, ExercisePlan>();
   const missing: string[] = [];
   for (const id of new Set(chapterIds)) {
-    const cached = planCache.get(id);
+    const cached = useCache ? planCache.get(id) : undefined;
     if (cached && now - cached.at < PLAN_TTL_MS) result.set(id, cached.plan);
     else missing.push(id);
   }
@@ -87,7 +92,7 @@ export async function getExercisePlans(db: Db, chapterIds: string[]): Promise<Ma
     }
     for (const id of missing) {
       const plan = planChapterExercises(verseCountById.get(id) ?? 0, exercisesById.get(id) ?? []);
-      planCache.set(id, { plan, at: now });
+      if (useCache) planCache.set(id, { plan, at: now });
       result.set(id, plan);
     }
   }
@@ -106,6 +111,24 @@ function partForStep(plan: ExercisePlan, startVerse: number, endVerse: number): 
   // wijkt het af (inhoud sindsdien gewijzigd), dan de vragen bij deze verzen.
   const pool = plan.parts.filter((part) => part.startVerse <= endVerse && part.endVerse >= startVerse).flatMap((part) => part.pool);
   return { index: -1, startVerse, endVerse, pool, count: Math.min(QUESTIONS_PER_PART, pool.length) };
+}
+
+/** Oude cursusgrenzen kunnen afwijken van het huidige plan. Gebruik ook dan
+ * uitsluitend bronverzen uit de geopende stap, vóór willekeurige selectie.
+ * Hoofdstukvragen zonder bronvers horen uitsluitend bij de laatste stap. */
+export async function getReadingStepExercisePart(db: Db, chapterId: string, startVerse: number, endVerse: number): Promise<ExercisePart> {
+  const plan = await getExercisePlan(db, chapterId);
+  const part = partForStep(plan, startVerse, endVerse);
+  const chapter = await loadChapter(db, chapterId);
+  const rows = await db.exercise.findMany({
+    where: { chapterId, status: "APPROVED", id: { in: part.pool }, OR: [
+      { sourceVerse: { number: { gte: startVerse, lte: endVerse } } },
+      ...(endVerse === chapter.verseCount ? [{ sourceVerseId: null }] : []),
+    ] }, select: { id: true },
+  });
+  const allowed = new Set(rows.map(row=>row.id));
+  const pool = part.pool.filter(id=>allowed.has(id));
+  return { ...part, pool, count: Math.min(QUESTIONS_PER_PART, pool.length) };
 }
 
 // --- Inhoud en status ----------------------------------------------------------
@@ -215,16 +238,19 @@ export async function markChapterRead(userId: string, chapterId: string): Promis
  * gebruikt bewust markChapterRead: de host start daar de vragen, niemand
  * heeft het hoofdstuk daarmee uitdrukkelijk afgerond.
  */
-export async function completeChapterReading(userId: string, chapterId: string): Promise<{ content: ChapterContentState; counted: boolean }> {
-  const before = await getChapterState(prisma, userId, chapterId);
-  const content = await markChapterRead(userId, chapterId);
-  if (before.read === "READ") return { content, counted: false };
-  const chapter = await loadChapter(prisma, chapterId);
-  const streak = await prisma.$transaction((tx) =>
-    recordLearningActivity(tx, userId, { kind: "READING", answered: 1, required: 1, key: `read:${contentKeyOf(chapter)}` })
-  );
-  if (streak.counted) emitToUser(userId, "streak_changed", { dayEarned: streak.dayEarned, currentStreak: streak.currentStreak });
-  return { content, counted: streak.counted };
+export async function completeChapterReading(userId: string, chapterId: string, transaction?: Tx): Promise<{ content: ChapterContentState; counted: boolean }> {
+  const run = async (tx: Tx) => {
+    await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${userId} FOR UPDATE`;
+    const chapter = await loadChapter(tx, chapterId);
+    const before = await getChapterState(tx, userId, chapterId);
+    await recordReadThrough(tx, userId, contentKeyOf(chapter), chapterId, chapter.verseCount, chapter.verseCount);
+    const content = await getChapterState(tx, userId, chapterId);
+    const streak = before.read === "READ" ? null : await recordLearningActivity(tx, userId, { kind: "READING", answered: 1, required: 1, key: `read:${contentKeyOf(chapter)}` });
+    return { content, counted: streak?.counted ?? false, streak };
+  };
+  const { content, counted, streak } = transaction ? await run(transaction) : await prisma.$transaction(run);
+  if (!transaction && streak?.counted) emitToUser(userId, "streak_changed", { dayEarned: streak.dayEarned, currentStreak: streak.currentStreak });
+  return { content, counted };
 }
 
 /** Het leesgedeelte van een stap (Stap voor stap) is gelezen. */
@@ -293,19 +319,20 @@ export interface IssuedSet {
 export async function issueExerciseSession(
   userId: string,
   chapterId: string,
-  step?: { lessonId: string; startVerse: number; endVerse: number }
+  step?: { lessonId: string; startVerse: number; endVerse: number },
+  db: Db = prisma,
 ): Promise<IssuedSet> {
-  const chapter = await loadChapter(prisma, chapterId);
-  const plan = await getExercisePlan(prisma, chapterId);
-  const ids = step ? pickPartExercises(partForStep(plan, step.startVerse, step.endVerse)) : pickChapterExercises(plan);
+  const chapter = await loadChapter(db, chapterId);
+  const plan = await getExercisePlan(db, chapterId);
+  const ids = step ? pickPartExercises(await getReadingStepExercisePart(db, chapterId, step.startVerse, step.endVerse)) : pickChapterExercises(plan);
 
-  await prisma.exerciseSession.deleteMany({
+  await db.exerciseSession.deleteMany({
     where: { userId, submittedAt: null, createdAt: { lt: new Date(Date.now() - SESSION_MAX_AGE_MS) } },
   });
   if (ids.length === 0) return { sessionId: null, exercises: [] };
 
   // Alleen goedgekeurde oefeningen: een door een import buiten gebruik gestelde vraag wordt nooit meer uitgedeeld, ook niet uit een verouderd plan.
-  const rows = await prisma.exercise.findMany({
+  const rows = await db.exercise.findMany({
     where: { id: { in: ids }, status: "APPROVED" },
     include: { options: { orderBy: { order: "asc" } } },
   });
@@ -324,7 +351,7 @@ export async function issueExerciseSession(
       options: e.options.length > 0 ? e.options.map((o) => o.label) : undefined,
     }));
 
-  const session = await prisma.exerciseSession.create({
+  const session = await db.exerciseSession.create({
     data: {
       userId,
       chapterId,
@@ -393,12 +420,15 @@ export async function submitExerciseSession(
   sessionId: string,
   answers: SubmittedAnswer[],
   hooks: SessionHooks = {},
+  tx?: Tx,
 ): Promise<ContentExerciseResult> {
   const result = await submitContentExerciseSession(
     userId,
     sessionId,
     answers,
     hooks,
+    undefined,
+    tx,
   );
   if (!result.chapterId) throw new ExerciseSessionError("NOT_FOUND");
   return { ...result, chapterId: result.chapterId };
@@ -529,10 +559,9 @@ async function submitContentExerciseSession(
   answers: SubmittedAnswer[],
   hooks: SessionHooks = {},
   studyActor?: ExerciseActor,
+  transaction?: Tx,
 ): Promise<ContentExerciseOutcome> {
-  return prisma
-    .$transaction(
-      async (tx) => {
+  const run = async (tx: Tx) => {
         // Dezelfde lockvolgorde als andere leeractiviteiten: gebruiker vóór XP/feed.
         await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${userId} FOR UPDATE`;
         const session = await tx.exerciseSession.findUnique({
@@ -842,10 +871,11 @@ async function submitContentExerciseSession(
             data: { result: JSON.parse(JSON.stringify(result)) },
           });
         return result;
-      },
-      { timeout: 20000 },
-    )
-    .then((result) => {
+      };
+  // De native service brengt autorisatie, cursuscursor en resultaatherwinning
+  // onder dezelfde bestaande accounttransactie. Web behoudt zijn commitgrens.
+  if (transaction) return run(transaction);
+  return prisma.$transaction(run, { timeout: 20000 }).then((result) => {
       if (!("replayed" in result && result.replayed))
         emitToUser(userId, "streak_changed", {
           dayEarned: result.dayEarned === true,

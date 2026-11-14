@@ -1,8 +1,8 @@
-import Link from "next/link";
+import { AppLink as Link } from "@/components/navigation/AppNavigation";
 import { Activity, ChevronRight, Trophy, Users, UsersRound } from "lucide-react";
 import { getT } from "@/lib/i18n";
 import SectionHeader from "@/components/today/SectionHeader";
-import SocialLive from "@/components/today/SocialLive";
+import { TodaySocial as SocialLive } from "./TodayInteractions";
 import TogetherBlock from "@/components/today/TogetherBlock";
 import { focusRing, surfaceCard } from "@/components/versado/styles";
 import type { TodayData } from "@/lib/today";

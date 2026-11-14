@@ -326,6 +326,24 @@ export async function leaveAllGroups(userId: string, now: Date = new Date()): Pr
   for (const { groupId } of memberships) await leaveGroup(userId, groupId, now).catch((e) => console.error(`Groep ${groupId} verlaten:`, e));
 }
 
+/** Accountwissen: dezelfde domeinmutaties binnen de verwijdertransactie.
+ * De aanroeper houdt de User-lock; joins gebruiken ook User → groep.
+ * Notificaties worden pas na COMMIT verstuurd. */
+export async function leaveAllGroupsInTransaction(tx: Tx, userId: string, now: Date = new Date()) {
+  const memberships = await tx.groupMembership.findMany({ where: { userId, leftAt: null }, select: { groupId: true }, orderBy: { groupId: "asc" } });
+  const promotions: { groupId: string; promoted: string | null }[] = [];
+  for (const { groupId } of memberships) {
+    if (!(await lockGroup(tx, groupId))) continue;
+    const result = await departTx(tx, groupId, userId, "MEMBER_LEFT", userId, now);
+    promotions.push({ groupId, promoted: result.promoted });
+  }
+  return promotions;
+}
+
+export async function announceAccountDeparture(promotions: { groupId: string; promoted: string | null }[]) {
+  for (const { groupId, promoted } of promotions) await announcePromotion(groupId, promoted);
+}
+
 /** Alleen gewone leden; een beheerder eerst de beheerdersrol afnemen. Dubbel verwijderen is onschuldig. */
 export async function removeMember(adminId: string, groupId: string, memberId: string, now: Date = new Date()): Promise<void> {
   if (adminId === memberId) throw new SocialError("apiErrors.invalidInput", 400);

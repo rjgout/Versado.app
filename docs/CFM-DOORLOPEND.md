@@ -304,3 +304,10 @@ Archiveren verwijdert niets: het is een weergavegrens op datum.
 - Leeshulpen en bijlagen van 2027 hebben geen lesweek en staan niet in de weekkalender (§9).
 - Er is geen globale CSP (§11).
 - De 2026-integratietest met echte server (`test:cfm-2026:integration`) is hier niet lokaal te draaien; CI is de uitslag.
+
+### Gerichte mediareparatie en append-only updates
+
+Zie [CFM veilig herstellen](CFM-VEILIG-HERSTEL.md). De gewone beheerupdate voegt ontbrekende lessen toe en slaat
+complete bestaande lessen over. Bestaande publicaties worden niet automatisch door nieuwe conceptrevisies vervangen;
+voorbereide herstelconcepten vereisen altijd afzonderlijke beoordeling en publicatie. Dit verandert geen lesidentiteit,
+archiefgrens of persoonlijke studievoortgang. De actieve bronpins worden niet automatisch bijgewerkt.

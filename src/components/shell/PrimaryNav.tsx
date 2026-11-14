@@ -3,16 +3,17 @@
 import { AppLink as Link, useAppNavigation } from "@/components/navigation/AppNavigation";
 import { useT } from "@/components/I18nProvider";
 import NavIcon from "@/components/shell/NavIcon";
-import { PRIMARY_NAV, activeDestination } from "@/lib/navigation";
+import { PRIMARY_NAV, activeDestination, type PrimaryNavItem } from "@/lib/navigation";
 
 // Dezelfde vier bestemmingen als BottomNav, maar in de header vanaf
 // desktopbreedte: daar is een balk onderaan geen natuurlijke plek.
-export default function PrimaryNav() {
+export default function PrimaryNav({ items = PRIMARY_NAV }: { items?: readonly PrimaryNavItem[] }) {
   const t = useT();
   const active = activeDestination(useAppNavigation().pathname);
+  if (items.length === 0) return null;
   return (
     <nav aria-label={t("nav.main")} className="vs-motion hidden lg:flex flex-wrap items-center justify-center gap-1">
-      {PRIMARY_NAV.map((item) => {
+      {items.map((item) => {
         const isActive = item.id === active;
         return (
           <Link

@@ -1,9 +1,87 @@
 name: Native Foundation
 on:
   pull_request:
-    branches: [main, 'feat/native-*', 'fix/native-*']
+    branches: [main, develop, 'feat/native-*', 'fix/native-*']
     paths:
       - 'src/lib/native/**'
+      - 'src/lib/audio/**'
+      - 'src/lib/audioMirror.ts'
+      - 'src/components/ReadAloud*'
+      - 'src/lib/readAloud*'
+      - 'src/lib/speechAudioSession.ts'
+      - 'src/app/api/audio/**'
+      - 'src/app/api/chapters/**'
+      - 'tests/native-audio*'
+      - 'tests/fixtures/native-audio/**'
+      - 'src/lib/annotations/**'
+      - 'src/components/annotations/**'
+      - 'tests/native-annotations*'
+      - 'tests/annotation-*'
+      - 'tests/reader-verse-menu*'
+      - 'src/lib/learning/course*.server.ts'
+      - 'src/lib/*PathData.ts'
+      - 'src/lib/navigationEntry.ts'
+      - 'src/components/Courses*'
+      - 'src/components/ReadingCourseView.tsx'
+      - 'src/components/ChapterListCourseView.tsx'
+      - 'src/components/reading/**'
+      - 'src/components/learning/ContentStatus.tsx'
+      - 'src/components/versado/ContentCard.tsx'
+      - 'tests/native-courses*'
+      - 'tests/native-study-courses*'
+      - 'tests/fixtures/native-cfm.ts'
+      - 'src/components/study/Cfm*'
+      - 'src/components/study/WebCfm*'
+      - 'src/components/study/WebWeekSteps.tsx'
+      - 'src/lib/studyContent/stepProgress.ts'
+      - 'src/lib/studyContent/catalogue.ts'
+      - 'src/lib/studyContent/personalStudyOverrides.ts'
+      - 'src/lib/studyContent/personalStudyConstants.ts'
+      - 'src/lib/studyContent/personalStudy.ts'
+      - 'src/lib/studyContent/cfm*'
+      - 'src/lib/studyContent/originalMedia.ts'
+      - 'src/lib/studyContent/mediaDiagnostic.ts'
+      - 'src/lib/studyContent/storage.ts'
+      - 'src/lib/studyContent/download.ts'
+      - 'src/lib/reseedJob.ts'
+      - 'src/app/api/admin/reseed/**'
+      - 'src/components/admin/CfmRecoveryControl.tsx'
+      - 'src/components/ReseedClient.tsx'
+      - 'tests/cfm-recovery*'
+      - 'scripts/content-architecture/test-access-isolated.mjs'
+      - 'data/study-content/cfm-2026-nl/media-revision-candidates.json'
+      - 'src/lib/studyContent/cfmVolumes.ts'
+      - 'src/lib/studyContent/weekSelection.ts'
+      - 'tests/fixtures/native-courses.ts'
+      - 'src/lib/data/**'
+      - 'src/lib/today*'
+      - 'src/lib/listPreferences.server.ts'
+      - 'src/lib/social/friendRequests.ts'
+      - 'src/app/api/list-order/**'
+      - 'src/app/api/friends/**'
+      - 'src/lib/artwork.ts'
+      - 'src/lib/learning/streakReturnRules.ts'
+      - 'src/lib/hymns/sunday.ts'
+      - 'src/lib/generalConference.ts'
+      - 'src/lib/studyContent/presentation.ts'
+      - 'src/lib/studyContent/mediaAccess.ts'
+      - 'src/lib/studyContent/storage.ts'
+      - 'tests/native-study-media*'
+      - 'tests/fixtures/native-study-media.ts'
+      - 'src/components/versado/MediaArtwork.tsx'
+      - 'src/components/versado/VisualIdentityIcon.tsx'
+      - 'src/components/versado/CardMenu.tsx'
+      - 'src/components/today/**'
+      - 'src/components/kompas/KompasEntryCard*'
+      - 'src/components/study/Program*'
+      - 'src/components/study/CfmTodayCard.tsx'
+      - 'src/app/dashboard/**'
+      - 'src/lib/contentPickerContract.ts'
+      - 'src/lib/contentCollections.ts'
+      - 'src/lib/contentSwitch.ts'
+      - 'src/components/ContentSwitcher.tsx'
+      - 'src/components/content/**'
+      - 'src/components/versado/ContentIcon.tsx'
       - 'src/lib/liveQuiz.ts'
       - 'src/lib/chapterGuess.ts'
       - 'src/components/GameRoom.tsx'
@@ -37,8 +115,21 @@ on:
       - 'prisma/**'
       - 'package*.json'
       - 'scripts/native/**'
+      - 'tests/native-access*'
+      - 'tests/fixtures/native-access*'
       - 'tests/native-foundation*'
       - 'tests/native-navigation*'
+      - 'tests/native-shell*'
+      - 'tests/native-content*'
+      - 'tests/native-today*'
+      - 'tests/hymns-sunday.test.ts'
+      - 'tests/artwork.test.ts'
+      - 'tests/streak-return.test.ts'
+      - 'tests/generalConference.test.ts'
+      - 'tests/native-data*'
+      - 'tests/native-route-focus*'
+      - 'tests/native-responsive-css*'
+      - 'tailwind.config.ts'
       - 'tests/native-account*'
       - 'tests/native-socket*'
       - 'tests/native-distribution*'
@@ -59,7 +150,10 @@ env:
 jobs:
   native-foundation:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    # Bestaande webbuild hergebruiken voor native én volledige audioregressies.
+    # Run 42830588168 brak na 30m af tijdens de laatste Audio V2-stap.
+    # Alleen de totale CI-begroting; database-/transactiedeadlines blijven gelijk.
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
@@ -72,8 +166,11 @@ jobs:
           npx prisma validate
           npm run db:generate
           npm run test:native
+          npm run test:annotations
+          npm run test:audio
           npm run test:focus
           npm run test:profile
+          npx tsx --test tests/hymns-sunday.test.ts tests/artwork.test.ts tests/streak-return.test.ts tests/generalConference.test.ts
           npm run test:native:parity
           npm run native:parity:check
           npm run lint
@@ -89,12 +186,41 @@ jobs:
           npm install --prefix "$RUNNER_TEMP/versado-browser" playwright@1.64.0
           bash scripts/ci/install-browser.sh node "$RUNNER_TEMP/versado-browser/node_modules/playwright/cli.js"
           echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/versado-browser/node_modules/playwright" >> "$GITHUB_ENV"
+      - name: Routefocus, selectie en mobiele CSS (320/375/390/400px, 100/200%, licht/donker)
+        run: npm run test:native:focus
+      - name: Echte MP3-validatie voor geïsoleerde audio-importproeven
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - name: Migratie, sessies, Apple en lokale leesflow op geïsoleerde PostgreSQL
         run: npm run test:native:integration
+      - name: Gedeelde native audio- en schriftflow (gesimuleerde OS-uitvoer, geen externe bronnen)
+        run: |
+          node tests/native-audio-player.browser.mjs
+          npx tsx tests/native-learning-flow.browser.mjs
+      - name: CFM-herstel zonder externe downloads (bestaande geïsoleerde runner en webbuild)
+        run: |
+          npx tsx --test tests/cfm-recovery.test.ts
+          node scripts/content-architecture/test-access-isolated.mjs --focused --cfm-suite=cfm-recovery.integration.test.ts --browser
+      - name: Bestaande Audio V2-webregressies op eigen database, dezelfde webbuild
+        run: npm run test:audio:browser
       - name: Browserbewijs
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: native-foundation-browser
-          path: /tmp/versado-native-browser
+          path: |
+            /tmp/versado-native-audio-player-browser
+            /tmp/versado-native-browser
+            /tmp/versado-native-learning-flow-browser
+            /tmp/versado-reader-verse-menu-browser
+            /tmp/versado-cfm-recovery-browser
+            /tmp/versado-audio-browser
+            /tmp/versado-audio-official-browser
+            /tmp/versado-audio-legacy-browser
+          retention-days: 7
+      - name: Focusbewijs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-route-focus-browser
+          path: /tmp/versado-focus-browser
           retention-days: 7
