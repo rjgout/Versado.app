@@ -14,7 +14,7 @@ const row={id:"bookmark",kind:"bookmark" as const,targetKey:"verse:verse2",targe
 const action={kind:"bookmark" as const,target:row.target,expectedVersion:0,actionId:"00000000-0000-4000-8000-000000000001"};
 const environment:LiveEnvironment={now:()=>1000,random:()=>0,isOnline:()=>true,isVisible:()=>true,schedule:()=>()=>{}};
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
-function fixture(api:(path:string)=>Promise<unknown>,write:(path:string,body:unknown)=>Promise<unknown>=async()=>({ ...scope,actionId:action.actionId,changed:true,annotation:row }),env=environment){return new NativeDataRuntime({api,actionOnce:write} as unknown as NativeSessionClient,env);}
+function fixture(api:(path:string)=>Promise<unknown>,write:(path:string,body:unknown)=>Promise<unknown>=async()=>({ ...scope,actionId:action.actionId,changed:true,annotation:row }),env=environment){return new NativeDataRuntime({api,actionOnce:write,getSessionStamp:()=>"synthetic-session"} as unknown as NativeSessionClient,env);}
 
 test("native annotaties gebruiken bestaande UUID/versie/kleur/notitielimiet en alleen verzen",()=>{
  const base={operation:"put",context:nativeAnnotationContext.parse(reader),action};

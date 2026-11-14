@@ -1,7 +1,9 @@
 "use client";
+import {applicationFetch} from "@/lib/data/applicationRuntime";
+
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import {useGamePathname as usePathname, useGameRouter as useRouter} from "@/components/games/GameNavigation";
 import { JIGSAW_ROUTE } from "@/lib/puzzle/navigation";
 import { Ellipsis, Lightbulb, Users } from "lucide-react";
 import PuzzleBoardLayout from "@/components/puzzle/PuzzleBoardLayout";
@@ -37,7 +39,7 @@ const PALETTE = ["#2563eb", "#db2777", "#059669", "#9333ea"];
 type Ack = { ok: boolean; code?: string; [key: string]: unknown };
 
 async function post(body: object) {
-  const response = await fetch("/api/puzzle/coop", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  const response = await applicationFetch("/api/puzzle/coop", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
   const data = await response.json().catch(() => null) as Ack | null;
   if (!response.ok || !data) throw Object.assign(new Error(typeof data?.error === "string" ? data.error : ""), { status: response.status, code: data?.code });
   return data;

@@ -3,6 +3,7 @@
 // Elke mutation legt vast welke datasets ongeldig worden: `invalidates` is
 // verplicht en getypt (DataEvent uit scopes.ts, of expliciete scopes). Zo kan
 // een nieuwe schrijfactie niet vergeten worden in de verversing.
+import { applicationRuntime } from "./applicationRuntime";
 import { liveData } from "./client";
 import { fetchJson } from "./fetchJson";
 import type { DataEvent, DataScope } from "./scopes";
@@ -16,9 +17,12 @@ export interface MutationOptions<T> {
 
 /** Voert een schrijfactie uit en maakt daarna alleen de gekoppelde datasets ongeldig. */
 export async function liveMutation<T>(run: () => Promise<T>, options: MutationOptions<T>): Promise<T> {
+  const platform = applicationRuntime(), current = platform?.capture();
+  const store = platform?.store ?? liveData;
   const result = await run();
+  current?.();
   options.onSuccess?.(result);
-  liveData.invalidate(options.invalidates);
+  store.invalidate(options.invalidates);
   return result;
 }
 

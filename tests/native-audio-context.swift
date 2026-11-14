@@ -13,6 +13,7 @@ private func stored(_ refresh:String) -> String { "{\"refreshToken\":\"\(refresh
  static func main() throws {
     let stableToken=try token("one"), repeatedToken=try token("one"); precondition(stableToken==repeatedToken,"Synthetische JWT moet deterministisch zijn")
     let stamp="22222222-2222-4222-8222-222222222222", body=try String(contentsOfFile:CommandLine.arguments[1],encoding:.utf8)
+    try verifyNativeGameAudioContexts(body,stamp)
     let scope=try JSONDecoder().decode(NativeAudioPlaybackPayload.self,from:Data(body.utf8)).reader.scope
     let credentials=try NativeAccessCredentials(id:"synthetic-client-id",secret:"synthetic-native-audio-secret-123456")
     var now:TimeInterval=0
@@ -46,4 +47,32 @@ private func stored(_ refresh:String) -> String { "{\"refreshToken\":\"\(refresh
     now=539;precondition(!c.capsule!.lifetime.current)
     print("Native audio context: secure-storage commit, epoch, scope, old token, background and hard expiry PASS")
  }
+}
+
+private func verifyNativeGameAudioContexts(_ original:String,_ stamp:String) throws {
+    for kind in ["reading","intro-solo","intro-live","ak-solo","ak-live"] {
+        var payload=try JSONSerialization.jsonObject(with:Data(original.utf8)) as! [String:Any]
+        for field in ["reader","audio"] {
+            var value=payload[field] as! [String:Any]
+            for key in ["courseId","kind","targetId"] { value.removeValue(forKey:key) }
+            value["game"]=kind == "reading" ? ["kind":kind,"id":"chapter"] as [String:Any] : ["kind":kind,"id":"run","index":1] as [String:Any]
+            value["chapterId"]="question";value["startVerse"]=1;value["endVerse"]=1
+            if field == "reader" {value["focusVerse"]=1;value["verses"]=[["id":"question-intro","number":1,"text":"Synthetische vraagtekst"]]}
+            else {value["sources"]=[] as [Any]}
+            payload[field]=value
+        }
+        let bytes=try JSONSerialization.data(withJSONObject:payload),body=String(data:bytes,encoding:.utf8)!
+        let decoded=try JSONDecoder().decode(NativeAudioPlaybackPayload.self,from:bytes),scope=decoded.reader.scope
+        try scope.validate()
+        precondition(scope.path == "games/\(kind)/\(kind == "reading" ? "chapter" : "run/1")/audio/playback")
+        let c=NativeAudioContext(clock:{0});c.reset(stamp);c.stage(path:"login",status:200,body:try pair("game"),tag:c.tag(stamp));c.saved(stored("game"),success:true);c.select(scope,owner:"game-owner")
+        let captured=try c.capture(path:scope.path,status:200,body:body,authorization:"Bearer "+token("game"),credentials:NativeAccessCredentials(id:"synthetic-client-id",secret:"synthetic-native-audio-secret-123456"),tag:c.tag(stamp),startedAt:0)
+        precondition(captured&&c.capsule != nil,"Spelmetadata moet dezelfde afspeellease activeren")
+        for change in [["courseId":"fake"],["game":["kind":"remote","id":"run","index":1]],["game":["kind":"intro-solo","id":"run","index":500]],["game":["kind":"intro-live","id":"https://evil.invalid","index":1]]] as [[String:Any]] {
+            var invalid=payload["reader"] as! [String:Any]
+            invalid.merge(change,uniquingKeysWith:{$1})
+            do {let bad=try JSONDecoder().decode(NativeAudioScope.self,from:JSONSerialization.data(withJSONObject:invalid));try bad.validate();fatalError("Vreemde spelselectie geaccepteerd")}
+            catch is NativeAudioFailure {}
+        }
+    }
 }

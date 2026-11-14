@@ -53,7 +53,7 @@ final class NativeAudioTransport implements AutoCloseable {
         this(path, total, authorization, credentials, origin, lifetime, NativeAccessTransport.client()::newCall);
     }
     NativeAudioTransport(String path, long total, String authorization, NativeAccessTransport.Credentials credentials, String origin, Lifetime lifetime, NativeAccessTransport.Calls calls) throws IOException {
-        if (path == null || !path.matches("courses/[A-Za-z0-9_-]{1,128}/read/(?:steps|chapters)/[A-Za-z0-9_-]{1,128}/audio/[a-f0-9]{64}/stream") ||
+        if (path == null || !(NativeGamesPolicy.audioAllowed(path,true) || path.matches("courses/[A-Za-z0-9_-]{1,128}/read/(?:steps|chapters)/[A-Za-z0-9_-]{1,128}/audio/[a-f0-9]{64}/stream")) ||
             total <= 0 || total > MAX_FILE || authorization == null || !authorization.matches("Bearer [A-Za-z0-9._~-]{1,2040}") || lifetime == null ||
             !("https://localhost".equals(origin) || "capacitor://localhost".equals(origin))) throw unavailable();
         this.path = path; this.total = total; this.authorization = authorization; this.credentials = credentials; this.origin = origin; this.lifetime = lifetime; this.calls = calls;

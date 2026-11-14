@@ -1,3 +1,4 @@
+import { nativeGamePathAllowed } from "./gamesAccess";
 import { z } from "zod";
 import { NativeClientError,type NativeSessionRequestInit } from "./client";
 
@@ -16,6 +17,7 @@ export function nativeAccessError(error: unknown): NativeClientError {
   return new NativeClientError(errors.has(code) ? code : "access_unavailable"); // Geen native foutdetails of 401 naar de sessierotatie lekken.
 }
 export function accessRouteAllowed(path: string, method: string): boolean {
+  if(path.startsWith("games/"))return nativeGamePathAllowed(path,method);
   if (/[\r\n]/.test(path)) return false; // Ook de JS-grens is absoluut, zoals Swift/Java.
   if (method === "GET") return /^courses\/[A-Za-z0-9_-]{1,128}\/read\/(?:steps|chapters)\/[A-Za-z0-9_-]{1,128}\/learning\/sessions\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(path) || /^courses\/[A-Za-z0-9_-]{1,128}\/read\/(?:steps|chapters)\/[A-Za-z0-9_-]{1,128}\/audio(?:\/playback)?$/.test(path) || /^courses\/[A-Za-z0-9_-]{1,128}\/read\/(?:steps|chapters)\/[A-Za-z0-9_-]{1,128}\/annotations(?:\/[A-Za-z0-9_-]{1,128})?$/.test(path) || /^courses\/[A-Za-z0-9_-]{1,128}\/read\/(?:steps|chapters)\/[A-Za-z0-9_-]{1,128}\/resume$/.test(path) || /^courses\/[A-Za-z0-9_-]{1,128}\/read\/(?:steps|chapters)\/[A-Za-z0-9_-]{1,128}$/.test(path) || ["capabilities", "me", "today", "today-overview", "profile", "content-context", "courses"].includes(path) || /^courses\/[A-Za-z0-9_-]{1,128}\/(?:path|weeks|archive)$/.test(path) || /^courses\/[A-Za-z0-9_-]{1,128}\/weeks\/[A-Za-z0-9_-]{1,128}\/steps$/.test(path) || /^(?:chapters|study-media)\/[A-Za-z0-9_-]{1,128}$/.test(path);
   if (method === "POST") return /^courses\/[A-Za-z0-9_-]{1,128}\/read\/(?:steps|chapters)\/[A-Za-z0-9_-]{1,128}\/learning\/(?:start|submit|read|check)$/.test(path) || /^courses\/[A-Za-z0-9_-]{1,128}\/read\/(?:steps|chapters)\/[A-Za-z0-9_-]{1,128}\/annotations$/.test(path) || /^courses\/[A-Za-z0-9_-]{1,128}\/read\/(?:steps|chapters)\/[A-Za-z0-9_-]{1,128}\/position$/.test(path) || ["profile", "profile/two-factor", "today-actions/hide", "today-actions/friend-response", "content-context", "login", "register", "forgot-password", "reset-password", "verify-email", "refresh", "logout", "security-setup/complete", "security-setup/cancel", "apple/challenge", "apple/complete", "account/password"].includes(path) || /^chapters\/[A-Za-z0-9_-]{1,128}\/complete$/.test(path);

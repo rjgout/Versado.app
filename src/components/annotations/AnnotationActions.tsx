@@ -1,4 +1,5 @@
 "use client";
+import {useAnnotationTransport} from "./AnnotationTransport";
 import AnnotationActionsView, { type AnnotationActionsAdapter } from "./AnnotationActionsView";
 import { clientTargetKey, type AnnotationList } from "@/lib/annotations/clientContract";
 import { fetchJson, ApiRequestError } from "@/lib/data/fetchJson";
@@ -11,5 +12,6 @@ const webAdapter: AnnotationActionsAdapter = {
 };
 /** Web houdt zijn bestaande cookie-/CSRF-transport; de presentatie is gedeeld. */
 export default function AnnotationActions(props: Omit<Parameters<typeof AnnotationActionsView>[0],"adapter">) {
-  return <AnnotationActionsView {...props} adapter={webAdapter}/>;
+  const transport=useAnnotationTransport();
+  return <AnnotationActionsView {...props} adapter={transport?.adapter??webAdapter}/>;
 }

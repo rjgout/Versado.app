@@ -1,11 +1,13 @@
 "use client";
+import {applicationFetch} from "@/lib/data/applicationRuntime";
+
 
 import { useHintInventory } from "@/lib/data/hints";
 
 import { StreakContinuationCard } from "@/components/StreakContinuation";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import {AppLink as Link} from "@/components/navigation/AppNavigation";
 import { announceXpChanged } from "@/lib/xpBroadcast";
 import IntroAudioButton from "@/components/IntroAudioButton";
 import { useT } from "@/components/I18nProvider";
@@ -94,7 +96,7 @@ export default function ChapterGuessSoloClient({ gameId }: { gameId: string }) {
   const [gaveUpSummary, setGaveUpSummary] = useState<{ correctCount: number; total: number } | null>(null);
 
   useEffect(() => {
-    fetch(`/api/chapter-guess/${gameId}`)
+    applicationFetch(`/api/chapter-guess/${gameId}`)
       .then(async (r) => {
         const data = await r.json();
         if (!r.ok) throw new Error(data.error ?? t("chapterGuess.notFound"));
@@ -102,7 +104,7 @@ export default function ChapterGuessSoloClient({ gameId }: { gameId: string }) {
         if (data.status === "FINISHED" && data.summary) setFinalSummary(data.summary);
       })
       .catch((e) => setError(e instanceof Error ? e.message : t("wordOfTheDay.somethingWrong")));
-    fetch("/api/chapters")
+    applicationFetch("/api/chapters")
       .then((r) => r.json())
       .then(setChapters);
   }, [gameId]);
@@ -119,7 +121,7 @@ export default function ChapterGuessSoloClient({ gameId }: { gameId: string }) {
     setSubmitting(true);
     setChosenChapterId(chapterId);
     setError(null);
-    const res = await fetch(`/api/chapter-guess/${gameId}/answer`, {
+    const res = await applicationFetch(`/api/chapter-guess/${gameId}/answer`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ chapterId }),
@@ -150,7 +152,7 @@ export default function ChapterGuessSoloClient({ gameId }: { gameId: string }) {
     if (hintLoading || hint || !game) return;
     setHintLoading(true);
     setError(null);
-    const res = await fetch(`/api/chapter-guess/${gameId}/hint`, { method: "POST" });
+    const res = await applicationFetch(`/api/chapter-guess/${gameId}/hint`, { method: "POST" });
     const data = await res.json().catch(() => ({}));
     setHintLoading(false);
     if (!res.ok) {
@@ -167,7 +169,7 @@ export default function ChapterGuessSoloClient({ gameId }: { gameId: string }) {
     if (givingUp) return;
     setGivingUp(true);
     setError(null);
-    const res = await fetch(`/api/chapter-guess/${gameId}/forfeit`, { method: "POST" });
+    const res = await applicationFetch(`/api/chapter-guess/${gameId}/forfeit`, { method: "POST" });
     const data = await res.json().catch(() => ({}));
     setGivingUp(false);
     if (!res.ok) {
@@ -287,7 +289,7 @@ export default function ChapterGuessSoloClient({ gameId }: { gameId: string }) {
       <div className="card flex flex-col gap-5">
         <p className="text-xs font-bold uppercase text-slate-400 dark:text-slate-500">{t("chapterGuess.readHeading")}</p>
         <p className="text-xl leading-relaxed italic">&ldquo;{question.introText}&rdquo;</p>
-        <IntroAudioButton audio={question.introAudio} />
+        <IntroAudioButton audio={question.introAudio} text={question.introText} nativeTarget={{kind:"intro-solo",id:gameId,index:question.index}} />
 
         {hint?.bookName && !answered && (
           <p className="text-sm bg-gold-50 dark:bg-slate-700 text-gold-600 dark:text-gold-400 rounded-xl px-3 py-2 font-bold">

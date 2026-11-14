@@ -1,4 +1,7 @@
 "use client";
+import {useGameMedia} from "@/components/games/GameMediaContext";
+import {applicationFetch} from "@/lib/data/applicationRuntime";
+
 
 import { useT } from "@/components/I18nProvider";
 import AppSelect from "@/components/AppSelect";
@@ -48,7 +51,12 @@ export interface ReadAloudAdapter {
 
 const LANGUAGE_KEY = "jehovaapp-read-aloud-language";
 
-export default function ReadAloudPlayer({ sourceId, title, verses, audio, startVerse = 0, subtitle, language, controlRef, onStatusChange, adapter }: Props) {
+export default function ReadAloudPlayer(props:Props){
+ const media=useGameMedia();
+ if(media&&!props.adapter){const Reading=media.Reading;return <Reading {...props}/>;}
+ return <WebReadAloudPlayer {...props}/>;
+}
+function WebReadAloudPlayer({ sourceId, title, verses, audio, startVerse = 0, subtitle, language, controlRef, onStatusChange, adapter }: Props) {
   const t = useT();
   const textLanguage = language ?? "nl";
   const { source, start, stop, currentIndex } = useReadAloudPlayer();
@@ -66,7 +74,7 @@ export default function ReadAloudPlayer({ sourceId, title, verses, audio, startV
     if(adapter)return;
     const controller = new AbortController();
     setFailed(false);
-    fetch(`/api/chapters/${encodeURIComponent(sourceId)}/audio-languages`, { signal: controller.signal })
+    applicationFetch(`/api/chapters/${encodeURIComponent(sourceId)}/audio-languages`, { signal: controller.signal })
       .then(async (response) => {
         if (!response.ok) throw new Error("Audiotalen laden mislukt.");
         const data = await response.json() as { editions: AudioEdition[] };

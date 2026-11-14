@@ -1,8 +1,10 @@
 "use client";
+import {applicationFetch} from "@/lib/data/applicationRuntime";
+
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import {AppLink as Link} from "@/components/navigation/AppNavigation";
+import {useGameRouter as useRouter, useGameSearchParams as useSearchParams} from "@/components/games/GameNavigation";
 import { kompasHref } from "@/lib/kompas/registry";
 import { X } from "lucide-react";
 import ActiveGamesBanner from "@/components/ActiveGamesBanner";
@@ -74,7 +76,7 @@ export default function LiveLobbyForm({ settings, isAdmin, allowedGameKeys, cont
   const [rulesFor, setRulesFor] = useState<GameEntry | null>(null);
 
   useEffect(() => {
-    fetch("/api/chapters")
+    applicationFetch("/api/chapters")
       .then((r) => r.json())
       .then((data: ChapterOption[]) => {
         setChapters(data);
@@ -135,7 +137,7 @@ export default function LiveLobbyForm({ settings, isAdmin, allowedGameKeys, cont
     e.preventDefault();
     setError(null);
     setCreating(true);
-    const res = await fetch("/api/live/create", {
+    const res = await applicationFetch("/api/live/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ chapterId }),

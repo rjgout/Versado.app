@@ -26,17 +26,29 @@ final class NativeAudioContext {
         double result = ((Number) value).doubleValue(); if (!Double.isFinite(result) || result < 0) throw invalid(); return result;
     }
     static final class Scope {
-        final String user, collection, language, course, kind, target, chapter;
+        final String user, collection, language, course, kind, target, chapter, gameKind, gameId;
+        final Integer gameIndex;
         final long selection; final int start, end;
         Scope(JSONObject value) throws Exception {
             if (integer(value,"version",1,1) != 1) throw invalid();
-            user=value.getString("userId"); collection=value.getString("activeCollectionId"); language=value.getString("language");
-            course=value.getString("courseId"); kind=value.getString("kind"); target=value.getString("targetId"); chapter=value.getString("chapterId");
+            user=value.getString("userId"); collection=value.getString("activeCollectionId"); language=value.getString("language");chapter=value.getString("chapterId");
             selection=integer(value,"selectionVersion",0,9007199254740991L); start=(int)integer(value,"startVerse",1,500); end=(int)integer(value,"endVerse",start,500);
-            if (!id(user)||!id(collection)||!id(course)||!id(target)||!id(chapter)||!NativeAudioContext.language(language)||!("steps".equals(kind)||"chapters".equals(kind))) throw invalid();
+            if (!id(user)||!id(collection)||!id(chapter)||!NativeAudioContext.language(language)) throw invalid();
+            if(value.has("game")) {
+                if(value.has("courseId")||value.has("kind")||value.has("targetId"))throw invalid();
+                JSONObject game=value.getJSONObject("game");gameKind=game.getString("kind");gameId=game.getString("id");
+                if(!id(gameId))throw invalid();
+                if("reading".equals(gameKind)){if(game.length()!=2)throw invalid();gameIndex=null;}
+                else {if(!Arrays.asList("intro-solo","intro-live","ak-solo","ak-live").contains(gameKind)||game.length()!=3||start!=1||end!=1)throw invalid();gameIndex=(int)integer(game,"index",0,499);}
+                course=kind=target=null;
+            } else {
+                gameKind=gameId=null;gameIndex=null;
+                course=value.getString("courseId");kind=value.getString("kind");target=value.getString("targetId");
+                if(!id(course)||!id(target)||!("steps".equals(kind)||"chapters".equals(kind)))throw invalid();
+            }
         }
-        String path() { return "courses/"+course+"/read/"+kind+"/"+target+"/audio/playback"; }
-        String key() { return String.join("\u0000",user,collection,language,course,kind,target,chapter,Long.toString(selection),Integer.toString(start),Integer.toString(end)); }
+        String path() { return gameKind!=null?"games/"+gameKind+"/"+gameId+(gameIndex!=null?"/"+gameIndex:"")+"/audio/playback":"courses/"+course+"/read/"+kind+"/"+target+"/audio/playback"; }
+        String key() { return String.join("\u0000",user,collection,language,path(),chapter,Long.toString(selection),Integer.toString(start),Integer.toString(end)); }
         boolean same(Scope other) { return other != null && key().equals(other.key()); }
     }
     static final class Verse {

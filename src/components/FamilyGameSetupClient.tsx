@@ -1,7 +1,9 @@
 "use client";
+import {applicationFetch} from "@/lib/data/applicationRuntime";
+
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import {useGameRouter as useRouter} from "@/components/games/GameNavigation";
 import { useT } from "@/components/I18nProvider";
 
 const DURATIONS: { minutes: 15 | 30 | 60; icon: string }[] = [
@@ -30,7 +32,7 @@ export default function FamilyGameSetupClient() {
   async function createGame() {
     setError(null);
     setStarting(true);
-    const res = await fetch("/api/live/create-family-game", {
+    const res = await applicationFetch("/api/live/create-family-game", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ minutes, diceMode }),

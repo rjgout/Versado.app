@@ -1,7 +1,9 @@
 "use client";
+import {applicationFetch} from "@/lib/data/applicationRuntime";
+
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import {useGameRouter as useRouter} from "@/components/games/GameNavigation";
 import UserAvatar from "@/components/UserAvatar";
 import { getSocket } from "@/lib/socketClient";
 import FriendPicker, { type PickerFriend } from "@/components/FriendPicker";
@@ -28,7 +30,7 @@ export default function ScrabbleListClient({ allowStarts = true }: { allowStarts
   const router = useRouter();
 
   async function load() {
-    const res = await fetch("/api/scrabble");
+    const res = await applicationFetch("/api/scrabble");
     if (res.ok) setGames((await res.json()).games);
   }
 
@@ -48,7 +50,7 @@ export default function ScrabbleListClient({ allowStarts = true }: { allowStarts
   /** Uit het vriendenpaneel; een foutmelding blijft in het paneel staan. */
   async function createGame(friend: PickerFriend): Promise<string | null> {
     setMessage(null);
-    const res = await fetch("/api/scrabble", {
+    const res = await applicationFetch("/api/scrabble", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ friendUserId: friend.id }),
@@ -64,7 +66,7 @@ export default function ScrabbleListClient({ allowStarts = true }: { allowStarts
   }
 
   async function respond(id: string, action: "accept" | "decline" | "cancel") {
-    const res = await fetch(`/api/scrabble/${id}/${action}`, { method: "POST" });
+    const res = await applicationFetch(`/api/scrabble/${id}/${action}`, { method: "POST" });
     if (res.ok) getSocket().emit("scrabble_changed", { gameId: id });
     if (res.ok && action === "accept") {
       router.push(`/scrabble/${id}`);

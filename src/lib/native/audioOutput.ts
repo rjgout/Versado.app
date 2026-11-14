@@ -1,12 +1,12 @@
 import type { ReadAloudOutput, ReadAloudOutputEvent } from "@/lib/readAloudOutput";
 import type { ReadAloudSource } from "@/lib/readAloudPlayerContext";
 import { NativeClientError, type NativeSessionClient } from "./client";
-import type { NativePlayback } from "./audioPlaybackContract";
+import type {NativeMediaPlayback} from "./gamesAudioContract";
 import { nativeAudioEventSchema, nativeAudioInterruptionSchema, nativeAudioLifecycleSchema, nativeAudioStatusSchema, nativeVoicesSchema, type NativeAudioBridge, type NativeAudioCommand, type NativeAudioSelector } from "./audioBridge";
 export interface NativeAudioTarget {
   ownerId:string;sessionStamp:string;scope:NativeAudioSelector;sourceLanguage:string;
   current():boolean;
-  load(renew:boolean):Promise<NativePlayback>;
+  load(renew:boolean):Promise<NativeMediaPlayback>;
 }
 type Action={source:ReadAloudSource;commandId:string;actionVersion:number;owner:NativeAudioTarget;contextEpoch:number;index:number;speed:number};
 /** Eén uitvoeradapter, geen tweede data-/afspeelcache. Native houdt codecs en
@@ -120,7 +120,7 @@ export class NativeReadAloudOutput implements ReadAloudOutput {
 /** Alleen deze bestaande read-autorisatie wordt zo nodig één keer vernieuwd.
  * Achtergrond tussen refreshantwoord en veilige opslag mag de native anchor
  * terecht verwerpen; na hervatten herstellen we die zonder login-/POST-retry. */
-export async function loadNativeAudioMetadata(bridge:NativeAudioBridge,target:NativeAudioTarget,getPlayback:(renew:boolean)=>Promise<NativePlayback>,renew=false){
+export async function loadNativeAudioMetadata<T extends NativeMediaPlayback>(bridge:NativeAudioBridge,target:NativeAudioTarget,getPlayback:(renew:boolean)=>Promise<T>,renew=false){
   const current=()=>{if(!target.current())throw new NativeClientError("audio_changed");};
   current();await bridge.audioContext({sessionStamp:target.sessionStamp,ownerId:target.ownerId,scope:target.scope});
   current();let playback=await getPlayback(renew);current();

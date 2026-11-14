@@ -1,7 +1,9 @@
 "use client";
+import {applicationFetch} from "@/lib/data/applicationRuntime";
+
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import {useGameRouter as useRouter} from "@/components/games/GameNavigation";
 import UserAvatar from "@/components/UserAvatar";
 import FriendPicker, { type PickerFriend } from "@/components/FriendPicker";
 import { useT } from "@/components/I18nProvider";
@@ -42,13 +44,13 @@ export default function ChallengesClient() {
   const router = useRouter();
 
   async function load() {
-    const res = await fetch("/api/challenges");
+    const res = await applicationFetch("/api/challenges");
     if (res.ok) setChallenges((await res.json()).challenges);
   }
 
   useEffect(() => {
     load();
-    fetch("/api/chapters")
+    applicationFetch("/api/chapters")
       .then((r) => r.json())
       .then((d) => setChapters(Array.isArray(d) ? d.filter((c: ChapterOption) => c.exerciseCount > 0) : []));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -58,7 +60,7 @@ export default function ChallengesClient() {
   async function createChallenge(friend: PickerFriend): Promise<string | null> {
     if (!selectedChapter) return t("challenges.chooseChapterFirst");
     setMessage(null);
-    const res = await fetch("/api/challenges", {
+    const res = await applicationFetch("/api/challenges", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ friendUserId: friend.id, chapterId: selectedChapter }),
@@ -72,7 +74,7 @@ export default function ChallengesClient() {
   }
 
   async function respond(id: string, action: "accept" | "decline") {
-    await fetch(`/api/challenges/${id}/${action}`, { method: "POST" });
+    await applicationFetch(`/api/challenges/${id}/${action}`, { method: "POST" });
     load();
   }
 
@@ -82,7 +84,7 @@ export default function ChallengesClient() {
 
   async function forfeit(id: string) {
     if (!(await confirm(t("challenges.confirmForfeit")))) return;
-    await fetch(`/api/challenges/${id}/forfeit`, { method: "POST" });
+    await applicationFetch(`/api/challenges/${id}/forfeit`, { method: "POST" });
     load();
   }
 

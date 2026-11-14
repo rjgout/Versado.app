@@ -1,7 +1,9 @@
 "use client";
+import {applicationFetch} from "@/lib/data/applicationRuntime";
+
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import {AppLink as Link} from "@/components/navigation/AppNavigation";
 import { getSocket } from "@/lib/socketClient";
 import { useLobbyExit } from "@/lib/useLobbyExit";
 import LobbyClosedNotice from "@/components/LobbyClosedNotice";
@@ -85,7 +87,7 @@ export default function ChapterGuessGameRoom({ code, myUserId }: { code: string;
   const socket = getSocket();
 
   useEffect(() => {
-    socket.emit("join_game", { code });
+    const join=()=>socket.emit("join_game",{code});
 
     function onLobby(data: { hostId: string; status: string; level: Level | null; players: LobbyPlayer[] }) {
       setHostId(data.hostId);
@@ -144,7 +146,11 @@ export default function ChapterGuessGameRoom({ code, myUserId }: { code: string;
     socket.on("hint_result", onHintResult);
     socket.on("hint_error", onHintError);
 
+    socket.on("connect",join);
+    if(socket.connected)join();
+
     return () => {
+      socket.off("connect",join);
       socket.off("lobby_update", onLobby);
       socket.off("question", onQuestion);
       socket.off("answer_received", onAnswerReceived);
@@ -158,7 +164,7 @@ export default function ChapterGuessGameRoom({ code, myUserId }: { code: string;
   }, [code]);
 
   useEffect(() => {
-    fetch("/api/friends")
+    applicationFetch("/api/friends")
       .then((r) => r.json())
       .then((d) => {
         const friendList = (d.friends ?? [])
@@ -166,7 +172,7 @@ export default function ChapterGuessGameRoom({ code, myUserId }: { code: string;
           .filter((friend: Friend | undefined): friend is Friend => Boolean(friend));
         setFriends(friendList);
       });
-    fetch("/api/chapters")
+    applicationFetch("/api/chapters")
       .then((r) => r.json())
       .then(setChapters);
   }, []);
@@ -316,7 +322,7 @@ export default function ChapterGuessGameRoom({ code, myUserId }: { code: string;
         <div className="card flex flex-col gap-5">
           <p className="text-xs font-bold uppercase text-slate-400 dark:text-slate-500">{t("chapterGuess.readHeading")}</p>
           <p className="text-xl leading-relaxed italic">&ldquo;{question.introText}&rdquo;</p>
-          <IntroAudioButton audio={question.introAudio} />
+          <IntroAudioButton audio={question.introAudio} text={question.introText} nativeTarget={{kind:"intro-live",id:code,index:question.index}} />
 
           {hint?.bookName && !revealing && (
             <p className="text-sm bg-gold-50 dark:bg-slate-700 text-gold-600 dark:text-gold-400 rounded-xl px-3 py-2 font-bold">

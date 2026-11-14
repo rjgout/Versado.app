@@ -1,4 +1,9 @@
 "use client";
+import NativeKompasProvider from "./NativeKompasProvider";
+import {CompanionProvider} from "@/components/versado/PersonalMascot";
+import {useBackTargetOverride} from "@/lib/backTarget";
+import NativeGamesView from "./NativeGamesView";
+import {gamePageRoute} from "@/lib/native/gamesPagesRoutes";
 import ProfilePageView from "@/components/profile/ProfilePageView";
 import { parseProfileView,PROFILE_VIEWS } from "@/lib/profileViews";
 import NativeProfileView from "./NativeProfileView";
@@ -207,6 +212,7 @@ function NativeFoundationContent({ audioOutput, client, termsUrl = null, onLangu
     return () => { current = false; };
   }, [contentQuery.error, todayQuery.error, overviewQuery.error, overviewEnabled, pickerPage, navigation.pathname, report]);
   const accountId = user?.id;
+  const [gameSocketOwner,setGameSocketOwner]=useState<string|null>(null);
   const realtime = features.includes("realtime-ticket-v1") && client.realtimeSupported;
   useEffect(() => {
     if (!accountId || !realtime || !isNativeApp()) return;
@@ -214,8 +220,10 @@ function NativeFoundationContent({ audioOutput, client, termsUrl = null, onLangu
       if (error instanceof NativeClientError && error.status === 401) report(error);
     });
     const detach = dataRuntime.attachSocket(connection.socket);
+    const unbind = dataRuntime.bindSharedSocket(connection.socket);
+    setGameSocketOwner(`${accountId}:${client.getSessionStamp()}`);
     connection.start();
-    return () => { detach(); connection.dispose(); };
+    return () => { setGameSocketOwner(null); unbind(); detach(); connection.dispose(); };
   }, [accountId, realtime, reloadKey, client, report, dataRuntime]);
   async function action(run: (isCurrent: () => boolean) => Promise<void>) {
     if (busy) return;
@@ -259,14 +267,17 @@ function NativeFoundationContent({ audioOutput, client, termsUrl = null, onLangu
   const button = `${secondaryButton} min-h-12 whitespace-normal`;
   const appleLoginAvailable = isIOSApp() && nativeAppleLoginUIAvailable(apple, features);
   const readerRoute = nativeReaderRoute(navigation.pathname);
+  const gameBack=useBackTargetOverride(navigation.pathname.split("?")[0]);
+  const gamesPage=gamePageRoute(navigation.pathname)!==null;
+  const gamesEnabled=features.includes("games-v1")&&realtime&&gameSocketOwner===`${user?.id}:${client.getSessionStamp()}`;
   const learningPage = /^\/courses(?:\/|$)/.test(navigation.pathname);
   const destinations = nativePrimaryNav(features);
-  const detail = !!readerRoute || (learningPage && navigation.pathname !== "/courses") || diagnostics || pickerPage || legal || profile || passwordPage || deletionPage || resetPage || confirmationPage || !!chapterId;
+  const detail = (gamesPage&&navigation.pathname!=="/live") || !!readerRoute || (learningPage && navigation.pathname !== "/courses") || diagnostics || pickerPage || legal || profile || passwordPage || deletionPage || resetPage || confirmationPage || !!chapterId;
   const shellAccount = user && !setup && !recoveryCodes ? user : null;
-  return <AccountActionsProvider actions={accountActions}><AppShellFrame
+  return <CompanionProvider character={user?.companion??"novi"}><AccountActionsProvider actions={accountActions}><NativeKompasProvider><AppShellFrame
     header={<NativeShellHeader account={shellAccount} onError={report} content={content} buildIndicator={buildIndicator} destinations={destinations} />}
     headerExtras={<>
-      {detail && <SubpageBackBarView title={diagnostics ? t("nativeDiagnostics.title") : pickerPage ? t("contentSwitcher.picker.title") : passwordPage ? t("profile.changePassword") : deletionPage ? t("accountDeletion.title") : profile ? t(navigation.pathname==="/profile/avatar" ? "profile.avatarEditorTitle" : profileView ? PROFILE_VIEWS[profileView].title : "nav.profile") : readerRoute ? t("pages.lesson") : learningPage ? t("pages.course") : chapterId ? t("pages.lesson") : t("common.back")} onBack={() => navigation.back(passwordPage || deletionPage || profile && (profileView || navigation.pathname==="/profile/avatar") ? "/profile" : readerRoute ? `/courses/${readerRoute.courseId}/pad` : learningPage ? navigation.pathname.endsWith("/archief") ? navigation.pathname.replace(/archief$/, "pad") : "/courses" : "/dashboard")} />}
+      {detail && <SubpageBackBarView title={diagnostics ? t("nativeDiagnostics.title") : pickerPage ? t("contentSwitcher.picker.title") : passwordPage ? t("profile.changePassword") : deletionPage ? t("accountDeletion.title") : profile ? t(navigation.pathname==="/profile/avatar" ? "profile.avatarEditorTitle" : profileView ? PROFILE_VIEWS[profileView].title : "nav.profile") : readerRoute ? t("pages.lesson") : learningPage ? t("pages.course") : chapterId ? t("pages.lesson") : t("common.back")} onBack={gamesPage&&gameBack ? gameBack.onBack??(()=>gameBack.soft?navigation.back(gameBack.href):navigation.push(gameBack.href)) : () => navigation.back(gamesPage ? "/live" : passwordPage || deletionPage || profile && (profileView || navigation.pathname==="/profile/avatar") ? "/profile" : readerRoute ? `/courses/${readerRoute.courseId}/pad` : learningPage ? navigation.pathname.endsWith("/archief") ? navigation.pathname.replace(/archief$/, "pad") : "/courses" : "/dashboard")} />}
       {/* De terugbalk reserveert in Focus de veilige bovenrand, ook voor de speler eronder. */}
       <ReadAloudMiniPlayer />
     </>}
@@ -323,10 +334,10 @@ function NativeFoundationContent({ audioOutput, client, termsUrl = null, onLangu
       <div className="flex flex-wrap gap-3">{(["login", "register", "forgot"] as const).filter(v => v !== mode).map(value => <button className={button} disabled={busy} key={value} onClick={() => { navigation.push(value === "forgot" ? "/forgot-password" : `/${value}`); setError(""); setNotice(false); }}>{t(`nativeFoundation.${value}`)}</button>)}</div>
       {appleLoginAvailable && <p className="text-sm">{t("nativeFoundation.appleResetHelp")}</p>}
       {!termsUrl && <p className="text-sm">{t("nativeFoundation.termsUnavailable")}</p>}
-    </> : learningPage ? <NativeLearningView key={`${user.id}:${dataRuntime.getSnapshot()}:${contentStamp}`} userId={user.id} language={user.uiLanguage} content={content} enabled={features.includes("courses-overview-v1")} learningEnabled={features.includes("scripture-learning-v1")} readerEnabled={features.includes("scripture-reader-v1")} positionEnabled={features.includes("scripture-reading-position-v1")} audioEnabled={!!audioOutput?.enabled&&features.includes("scripture-audio-v1")} annotationsEnabled={features.includes("scripture-annotations-v1")} studyEnabled={features.includes("study-course-overview-v1")} mediaEnabled={features.includes("study-media-v1")} onError={error => { if (error instanceof NativeClientError && error.code === "content_context_changed") { void refreshContent(); } else report(error); }}/> : overviewEnabled && navigation.pathname === "/dashboard" ? overview ? <>
+    </> : gamesPage ? <NativeGamesView key={`${user.id}:${dataRuntime.getSnapshot()}:${contentStamp}`} userId={user.id} language={user.uiLanguage} content={content} enabled={gamesEnabled} onError={err=>{if(err instanceof NativeClientError&&err.code==="content_context_changed")void refreshContent();else report(err);}}/> : learningPage ? <NativeLearningView key={`${user.id}:${dataRuntime.getSnapshot()}:${contentStamp}`} userId={user.id} language={user.uiLanguage} content={content} enabled={features.includes("courses-overview-v1")} learningEnabled={features.includes("scripture-learning-v1")} readerEnabled={features.includes("scripture-reader-v1")} positionEnabled={features.includes("scripture-reading-position-v1")} audioEnabled={!!audioOutput?.enabled&&features.includes("scripture-audio-v1")} annotationsEnabled={features.includes("scripture-annotations-v1")} studyEnabled={features.includes("study-course-overview-v1")} mediaEnabled={features.includes("study-media-v1")} onError={error => { if (error instanceof NativeClientError && error.code === "content_context_changed") { void refreshContent(); } else report(error); }}/> : overviewEnabled && navigation.pathname === "/dashboard" ? overview ? <>
       {!!overviewQuery.error && <section role="alert" className="rounded-2xl border border-vs-line p-4"><p>{t("nativeFoundation.error")}</p><button type="button" className={button} onClick={() => { void overviewQuery.refetch(); }}>{t("nativeFoundation.retry")}</button></section>}
       {user.onboardingRequired && <p>{t("nativeFoundation.onboardingNote")}</p>}
-      <NativeTodayView key={`${user.id}:${dataRuntime.getSnapshot()}:${contentStamp}`} state={overview} coursesEnabled={features.includes("courses-overview-v1")} mediaEnabled={features.includes("study-media-v1")} actions={features.includes("today-actions-v1") ? (() => {
+      <NativeTodayView key={`${user.id}:${dataRuntime.getSnapshot()}:${contentStamp}`} state={overview} gamesEnabled={gamesEnabled} coursesEnabled={features.includes("courses-overview-v1")} mediaEnabled={features.includes("study-media-v1")} actions={features.includes("today-actions-v1") ? (() => {
         const actions = dataRuntime.todayActions(overview, overviewKey);
         const perform = async (run: () => Promise<void>) => { try { await run(); } catch (error) { if (error instanceof NativeClientError && (error.status === 401 || error.code.startsWith("access_"))) report(error); throw error; } };
         return { hideContinue: item => perform(() => actions.hideContinue(item)), respondFriend: (id, action) => perform(() => actions.respondFriend(id, action)) };
@@ -371,5 +382,5 @@ function NativeFoundationContent({ audioOutput, client, termsUrl = null, onLangu
     </SettingsSection>}
     {(error || offline) && canDiagnose && user && !profile && !diagnostics && !setup && !recoveryCodes && <AppLink className={button} href="/diagnostics">{t("nativeDiagnostics.open")}</AppLink>}
     {(error || offline) && !diagnostics && !setup && !recoveryCodes && <button className={button} disabled={busy} onClick={() => void bootstrap()}>{t("nativeFoundation.retry")}</button>}
-  </AppShellFrame></AccountActionsProvider>;
+  </AppShellFrame></NativeKompasProvider></AccountActionsProvider></CompanionProvider>;
 }

@@ -1,4 +1,6 @@
 "use client";
+import {applicationFetch} from "@/lib/data/applicationRuntime";
+
 
 import { useEffect, useState } from "react";
 import UserAvatarView from "@/components/versado/UserAvatarView";
@@ -30,7 +32,7 @@ function requestAvatar(id: string) {
     const ids = [...waiting];
     waiting.clear();
     try {
-      const res = await fetch(`/api/users/avatars?ids=${encodeURIComponent(ids.join(","))}`, {
+      const res = await applicationFetch(`/api/users/avatars?ids=${encodeURIComponent(ids.join(","))}`, {
         cache: "no-store",
       });
       const data = res.ok ? ((await res.json()) as { avatars: Record<string, AvatarAppearance | string | null> }) : { avatars: {} };

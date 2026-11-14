@@ -1,9 +1,12 @@
-import { redirect } from "next/navigation";
+import SharedGame13 from "@/components/puzzle/CoopClient";
+import GameScreen from "@/components/games/GameScreen";
+import WebGameBoundary from "@/components/games/WebGameBoundary";
+import { gameRedirect as redirect } from "@/lib/games/navigation.server";
 import { getCurrentUser } from "@/lib/session";
 import { canResumeGameContent } from "@/lib/gameAvailability";
 import { getCoopState } from "@/lib/puzzle/coop";
 import { PuzzleServiceError } from "@/lib/puzzle/errors";
-import CoopClient from "@/components/puzzle/CoopClient";
+
 
 export default async function CoopPuzzlePage({ params }: { params: Promise<{ id: string }> }) {
   const user = await getCurrentUser();
@@ -17,5 +20,5 @@ export default async function CoopPuzzlePage({ params }: { params: Promise<{ id:
     if (error instanceof PuzzleServiceError) redirect("/jigsaw");
     throw error;
   }
-  return <CoopClient initial={state} meId={user.id} />;
+  return <WebGameBoundary><GameScreen component={SharedGame13} view="puzzleCoop" data={{ "initial": state, "meId": user.id }}  /></WebGameBoundary>;
 }

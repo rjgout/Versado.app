@@ -224,7 +224,7 @@ test("een laat bevestigd positieantwoord na accountwissel wordt verworpen zonder
   const {readerResumeSchema}=await import("../src/lib/native/readerPositionContract");
   const state=readerResumeSchema.parse({reader:value,positionVersion:0,previous:null,next:null});
   let finish!:(result:unknown)=>void,posts=0;
-  const client={api:async()=>accountA,actionOnce:()=>{posts++;return new Promise(resolve=>{finish=resolve;});}} as unknown as NativeSessionClient;
+  const client={getSessionStamp:()=>"synthetic-session",api:async()=>accountA,actionOnce:()=>{posts++;return new Promise(resolve=>{finish=resolve;});}} as unknown as NativeSessionClient;
   const data=new NativeDataRuntime(client,environment);
   const input={chapterId:"ch",startVerse:3,endVerse:4,activeCollectionId:"bom",selectionVersion:0,language:"nl" as const,verse:4,expectedVersion:0,actionId:"00000000-0000-4000-8000-000000000001"};
   const write=data.readerPositionWriter(state,["reader","A"])(input);
@@ -240,7 +240,7 @@ for(const outcome of ["old-get","failed-get"] as const)test(`bevestigde positie 
   const state=readerResumeSchema.parse({reader:value,positionVersion:0,previous:null,next:null});
   const input={chapterId:"ch",startVerse:3,endVerse:4,activeCollectionId:"bom",selectionVersion:0,language:"nl" as const,verse:4,expectedVersion:0,actionId:"00000000-0000-4000-8000-000000000003"};
   let writes=0,invalidations=0,finish!:(v:typeof state)=>void,fail!:(error:Error)=>void;
-  const client={api:async()=>accountA,actionOnce:async()=>{writes++;return {userId:"A",activeCollectionId:"bom",selectionVersion:0,language:"nl",courseId:"c",kind:"steps",targetId:"s",actionId:input.actionId,version:1,verse:4};}} as unknown as NativeSessionClient;
+  const client={getSessionStamp:()=>"synthetic-session",api:async()=>accountA,actionOnce:async()=>{writes++;return {userId:"A",activeCollectionId:"bom",selectionVersion:0,language:"nl",courseId:"c",kind:"steps",targetId:"s",actionId:input.actionId,version:1,verse:4};}} as unknown as NativeSessionClient;
   const runtime=new NativeDataRuntime(client,environment),key=["reader","A"],storeKey=["native",0,...key];
   const observer=runtime.store.observe(storeKey,{scopes:["progress"],fetcher:()=>new Promise<typeof state>((resolve,reject)=>{finish=resolve;fail=reject;})});
   runtime.store.setData(storeKey,state);
@@ -255,7 +255,7 @@ for(const outcome of ["old-get","failed-get"] as const)test(`bevestigde positie 
 });
 test("een oude writer-port kan na accountwisseling zelfs geen POST starten",async()=>{
   const {readerResumeSchema}=await import("../src/lib/native/readerPositionContract");
-  let calls=0;const client={api:async()=>accountA,actionOnce:async()=>{calls++;}} as unknown as NativeSessionClient;
+  let calls=0;const client={getSessionStamp:()=>"synthetic-session",api:async()=>accountA,actionOnce:async()=>{calls++;}} as unknown as NativeSessionClient;
   const data=new NativeDataRuntime(client,environment),state=readerResumeSchema.parse({reader:value,positionVersion:0,previous:null,next:null});
   const writer=data.readerPositionWriter(state,["reader","A"]);data.reset();
   await assert.rejects(writer({chapterId:"ch",startVerse:3,endVerse:4,activeCollectionId:"bom",selectionVersion:0,language:"nl",verse:4,expectedVersion:0,actionId:"00000000-0000-4000-8000-000000000003"}),/session_changed/);
@@ -288,7 +288,7 @@ for(const rejectWrite of [false,true])test(`kort access-token herstellen via GET
 for(const mode of ["account-switch","wrong-actor"] as const)test(`late me-controle vóór positieopslag: ${mode} verstuurt geen POST`,async()=>{
   const {readerResumeSchema}=await import("../src/lib/native/readerPositionContract");
   let finish!:(value:unknown)=>void,posts=0;
-  const client={api:()=>new Promise(resolve=>{finish=resolve;}),actionOnce:async()=>{posts++;}} as unknown as NativeSessionClient;
+  const client={getSessionStamp:()=>"synthetic-session",api:()=>new Promise(resolve=>{finish=resolve;}),actionOnce:async()=>{posts++;}} as unknown as NativeSessionClient;
   const data=new NativeDataRuntime(client,environment),state=readerResumeSchema.parse({reader:value,positionVersion:0,previous:null,next:null});
   const pending=data.readerPositionWriter(state,["reader","A"])({chapterId:"ch",startVerse:3,endVerse:4,activeCollectionId:"bom",selectionVersion:0,language:"nl",verse:4,expectedVersion:0,actionId:"00000000-0000-4000-8000-000000000006"});
   if(mode==="account-switch")data.reset();

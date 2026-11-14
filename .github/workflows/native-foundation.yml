@@ -4,6 +4,12 @@ on:
     branches: [main, develop, 'feat/native-*', 'fix/native-*']
     paths:
       - 'src/lib/native/**'
+      - 'src/lib/games/**'
+      - 'src/components/games/**'
+      - 'src/components/kompas/**'
+      - 'src/server/alleskenner.ts'
+      - 'tests/native-game*'
+      - 'tests/fixtures/native-games*'
       - 'src/lib/audio/**'
       - 'src/lib/audioMirror.ts'
       - 'src/components/ReadAloud*'
@@ -192,6 +198,8 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - name: Migratie, sessies, Apple en lokale leesflow op geïsoleerde PostgreSQL
         run: npm run test:native:integration
+      - name: Volledige lokale spelcatalogus, echte spelservices en native/web-realtime
+        run: node scripts/native/test-isolated.mjs --games
       - name: Gedeelde native audio- en schriftflow (gesimuleerde OS-uitvoer, geen externe bronnen)
         run: |
           node tests/native-audio-player.browser.mjs

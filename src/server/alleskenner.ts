@@ -1,3 +1,4 @@
+import {registerGameListeningReader} from "@/lib/games/listeningSource.server";
 import { canResumeGameContent, canResumeLiveGame } from "@/lib/gameAvailability";
 import { getT } from "@/lib/i18n";
 import type { Server as SocketIOServer, Socket } from "socket.io";
@@ -2161,4 +2162,21 @@ export function registerAlleskennerHandlers(server: SocketIOServer, socket: Sock
     galleryAnswer(room, correct);
     broadcast(room);
   });
+}
+
+/** Alleen initGameServer registreert de echte rooms; Next-imports mogen deze
+ * verwijzing nooit vervangen door hun eigen module-instantie. */
+export function registerAlleskennerListeningSource(){
+ registerGameListeningReader(async(userId,selection)=>{
+  const code=selection.kind==="ak-solo"?soloCode(selection.id):selection.id.toUpperCase();
+  const room=rooms.get(code);
+  if(!room||!room.participants.has(userId)||room.phase!=="R369"||
+    (selection.kind==="ak-solo"?room.solo?.runId!==selection.id||room.hostId!==userId:!!room.solo))return null;
+  if(selection.kind==="ak-solo"?!await canResumeGameContent("content_bom"):!await canResumeLiveGame(code))return null;
+  // Na de async broncontrole opnieuw dezelfde actuele vraag vaststellen.
+  if(rooms.get(code)!==room||room.phase!=="R369"||!room.participants.has(userId))return null;
+  const view=buildView(room,userId),question=view.r369;
+  if(!question?.listenText||question.number!==selection.index)return null;
+  return {text:question.listenText,language:view.me.language};
+ });
 }

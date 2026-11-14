@@ -1,4 +1,6 @@
 "use client";
+import {applicationFetch} from "@/lib/data/applicationRuntime";
+
 
 import {ExerciseSessionQuestions,type Exercise} from "@/components/learning/ExerciseSessionQuestions";
 import {SummaryScreen as SharedSummaryScreen,type SummaryScreenProps,type SummaryResult} from "@/components/learning/LessonSummary";
@@ -9,6 +11,7 @@ export type {SummaryResult} from "@/components/learning/LessonSummary";
 
 import { useVerseAnnotationMenu } from "@/components/annotations/useVerseAnnotationMenu";
 import ScriptureReaderView from "@/components/reading/ScriptureReaderView";
+import {useAnnotationTransport} from "@/components/annotations/AnnotationTransport";
 import AnnotationActions from "@/components/annotations/AnnotationActions";
 import { useLiveQuery } from "@/lib/data/hooks";
 import { fetchJson } from "@/lib/data/fetchJson";
@@ -17,7 +20,7 @@ import { StreakContinuationCard } from "@/components/StreakContinuation";
 
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import {AppLink as Link} from "@/components/navigation/AppNavigation";
 import { useT } from "@/components/I18nProvider";
 import { useActivityStatus } from "@/lib/useActivity";
 import { announceXpChanged } from "@/lib/xpBroadcast";
@@ -95,7 +98,7 @@ export default function LessonFlow({ chapterId, bookName, chapterNumber, previou
   // wordt afgemaakt (nodig voor "ga verder waar je gebleven was" en om
   // lezen meetbaar te maken).
   useEffect(() => {
-    fetch("/api/reading-sessions", {
+    applicationFetch("/api/reading-sessions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ chapterId }),
@@ -106,7 +109,7 @@ export default function LessonFlow({ chapterId, bookName, chapterNumber, previou
   // Lezen levert geen XP op; het uitdrukkelijk markeren als gelezen telt wel één keer als activiteit voor de reeks. Het hoofdstuk staat daarna wel
   // als gelezen in elke leesroute.
   async function markRead(): Promise<boolean> {
-    const res = await fetch(`/api/chapters/${chapterId}/read`, { method: "POST" }).catch(() => null);
+    const res = await applicationFetch(`/api/chapters/${chapterId}/read`, { method: "POST" }).catch(() => null);
     if (!res?.ok) return false;
     setRead("READ");
     setJustMarkedRead(true);
@@ -161,7 +164,7 @@ export default function LessonFlow({ chapterId, bookName, chapterNumber, previou
     exercises={exercises} review
     feedbackContext={exercise=>({source:'SCRIPTURE',questionId:exercise.id,courseId,contentKey,chapterId,verseRef:exercise.verseRef,contentLanguage:language})}
     submit={async answers=>{
-      const res=await fetch(`/api/chapters/${chapterId}/submit`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId,answers,challengeId,courseId})});
+      const res=await applicationFetch(`/api/chapters/${chapterId}/submit`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId,answers,challengeId,courseId})});
       const data=await res.json(); if(!res.ok)throw new Error(data.error??t('courses.error'));return data as SummaryResult;
     }} onComplete={result=>{setSummary(result);setPhase('summary');announceXpChanged();}} />;
 
@@ -198,14 +201,26 @@ export function ReaderView({
   preview?: boolean;
 }) {
   const t = useT();
-  const annotations = useLiveQuery<AnnotationList>(["annotations","chapter",chapterId],()=>fetchJson(`/api/annotations?view=reader&chapterId=${encodeURIComponent(chapterId)}`),{scopes:["annotations"],contentScoped:true,enabled:!preview});
+  const annotationTransport=useAnnotationTransport();
+  const annotations = useLiveQuery<AnnotationList>(annotationTransport?.key??["annotations","chapter",chapterId],()=>annotationTransport?annotationTransport.load():fetchJson(`/api/annotations?view=reader&chapterId=${encodeURIComponent(chapterId)}`),{scopes:["annotations"],contentScoped:!annotationTransport,enabled:!preview});
   const [confirmed,setConfirmed]=useState<Record<string,Partial<VerseView>>>({});
   const verseState = verses.map(verse=>{
-    const own=annotations.data?.annotations.filter(row=>row.target.type==='verse'&&row.target.verseId===verse.id);
+    const own=annotations.data?.annotations.filter(row=>!row.deleted&&row.target.type==='verse'&&row.target.verseId===verse.id);
     if(!own||!annotations.data?.complete)return {...verse,...confirmed[verse.id]};
     return {...verse,bookmarked:own.some(r=>r.kind==='bookmark'),highlighted:own.some(r=>r.kind==='highlight'),note:own.find(r=>r.kind==='note')?.text??''};
   });
-  function annotationChanged(row:AnnotationView){if(row.target.type==='verse'){const id=row.target.verseId;setConfirmed(old=>({...old,[id]:{...old[id],...(row.kind==='bookmark'?{bookmarked:!row.deleted}:row.kind==='highlight'?{highlighted:!row.deleted}:{note:row.deleted?'':row.text??''})}}));}annotations.setData(old=>old?{...old,annotations:[...old.annotations.filter(r=>r.id!==row.id),...(!row.deleted?[row]:[])]}:old);}
+  function annotationChanged(row:AnnotationView){
+    // Een laat PUT-antwoord mag een nieuwere bevestigde tombstone niet herstellen.
+    const current=annotations.data?.annotations.find(r=>r.kind===row.kind&&r.targetKey===row.targetKey);
+    if(current&&current.mutationVersion>row.mutationVersion)return;
+    if(row.target.type==='verse'){const id=row.target.verseId;setConfirmed(old=>({...old,[id]:{...old[id],...(row.kind==='bookmark'?{bookmarked:!row.deleted}:row.kind==='highlight'?{highlighted:!row.deleted}:{note:row.deleted?'':row.text??''})}}));}
+    annotations.setData(old=>{
+      if(!old)return old;
+      const latest=old.annotations.find(r=>r.kind===row.kind&&r.targetKey===row.targetKey);
+      if(latest&&latest.mutationVersion>row.mutationVersion)return old;
+      return {...old,annotations:[...old.annotations.filter(r=>r.kind!==row.kind||r.targetKey!==row.targetKey),...(annotationTransport||!row.deleted?[row]:[])]};
+    });
+  }
 
   const { source, currentIndex, isPlaying } = useReadAloudPlayer();
   const readingVerse = !preview && source && source.id === chapterId && isPlaying ? source.verses[currentIndex]?.number ?? null : null;
@@ -225,7 +240,7 @@ export function ReaderView({
     };
   }
 
-  const colorForVerse = (id:string) => annotations.data?.annotations.find(row=>row.kind==='highlight'&&row.target.type==='verse'&&row.target.verseId===id)?.color;
+  const colorForVerse = (id:string) => annotations.data?.annotations.find(row=>!row.deleted&&row.kind==='highlight'&&row.target.type==='verse'&&row.target.verseId===id)?.color;
   const menu=useVerseAnnotationMenu(!preview,colorForVerse),annotationTarget=menu.target;
   return <ScriptureReaderView bookName={bookName} chapterNumber={chapterNumber} verses={verseState} focus={focus} focusVerse={focusVerse} readingVerse={readingVerse} language={language} {...menu.props} beforeVerses={<>
       {!preview && <ReadAloudPlayer

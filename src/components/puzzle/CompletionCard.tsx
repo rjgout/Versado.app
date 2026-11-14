@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
-import NextImage from "next/image";
+import {AppImage as NextImage} from "@/components/navigation/AppNavigation";
 import FocusLayout from "@/components/versado/FocusLayout";
 import PersonalMascot from "@/components/versado/PersonalMascot";
 

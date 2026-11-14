@@ -11,6 +11,11 @@ export interface ContentScope {
   language: string;
 }
 
+/** Dezelfde querymechaniek en één bestaande store per platform. */
+export const SharedDataRuntimeContext = createContext<{
+  store: LiveDataStore; prefix: QueryKey; subscribeTopic(topic: import("./scopes").LiveTopic): () => void;
+} | null>(null);
+
 export const ContentViewContext = createContext<ContentContext | null>(null);
 
 export function useContentView(): ContentContext | null {

@@ -38,7 +38,7 @@ struct NativeAudioSourceRequest {
     let path: String, authorization: String, credentials: NativeAccessCredentials?
     let byteSize: Int64
     init(path: String, authorization: String, credentials: NativeAccessCredentials?, byteSize: Int64) throws {
-        guard path.range(of: "\\Acourses/[A-Za-z0-9_-]{1,128}/read/(?:steps|chapters)/[A-Za-z0-9_-]{1,128}/audio/[a-f0-9]{64}/stream\\z", options: .regularExpression) != nil,
+        guard (NativeGamesPolicy.audioAllowed(path, true) || path.range(of: "\\Acourses/[A-Za-z0-9_-]{1,128}/read/(?:steps|chapters)/[A-Za-z0-9_-]{1,128}/audio/[a-f0-9]{64}/stream\\z", options: .regularExpression) != nil),
               authorization.range(of: "\\ABearer [A-Za-z0-9._~-]{1,2040}\\z", options: .regularExpression) != nil,
               byteSize > 0, byteSize <= 256 * 1024 * 1024 else { throw NativeAudioFailure() }
         self.path = path; self.authorization = authorization; self.credentials = credentials; self.byteSize = byteSize

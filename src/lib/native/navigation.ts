@@ -1,9 +1,12 @@
+import {gamePageRoute} from "./gamesPagesRoutes";
 import { parseProfileView } from "@/lib/profileViews";
 /** Alleen daadwerkelijk lokaal geïmplementeerde routes worden geaccepteerd.
  * Breid deze grens samen met scherm, contract en tests uit, nooit als placeholder.
  */
 const ROUTES = [/^\/courses\/[A-Za-z0-9_-]{1,128}\/read\/(?:steps|chapters)\/[A-Za-z0-9_-]{1,128}$/, /^\/courses$/, /^\/courses\/[A-Za-z0-9_-]{1,128}(?:\/(?:pad|archief))?$/, /^\/content$/, /^\/diagnostics$/, /^\/dashboard$/, /^\/profile(?:\/avatar)?$/, /^\/account-verwijderen$/, /^\/change-password$/, /^\/reset-password$/, /^\/verify-email$/, /^\/lesson\/[A-Za-z0-9_-]{1,128}$/, /^\/privacy$/, /^\/cookies$/, /^\/disclaimer$/, /^\/contact$/, /^\/login$/, /^\/register$/, /^\/forgot-password$/];
 export function nativeRoute(raw: string): string | null {
+  if(raw==="/snelle-zendeling?view=leaderboard#quick-missionary-leaderboard")return "/snelle-zendeling?view=leaderboard";
+  const game=gamePageRoute(raw);if(game)return game.href;
   const profile = /^\/profile\?view=([A-Za-z]+)$/.exec(raw);
   if (profile) return parseProfileView(profile[1]) ? raw : null;
   if (!raw.startsWith("/") || raw.startsWith("//") || /[\\\s%?#]/.test(raw)) return null;
@@ -16,7 +19,7 @@ export function nativeDeepLink(raw: string, backendOrigin: string): string | nul
     return url.pathname === "/diagnostics" ? null : nativeRoute(url.pathname + url.search);
   } catch { return null; }
 }
-export interface NativeRouteSnapshot { href: string; index: number; revision: number; traversal: boolean }
+export interface NativeRouteSnapshot { href: string; index: number; revision: number; traversal: boolean; scroll?:false }
 interface RouteWindow {
   location: { hash: string };
   history: Pick<History, "state" | "replaceState" | "pushState" | "back"> & Partial<Pick<History,"go">>;
@@ -45,8 +48,8 @@ export class NativeNavigator {
   }
   getSnapshot = () => this.snapshot;
   subscribe = (listener: () => void) => { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; };
-  private publish(href: string, index: number, traversal: boolean) {
-    this.snapshot = { href, index, revision: this.snapshot.revision + 1, traversal };
+  private publish(href: string, index: number, traversal: boolean,scroll=true) {
+    this.snapshot = { href, index, revision: this.snapshot.revision + 1, traversal,...(!scroll?{scroll:false as const}:{}) };
     for (const listener of this.listeners) listener();
   }
   private onPop = () => {
@@ -60,7 +63,7 @@ export class NativeNavigator {
     } else {this.skipPop=false;this.navigate("/dashboard",true,true);}
   };
   listen() { this.window.addEventListener("popstate", this.onPop); return () => this.window.removeEventListener("popstate", this.onPop); }
-  private navigate(raw:string,replace:boolean,unguarded=false) {
+  private navigate(raw:string,replace:boolean,unguarded=false,scroll=true) {
     const href=nativeRoute(raw);if(!href)throw new Error("native_route_unavailable");
     if(!replace&&href===this.snapshot.href)return;
     const proceed=()=>{
@@ -68,12 +71,12 @@ export class NativeNavigator {
       if(["/login","/register","/forgot-password"].includes(href))this.departure="/dashboard";
       const index=this.snapshot.index+(replace?0:1),state={versadoNative:1,href,index};
       if(replace)this.window.history.replaceState(state,"",`#${href}`);else this.window.history.pushState(state,"",`#${href}`);
-      this.publish(href,index,false);
+      this.publish(href,index,false,scroll);
     };
     if(unguarded||this.allowed(proceed,href))proceed();
   }
-  push=(raw:string)=>this.navigate(raw,false);
-  replace=(raw:string)=>this.navigate(raw,true);
+  push=(raw:string,options?:{scroll?:boolean})=>this.navigate(raw,false,false,options?.scroll!==false);
+  replace=(raw:string,options?:{scroll?:boolean})=>this.navigate(raw,true,false,options?.scroll!==false);
   back=(fallback="/dashboard")=>{
     const proceed=()=>{if(this.snapshot.index>0){this.skipPop=true;this.window.history.back();}else this.navigate(fallback,true,true);};
     if(this.allowed(proceed))proceed();

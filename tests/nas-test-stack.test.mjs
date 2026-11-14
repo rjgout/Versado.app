@@ -49,7 +49,7 @@ test("het voorbeeldbestand bevat uitsluitend lege plaatsaanduidingen, zonder dom
 });
 
 const ok = {
-  capabilities: { status: 200, redirected: false, body: { apiVersion: 1, features: ["security-setup-v1", "account-password-v1", "password-reset-v1", "email-confirmation-v1", "account-deletion-v1"] } },
+  capabilities: { status: 200, redirected: false, body: { apiVersion: 1, features: ["security-setup-v1", "account-password-v1", "password-reset-v1", "email-confirmation-v1", "account-deletion-v1", "games-v1", "realtime-ticket-v1"] } },
   native: { allowOrigin: "capacitor://localhost" }, cross: { allowOrigin: null },
   root: { status: 200, permissionsPolicy: "camera=(), microphone=(self), geolocation=()", hsts: "max-age=31536000" },
 };
@@ -99,4 +99,13 @@ test("alleen app en proxy hebben uitgaand netwerk; database en Redis blijven int
   const redis = code.split("\n  versado-test-redis:")[1].split("\nnetworks:")[0];
   assert.doesNotMatch(db + redis, /versado-test-edge/);
   assert.equal(evaluate({ ...base, capabilities: { ...ok.capabilities, body: { apiVersion: 1, features: ok.capabilities.body.features.filter(x => x !== "account-deletion-v1") } } }).ok, false);
+});
+
+
+test("nieuwe Spelen-builds vereisen de volledige native spelpoort en ticketverbinding vóór signing",()=>{
+ for(const name of ["games-v1","realtime-ticket-v1"]){
+  const input=structuredClone(base);
+  input.capabilities.body.features=input.capabilities.body.features.filter(feature=>feature!==name);
+  assert.ok(evaluate(input).problems.some(problem=>problem.includes(name)));
+ }
 });

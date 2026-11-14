@@ -1,3 +1,5 @@
+import {gameAudioRoute} from "./gamesAudioContract";
+import {companionToMascot} from "@/lib/companion";
 import { accountDeletionSchema,passwordChangeSchema } from "@/lib/account/contracts";
 import { AccountDeletionError,deleteAccountWithReauthentication } from "@/lib/account/deletion";
 import { confirmAccountEmail } from "@/lib/account/emailConfirmation";
@@ -23,10 +25,12 @@ import { findOpenPendingRegistration,resendPendingVerification } from "@/lib/reg
 import { FriendRequestError,respondFriendRequest } from "@/lib/social/friendRequests";
 import { NextRequest,NextResponse } from "next/server";
 import { z } from "zod";
+import {mutateNativeGameReaderAnnotation,nativeGameReaderAnnotations} from "./annotations.server";
+import {gameAnnotationRoute} from "./annotationsContract";
 import { mutateNativeReaderAnnotation,nativeReaderAnnotations } from "./annotations.server";
 import { nativeAnnotationMutation } from "./annotationsContract";
 import { appleConfiguration,createAppleChallenge,finishAppleChallenge,unlinkApple } from "./apple";
-import { nativeAudioPrepareBudget,nativeReaderAudio,nativeReaderPlayback,streamNativeReaderAudio } from "./audio.server";
+import { nativeAudioPrepareBudget,nativeGamePlayback,streamNativeGameAudio,nativeReaderAudio,nativeReaderPlayback,streamNativeReaderAudio } from "./audio.server";
 import { getNativeContentState,selectNativeContent } from "./content.server";
 import { nativeContentSelectionSchema,nativeSetupFinishSchema } from "./contract";
 import { nativeCoursePath,nativeCourses } from "./courses.server";
@@ -82,7 +86,7 @@ async function authenticated(req: NextRequest) {
 export async function nativeApi(req: NextRequest, parts: string[]): Promise<NextResponse> {
   const origin = req.headers.get("origin");
   const headers: Record<string, string> = { "Cache-Control": "private, no-store", Vary: "Origin", "X-Content-Type-Options": "nosniff" };
-  if (nativeOriginAllowed(origin)) Object.assign(headers, { "Access-Control-Allow-Origin": origin!, "Access-Control-Allow-Methods": "GET, HEAD, POST, DELETE, OPTIONS", "Access-Control-Allow-Headers": "Authorization, Content-Type, X-Versado-Client, Range", "Access-Control-Max-Age": "600" });
+  if (nativeOriginAllowed(origin)) Object.assign(headers, { "Access-Control-Allow-Origin": origin!, "Access-Control-Allow-Methods": parts[0] === "games" ? "GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS" : "GET, HEAD, POST, DELETE, OPTIONS", "Access-Control-Allow-Headers": "Authorization, Content-Type, X-Versado-Client, Range", "Access-Control-Max-Age": "600" });
   const json = (data: unknown, status = 200) => NextResponse.json(data, { status, headers });
   if (!nativeOriginAllowed(origin)) return json({ error: "origin_not_allowed" }, 403);
   if (process.env.NATIVE_API_ENABLED !== "1") return json({ error: "native_not_enabled" }, 503);
@@ -93,7 +97,7 @@ export async function nativeApi(req: NextRequest, parts: string[]): Promise<Next
   const ip = hashSecret(clientIp(req)), failureKey = `native-auth:${ip}`;
   try {
     if (mutation && req.headers.get("content-type")?.split(";")[0] !== "application/json") throw new NativeAuthError("json_required", 415);
-    if (req.method === "GET" && path === "capabilities") return json({ apiVersion: 1, apple: !!appleConfiguration(), registration: true, features: ["scripture-learning-v1", "scripture-audio-v1", "scripture-annotations-v1", "scripture-reading-position-v1", "scripture-reader-v1", "study-course-overview-v1", "courses-overview-v1", "study-media-v1", "today-actions-v1", "today-overview-v1", "content-picker-v1", "security-setup-v1", "account-password-v1", "account-deletion-v1", "password-reset-v1", "email-confirmation-v1", "profile-settings-v1", ...(nativeSocketEnabled() ? ["realtime-ticket-v1"] : [])] });
+    if (req.method === "GET" && path === "capabilities") return json({ apiVersion: 1, apple: !!appleConfiguration(), registration: true, features: ["scripture-learning-v1", "scripture-audio-v1", "scripture-annotations-v1", "scripture-reading-position-v1", "scripture-reader-v1", "study-course-overview-v1", "courses-overview-v1", "study-media-v1", "today-actions-v1", "today-overview-v1", "content-picker-v1", "security-setup-v1", "account-password-v1", "account-deletion-v1", "password-reset-v1", "email-confirmation-v1", "profile-settings-v1", "games-v1", ...(nativeSocketEnabled() ? ["realtime-ticket-v1"] : [])] });
     if (req.method === "POST" && path === "login") {
       if (failureLockSeconds(failureKey, 30)) throw new NativeAuthError("too_many_attempts", 429);
       const input = z.object({ identifier: z.string().trim().min(1).max(320), ...credentials, supportsSecuritySetup: z.boolean().optional() }).strict().parse(await body(req));
@@ -189,6 +193,33 @@ export async function nativeApi(req: NextRequest, parts: string[]): Promise<Next
       return json(await issueSocketTicket(header.slice(7)));
     }
     const user = await authenticated(req);
+    const gameAnnotations=gameAnnotationRoute(path,req.method);
+    if(gameAnnotations){
+      if(req.nextUrl.search)throw new NativeAuthError("invalid_input",400);
+      const identity=await nativeSessionIdentity(req.headers.get("authorization")!.slice(7));
+      if(req.method==="GET")return json(await nativeGameReaderAnnotations(identity.binding,gameAnnotations.chapterId,gameAnnotations.verseId));
+      const limited=await authBudget(authBudgetKey("native-reader-annotations",user.id),120,60_000);
+      if(limited)throw new NativeAuthError(limited.status===503?"security_check_unavailable":"too_many_attempts",limited.status);
+      return json(await mutateNativeGameReaderAnnotation(identity.binding,gameAnnotations.chapterId,nativeAnnotationMutation.parse(await body(req))));
+    }
+    const gameAudio=gameAudioRoute(path,req.method);
+    if(gameAudio){
+      if(req.nextUrl.search)throw new NativeAuthError("invalid_input",400);
+      const token=req.headers.get("authorization")!.slice(7),identity=await nativeSessionIdentity(token);
+      if(!gameAudio.sourceId){await nativeAudioPrepareBudget(user.id);const playback=await nativeGamePlayback(identity.binding,gameAudio.input);await nativeSessionIdentity(token);return json(playback);}
+      const limited=await authBudget(authBudgetKey("native-audio-range",user.id),240,60000);
+      if(limited)throw new NativeAuthError(limited.status===503?"security_check_unavailable":"too_many_attempts",limited.status);
+      const response=await streamNativeGameAudio(identity.binding,gameAudio.input,gameAudio.sourceId,req.headers.get("range"),req.method==="GET",token);
+      return new NextResponse(response.body,{status:response.status,headers:{...headers,...Object.fromEntries(response.headers),"Content-Encoding":"identity","Cache-Control":"private, no-store, no-transform","Access-Control-Expose-Headers":"Content-Range, Content-Length, Accept-Ranges"}});
+    }
+    if (parts[0] === "games" && parts.length === 2 && parts[1] === "page") {
+      const { nativeGamePage } = await import("./gamesPage.server");
+      return json(await nativeGamePage(req,user,()=>authenticated(req)));
+    }
+    if (parts[0] === "games") {
+      const { dispatchNativeGame } = await import("./games.server");
+      return json(await dispatchNativeGame(req,parts.slice(1),user,()=>authenticated(req)));
+    }
     if (path === "profile/two-factor" && req.method === "POST") {
       if(req.nextUrl.search)throw new NativeAuthError("invalid_input",400);
       const limited=await authBudget(authBudgetKey("native-profile-totp",user.id),15,15*60_000);
@@ -339,7 +370,7 @@ export async function nativeApi(req: NextRequest, parts: string[]): Promise<Next
         prisma.externalIdentity.findFirst({ where: { userId: user.id, provider: "APPLE" }, select: { id: true } }),
         nativeShellHeader(user),
       ]);
-      return json({ id: user.id, handle: user.handle, uiLanguage: user.uiLanguage, onboardingRequired: !user.onboardingSeenAt, passwordLoginEnabled: user.passwordLoginEnabled, totpEnabled: user.totpEnabled, appleLinked: !!identity, shellHeader });
+      return json({ id: user.id, handle: user.handle, uiLanguage: user.uiLanguage, onboardingRequired: !user.onboardingSeenAt, passwordLoginEnabled: user.passwordLoginEnabled, totpEnabled: user.totpEnabled, appleLinked: !!identity, companion:companionToMascot(user.companion), shellHeader });
     }
     if (req.method === "GET" && path === "today") {
       // Dezelfde alleen-lezen bronkeuze als de webkiezer; een oude actieve

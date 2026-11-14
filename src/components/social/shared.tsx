@@ -1,4 +1,6 @@
 "use client";
+import {applicationFetch} from "@/lib/data/applicationRuntime";
+
 
 import { useEffect, useState } from "react";
 import { Hand } from "lucide-react";
@@ -19,7 +21,7 @@ export interface Person {
 /** POST/PATCH/DELETE naar een Samen-route; de foutmelding komt al vertaald van de server. */
 export async function socialRequest(url: string, body?: unknown, method = "POST"): Promise<{ ok: boolean; error: string | null; data: Record<string, unknown> }> {
   try {
-    const res = await fetch(url, {
+    const res = await applicationFetch(url, {
       method,
       headers: body === undefined ? undefined : { "Content-Type": "application/json" },
       body: body === undefined ? undefined : JSON.stringify(body),

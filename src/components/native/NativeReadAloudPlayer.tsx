@@ -1,4 +1,5 @@
 "use client";
+import type {NativeGameAudioSelection,NativeMediaPlayback} from "@/lib/native/gamesAudioContract";
 import { useEffect, useLayoutEffect, useMemo, useRef, type RefObject } from "react";
 import ReadAloudPlayer, {type ReadAloudControl, type ReadAloudStatus} from "@/components/ReadAloudPlayer";
 import {useReadAloudPlayer} from "@/lib/readAloudPlayerContext";
@@ -9,19 +10,18 @@ import {NativeReadAloudOutput,loadNativeAudioMetadata,type NativeAudioTarget} fr
 import {nativeAudioSelector} from "@/lib/native/audioBridge";
 import {NativeClientError} from "@/lib/native/client";
 import type {NativeReader} from "@/lib/native/readerContract";
-import type {NativePlayback} from "@/lib/native/audioPlaybackContract";
 import {useT} from "@/components/I18nProvider";
 
 /** Metadata leeft uitsluitend in LiveDataStore. De eigenaar bindt alleen de
  * bestaande sessie en leesroute aan de native decoder; nooit bytes of secrets. */
-export default function NativeReadAloudPlayer({reader,controlRef,onStatusChange,onReadDenied}:{reader:NativeReader;controlRef:RefObject<ReadAloudControl|null>;onStatusChange:(status:ReadAloudStatus)=>void;onReadDenied?:(error:unknown)=>void}) {
+export default function NativeReadAloudPlayer({reader,controlRef,onStatusChange,onReadDenied}:{reader:NativeReader|NativeGameAudioSelection;controlRef:RefObject<ReadAloudControl|null>;onStatusChange:(status:ReadAloudStatus)=>void;onReadDenied?:(error:unknown)=>void}) {
  const runtime=useNativeData(),player=useReadAloudPlayer(),t=useT();
  const output=player.output instanceof NativeReadAloudOutput?player.output:null;
  const epoch=runtime.getSnapshot(),stamp=runtime.client.getSessionStamp();
  const identity=JSON.stringify([stamp,epoch,...nativePlaybackQueryKey(reader)]);
  const live=useRef(identity);
  useLayoutEffect(()=>{live.current=identity;},[identity]);
- const loadRef=useRef<(renew:boolean)=>Promise<NativePlayback>>(async()=>{throw new NativeClientError("audio_changed");});
+ const loadRef=useRef<(renew:boolean)=>Promise<NativeMediaPlayback>>(async()=>{throw new NativeClientError("audio_changed");});
  const target=useMemo<NativeAudioTarget>(()=>({ownerId:crypto.randomUUID(),sessionStamp:stamp,scope:nativeAudioSelector(reader),sourceLanguage:reader.sourceLanguage,current:()=>live.current===identity&&runtime.getSnapshot()===epoch&&runtime.client.getSessionStamp()===stamp,load:renew=>loadRef.current(renew)}),[identity]); // eslint-disable-line react-hooks/exhaustive-deps
  const bound=useRef(false),renewRequested=useRef(false);
  useLayoutEffect(()=>{bound.current=true;const release=output?.bind(target);return()=>{bound.current=false;release?.();};},[output,target]);
@@ -29,7 +29,7 @@ export default function NativeReadAloudPlayer({reader,controlRef,onStatusChange,
  const query=useNativeLiveQuery(key,async()=>{
    if(!output||!bound.current||!target.current())throw new NativeClientError("audio_changed");
    const renew=renewRequested.current;renewRequested.current=false;
-   return loadNativeAudioMetadata(output.bridge,target,refresh=>runtime.readerPlayback(reader,refresh),renew);
+   return loadNativeAudioMetadata<NativeMediaPlayback>(output.bridge,target,refresh=>"game" in reader?runtime.gameReaderPlayback(reader,refresh):runtime.readerPlayback(reader,refresh),renew);
  },{enabled:!!output?.enabled,scopes:["content","courses"],staleTime:30000,discardOnRevalidate:true,pollMs:player.isPlaying?30000:undefined});
  useLayoutEffect(()=>{loadRef.current=async renew=>{
    if(!target.current())throw new NativeClientError("audio_changed");

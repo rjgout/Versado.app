@@ -1,3 +1,4 @@
+import {gameAudioRoute} from "./gamesAudioContract";
 import { z } from "zod";
 import { nativeTokensSchema, nativeSetupSchema, type NativeSecuritySetup } from "./contract";
 /** Alleen requestordening, nooit een sessie- of toegangsbewijs. */
@@ -247,7 +248,7 @@ export class NativeSessionClient {
   /** Alleen deze read-lease mag proactief de bestaande sessierotatie gebruiken.
    * Geen algemene proxy, nieuwe refreshflow of herhaling van voortgangs-POST's. */
   async renewReaderAudio<T>(path: string): Promise<T> {
-    if (!/^courses\/[A-Za-z0-9_-]{1,128}\/read\/(?:steps|chapters)\/[A-Za-z0-9_-]{1,128}\/audio\/playback$/.test(path)) throw new NativeClientError("invalid_input",400);
+    if (!/^courses\/[A-Za-z0-9_-]{1,128}\/read\/(?:steps|chapters)\/[A-Za-z0-9_-]{1,128}\/audio\/playback$/.test(path) && gameAudioRoute(path,"GET")?.sourceId!==null) throw new NativeClientError("invalid_input",400);
     const generation=this.generation;
     await this.refresh(); this.assertGeneration(generation);
     return this.api<T>(path);

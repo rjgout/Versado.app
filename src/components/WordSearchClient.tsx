@@ -1,7 +1,9 @@
 "use client";
+import {applicationFetch} from "@/lib/data/applicationRuntime";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+
+import {AppLink as Link} from "@/components/navigation/AppNavigation";
+import {useGameRouter as useRouter} from "@/components/games/GameNavigation";
 import { useMemo, useRef, useState } from "react";
 import { useConfirm } from "@/components/ConfirmProvider";
 import { useT } from "@/components/I18nProvider";
@@ -33,7 +35,7 @@ export default function WordSearchClient({ initialGame = null }: Props) {
   async function start() {
     setStarting(true);
     setMessage(null);
-    const response = await fetch("/api/word-search", {
+    const response = await applicationFetch("/api/word-search", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ difficulty, theme: "RANDOM" }),
@@ -51,7 +53,7 @@ export default function WordSearchClient({ initialGame = null }: Props) {
 
   async function giveUp() {
     if (!game || !(await confirm(t("wordSearch.giveUpConfirm")))) return;
-    const response = await fetch(`/api/word-search/${game.id}/give-up`, { method: "POST" }).catch(() => null);
+    const response = await applicationFetch(`/api/word-search/${game.id}/give-up`, { method: "POST" }).catch(() => null);
     if (!response?.ok) {
       setMessage(t("wordSearch.error"));
       return;
@@ -98,7 +100,7 @@ export default function WordSearchClient({ initialGame = null }: Props) {
     setSelection([]);
     if (!end || !game || !lineCoordinates(startPosition, end, game.size)) return;
     setChecking(true);
-    const response = await fetch(`/api/word-search/${game.id}/find`, {
+    const response = await applicationFetch(`/api/word-search/${game.id}/find`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ start: startPosition, end }),

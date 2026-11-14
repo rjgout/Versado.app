@@ -13,7 +13,7 @@ export default function NextNavigationProvider({ children }: { children: ReactNo
   const pathname = usePathname(), router = useRouter();
   const adapter = useMemo(() => ({
     pathname, Link: NextAppLink, Image: NextAppImage,
-    push: (href: string) => router.push(href), replace: (href: string) => router.replace(href),
+    push: (href: string,options?:{scroll?:boolean}) => router.push(href,options), replace: (href: string,options?:{scroll?:boolean}) => router.replace(href,options),
     back: () => router.back(), canGoBack: () => window.history.length > 1, refresh: () => router.refresh(),
   }), [pathname, router]);
   return <AppNavigationProvider adapter={adapter}>{children}</AppNavigationProvider>;
