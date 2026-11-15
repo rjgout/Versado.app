@@ -168,7 +168,18 @@ binnen de balk). Alleen id's en hoogtes gaan terug naar JavaScript. Geen opslag,
 netwerk, en geen nieuwe rechten of backendroute.
 
 **Bekende beperkingen en vervolgacties.**
-- **Open risico: losse `UITabBar` of `UITabBarController`.** De balk is een losse `UITabBar` als subview van de Capacitor-host. Apple toont het automatische iOS 26-glaseffect, het scrollgedrag en de iPad-adaptiviteit uitdrukkelijk voor `UITabBarController`; of een losse `UITabBar` boven een scrollende WebView hetzelfde materiaal tekent, is hier niet vastgesteld. Pas na een echte iOS 26-simulator- of toestelscreenshot (licht/donker, scrollende inhoud, homeindicator, rotatie, Reduce Transparency) beslissen of dit volstaat of dat een `UITabBarController` als host (met een lege `UIViewController` per tab) nodig is. Tot dan geen claim dat het resultaat gelijk is aan het systeem-Liquid Glass.
+- **Besluit: losse `UITabBar` of `UITabBarController` (simulatorbewijs, geen toestel).** CI-job `ios-glass-evidence`
+  (`scripts/native/ios-glass-evidence.sh`, `tests/ios-glass-harness/`, artifact `versado-ios26-glass-evidence`) bouwt een
+  meetapp met de echte `NativeTabBar`-bronnen en maakt in een echte iOS 26.5-simulator (Xcode 26.6, iPhone 17)
+  screenshots boven kleurrijke, scrollende inhoud. Gezien: de losse `UITabBar` boven een `WKWebView` krijgt het echte
+  systeem-Liquid Glass (zwevende capsule, de inhoud erachter is vervaagd, selectiepil, Versado-accent) in licht en donker;
+  met "Verhoog contrast" wordt het materiaal zichtbaar ondoorzichtiger (het systeem reageert dus zelf). De
+  `UITabBarController` ziet er vrijwel gelijk uit; het enige zichtbare verschil is de zachte uitfading van de inhoud
+  onderaan. Omdat dit het materiaal levert zonder Capacitors root-viewcontroller te vervangen en er één
+  navigatiemodel blijft (React-router), blijft de losse `UITabBar`. Nog niet vastgesteld, dus geen claim:
+  Reduce Transparency (niet instelbaar via `simctl ui`), VoiceOver, Dynamic Type, rotatie, de iPad-weergave en elk echt
+  toestel. Eén screenshot (donker of contrast) was in een run leeg: een niet-gediagnosticeerde vertraging in de
+  meetapp-start, geen conclusie over het product. Controle op een fysiek toestel blijft een eigenaarstaak.
 - Niet op een toestel of simulator beoordeeld: de balk is hier alleen op Linux ontwikkeld. De
   TypeScript-adapter, het contract en de Swift-beleidsproef (macOS-CI) zijn getest; het uiterlijk,
   de hoogte (inclusief homeindicator), touch en VoiceOver op iPhone en iPad zijn nog niet

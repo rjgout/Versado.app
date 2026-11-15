@@ -42,6 +42,7 @@ xcrun simctl install "$UDID" "$APP"
 # beeld in de eerste proefrun): daarom een opwarmstart, 10 s wachttijd en een tweede screenshot voor vergelijking.
 launch() { # variant stijl bestandsnaam
   xcrun simctl terminate "$UDID" app.versado.glassharness >/dev/null 2>&1 || true
+  sleep 3
   xcrun simctl launch --stdout="$OUT/$3.log" --stderr="$OUT/$3.err" "$UDID" app.versado.glassharness -variant "$1" -style "$2" >/dev/null
   sleep 10
   xcrun simctl io "$UDID" screenshot "$OUT/$3.png"
