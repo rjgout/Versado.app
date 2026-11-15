@@ -5,6 +5,7 @@ import { useT } from "@/components/I18nProvider";
 import { useAppNavigation } from "@/components/navigation/AppNavigation";
 import { activeDestination, type PrimaryNavItem } from "@/lib/navigation";
 import { nativeTabBarBridge } from "@/lib/native/bridge";
+import { MODAL_SELECTOR } from "@/lib/native/modalSelector";
 import { NativeTabBar, type NativeTabBarState } from "@/lib/native/tabBar";
 import { appPlatform } from "@/lib/platform";
 
@@ -14,8 +15,6 @@ export const SHELL_METRICS_EVENT = "vs-shell-metrics";
 function readNavVisible(): boolean {
   return parseFloat(document.documentElement.style.getPropertyValue("--nav-height")) > 0;
 }
-/** Een modaal paneel of rondleiding ligt in de WebView; de native balk zou er als aparte laag boven blijven staan en bediening ervoor vangen. */
-export const MODAL_SELECTOR = 'dialog[open], [aria-modal="true"]';
 function readModalOpen(): boolean {
   return document.querySelector(MODAL_SELECTOR) !== null;
 }
@@ -54,7 +53,7 @@ export default function NativeTabBarSync({ items }: { items: readonly PrimaryNav
     theme.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
     window.addEventListener(SHELL_METRICS_EVENT, metrics);
     const modal = new MutationObserver(() => setModalOpen(readModalOpen()));
-    modal.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["open", "aria-modal"] });
+    modal.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["open", "aria-modal", "data-kompas-tour"] });
     return () => {
       modal.disconnect();
       window.removeEventListener(SHELL_METRICS_EVENT, metrics);

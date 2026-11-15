@@ -124,6 +124,7 @@ on:
       - 'tests/native-access*'
       - 'tests/fixtures/native-access*'
       - 'tests/native-foundation*'
+      - 'tests/native-tabbar*'
       - 'tests/native-navigation*'
       - 'tests/native-shell*'
       - 'tests/native-content*'

@@ -387,6 +387,22 @@ test("contract: de React-balk wordt alleen een ruimtehouder na bevestigde native
 
 test("contract: een open modaal paneel of rondleiding verbergt de native balk", () => {
   const source = readFileSync(new URL("../src/components/native/NativeTabBarSync.tsx", import.meta.url), "utf8");
-  assert.match(source, /dialog\[open\], \[aria-modal="true"\]/);
+  assert.match(source, /MODAL_SELECTOR/);
+  const selector = readFileSync("src/lib/native/modalSelector.ts", "utf8");
+  for (const part of ["dialog[open]", '[aria-modal="true"]', "[data-kompas-tour]"]) assert.ok(selector.includes(part), part);
   assert.match(source, /navVisible && !modalOpen/);
+});
+
+test("Kompas: met de native balk vallen de nav-stappen weg en blijven de overige stappen een werkende rondleiding", async () => {
+  const { KOMPAS_TOURS, planTour, nextTourIndex } = await import("../src/lib/kompas/tours");
+  // Native modus: de React-onderbalk is `visibility:hidden`, `findTarget` geeft dus geen nav-doelen terug.
+  const exists = (target: string) => !target.startsWith("nav-");
+  const start = KOMPAS_TOURS.find(tour => tour.id === "start")!;
+  const plan = planTour(start, exists);
+  assert.deepEqual(plan.map(step => step.id), ["entry", "switcher", "profile"], "geen onzichtbare markering, geen lege stap");
+  assert.equal(nextTourIndex(plan, 0, 1, exists), 1);
+  assert.equal(nextTourIndex(plan, plan.length - 1, 1, exists), null);
+  const switcher = KOMPAS_TOURS.find(tour => tour.id === "switcher")!;
+  assert.deepEqual(planTour(switcher, exists).map(step => step.id), ["menu"]);
+  for (const tour of KOMPAS_TOURS) assert.ok(planTour(tour, exists).length > 0, `${tour.id} blijft bruikbaar`);
 });

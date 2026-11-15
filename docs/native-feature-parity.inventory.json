@@ -13719,12 +13719,13 @@
     },
     {
       "file": "src/components/native/NativeTabBarSync.tsx",
-      "sha256": "142078a2b6c08ebaf1b7d986abc13fd3b1d0ae5494f7e537ac805889bf30aeb1",
+      "sha256": "c3048dd7d003a662a02fbb553de524c3ec17702eb1acc4b98f17ace34695a535",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
         "@/components/navigation/AppNavigation",
         "@/lib/native/bridge",
+        "@/lib/native/modalSelector",
         "@/lib/native/tabBar",
         "@/lib/navigation",
         "@/lib/platform",
@@ -13734,7 +13735,6 @@
       "requests": [],
       "checks": [],
       "exports": [
-        "MODAL_SELECTOR",
         "NativeTabBarSync",
         "SHELL_METRICS_EVENT"
       ]
@@ -23142,6 +23142,18 @@
       "checks": [],
       "exports": [
         "learningReceipt"
+      ]
+    },
+    {
+      "file": "src/lib/native/modalSelector.ts",
+      "sha256": "09b9b71351317aed7531daad41f320e96448cb1ac404e3f246549d6a950f6044",
+      "boundary": "context-dependent",
+      "imports": [],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "MODAL_SELECTOR"
       ]
     },
     {
@@ -82796,12 +82808,13 @@
     },
     {
       "file": "src/components/native/NativeTabBarSync.tsx",
-      "sha256": "142078a2b6c08ebaf1b7d986abc13fd3b1d0ae5494f7e537ac805889bf30aeb1",
+      "sha256": "c3048dd7d003a662a02fbb553de524c3ec17702eb1acc4b98f17ace34695a535",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
         "@/components/navigation/AppNavigation",
         "@/lib/native/bridge",
+        "@/lib/native/modalSelector",
         "@/lib/native/tabBar",
         "@/lib/navigation",
         "@/lib/platform",
@@ -82811,7 +82824,6 @@
       "requests": [],
       "checks": [],
       "exports": [
-        "MODAL_SELECTOR",
         "NativeTabBarSync",
         "SHELL_METRICS_EVENT"
       ]
@@ -85948,6 +85960,7 @@
     "tests/native-study-media.browser.mjs",
     "tests/native-study-media.integration.test.ts",
     "tests/native-study-media.test.ts",
+    "tests/native-tabbar.browser.mjs",
     "tests/native-tabbar.test.ts",
     "tests/native-today-actions.browser.mjs",
     "tests/native-today-actions.integration.test.ts",
