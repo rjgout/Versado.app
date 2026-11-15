@@ -5,6 +5,7 @@ export PATH="$HOME/.maestro/bin:$PATH"
 cd "$(dirname "$0")/.."
 adb install -r "$1" || exit 1
 adb shell getprop ro.build.version.release | sed 's/^/Android /'
+adb logcat -G 16M; adb logcat -c
 adb shell am start -n app.versado.poc/.MainActivity || exit 1
 sleep 20
 # Diagnose vóór de flows: leeft het proces, wat staat er op het scherm, wat meldt React Native?

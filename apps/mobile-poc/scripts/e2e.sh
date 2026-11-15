@@ -10,6 +10,13 @@ step() { echo "::group::$1"; }
 end() { echo "::endgroup::"; }
 # Toegankelijkheidsboom na een mislukte flow: laat zien wat de app werkelijk aanbiedt (tabs, labels, testIDs).
 dump_ui() {
+  if command -v adb >/dev/null 2>&1 && adb get-state >/dev/null 2>&1; then
+    echo "::group::crash/logcat direct na mislukte flow $1"
+    echo "proces: $(adb shell pidof app.versado.poc || echo GEEN-PROCES)"
+    echo "-- crash-buffer"; adb logcat -b crash -d | tail -60
+    echo "-- app-regels"; adb logcat -d | grep -E "FATAL EXCEPTION|E AndroidRuntime|ReactNativeJS|Fatal signal|SIGSEGV|app.versado.poc.*(died|crash)|ActivityManager.*(app.versado.poc)|InflateException|IllegalState|Theme" | tail -60
+    echo "::endgroup::"
+  fi
   echo "::group::UI-dump na mislukte flow $1"
   if command -v adb >/dev/null 2>&1 && adb get-state >/dev/null 2>&1; then
     adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1 && adb shell cat /sdcard/ui.xml | tr '>' '>\n' | grep -oE '(text|content-desc|resource-id)="[^"]+"' | grep -v "^resource-id=\"android:" | sort -u | head -80
