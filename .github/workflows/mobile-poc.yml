@@ -164,6 +164,7 @@ jobs:
       BACKEND_LOG: ${{ github.workspace }}/backend-ios.log
       POC_TEST_BUILD: '1'
       EXPO_PUBLIC_VERSADO_API_URL: http://127.0.0.1:3100
+      EXPO_PUBLIC_POC_DEBUG: '1'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -187,11 +188,11 @@ jobs:
       - name: Prebuild iOS (tijdelijk, niet gecommit; installeert pods)
         working-directory: apps/mobile-poc
         run: npx expo prebuild --platform ios --no-install && cd ios && pod install
-      - name: iOS-simulatorbuild (Release, JS ingebed, zonder signing)
+      - name: iOS-simulatorbuild (Release, JS ingebed, ad-hoc '-' ondertekend voor Keychain op de simulator; geen certificaat)
         working-directory: apps/mobile-poc/ios
         run: |
           WS=$(ls -d *.xcworkspace | head -1); SCHEME="${WS%.xcworkspace}"
-          xcodebuild -workspace "$WS" -scheme "$SCHEME" -configuration Release -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath "$RUNNER_TEMP/dd" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build | tail -40
+          xcodebuild -workspace "$WS" -scheme "$SCHEME" -configuration Release -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath "$RUNNER_TEMP/dd" CODE_SIGN_IDENTITY="-" CODE_SIGNING_ALLOWED=YES CODE_SIGNING_REQUIRED=NO build | tail -40
           ls "$RUNNER_TEMP/dd/Build/Products/Release-iphonesimulator/"
       - run: apps/mobile-poc/scripts/install-maestro.sh
       - name: Simulator, installeren, flows

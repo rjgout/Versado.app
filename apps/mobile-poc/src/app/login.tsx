@@ -11,7 +11,12 @@ export default function Login() {
     if (busy) return; // dubbel tikken
     setBusy(true); setError(null);
     try { await signIn(id.trim(), pw); }
-    catch (e) { setError(e instanceof Error && /wrong|credentials|401/.test(e.message) ? "Onjuiste gegevens." : "Inloggen mislukt. Probeer het opnieuw."); }
+    catch (e) {
+      const base = e instanceof Error && /wrong|credentials|401/.test(e.message) ? "Onjuiste gegevens." : "Inloggen mislukt. Probeer het opnieuw.";
+      // Alleen in de runtime-testbuilds: de oorzaak zichtbaar maken voor de UI-dump (nooit in een gewone build).
+      const detail = process.env.EXPO_PUBLIC_POC_DEBUG === "1" && e instanceof Error ? ` [${e.name}: ${e.message}]` : "";
+      setError(base + detail);
+    }
     finally { setBusy(false); }
   };
   return (

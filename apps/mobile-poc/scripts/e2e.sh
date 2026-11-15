@@ -21,6 +21,8 @@ dump_ui() {
   if command -v adb >/dev/null 2>&1 && adb get-state >/dev/null 2>&1; then
     adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1 && adb shell cat /sdcard/ui.xml | tr '>' '>\n' | grep -oE '(text|content-desc|resource-id)="[^"]+"' | grep -v "^resource-id=\"android:" | sort -u | head -80
   else
+    echo "-- simulatorlog (app, ATS, Keychain)"
+    xcrun simctl spawn booted log show --last 15m --style compact --predicate 'process == "VersadoPoC" OR eventMessage CONTAINS "App Transport Security" OR eventMessage CONTAINS "errSecMissingEntitlement" OR eventMessage CONTAINS "-34018"' 2>/dev/null | tail -40
     maestro hierarchy 2>/dev/null | grep -oE '"(accessibilityText|title|label|text|resource-id|identifier)" *: *"[^"]+"' | sort -u | head -80
   fi
   echo "::endgroup::"
