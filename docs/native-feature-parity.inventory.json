@@ -85963,6 +85963,7 @@
     "tests/native-study-media.test.ts",
     "tests/native-tabbar.browser.mjs",
     "tests/native-tabbar.test.ts",
+    "tests/native-test-api-games.test.ts",
     "tests/native-today-actions.browser.mjs",
     "tests/native-today-actions.integration.test.ts",
     "tests/native-today-actions.test.ts",
