@@ -38,21 +38,22 @@ trap 'xcrun simctl shutdown "$UDID" >/dev/null 2>&1 || true; xcrun simctl delete
 xcrun simctl boot "$UDID"; xcrun simctl bootstatus "$UDID" -b
 xcrun simctl install "$UDID" "$APP"
 { echo "runtime: $RUNTIME"; echo "device: $DEVICE_TYPE"; xcodebuild -version; } > "$OUT/omgeving.txt"
+# Een eerste koude start in een verse simulator was te traag voor een screenshot na 6 s (startscherm of leeg
+# beeld in de eerste proefrun): daarom een opwarmstart, 10 s wachttijd en een tweede screenshot voor vergelijking.
+launch() { # variant stijl bestandsnaam
+  xcrun simctl terminate "$UDID" app.versado.glassharness >/dev/null 2>&1 || true
+  xcrun simctl launch --stdout="$OUT/$3.log" --stderr="$OUT/$3.err" "$UDID" app.versado.glassharness -variant "$1" -style "$2" >/dev/null
+  sleep 10
+  xcrun simctl io "$UDID" screenshot "$OUT/$3.png"
+}
+launch standalone light warmup && rm -f "$OUT/warmup.png" "$OUT/warmup.log" "$OUT/warmup.err"
 for variant in standalone controller; do
-  for style in light dark; do
-    xcrun simctl terminate "$UDID" app.versado.glassharness >/dev/null 2>&1 || true
-    xcrun simctl launch --console-pty "$UDID" app.versado.glassharness -variant "$variant" -style "$style" > "$OUT/$variant-$style.log" 2>&1 &
-    PID=$!; sleep 6
-    xcrun simctl io "$UDID" screenshot "$OUT/$variant-$style.png"
-    kill "$PID" >/dev/null 2>&1 || true
-  done
+  for style in light dark; do launch "$variant" "$style" "$variant-$style"; done
 done
 # Toegankelijkheidsinstellingen op de standalone-variant.
 for setting in "increase_contrast" "reduce_transparency"; do
   xcrun simctl ui "$UDID" "$setting" enabled >/dev/null 2>&1 || { echo "simctl ui $setting niet beschikbaar" >> "$OUT/omgeving.txt"; continue; }
-  xcrun simctl terminate "$UDID" app.versado.glassharness >/dev/null 2>&1 || true
-  xcrun simctl launch "$UDID" app.versado.glassharness -variant standalone -style light >/dev/null 2>&1; sleep 6
-  xcrun simctl io "$UDID" screenshot "$OUT/standalone-light-$setting.png"
+  launch standalone light "standalone-light-$setting"
   xcrun simctl ui "$UDID" "$setting" disabled >/dev/null 2>&1 || true
 done
 ls -l "$OUT"

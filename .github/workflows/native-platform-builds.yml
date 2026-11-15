@@ -38,7 +38,7 @@ env:
 jobs:
   android-development:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
@@ -283,7 +283,7 @@ jobs:
     # Bewijs voor een architectuurbesluit, geen testgate en geen fysieke-toestelacceptatie: daarom
     # blokkeert deze job de PR niet, maar de screenshots worden altijd als artifact bewaard.
     runs-on: macos-26-intel
-    timeout-minutes: 25
+    timeout-minutes: 35
     continue-on-error: true
     steps:
       - uses: actions/checkout@v7
