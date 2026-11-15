@@ -7,7 +7,8 @@ appId: app.versado.poc
     visible:
       id: login-submit
     timeout: 30000
-- assertNotVisible: "Reeks: .*"
+- assertNotVisible:
+    id: vandaag-streak
 - takeScreenshot: 06-uitgelogd
 # Accountwissel: Carol ziet niets van Alice' verzoeken
 - tapOn:
@@ -20,7 +21,8 @@ appId: app.versado.poc
 - tapOn:
     id: login-submit
 - extendedWaitUntil:
-    visible: "Reeks: .*"
+    visible:
+      id: vandaag-streak
     timeout: 60000
 - tapOn: "Vrienden"
 - extendedWaitUntil:

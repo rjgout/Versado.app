@@ -9,6 +9,7 @@ appId: app.versado.poc
 - assertVisible: "Verzoek van Bob accepteren"
 - takeScreenshot: 03-vrienden
 - tapOn: "Vandaag"
-- assertVisible: "Reeks: .*"
+- assertVisible:
+    id: vandaag-streak
 - tapOn: "Vrienden"
 - assertVisible: "Bob#02"

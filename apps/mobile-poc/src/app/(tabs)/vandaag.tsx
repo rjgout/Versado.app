@@ -12,7 +12,7 @@ export default function Vandaag() {
       {loading && !data ? <ActivityIndicator accessibilityLabel="Laden" /> : null}
       {error && !data ? <Pressable accessibilityRole="button" onPress={refresh}><Text style={{ color: "#b00020" }}>Laden mislukt. Tik om opnieuw te proberen.</Text></Pressable> : null}
       {data ? (
-        <View accessible accessibilityLabel={`Reeks ${data.continuation.currentStreak} dagen`} style={{ borderWidth: 1, borderRadius: 14, padding: 16, gap: 4 }}>
+        <View testID="vandaag-streak" accessible accessibilityLabel={`Reeks ${data.continuation.currentStreak} dagen`} style={{ borderWidth: 1, borderRadius: 14, padding: 16, gap: 4 }}>
           <Text style={{ fontSize: 17, fontWeight: "600" }}>Reeks: {data.continuation.currentStreak} {data.continuation.currentStreak === 1 ? "dag" : "dagen"}</Text>
           <Text>{data.continuation.studiedToday ? "Vandaag gestudeerd" : "Vandaag nog niet gestudeerd"}</Text>
           <Text style={{ opacity: 0.6 }}>Bron: {data.activeCollectionId} · taal {data.language}</Text>

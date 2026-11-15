@@ -8,7 +8,17 @@ export POC_BASE_URL="${POC_BASE_URL:-http://127.0.0.1:3100}"
 fail=0
 step() { echo "::group::$1"; }
 end() { echo "::endgroup::"; }
-run_flow() { step "maestro $1"; maestro test --format junit --output "$OUT/$1.xml" --test-output-dir "$OUT/$1" "e2e/$1.yaml" || fail=1; end; }
+# Toegankelijkheidsboom na een mislukte flow: laat zien wat de app werkelijk aanbiedt (tabs, labels, testIDs).
+dump_ui() {
+  echo "::group::UI-dump na mislukte flow $1"
+  if command -v adb >/dev/null 2>&1 && adb get-state >/dev/null 2>&1; then
+    adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1 && adb shell cat /sdcard/ui.xml | tr '>' '>\n' | grep -oE '(text|content-desc|resource-id)="[^"]+"' | grep -v "^resource-id=\"android:" | sort -u | head -80
+  else
+    maestro hierarchy 2>/dev/null | grep -oE '"(accessibilityText|title|label|text|resource-id|identifier)" *: *"[^"]+"' | sort -u | head -80
+  fi
+  echo "::endgroup::"
+}
+run_flow() { step "maestro $1"; maestro test --format junit --output "$OUT/$1.xml" --test-output-dir "$OUT/$1" "e2e/$1.yaml" || { fail=1; dump_ui "$1"; }; end; }
 
 rm -f "$OUT/bob.signal"
 npx tsx tests/native/peer.ts listen-bob "$OUT/bob.signal" > "$OUT/bob-listener.log" 2>&1 &

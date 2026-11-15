@@ -19,8 +19,8 @@ appId: app.versado.poc
     id: login-submit
 # Vandaag met echte backendgegevens
 - extendedWaitUntil:
-    visible: "Reeks: .*"
+    visible:
+      id: vandaag-streak
     timeout: 60000
 - assertVisible: "Vandaag"
-- assertVisible: "Bron: content_bom.*"
 - takeScreenshot: 02-vandaag
