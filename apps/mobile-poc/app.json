@@ -1,0 +1,14 @@
+{
+  "expo": {
+    "name": "Versado PoC",
+    "slug": "versado-mobile-poc",
+    "scheme": "versado-poc",
+    "version": "0.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "ios": { "bundleIdentifier": "app.versado.poc", "supportsTablet": true },
+    "android": { "package": "app.versado.poc" },
+    "plugins": ["expo-router", "expo-secure-store"],
+    "experiments": { "typedRoutes": false }
+  }
+}

@@ -1,0 +1,99 @@
+name: Mobiele proef (Expo)
+# Geïsoleerd: raakt alleen apps/mobile-poc en de gedeelde contractmodules. Geen signing, geen distributie,
+# geen productie- of NAS-toegang; de backend draait tegen wegwerp-Postgres/Redis met synthetische accounts.
+on:
+  pull_request:
+    paths:
+      - 'apps/mobile-poc/**'
+      - 'src/lib/native/**'
+      - '.github/workflows/mobile-poc.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: mobile-poc-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+jobs:
+  logic-and-flow:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env: { POSTGRES_PASSWORD: poc, POSTGRES_DB: versado_poc }
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7
+        ports: ['6379:6379']
+    env:
+      DATABASE_URL: postgresql://postgres:poc@127.0.0.1:5432/versado_poc
+      REDIS_URL: redis://127.0.0.1:6379
+      SESSION_SECRET: ci-session-secret-0123456789abcdef0123456789abcdef
+      NATIVE_SESSION_SECRET: ci-native-secret-0123456789abcdef0123456789abcdef
+      NATIVE_API_ENABLED: '1'
+      ALLOW_INSECURE_COOKIES: 'true'
+      APP_URL: http://127.0.0.1:3100
+      PORT: '3100'
+      POC_BASE_URL: http://127.0.0.1:3100
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: npm }
+      - run: npm ci
+      - run: npm run db:generate
+      - run: npx prisma migrate deploy
+      - run: npx tsx apps/mobile-poc/scripts/seed-synthetic.ts
+      - name: Backend starten (echte server.ts)
+        run: |
+          nohup npx tsx server.ts > "$RUNNER_TEMP/server.log" 2>&1 &
+          for i in $(seq 1 90); do curl -s -o /dev/null http://127.0.0.1:3100/api/v1/native/capabilities && break; sleep 2; done
+      - name: App-afhankelijkheden
+        working-directory: apps/mobile-poc
+        run: npm ci
+      - name: Typecheck, componenttests
+        working-directory: apps/mobile-poc
+        run: |
+          npm run typecheck
+          npm test
+      - name: Volledige gebruikersstroom tegen de echte backend
+        working-directory: apps/mobile-poc
+        run: npm run test:flow
+      - name: Metro-bundel iOS + Android (Hermes) en grootte
+        working-directory: apps/mobile-poc
+        run: |
+          CI=1 EXPO_NO_TELEMETRY=1 npx expo export --platform ios --platform android --output-dir dist
+          find dist/_expo/static/js -name '*.hbc' -exec ls -l {} \; | awk '{printf "%s bytes %s\n",$5,$9}' | tee "$GITHUB_STEP_SUMMARY"
+      - if: failure()
+        run: tail -100 "$RUNNER_TEMP/server.log"
+  # Echte native builds: handmatig te starten (workflow_dispatch). Geen emulator-/simulatorbewijs totdat deze job groen is gedraaid.
+  native-builds:
+    if: github.event_name == 'workflow_dispatch'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: ios-simulator, os: macos-26-intel }
+          - { name: android-debug, os: ubuntu-latest }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24 }
+      - uses: actions/setup-java@v4
+        if: matrix.name == 'android-debug'
+        with: { distribution: temurin, java-version: 21 }
+      - working-directory: apps/mobile-poc
+        run: npm ci
+      - name: Prebuild (genereert tijdelijke ios/ of android/, wordt niet gecommit)
+        working-directory: apps/mobile-poc
+        run: npx expo prebuild --platform ${{ matrix.name == 'android-debug' && 'android' || 'ios' }} --no-install
+      - name: iOS-simulatorbuild
+        if: matrix.name == 'ios-simulator'
+        working-directory: apps/mobile-poc/ios
+        run: |
+          xcodebuild -workspace *.xcworkspace -scheme VersadoPoC -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build
+      - name: Android debug-build
+        if: matrix.name == 'android-debug'
+        working-directory: apps/mobile-poc/android
+        run: ./gradlew assembleDebug --no-daemon
