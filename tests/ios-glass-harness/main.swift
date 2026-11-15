@@ -25,11 +25,47 @@ let stripes = (0..<40).map { index in
 }.joined()
 let html = "<html><head><meta name=viewport content='width=device-width,initial-scale=1,viewport-fit=cover'></head><body style='margin:0'>\(stripes)</body></html>"
 
-final class WebViewController: UIViewController {
+/// Deterministisch "klaar"-bewijs voor het script: pas als de inhoud echt getekend is schrijft de app
+/// `ready.json` (in Documents). Het script wacht daarop in plaats van op een vaste tijd en faalt hard zonder
+/// bewijs of met een balk zonder hoogte; een leeg of te vroeg screenshot is dus nooit stilzwijgend "goed".
+func signalReady(_ info: [String: Any]) {
+    var payload = info
+    payload["variant"] = variant; payload["style"] = style
+    guard let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first,
+          let data = try? JSONSerialization.data(withJSONObject: payload, options: [.sortedKeys]) else { return }
+    try? data.write(to: documents.appendingPathComponent("ready.json"), options: .atomic)
+    print("HARNESS ready \(String(data: data, encoding: .utf8) ?? "")")
+    fflush(stdout)
+}
+
+final class WebViewController: UIViewController, WKNavigationDelegate {
     let web = WKWebView(frame: .zero, configuration: WKWebViewConfiguration())
     let tabBar = NativeTabBarController()
+    private var webLoaded = false
+    private var barHeight: CGFloat = 0
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) { webLoaded = true; maybeReady() }
+    private func maybeReady() {
+        guard webLoaded, barHeight > 0 else { return }
+        // Even de inhoud laten scrollen en het glas laten renderen voordat het script een screenshot maakt.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            self.web.scrollView.setContentOffset(CGPoint(x: 0, y: 330), animated: false)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                // Terugkeer uit de achtergrond nabootsen met dezelfde melding en dezelfde aanroep als de plugin:
+                // de balk meldt zijn hoogte opnieuw, er komt geen tweede balk en de hoogte blijft gelijk.
+                var heights: [Double] = []
+                self.tabBar.onHeight = { heights.append(Double($0)) }
+                NotificationCenter.default.post(name: UIApplication.didBecomeActiveNotification, object: nil)
+                let bars = self.view.subviews.filter { $0 is UITabBar }.count
+                signalReady(["barHeight": Double(self.barHeight), "windowHeight": Double(self.view.window?.bounds.height ?? 0), "webLoaded": true,
+                             "remeasuredHeights": heights, "tabBarCount": bars])
+            }
+        }
+    }
     override func viewDidLoad() {
         super.viewDidLoad()
+        web.navigationDelegate = self
+        // Spiegelt VersadoNativePlugin.load(): didBecomeActive -> tabBar.remeasure().
+        NotificationCenter.default.addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: .main) { [weak self] _ in self?.tabBar.remeasure() }
         web.frame = view.bounds; web.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         web.scrollView.contentInsetAdjustmentBehavior = .never
         web.loadHTMLString(html, baseURL: nil)
@@ -40,8 +76,8 @@ final class WebViewController: UIViewController {
         let request = NativeTabBarRequest(items: items, selectedId: "learn", visible: true, style: style == "dark" ? .dark : .light)
         let height = tabBar.apply(request, in: view)
         print("HARNESS standalone height=\(height)")
-        // Laat de inhoud onder de balk doorlopen, zoals in de echte app.
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { self.web.scrollView.setContentOffset(CGPoint(x: 0, y: 330), animated: false) }
+        barHeight = height
+        maybeReady()
     }
 }
 
@@ -60,7 +96,13 @@ final class ContentViewController: UIViewController {
         }
         scroll.contentSize = CGSize(width: view.bounds.width, height: y)
         view.addSubview(scroll)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { scroll.setContentOffset(CGPoint(x: 0, y: 330), animated: false) }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { scroll.setContentOffset(CGPoint(x: 0, y: 330), animated: false) }
+    }
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+            signalReady(["barHeight": Double(self.tabBarController?.tabBar.bounds.height ?? 0), "windowHeight": Double(self.view.window?.bounds.height ?? 0), "webLoaded": true])
+        }
     }
 }
 

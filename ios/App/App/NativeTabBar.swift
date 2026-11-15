@@ -10,7 +10,14 @@ final class NativeGlassTabBar: UITabBar {
         let height = bounds.height
         guard height != lastHeight else { return }
         lastHeight = height
-        onHeight?(height)
+        if NativeTabBarPolicy.reportableHeight(Double(height)) { onHeight?(height) }
+    }
+    /// Meldt de actuele hoogte opnieuw, ook als die niet veranderd is: na terugkeer uit de achtergrond kan
+    /// JavaScript (en een eerder gemist `tabBarLayout`) achterlopen op wat UIKit nu tekent.
+    func reportCurrentHeight() {
+        superview?.layoutIfNeeded()
+        lastHeight = bounds.height
+        if NativeTabBarPolicy.reportableHeight(Double(bounds.height)) { onHeight?(bounds.height) }
     }
 }
 
@@ -53,6 +60,12 @@ final class NativeTabBarController: NSObject, UITabBarDelegate {
         bar.accessibilityElementsHidden = !request.visible
         host.layoutIfNeeded()
         return bar.bounds.height
+    }
+
+    /// Alleen als er een balk is: nooit een balk aanmaken, tonen of selecteren. De React-kant negeert de melding
+    /// zolang de ruimtehouder niet bevestigd is, en valideert de hoogte opnieuw.
+    func remeasure() {
+        bar?.reportCurrentHeight()
     }
 
     func remove() {

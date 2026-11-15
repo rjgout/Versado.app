@@ -406,3 +406,59 @@ test("Kompas: met de native balk vallen de nav-stappen weg en blijven de overige
   assert.deepEqual(planTour(switcher, exists).map(step => step.id), ["menu"]);
   for (const tour of KOMPAS_TOURS) assert.ok(planTour(tour, exists).length > 0, `${tour.id} blijft bruikbaar`);
 });
+
+test("terugkeer uit de achtergrond (didBecomeActive): een herhaalde of gewijzigde hoogtemelding corrigeert de ruimtehouder zonder dubbele balk of navigatie", async () => {
+  const f = fixture();
+  f.bar.start(); f.bar.update(state({ selectedId: "learn" })); await settle();
+  const syncs = f.payloads.length, changes = f.changes();
+  assert.equal(f.styles.get("--vs-native-tabbar-height"), "83px");
+  // Zelfde hoogte opnieuw gemeld: niets verandert, ShellMetrics hoeft niet opnieuw te meten.
+  f.layout({ height: 83 });
+  assert.equal(f.changes(), changes, "identieke melding veroorzaakt geen nieuwe meting");
+  // Intussen is de hoogte veranderd (rotatie, Dynamic Type, safe area): de ruimtehouder volgt exact.
+  f.layout({ height: 62 });
+  assert.equal(f.styles.get("--vs-native-tabbar-height"), "62px");
+  assert.equal(f.changes(), changes + 1);
+  // Een melding is nooit een nieuwe synchronisatie, selectie of navigatie.
+  await settle();
+  assert.equal(f.payloads.length, syncs, "geen extra sync, dus geen tweede balk");
+  assert.deepEqual(f.hrefs, [], "geen navigatie");
+  assert.equal(f.attributes.get("data-vs-native-tabbar"), "true");
+});
+
+test("een hoogtemelding bij terugkeer telt niet vóór bevestiging, na terugval of na dispose", async () => {
+  let release!: (value: unknown) => void;
+  const early = fixture({ sync: (_payload, call) => (call === 1 ? new Promise(resolve => { release = resolve; }) : { height: 83 }) });
+  early.bar.start(); early.bar.update(state()); await settle();
+  early.layout({ height: 90 });
+  assert.equal(early.styles.size, 0, "een vroege melding zet geen ruimtehouder");
+  release({ height: 83 }); await settle();
+
+  const failed = fixture({ sync: (_payload, call) => { if (call === 3) throw new Error("tabbar_unavailable"); return { height: 83 }; } });
+  failed.bar.start(); failed.bar.update(state()); await settle();
+  failed.bar.update(state({ selectedId: "learn" })); await settle();
+  assert.equal(failed.attributes.size, 0);
+  failed.layout({ height: 70 });
+  assert.equal(failed.attributes.size, 0, "na terugval herstelt een late melding de ruimtehouder niet");
+  assert.equal(failed.styles.size, 0);
+
+  const gone = fixture();
+  gone.bar.start(); gone.bar.update(state()); await settle();
+  gone.bar.dispose(); await settle();
+  gone.layout({ height: 70 });
+  assert.equal(gone.attributes.size, 0); assert.equal(gone.styles.size, 0);
+});
+
+test("contract: didBecomeActive laat een bestaande balk zijn hoogte opnieuw melden, zonder aan te maken, te tonen of te navigeren", () => {
+  const plugin = readFileSync("ios/App/App/VersadoNativePlugin.swift", "utf8");
+  assert.match(plugin, /didBecomeActiveNotification[\s\S]{0,160}self\?\.tabBar\.remeasure\(\)/);
+  const ui = readFileSync("ios/App/App/NativeTabBar.swift", "utf8");
+  const remeasure = ui.slice(ui.indexOf("func remeasure()"), ui.indexOf("func remove()"));
+  assert.match(remeasure, /bar\?\.reportCurrentHeight\(\)/, "alleen een bestaande balk");
+  for (const forbidden of ["makeBar", "apply(", "onSelect", "selectedItem", "alpha", "addSubview"]) assert.ok(!remeasure.includes(forbidden), `remeasure raakt ${forbidden} niet`);
+  const report = ui.slice(ui.indexOf("func reportCurrentHeight()"), ui.indexOf("final class NativeTabBarController"));
+  assert.match(report, /reportableHeight\(Double\(bounds\.height\)\)/, "ongeldige hoogtes worden niet gemeld");
+  assert.ok(!report.includes("onSelect"), "geen selectiemelding");
+  const policy = readFileSync("ios/App/App/NativeTabBarPolicy.swift", "utf8");
+  assert.match(policy, /height >= 1 && height <= 240/, "gelijk aan tabBarLayoutSchema (1–240)");
+});

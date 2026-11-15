@@ -81,6 +81,11 @@ public class VersadoNativePlugin: CAPPlugin, CAPBridgedPlugin, ASAuthorizationCo
                 self.notifyListeners("interfacePreferences", data: self.interfaceState())
             }
         }
+        // Na terugkeer uit de achtergrond (rotatie, Dynamic Type of safe area kunnen intussen veranderd zijn)
+        // meldt de balk zijn actuele hoogte opnieuw. Geen nieuwe balk, geen selectie en geen navigatie.
+        interfaceLifecycle.append(NotificationCenter.default.addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: .main) { [weak self] _ in
+            self?.tabBar.remeasure()
+        })
         audio.setForeground(UIApplication.shared.applicationState == .active)
         audioLifecycle = [UIApplication.willResignActiveNotification, UIApplication.didEnterBackgroundNotification].map { name in
             NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in self?.audioLifecycleChanged(false) }

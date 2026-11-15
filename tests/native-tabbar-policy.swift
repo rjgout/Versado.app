@@ -57,6 +57,8 @@ import Foundation
         require(!NativeTabBarPolicy.available(version(25)), "iOS 25")
         require(NativeTabBarPolicy.available(version(26)), "iOS 26")
         require(NativeTabBarPolicy.available(version(27)), "iOS 27")
+        for ok in [1.0, 49.0, 83.0, 240.0] { require(NativeTabBarPolicy.reportableHeight(ok), "hoogte \(ok) wordt gemeld") }
+        for bad in [0.0, -1.0, 0.99, 240.5, .infinity, -.infinity, .nan] { require(!NativeTabBarPolicy.reportableHeight(bad), "hoogte \(bad) wordt nooit gemeld") }
         print("native tabbar policy ok")
     }
 }

@@ -280,11 +280,10 @@ jobs:
   ios-glass-evidence:
     # Echte iOS 26-simulator: screenshots van de systeemtabbalk in twee architecturen (losse UITabBar
     # boven een WKWebView vs UITabBarController), licht/donker en toegankelijkheidsinstellingen.
-    # Bewijs voor een architectuurbesluit, geen testgate en geen fysieke-toestelacceptatie: daarom
-    # blokkeert deze job de PR niet, maar de screenshots worden altijd als artifact bewaard.
+    # Bewijs voor een architectuurbesluit, geen fysieke-toestelacceptatie. Een opname zonder "klaar"-bewijs of met
+    # een balk zonder hoogte laat de job falen (geen continue-on-error); de screenshots blijven altijd als artifact.
     runs-on: macos-26-intel
     timeout-minutes: 35
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v7
       - name: Meetapp bouwen en screenshots maken

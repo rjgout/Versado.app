@@ -23715,7 +23715,7 @@
     },
     {
       "file": "src/lib/native/tabBar.ts",
-      "sha256": "c58341aeb08ca35171d255ba735cf8e108bbd1bb77b5f5b31b397b62788ace4b",
+      "sha256": "fa2785e47c7662ced762e916e629d3232ea2ac3d943e41bfd6b2ffd3ea8a42f2",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/navigation",

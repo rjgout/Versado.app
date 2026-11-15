@@ -38,16 +38,47 @@ trap 'xcrun simctl shutdown "$UDID" >/dev/null 2>&1 || true; xcrun simctl delete
 xcrun simctl boot "$UDID"; xcrun simctl bootstatus "$UDID" -b
 xcrun simctl install "$UDID" "$APP"
 { echo "runtime: $RUNTIME"; echo "device: $DEVICE_TYPE"; xcodebuild -version; } > "$OUT/omgeving.txt"
-# Een eerste koude start in een verse simulator was te traag voor een screenshot na 6 s (startscherm of leeg
-# beeld in de eerste proefrun): daarom een opwarmstart, 10 s wachttijd en een tweede screenshot voor vergelijking.
+# Oorzaak van de lege screenshots in de eerste proefruns: de meetapp heeft een leeg `UILaunchScreen` (wit) en een
+# screenshot na een vaste wachttijd kan het witte lanceerscherm of (na een crash) het startscherm vangen. Daarom
+# wacht dit script op `ready.json`, dat de app pas schrijft als de inhoud getekend is en de balk een hoogte heeft.
+# Geen bewijs binnen de tijd, een balk zonder hoogte of een gecrashte app = harde fout (screenshot blijft als
+# *-MISLUKT.png bewaard); er wordt nooit stilzwijgend een slecht screenshot als goed bewaard.
+FAILED=0
 launch() { # variant stijl bestandsnaam
   xcrun simctl terminate "$UDID" app.versado.glassharness >/dev/null 2>&1 || true
-  sleep 3
+  sleep 2
+  local container; container="$(xcrun simctl get_app_container "$UDID" app.versado.glassharness data 2>/dev/null || true)"
+  [ -z "$container" ] || rm -f "$container/Documents/ready.json"
   xcrun simctl launch --stdout="$OUT/$3.log" --stderr="$OUT/$3.err" "$UDID" app.versado.glassharness -variant "$1" -style "$2" >/dev/null
-  sleep 10
+  container="$(xcrun simctl get_app_container "$UDID" app.versado.glassharness data)"
+  local waited=0
+  until [ -f "$container/Documents/ready.json" ]; do
+    sleep 0.5; waited=$((waited + 1))
+    if [ "$waited" -ge 90 ]; then
+      xcrun simctl io "$UDID" screenshot "$OUT/$3-MISLUKT.png" || true
+      echo "MISLUKT: $3 meldde niet 'klaar' binnen 45 s (app gecrasht of inhoud niet getekend)" | tee -a "$OUT/omgeving.txt"
+      FAILED=1; return 0
+    fi
+  done
+  cp "$container/Documents/ready.json" "$OUT/$3.ready.json"
+  sleep 1
   xcrun simctl io "$UDID" screenshot "$OUT/$3.png"
+  python3 - "$OUT/$3.ready.json" "$3" <<'PY' || FAILED=1
+import json, sys
+info = json.load(open(sys.argv[1]))
+if not (info.get("barHeight", 0) >= 1 and info.get("webLoaded")):
+    print(f"MISLUKT: {sys.argv[2]}: balk zonder hoogte of inhoud niet geladen: {info}")
+    sys.exit(1)
+if info["variant"] == "standalone":
+    heights = info.get("remeasuredHeights", [])
+    if info.get("tabBarCount") != 1 or not heights or any(abs(h - info["barHeight"]) > 0.5 for h in heights):
+        print(f"MISLUKT: {sys.argv[2]}: na didBecomeActive tabBarCount={info.get('tabBarCount')} hoogtes={heights} (verwacht 1 balk en {info['barHeight']})")
+        sys.exit(1)
+print(f"ok: {sys.argv[2]}: balkhoogte {info['barHeight']} pt")
+PY
 }
-launch standalone light warmup && rm -f "$OUT/warmup.png" "$OUT/warmup.log" "$OUT/warmup.err"
+launch standalone light warmup; rm -f "$OUT"/warmup.*
+FAILED=0
 for variant in standalone controller; do
   for style in light dark; do launch "$variant" "$style" "$variant-$style"; done
 done
@@ -58,3 +89,4 @@ for setting in "increase_contrast" "reduce_transparency"; do
   xcrun simctl ui "$UDID" "$setting" disabled >/dev/null 2>&1 || true
 done
 ls -l "$OUT"
+[ "$FAILED" -eq 0 ] || { echo "Minstens één opname mislukt: zie $OUT/omgeving.txt"; exit 1; }

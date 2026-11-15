@@ -183,10 +183,14 @@ export class NativeTabBar {
 
   private mirror(height: number): void {
     const { root, onChange } = this.options;
-    root.style.setProperty(HEIGHT, `${Math.ceil(height)}px`);
+    const value = `${Math.ceil(height)}px`;
+    // Een herhaalde melding met dezelfde hoogte (bv. na terugkeer uit de achtergrond) verandert niets en
+    // hoeft ShellMetrics dus niet opnieuw te laten meten.
+    const changed = root.style.getPropertyValue(HEIGHT) !== value || root.getAttribute(ATTRIBUTE) !== "true" || !this.mirrored;
+    root.style.setProperty(HEIGHT, value);
     if (root.getAttribute(ATTRIBUTE) !== "true") root.setAttribute(ATTRIBUTE, "true");
     this.mirrored = true;
-    onChange();
+    if (changed) onChange();
   }
 
   private unmirror(): void {

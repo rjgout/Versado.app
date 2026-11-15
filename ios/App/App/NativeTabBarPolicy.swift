@@ -32,6 +32,10 @@ enum NativeTabBarPolicy {
     /// Het liquid-glassmateriaal bestaat pas vanaf iOS 26; oudere versies houden de React-balk.
     static func available(_ version: OperatingSystemVersion) -> Bool { version.majorVersion >= 26 }
 
+    /// Dezelfde grenzen als `tabBarLayoutSchema` in JavaScript: een hoogte buiten 1...240 of niet-eindig
+    /// wordt nooit gemeld, zodat de React-ruimtehouder nooit een ongeldige of nulhoogte krijgt.
+    static func reportableHeight(_ height: Double) -> Bool { height.isFinite && height >= 1 && height <= 240 }
+
     private static func validTitle(_ value: String) -> Bool {
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, trimmed.count <= maxTitleLength else { return false }
