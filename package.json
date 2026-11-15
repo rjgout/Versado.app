@@ -57,6 +57,7 @@
     "test:streak-return": "tsx --test tests/streak-return.test.ts tests/streak-return.integration.test.ts tests/streak-celebration.integration.test.ts tests/streak-celebration-deferral.test.ts tests/streak-banner.test.ts",
     "test:activity-reactions": "tsx --test tests/activity-reactions.test.ts tests/activity-reactions.integration.test.ts",
     "test:social": "tsx --test tests/social-rules.test.ts tests/social.integration.test.ts tests/social-links.integration.test.ts",
+    "test:friend-abuse": "tsx --test tests/friend-abuse.test.ts tests/friend-request-race.integration.test.ts",
     "test:time": "tsx --test tests/timeZone.test.ts tests/wordGameTime.test.ts tests/streakTravel.integration.test.ts tests/wordGame.integration.test.ts",
     "test:companion": "tsx --test tests/companion.integration.test.ts",
     "test:hymns": "tsx --test tests/hymns-library.test.ts tests/hymns-library-full.test.ts tests/hymns-recognition-library.test.ts tests/hymns-stanzas.test.ts tests/hymns-score-following.test.ts tests/hymns-session.test.ts tests/hymns-phase.test.ts tests/hymns-live.test.ts tests/hymns-ui.test.ts tests/hymns-reading.test.ts tests/hymns-recognition.test.ts tests/hymns-privacy.test.ts tests/hymns-live-regression.test.ts tests/proxy-headers.test.ts tests/hymns-sheet.test.ts tests/hymns-availability.test.ts tests/hymns-sunday.test.ts tests/hymns-voice.test.ts tests/hymns-v3-follow.test.ts",
