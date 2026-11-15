@@ -1,0 +1,31 @@
+appId: app.versado.poc
+---
+- tapOn: "Vandaag"
+- tapOn:
+    id: logout-button
+- extendedWaitUntil:
+    visible:
+      id: login-submit
+    timeout: 30000
+- assertNotVisible: "Reeks: .*"
+- takeScreenshot: 06-uitgelogd
+# Accountwissel: Carol ziet niets van Alice' verzoeken
+- tapOn:
+    id: login-id
+- inputText: carol@example.invalid
+- tapOn:
+    id: login-password
+- inputText: PocPassw0rd!2026
+- hideKeyboard
+- tapOn:
+    id: login-submit
+- extendedWaitUntil:
+    visible: "Reeks: .*"
+    timeout: 60000
+- tapOn: "Vrienden"
+- extendedWaitUntil:
+    visible: "Alice#01"
+    timeout: 30000
+- assertNotVisible: "Bob#02"
+- assertNotVisible: "Dave#04"
+- takeScreenshot: 07-andere-gebruiker

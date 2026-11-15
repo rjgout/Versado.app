@@ -1,0 +1,7 @@
+appId: app.versado.poc
+---
+# Zonder aantikken of verversen: een verzoek van een andere client moet via de websocket verschijnen
+- extendedWaitUntil:
+    visible: "Dave#04"
+    timeout: 45000
+- takeScreenshot: 04-realtime-dave

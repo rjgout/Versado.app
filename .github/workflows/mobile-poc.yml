@@ -11,7 +11,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: mobile-poc-${{ github.head_ref || github.ref_name }}
+  group: mobile-poc-${{ github.event_name }}-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 jobs:
   logic-and-flow:
@@ -66,34 +66,134 @@ jobs:
           find dist/_expo/static/js -name '*.hbc' -exec ls -l {} \; | awk '{printf "%s bytes %s\n",$5,$9}' | tee "$GITHUB_STEP_SUMMARY"
       - if: failure()
         run: tail -100 "$RUNNER_TEMP/server.log"
-  # Echte native builds: handmatig te starten (workflow_dispatch). Geen emulator-/simulatorbewijs totdat deze job groen is gedraaid.
-  native-builds:
+  # Runtime-bewijs op een echte simulator/emulator. Alleen handmatig (workflow_dispatch op de PR-branch); synthetische
+  # accounts en een wegwerpbackend, nooit productiegegevens. Een geslaagde build telt niet als runtime-bewijs: de flows
+  # (apps/mobile-poc/e2e) drijven de draaiende app aan en controleren het server-effect met een tweede client.
+  android-runtime:
     if: github.event_name == 'workflow_dispatch'
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - { name: ios-simulator, os: macos-26-intel }
-          - { name: android-debug, os: ubuntu-latest }
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    services:
+      postgres:
+        image: postgres:16
+        env: { POSTGRES_PASSWORD: poc, POSTGRES_DB: versado_poc }
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7
+        ports: ['6379:6379']
+    env:
+      DATABASE_URL: postgresql://postgres:poc@127.0.0.1:5432/versado_poc
+      REDIS_URL: redis://127.0.0.1:6379
+      SESSION_SECRET: ci-session-secret-0123456789abcdef0123456789abcdef
+      NATIVE_SESSION_SECRET: ci-native-secret-0123456789abcdef0123456789abcdef
+      NATIVE_API_ENABLED: '1'
+      ALLOW_INSECURE_COOKIES: 'true'
+      APP_URL: http://127.0.0.1:3100
+      PORT: '3100'
+      POC_BASE_URL: http://127.0.0.1:3100
+      BACKEND_LOG: ${{ github.workspace }}/backend-android.log
+      POC_TEST_BUILD: '1'
+      EXPO_PUBLIC_VERSADO_API_URL: http://10.0.2.2:3100
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 24 }
+        with: { node-version: 24, cache: npm }
       - uses: actions/setup-java@v4
-        if: matrix.name == 'android-debug'
         with: { distribution: temurin, java-version: 21 }
+      - run: npm ci
+      - run: apps/mobile-poc/scripts/ci-backend.sh
       - working-directory: apps/mobile-poc
         run: npm ci
-      - name: Prebuild (genereert tijdelijke ios/ of android/, wordt niet gecommit)
+      - name: Prebuild Android (tijdelijk, niet gecommit)
         working-directory: apps/mobile-poc
-        run: npx expo prebuild --platform ${{ matrix.name == 'android-debug' && 'android' || 'ios' }} --no-install
-      - name: iOS-simulatorbuild
-        if: matrix.name == 'ios-simulator'
-        working-directory: apps/mobile-poc/ios
-        run: |
-          xcodebuild -workspace *.xcworkspace -scheme VersadoPoC -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build
-      - name: Android debug-build
-        if: matrix.name == 'android-debug'
+        run: npx expo prebuild --platform android --no-install
+      - name: Android debug-build (compilebewijs)
         working-directory: apps/mobile-poc/android
         run: ./gradlew assembleDebug --no-daemon
+      - name: Android release-build met ingebed JS (voor de emulator, debug-ondertekend)
+        working-directory: apps/mobile-poc/android
+        run: ./gradlew assembleRelease --no-daemon
+      - run: apps/mobile-poc/scripts/install-maestro.sh
+      - name: KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules && sudo udevadm trigger --name-match=kvm
+      - name: Emulator, installeren, flows
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          profile: pixel_6
+          disable-animations: true
+          working-directory: apps/mobile-poc
+          script: ./scripts/android-emulator-run.sh android/app/build/outputs/apk/release/app-release.apk
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-runtime
+          path: |
+            apps/mobile-poc/e2e-results/**
+            backend-android.log
+            apps/mobile-poc/android/app/build/outputs/apk/*/*.apk
+          if-no-files-found: warn
+  ios-runtime:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: macos-26-intel
+    timeout-minutes: 90
+    env:
+      DATABASE_URL: postgresql://postgres@127.0.0.1:5432/versado_poc
+      REDIS_URL: redis://127.0.0.1:6379
+      SESSION_SECRET: ci-session-secret-0123456789abcdef0123456789abcdef
+      NATIVE_SESSION_SECRET: ci-native-secret-0123456789abcdef0123456789abcdef
+      NATIVE_API_ENABLED: '1'
+      ALLOW_INSECURE_COOKIES: 'true'
+      APP_URL: http://127.0.0.1:3100
+      PORT: '3100'
+      POC_BASE_URL: http://127.0.0.1:3100
+      BACKEND_LOG: ${{ github.workspace }}/backend-ios.log
+      POC_TEST_BUILD: '1'
+      EXPO_PUBLIC_VERSADO_API_URL: http://127.0.0.1:3100
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: npm }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 21 }
+      - name: Postgres en Redis (wegwerp, lokaal)
+        run: |
+          brew install postgresql@16 redis
+          PGBIN="$(brew --prefix postgresql@16)/bin"
+          export PATH="$PGBIN:$PATH"
+          initdb -D "$RUNNER_TEMP/pg" -U postgres --auth=trust >/dev/null
+          pg_ctl -D "$RUNNER_TEMP/pg" -l "$RUNNER_TEMP/pg.log" -o "-p 5432" start
+          createdb -h 127.0.0.1 -U postgres versado_poc
+          redis-server --port 6379 --daemonize yes
+      - run: xcodebuild -version; xcrun simctl list runtimes | head
+      - run: npm ci
+      - run: apps/mobile-poc/scripts/ci-backend.sh
+      - working-directory: apps/mobile-poc
+        run: npm ci
+      - name: Prebuild iOS (tijdelijk, niet gecommit; installeert pods)
+        working-directory: apps/mobile-poc
+        run: npx expo prebuild --platform ios --no-install && cd ios && pod install
+      - name: iOS-simulatorbuild (Release, JS ingebed, zonder signing)
+        working-directory: apps/mobile-poc/ios
+        run: |
+          WS=$(ls -d *.xcworkspace | head -1); SCHEME="${WS%.xcworkspace}"
+          xcodebuild -workspace "$WS" -scheme "$SCHEME" -configuration Release -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath "$RUNNER_TEMP/dd" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build | tail -40
+          ls "$RUNNER_TEMP/dd/Build/Products/Release-iphonesimulator/"
+      - run: apps/mobile-poc/scripts/install-maestro.sh
+      - name: Simulator, installeren, flows
+        working-directory: apps/mobile-poc
+        run: ./scripts/ios-simulator-run.sh "$(ls -d $RUNNER_TEMP/dd/Build/Products/Release-iphonesimulator/*.app | head -1)"
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-runtime
+          path: |
+            apps/mobile-poc/e2e-results/**
+            backend-ios.log
+          if-no-files-found: warn

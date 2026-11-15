@@ -17,10 +17,10 @@ export default function Login() {
   return (
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, justifyContent: "center", padding: 16, gap: 12 }}>
       <Text accessibilityRole="header" style={{ fontSize: 28, fontWeight: "700" }}>Inloggen</Text>
-      <TextInput accessibilityLabel="E-mailadres of gebruikersnaam" autoCapitalize="none" autoComplete="username" keyboardType="email-address" value={id} onChangeText={setId} style={{ borderWidth: 1, borderRadius: 10, padding: 12, minHeight: 48 }} />
-      <TextInput accessibilityLabel="Wachtwoord" secureTextEntry autoComplete="current-password" value={pw} onChangeText={setPw} onSubmitEditing={submit} style={{ borderWidth: 1, borderRadius: 10, padding: 12, minHeight: 48 }} />
+      <TextInput testID="login-id" accessibilityLabel="E-mailadres of gebruikersnaam" autoCapitalize="none" autoComplete="username" keyboardType="email-address" value={id} onChangeText={setId} style={{ borderWidth: 1, borderRadius: 10, padding: 12, minHeight: 48 }} />
+      <TextInput testID="login-password" accessibilityLabel="Wachtwoord" secureTextEntry autoComplete="current-password" value={pw} onChangeText={setPw} onSubmitEditing={submit} style={{ borderWidth: 1, borderRadius: 10, padding: 12, minHeight: 48 }} />
       {error ? <Text accessibilityRole="alert" style={{ color: "#b00020" }}>{error}</Text> : null}
-      <Pressable accessibilityRole="button" accessibilityLabel="Inloggen" accessibilityState={{ disabled: busy, busy }} disabled={busy} onPress={submit} style={{ backgroundColor: "#1d4ed8", padding: 14, borderRadius: 12, alignItems: "center", minHeight: 48, opacity: busy ? 0.6 : 1 }}>
+      <Pressable testID="login-submit" accessibilityRole="button" accessibilityLabel="Inloggen" accessibilityState={{ disabled: busy, busy }} disabled={busy} onPress={submit} style={{ backgroundColor: "#1d4ed8", padding: 14, borderRadius: 12, alignItems: "center", minHeight: 48, opacity: busy ? 0.6 : 1 }}>
         <Text style={{ color: "white", fontWeight: "600" }}>{busy ? "Bezig…" : "Inloggen"}</Text>
       </Pressable>
     </KeyboardAvoidingView>

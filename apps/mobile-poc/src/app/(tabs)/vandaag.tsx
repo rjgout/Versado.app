@@ -18,7 +18,7 @@ export default function Vandaag() {
           <Text style={{ opacity: 0.6 }}>Bron: {data.activeCollectionId} · taal {data.language}</Text>
         </View>
       ) : null}
-      <Pressable accessibilityRole="button" accessibilityLabel="Uitloggen" onPress={() => void signOut()} style={{ padding: 14, borderRadius: 12, borderWidth: 1, alignItems: "center", minHeight: 48 }}>
+      <Pressable testID="logout-button" accessibilityRole="button" accessibilityLabel="Uitloggen" onPress={() => void signOut()} style={{ padding: 14, borderRadius: 12, borderWidth: 1, alignItems: "center", minHeight: 48 }}>
         <Text>Uitloggen</Text>
       </Pressable>
     </ScrollView>
