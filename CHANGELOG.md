@@ -4,6 +4,8 @@ Alle belangrijke gebruikersgerichte wijzigingen en releases worden hieronder bij
 
 ## Nog niet uitgebracht
 
+- Nieuw (iOS 26+): de onderbalk van de iOS-app is de echte systeemtabbalk met Liquid Glass-materiaal, met dezelfde bestemmingen, vertalingen en navigatie als voorheen. Op oudere iOS-versies en op Android en web verandert niets.
+
 - Nieuw (iOS): gedeelde Liquid Glass-materialen voor navigatie, zwevende tabbar, kaarten en bevestigingen, met UIKit-voorkeuren voor transparantie, beweging, contrast en Dynamic Type. Geen wijziging aan voortgang, rechten of distributie.
 
 - Verbeterd (Kom dan en volg Mij): Volgende stap bewaart de leesvoortgang en opent beschikbare leesvragen. De bestaande resultaatweergave gaat rechtstreeks verder; handmatig afvinken en de losse oefenknop zijn uit de persoonlijke stapweergave verwijderd. Ontbrekende vragen blokkeren lezen niet; onderbroken oefeningen blijven hervatbaar.

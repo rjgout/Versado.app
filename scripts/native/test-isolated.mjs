@@ -121,7 +121,7 @@ try{
  } else if(process.argv.includes('--reader-only') || process.argv.includes('--reader-ui-only')) {
   await run('npx',['tsx','--test','tests/native-reader.integration.test.ts'],env);
   if(!process.argv.includes('--no-browser')) {
-   for(const file of (process.argv.includes('--reader-ui-only') ? ['native-reader'] : ['native-foundation','native-access','native-content','native-reader','native-courses','reader-verse-menu'])) await run('npx',['tsx',`tests/${file}.browser.mjs`],env);
+   for(const file of (process.argv.includes('--reader-ui-only') ? ['native-reader'] : ['native-foundation','native-tabbar','native-access','native-content','native-reader','native-courses','reader-verse-menu'])) await run('npx',['tsx',`tests/${file}.browser.mjs`],env);
   }
  } else if(process.argv.includes('--study-courses-only')) {
   await run('npx',['tsx','--test','tests/native-study-courses.integration.test.ts'],env);

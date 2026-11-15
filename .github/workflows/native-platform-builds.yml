@@ -10,6 +10,8 @@ on:
       - 'capacitor.config.ts'
       - 'scripts/native/**'
       - 'tests/native-access-policy.swift'
+      - 'tests/native-tabbar-policy.swift'
+      - 'tests/ios-glass-harness/**'
       - 'tests/native-audio*'
       - 'tests/fixtures/native-audio/**'
       - 'tests/native-android-release*'
@@ -36,7 +38,7 @@ env:
 jobs:
   android-development:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
@@ -205,6 +207,8 @@ jobs:
           "$RUNNER_TEMP/versado-audio-transport" tests/fixtures/native-audio/synthetic.mp3
           swiftc -swift-version 5 -target "$(uname -m)-apple-macos14.0" ios/App/App/NativeAccessTransport.swift ios/App/App/NativeAudioTransport.swift ios/App/App/NativeAudioContext.swift tests/native-audio-context.swift -o "$RUNNER_TEMP/versado-audio-context"
           "$RUNNER_TEMP/versado-audio-context" tests/fixtures/native-audio/playback.json
+          swiftc -swift-version 5 ios/App/App/NativeTabBarPolicy.swift tests/native-tabbar-policy.swift -o "$RUNNER_TEMP/versado-tabbar-policy"
+          "$RUNNER_TEMP/versado-tabbar-policy"
       - name: Echte iOS-simulatorcompilatie zonder signing
         # Verzamel ook compilebewijs wanneer een onafhankelijke policyproef faalt; job blijft rood.
         if: ${{ !cancelled() && steps.ios-bundle.outcome == 'success' }}
@@ -273,3 +277,20 @@ jobs:
             ${{ runner.temp }}/versado-ios-simulator.zip
             dist/native/build.json
           retention-days: 7
+  ios-glass-evidence:
+    # Echte iOS 26-simulator: screenshots van de systeemtabbalk in twee architecturen (losse UITabBar
+    # boven een WKWebView vs UITabBarController), licht/donker en toegankelijkheidsinstellingen.
+    # Bewijs voor een architectuurbesluit, geen fysieke-toestelacceptatie. Een opname zonder "klaar"-bewijs of met
+    # een balk zonder hoogte laat de job falen (geen continue-on-error); de screenshots blijven altijd als artifact.
+    runs-on: macos-26-intel
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v7
+      - name: Meetapp bouwen en screenshots maken
+        run: bash scripts/native/ios-glass-evidence.sh "$RUNNER_TEMP/glass-evidence"
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: versado-ios26-glass-evidence
+          path: ${{ runner.temp }}/glass-evidence
+          retention-days: 14

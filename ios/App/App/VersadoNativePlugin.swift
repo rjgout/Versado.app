@@ -22,9 +22,13 @@ public class VersadoNativePlugin: CAPPlugin, CAPBridgedPlugin, ASAuthorizationCo
         CAPPluginMethod(name: "audioContext", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "audioStatus", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "audioVoices", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "audioCommand", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "audioCommand", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "tabBarSupport", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "tabBarSync", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "tabBarClear", returnType: CAPPluginReturnPromise)
     ]
     private let audio = NativeAudioContext()
+    private let tabBar = NativeTabBarController()
     private var nativePlayer: NativeAudioPlayer?
     private var interfaceLifecycle: [NSObjectProtocol] = []
     private var audioLifecycle: [NSObjectProtocol] = []
@@ -77,6 +81,11 @@ public class VersadoNativePlugin: CAPPlugin, CAPBridgedPlugin, ASAuthorizationCo
                 self.notifyListeners("interfacePreferences", data: self.interfaceState())
             }
         }
+        // Na terugkeer uit de achtergrond (rotatie, Dynamic Type of safe area kunnen intussen veranderd zijn)
+        // meldt de balk zijn actuele hoogte opnieuw. Geen nieuwe balk, geen selectie en geen navigatie.
+        interfaceLifecycle.append(NotificationCenter.default.addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: .main) { [weak self] _ in
+            self?.tabBar.remeasure()
+        })
         audio.setForeground(UIApplication.shared.applicationState == .active)
         audioLifecycle = [UIApplication.willResignActiveNotification, UIApplication.didEnterBackgroundNotification].map { name in
             NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in self?.audioLifecycleChanged(false) }
@@ -94,6 +103,26 @@ public class VersadoNativePlugin: CAPPlugin, CAPBridgedPlugin, ASAuthorizationCo
     @objc func interfacePreferences(_ call: CAPPluginCall) {
         guard localOnly(call) else { return }
         DispatchQueue.main.async { call.resolve(self.interfaceState()) }
+    }
+    // Echte UIKit-tabbalk (Liquid Glass vanaf iOS 26). Alleen lokale client; JavaScript levert
+    // vertaalde titels en de gekozen bestemming, de navigatie zelf blijft de gedeelde React-router.
+    @objc func tabBarSupport(_ call: CAPPluginCall) {
+        guard localOnly(call) else { return }
+        DispatchQueue.main.async { call.resolve(["version": 1, "available": NativeTabBarController.available]) }
+    }
+    @objc func tabBarSync(_ call: CAPPluginCall) {
+        guard localOnly(call) else { return }
+        DispatchQueue.main.async {
+            guard NativeTabBarController.available, let host = self.bridge?.viewController?.view,
+                  let request = NativeTabBarPolicy.parse(call.options as? [String: Any] ?? [:]) else { call.reject("tabbar_unavailable"); return }
+            self.tabBar.onSelect = { [weak self] id in self?.notifyListeners("tabBarSelect", data: ["id": id]) }
+            self.tabBar.onHeight = { [weak self] height in self?.notifyListeners("tabBarLayout", data: ["height": Double(height)]) }
+            call.resolve(["height": Double(self.tabBar.apply(request, in: host))])
+        }
+    }
+    @objc func tabBarClear(_ call: CAPPluginCall) {
+        guard localOnly(call) else { return }
+        DispatchQueue.main.async { self.tabBar.remove(); call.resolve() }
     }
     private func audioLifecycleChanged(_ active: Bool) {
         audio.setForeground(active)
