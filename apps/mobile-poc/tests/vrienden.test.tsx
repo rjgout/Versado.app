@@ -4,10 +4,11 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-
 const person = (id: string, handle: string) => ({ id, handle, discriminator: "01", avatarEmoji: null });
 const data = () => ({ friends: [], incoming: [{ friendshipId: "fr1", from: person("u2", "Bob") }], outgoing: [] });
 const calls: string[] = [];
+let mockAcceptStatus = 200;
 let mockListener: (() => void) | null = null;
 const mockGameFetch = jest.fn(async (url: string, init?: RequestInit) => {
   calls.push(`${init?.method ?? "GET"} ${url}`);
-  if (url.endsWith("/accept")) { await new Promise(r => setTimeout(r, 30)); return new Response("{}", { status: 200 }); }
+  if (url.endsWith("/accept")) { await new Promise(r => setTimeout(r, 30)); return new Response("{}", { status: mockAcceptStatus }); }
   return new Response(JSON.stringify(data()), { status: 200 });
 });
 const mockCtx = { session: { gameFetch: mockGameFetch, onFriendsChanged: (l: () => void) => { mockListener = l; return () => { mockListener = null; }; } } };
@@ -16,7 +17,7 @@ jest.mock("@poc/core/AppSessionProvider", () => ({
 }));
 import Vrienden from "../src/app/(tabs)/vrienden";
 
-beforeEach(() => { calls.length = 0; mockGameFetch.mockClear(); });
+beforeEach(() => { calls.length = 0; mockAcceptStatus = 200; mockGameFetch.mockClear(); });
 
 test("toont het inkomende verzoek met toegankelijke knop", async () => {
   await render(<Vrienden />);
@@ -26,7 +27,9 @@ test("toont het inkomende verzoek met toegankelijke knop", async () => {
 test("dubbel tikken stuurt één accept-verzoek en de knop is tijdens het verzoek bezig/uitgeschakeld", async () => {
   await render(<Vrienden />);
   const button = await screen.findByLabelText("Verzoek van Bob accepteren");
-  await act(async () => { void fireEvent.press(button); void fireEvent.press(button); void fireEvent.press(button); });
+  await fireEvent.press(button);
+  await fireEvent.press(button);
+  await fireEvent.press(button);
   expect(screen.getByLabelText("Verzoek van Bob accepteren").props.accessibilityState).toMatchObject({ disabled: true, busy: true });
   await waitFor(() => expect(calls.filter(c => c.startsWith("POST")).length).toBe(1));
   expect(calls.filter(c => c.startsWith("POST"))).toEqual(["POST /api/friends/fr1/accept"]);
@@ -41,8 +44,7 @@ test("een realtime-signaal laadt de lijst opnieuw", async () => {
 });
 
 test("een mislukte actie toont een melding in plaats van te crashen", async () => {
-  mockGameFetch.mockImplementationOnce(async () => new Response(JSON.stringify(data()), { status: 200 }));
-  mockGameFetch.mockImplementationOnce(async () => new Response("{}", { status: 500 }));
+  mockAcceptStatus = 500;
   await render(<Vrienden />);
   await fireEvent.press(await screen.findByLabelText("Verzoek van Bob accepteren"));
   expect(await screen.findByText("Accepteren mislukt. Probeer het opnieuw.")).toBeTruthy();
