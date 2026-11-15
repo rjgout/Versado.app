@@ -7,10 +7,16 @@ adb install -r "$1" || exit 1
 adb shell getprop ro.build.version.release | sed 's/^/Android /'
 adb logcat -G 16M; adb logcat -c
 adb shell am start -n app.versado.poc/.MainActivity || exit 1
-sleep 20
+# Wacht tot de app echt focus heeft (trage koude start op de software-gerenderde emulator), max. 180 s.
+for i in $(seq 1 36); do
+  adb shell dumpsys window 2>/dev/null | grep -E "mCurrentFocus|mFocusedApp" | grep -q "app.versado.poc" && { echo "app heeft focus na $((i*5)) s"; break; }
+  sleep 5
+done
 # Diagnose vóór de flows: leeft het proces, wat staat er op het scherm, wat meldt React Native?
 echo "::group::diagnose na start"
 echo "pid: $(adb shell pidof app.versado.poc || echo GEEN-PROCES)"
+adb shell dumpsys window 2>/dev/null | grep -E "mCurrentFocus|mFocusedApp" | head -3
+adb logcat -d | grep -E "ANR in|isn.t responding|Displayed app.versado.poc|Start proc.*app.versado.poc" | tail -6
 adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1 && adb shell cat /sdcard/ui.xml | tr '>' '>\n' | grep -oE '(text|content-desc|resource-id)="[^"]+"' | sort -u | head -60
 adb logcat -d -t 3000 | grep -E "ReactNativeJS|AndroidRuntime|FATAL|ReactNative:|SoLoader|Hermes|app.versado.poc" | tail -80
 curl -s -o /dev/null -w "backend vanaf runner: %{http_code}\n" -H "Origin: https://localhost" -H "X-Versado-Client: native-v1" http://127.0.0.1:3100/api/v1/native/capabilities

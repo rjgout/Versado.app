@@ -1,12 +1,11 @@
 appId: app.versado.poc
 ---
-- launchApp:
-    clearState: true
-    stopApp: true
+# De installatie is vers (geen oude sessie); clearState zou een nog opstartende app midden in het laden herstarten.
+- launchApp
 - extendedWaitUntil:
     visible:
       id: login-submit
-    timeout: 90000
+    timeout: 240000
 - takeScreenshot: 01-login-scherm
 - tapOn:
     id: login-id
