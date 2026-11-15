@@ -1,6 +1,10 @@
 appId: app.versado.poc
 ---
-# Zonder aantikken of verversen: een verzoek van een andere client moet via de websocket verschijnen
+# De app staat op Vrienden. Tijdens deze flow stuurt een andere client een verzoek; zonder aantikken of verversen
+# moet het via de websocket verschijnen (geen focuswissel, geen herstart van de app).
+- assertVisible: "Vrienden \\(1\\)"
+- assertNotVisible: "Dave#04"
+- runScript: trigger-dave.js
 - extendedWaitUntil:
     visible: "Dave#04"
     timeout: 45000

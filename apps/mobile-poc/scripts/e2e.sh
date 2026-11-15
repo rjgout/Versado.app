@@ -30,13 +30,14 @@ run_flow() { step "maestro $1"; maestro test --format junit --output "$OUT/$1.xm
 rm -f "$OUT/bob.signal"
 npx tsx tests/native/peer.ts listen-bob "$OUT/bob.signal" > "$OUT/bob-listener.log" 2>&1 &
 BOB=$!
+npx tsx tests/native/trigger-server.ts > "$OUT/trigger.log" 2>&1 &
+TRIG=$!
 sleep 10
 run_flow 01-login-vandaag
 run_flow 02-tabs-vrienden
-step "peer: Dave stuurt een verzoek"; npx tsx tests/native/peer.ts dave-request || fail=1; end
 run_flow 03-realtime-nieuw-verzoek
 run_flow 04-accepteren
 step "peer: server-effect + realtime op tweede client"; npx tsx tests/native/peer.ts verify "$OUT/bob.signal" || fail=1; end
 run_flow 05-uitloggen-accountwissel
-kill $BOB 2>/dev/null
+kill $BOB $TRIG 2>/dev/null
 exit $fail
