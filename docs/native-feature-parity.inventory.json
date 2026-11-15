@@ -13307,7 +13307,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "6063ff70276a63c6b53020eb645bcdfa58a0feb1e531997774bac05c6635976e",
+      "sha256": "586281ca579e5173a3d1e85a6ae33e3823f99ea0404874bef79a98e0090778eb",
       "boundary": "client",
       "imports": [
         "./NativeContentPicker",
@@ -13318,6 +13318,7 @@
         "./NativePasswordReset",
         "./NativeProfileView",
         "./NativeShellHeader",
+        "./NativeTabBarSync",
         "./NativeTodayView",
         "@/components/I18nProvider",
         "@/components/ReadAloudMiniPlayer",
@@ -13714,6 +13715,27 @@
       "exports": [
         "NativeStudyImage",
         "NativeStudyMediaProvider"
+      ]
+    },
+    {
+      "file": "src/components/native/NativeTabBarSync.tsx",
+      "sha256": "14efe32fc79c9c7134326fa4d6d4b505f2efffe11797a6a58413cdb98a616e09",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
+        "@/lib/native/bridge",
+        "@/lib/native/tabBar",
+        "@/lib/navigation",
+        "@/lib/platform",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NativeTabBarSync",
+        "SHELL_METRICS_EVENT"
       ]
     },
     {
@@ -14667,7 +14689,7 @@
     },
     {
       "file": "src/components/shell/ShellMetrics.tsx",
-      "sha256": "575f85b51bb1b5dd3d5f828cb75dcf57410a0369d3cfd213f7441dd157fe7610",
+      "sha256": "2b2642fe158ed0b5504e2fbabea06aa6b7c9f94fcad45bea4238208d90b50643",
       "boundary": "client",
       "imports": [
         "@/lib/shellMetrics",
@@ -22464,12 +22486,13 @@
     },
     {
       "file": "src/lib/native/bridge.ts",
-      "sha256": "0725b7fccca5cae0c25d7f503648a093a5b9516f019489c189300f567ac309f7",
+      "sha256": "ff93e6cadde8ab6d6b96ecb2e7a8b8fe7bfe2880cde2911e872c9da477bf0fc2",
       "boundary": "context-dependent",
       "imports": [
         "./access",
         "./audioBridge",
         "./client",
+        "./tabBar",
         "@capacitor/core"
       ],
       "methods": [],
@@ -22477,7 +22500,8 @@
       "checks": [],
       "exports": [
         "nativeBridge",
-        "nativeSecureSessionStore"
+        "nativeSecureSessionStore",
+        "nativeTabBarBridge"
       ]
     },
     {
@@ -23674,6 +23698,23 @@
         "nativeStudyImageSchema",
         "nativeStudyMediaId",
         "studyMediaIdFromSource"
+      ]
+    },
+    {
+      "file": "src/lib/native/tabBar.ts",
+      "sha256": "e890f0882c69ee0af12c72ebc5299b29a89487090795270b9f987863b92b6976",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/lib/navigation",
+        "zod"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "tabBarLayoutSchema",
+        "tabBarSelectSchema",
+        "tabBarSupportSchema"
       ]
     },
     {
@@ -29950,6 +29991,8 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/tabBar.ts",
+        "src/lib/navigation.ts",
         "src/lib/platform.ts",
         "src/lib/profileViews.ts",
         "src/lib/realtime.ts",
@@ -30187,6 +30230,8 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/tabBar.ts",
+        "src/lib/navigation.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
@@ -54174,6 +54219,7 @@
         "src/lib/native/studyCoursesContract.ts",
         "src/lib/native/studyMedia.server.ts",
         "src/lib/native/studyMediaContract.ts",
+        "src/lib/native/tabBar.ts",
         "src/lib/native/today.server.ts",
         "src/lib/native/todayActionsContract.ts",
         "src/lib/native/todayContract.ts",
@@ -56448,6 +56494,8 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/tabBar.ts",
+        "src/lib/navigation.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
@@ -57237,6 +57285,8 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/tabBar.ts",
+        "src/lib/navigation.ts",
         "src/lib/platform.ts",
         "src/lib/podcastChapters.ts",
         "src/lib/podcastPlayerContext.tsx",
@@ -58073,6 +58123,8 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/tabBar.ts",
+        "src/lib/navigation.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
@@ -59350,6 +59402,8 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/tabBar.ts",
+        "src/lib/navigation.ts",
         "src/lib/platform.ts",
         "src/lib/profileViews.ts",
         "src/lib/realtime.ts",
@@ -59779,6 +59833,8 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/tabBar.ts",
+        "src/lib/navigation.ts",
         "src/lib/navigationEntry.ts",
         "src/lib/navigationHistory.ts",
         "src/lib/notificationGroups.ts",
@@ -60401,6 +60457,8 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/tabBar.ts",
+        "src/lib/navigation.ts",
         "src/lib/platform.ts",
         "src/lib/profileViews.ts",
         "src/lib/realtime.ts",
@@ -60763,6 +60821,8 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/tabBar.ts",
+        "src/lib/navigation.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
@@ -61051,6 +61111,7 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/tabBar.ts",
         "src/lib/navigation.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
@@ -61817,6 +61878,7 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/tabBar.ts",
         "src/lib/navigation.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
@@ -62081,6 +62143,7 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/tabBar.ts",
         "src/lib/navigation.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
@@ -62375,6 +62438,8 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/tabBar.ts",
+        "src/lib/navigation.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
@@ -63066,6 +63131,8 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/tabBar.ts",
+        "src/lib/navigation.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
@@ -63584,6 +63651,8 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/tabBar.ts",
+        "src/lib/navigation.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
@@ -68927,6 +68996,8 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/tabBar.ts",
+        "src/lib/navigation.ts",
         "src/lib/platform.ts",
         "src/lib/profileViews.ts",
         "src/lib/pushClient.ts",
@@ -69168,6 +69239,8 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/tabBar.ts",
+        "src/lib/navigation.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
@@ -69465,6 +69538,8 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/tabBar.ts",
+        "src/lib/navigation.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
@@ -69765,6 +69840,8 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/tabBar.ts",
+        "src/lib/navigation.ts",
         "src/lib/platform.ts",
         "src/lib/profileCamera.ts",
         "src/lib/profileCharacterFraming.ts",
@@ -70192,6 +70269,8 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/tabBar.ts",
+        "src/lib/navigation.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
@@ -70916,6 +70995,8 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/tabBar.ts",
+        "src/lib/navigation.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
@@ -71807,6 +71888,8 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/tabBar.ts",
+        "src/lib/navigation.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
@@ -72860,6 +72943,8 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/tabBar.ts",
+        "src/lib/navigation.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
@@ -74282,6 +74367,8 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/tabBar.ts",
+        "src/lib/navigation.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
@@ -82295,7 +82382,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "6063ff70276a63c6b53020eb645bcdfa58a0feb1e531997774bac05c6635976e",
+      "sha256": "586281ca579e5173a3d1e85a6ae33e3823f99ea0404874bef79a98e0090778eb",
       "boundary": "client",
       "imports": [
         "./NativeContentPicker",
@@ -82306,6 +82393,7 @@
         "./NativePasswordReset",
         "./NativeProfileView",
         "./NativeShellHeader",
+        "./NativeTabBarSync",
         "./NativeTodayView",
         "@/components/I18nProvider",
         "@/components/ReadAloudMiniPlayer",
@@ -82702,6 +82790,27 @@
       "exports": [
         "NativeStudyImage",
         "NativeStudyMediaProvider"
+      ]
+    },
+    {
+      "file": "src/components/native/NativeTabBarSync.tsx",
+      "sha256": "14efe32fc79c9c7134326fa4d6d4b505f2efffe11797a6a58413cdb98a616e09",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
+        "@/lib/native/bridge",
+        "@/lib/native/tabBar",
+        "@/lib/navigation",
+        "@/lib/platform",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NativeTabBarSync",
+        "SHELL_METRICS_EVENT"
       ]
     },
     {
@@ -83609,7 +83718,7 @@
     },
     {
       "file": "src/components/shell/ShellMetrics.tsx",
-      "sha256": "575f85b51bb1b5dd3d5f828cb75dcf57410a0369d3cfd213f7441dd157fe7610",
+      "sha256": "2b2642fe158ed0b5504e2fbabea06aa6b7c9f94fcad45bea4238208d90b50643",
       "boundary": "client",
       "imports": [
         "@/lib/shellMetrics",
@@ -85836,6 +85945,7 @@
     "tests/native-study-media.browser.mjs",
     "tests/native-study-media.integration.test.ts",
     "tests/native-study-media.test.ts",
+    "tests/native-tabbar.test.ts",
     "tests/native-today-actions.browser.mjs",
     "tests/native-today-actions.integration.test.ts",
     "tests/native-today-actions.test.ts",

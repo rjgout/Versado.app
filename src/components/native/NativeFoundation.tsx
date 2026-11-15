@@ -20,6 +20,7 @@ import PrivacyContent from "@/components/legal/PrivacyContent";
 import { AppLink,useAppNavigation } from "@/components/navigation/AppNavigation";
 import { SettingsSection } from "@/components/profile/settings";
 import AppShellFrame from "@/components/shell/AppShellFrame";
+import NativeTabBarSync from "./NativeTabBarSync";
 import SubpageBackBarView from "@/components/shell/SubpageBackBarView";
 import MascotSlot from "@/components/versado/MascotSlot";
 import { primaryButton,secondaryButton } from "@/components/versado/styles";
@@ -282,6 +283,7 @@ function NativeFoundationContent({ audioOutput, client, termsUrl = null, onLangu
       <ReadAloudMiniPlayer />
     </>}
     showNavigation={!!shellAccount} destinations={destinations}
+    afterMain={shellAccount ? <NativeTabBarSync items={destinations} /> : null}
     mainClassName="native-foundation flex min-h-dvh w-full flex-col gap-5 bg-vs-bg text-vs-fg"
   >
     {offline && <p role="status" className="flex gap-2 rounded-xl bg-vs-surface p-3"><WifiOff className="h-5 w-5 shrink-0" />{t("nativeFoundation.offline")}</p>}

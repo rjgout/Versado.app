@@ -55,6 +55,8 @@ export default function ShellMetrics() {
       });
       if (keyboard) root.setAttribute("data-keyboard", "");
       else root.removeAttribute("data-keyboard");
+      // Eén signaal voor wie de gemeten onderbalk spiegelt (de native iOS-tabbalk); geen eigen meting elders.
+      window.dispatchEvent(new Event("vs-shell-metrics"));
     };
     const schedule = () => {
       cancelAnimationFrame(frame);

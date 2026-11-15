@@ -1,0 +1,235 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { readFileSync } from "node:fs";
+import { NativeTabBar, tabBarLayoutSchema, tabBarSupportSchema, type NativeTabBarBridge, type NativeTabBarState } from "../src/lib/native/tabBar";
+
+const flush = () => new Promise<void>(resolve => setImmediate(resolve));
+const settle = async () => { for (let i = 0; i < 3; i++) { await flush(); await new Promise(resolve => setTimeout(resolve, 3)); } };
+
+const items = [
+  { id: "today", title: "Vandaag", href: "/dashboard" },
+  { id: "learn", title: "Leren", href: "/courses" },
+] as const;
+const state = (patch: Partial<NativeTabBarState> = {}): NativeTabBarState => ({ items, selectedId: "today", visible: true, style: "light", ...patch });
+
+function fixture(options: { platform?: string; support?: unknown; sync?: (payload: unknown, call: number) => Promise<unknown> | unknown } = {}) {
+  const attributes = new Map<string, string>(), styles = new Map<string, string>();
+  const log: string[] = [], payloads: Array<{ items: unknown[]; selectedId: string | null; visible: boolean; style: string }> = [];
+  const hrefs: string[] = [];
+  let changes = 0, removed = 0, select: (value: unknown) => void = () => {}, layout: (value: unknown) => void = () => {};
+  const bridge: NativeTabBarBridge = {
+    support: async () => { log.push("support"); return options.support ?? { version: 1, available: true }; },
+    sync: async payload => {
+      log.push("sync"); payloads.push(payload as never);
+      return options.sync ? options.sync(payload, payloads.length) : { height: 83 };
+    },
+    clear: async () => { log.push("clear"); },
+    listen: async callbacks => { log.push("listen"); select = callbacks.select; layout = callbacks.layout; return { remove: async () => { removed++; } }; },
+  };
+  const root = {
+    getAttribute: (key: string) => attributes.get(key) ?? null,
+    setAttribute: (key: string, value: string) => { attributes.set(key, value); },
+    removeAttribute: (key: string) => { attributes.delete(key); },
+    style: {
+      setProperty: (key: string, value: string) => { styles.set(key, value); },
+      getPropertyValue: (key: string) => styles.get(key) ?? "",
+      removeProperty: (key: string) => { const old = styles.get(key) ?? ""; styles.delete(key); return old; },
+    },
+  };
+  const bar = new NativeTabBar(bridge, { platform: options.platform ?? "ios", root, onSelectHref: href => { hrefs.push(href); }, onChange: () => { changes++; } });
+  return { bar, attributes, styles, log, payloads, hrefs, changes: () => changes, removed: () => removed, select: (v: unknown) => select(v), layout: (v: unknown) => layout(v) };
+}
+
+test("web en Android doen niets: geen bridge, geen attributen", async () => {
+  for (const platform of ["web", "android"]) {
+    const f = fixture({ platform });
+    f.bar.start(); f.bar.update(state()); await settle();
+    assert.deepEqual(f.log, []); assert.equal(f.attributes.size, 0); assert.equal(f.styles.size, 0);
+    f.bar.dispose();
+    assert.deepEqual(f.log, []);
+  }
+});
+
+test("zonder systeemtabbalk (iOS 15–25) blijft de React-balk volledig staan", async () => {
+  const f = fixture({ support: { version: 1, available: false } });
+  f.bar.start(); f.bar.update(state()); await settle();
+  assert.deepEqual(f.log, ["listen", "support"]);
+  assert.equal(f.attributes.size, 0); assert.equal(f.styles.size, 0); assert.equal(f.changes(), 0);
+});
+
+test("ongeldig of ontbrekend supportantwoord telt als niet beschikbaar", async () => {
+  for (const support of [{ version: 2, available: true }, { version: 1, available: "yes" }, { version: 1, available: true, extra: 1 }, "onbekend"]) {
+    const f = fixture({ support });
+    f.bar.start(); f.bar.update(state()); await settle();
+    assert.equal(f.payloads.length, 0, JSON.stringify(support)); assert.equal(f.attributes.size, 0);
+  }
+  assert.equal(tabBarSupportSchema.safeParse({ version: 1, available: true }).success, true);
+});
+
+test("eerst luisteren, dan vragen; eerst ruimte vrijhouden, dan pas tonen", async () => {
+  const f = fixture();
+  f.bar.start(); f.bar.update(state()); await settle();
+  assert.deepEqual(f.log.slice(0, 2), ["listen", "support"]);
+  assert.equal(f.payloads[0].visible, false, "de eerste synchronisatie toont de native balk nog niet");
+  assert.equal(f.payloads.length, 2);
+  assert.equal(f.payloads[1].visible, true, "pas na het vrijhouden van de ruimte verschijnt de native balk");
+  assert.equal(f.attributes.get("data-vs-native-tabbar"), "true");
+  assert.equal(f.styles.get("--vs-native-tabbar-height"), "83px");
+  assert.ok(f.changes() >= 1, "ShellMetrics moet opnieuw meten");
+  assert.deepEqual(f.payloads[1].items, [{ id: "today", title: "Vandaag" }, { id: "learn", title: "Leren" }]);
+  assert.equal(f.payloads[1].selectedId, "today");
+});
+
+test("identieke staat wordt niet opnieuw verstuurd; een wijziging wel (nieuwste wint)", async () => {
+  const f = fixture();
+  f.bar.start(); f.bar.update(state()); await settle();
+  const before = f.payloads.length;
+  f.bar.update(state()); await settle();
+  assert.equal(f.payloads.length, before);
+  f.bar.update(state({ selectedId: "learn" })); f.bar.update(state({ selectedId: "learn", style: "dark" })); await settle();
+  const last = f.payloads.at(-1)!;
+  assert.equal(last.selectedId, "learn"); assert.equal(last.style, "dark");
+});
+
+test("een verborgen React-balk (toetsenbord, focus mode) verbergt ook de native balk, de ruimte blijft", async () => {
+  const f = fixture();
+  f.bar.start(); f.bar.update(state()); await settle();
+  f.bar.update(state({ visible: false })); await settle();
+  assert.equal(f.payloads.at(-1)!.visible, false);
+  assert.equal(f.attributes.get("data-vs-native-tabbar"), "true");
+  f.bar.update(state({ visible: true })); await settle();
+  assert.equal(f.payloads.at(-1)!.visible, true);
+});
+
+test("een tik navigeert via de bestaande href en zet een afwijkende native selectie terug", async () => {
+  const f = fixture();
+  f.bar.start(); f.bar.update(state()); await settle();
+  const before = f.payloads.length;
+  f.select({ id: "learn" }); await settle();
+  assert.deepEqual(f.hrefs, ["/courses"]);
+  assert.ok(f.payloads.length > before, "de gewenste selectie wordt opnieuw gesynchroniseerd, ook bij een geblokkeerde navigatie");
+  assert.equal(f.payloads.at(-1)!.selectedId, "today");
+});
+
+test("ongeldige of onbekende selecties en lay-outs worden genegeerd", async () => {
+  const f = fixture();
+  f.bar.start(); f.bar.update(state()); await settle();
+  const before = f.payloads.length;
+  for (const raw of [{ id: "profile" }, { id: "today", extra: 1 }, { id: 5 }, null, "today", {}]) f.select(raw);
+  await settle();
+  assert.deepEqual(f.hrefs, []); assert.equal(f.payloads.length, before);
+  f.select({ id: "play" }); await settle();
+  assert.deepEqual(f.hrefs, [], "een bestemming die niet in de huidige balk staat navigeert niet");
+  for (const raw of [{ height: -1 }, { height: Infinity }, { height: 9999 }, { height: "83" }, { height: 83, extra: true }]) f.layout(raw);
+  assert.equal(f.styles.get("--vs-native-tabbar-height"), "83px");
+  assert.equal(tabBarLayoutSchema.safeParse({ height: 83 }).success, true);
+});
+
+test("een lay-outwijziging (draaien, grotere tekst) werkt de ruimtehouder bij", async () => {
+  const f = fixture();
+  f.bar.start(); f.bar.update(state()); await settle();
+  const before = f.changes();
+  f.layout({ height: 70.4 });
+  assert.equal(f.styles.get("--vs-native-tabbar-height"), "71px");
+  assert.equal(f.changes(), before + 1);
+});
+
+test("elke fout in de native balk laat de React-balk terugkeren zonder herhaalpoging", async () => {
+  const f = fixture({ sync: (_payload, call) => { if (call === 2) throw new Error("tabbar_unavailable"); return { height: 83 }; } });
+  f.bar.start(); f.bar.update(state()); await settle();
+  assert.equal(f.attributes.size, 0); assert.equal(f.styles.size, 0);
+  const calls = f.payloads.length;
+  f.bar.update(state({ selectedId: "learn" })); await settle();
+  assert.equal(f.payloads.length, calls, "na een fout wordt de native balk niet opnieuw geprobeerd");
+});
+
+test("een ongeldig lay-outantwoord telt als fout", async () => {
+  const f = fixture({ sync: () => ({ height: -5 }) });
+  f.bar.start(); f.bar.update(state()); await settle();
+  assert.equal(f.attributes.size, 0);
+});
+
+test("zonder bestemmingen (uitgelogd) wordt de native balk opgeruimd en komt de ruimte vrij", async () => {
+  const f = fixture();
+  f.bar.start(); f.bar.update(state()); await settle();
+  f.bar.update(state({ items: [], selectedId: null, visible: false })); await settle();
+  assert.equal(f.log.at(-1), "clear");
+  assert.equal(f.attributes.size, 0); assert.equal(f.styles.size, 0);
+  f.bar.update(state()); await settle();
+  assert.equal(f.attributes.get("data-vs-native-tabbar"), "true", "na opnieuw inloggen keert de native balk terug");
+});
+
+test("opruimen verwijdert luisteraars, native balk en alle attributen; late antwoorden doen niets", async () => {
+  const f = fixture();
+  f.bar.start(); f.bar.update(state()); await settle();
+  f.bar.dispose(); await settle();
+  assert.equal(f.removed(), 1); assert.equal(f.log.at(-1), "clear");
+  assert.equal(f.attributes.size, 0); assert.equal(f.styles.size, 0);
+  const calls = f.payloads.length;
+  f.select({ id: "learn" }); f.layout({ height: 90 }); f.bar.update(state()); await settle();
+  assert.deepEqual(f.hrefs, []); assert.equal(f.payloads.length, calls); assert.equal(f.attributes.size, 0);
+  f.bar.dispose();
+});
+
+test("opruimen vóór het supportantwoord zet niets meer en verwijdert de luisteraar", async () => {
+  const f = fixture();
+  f.bar.start(); f.bar.dispose(); await settle();
+  assert.equal(f.removed(), 1); assert.equal(f.payloads.length, 0); assert.equal(f.attributes.size, 0);
+});
+
+test("een bestaand attribuut of hoogte wordt na opruimen hersteld", async () => {
+  const f = fixture();
+  f.attributes.set("data-vs-native-tabbar", "preset"); f.styles.set("--vs-native-tabbar-height", "10px");
+  f.bar.start(); f.bar.update(state()); await settle();
+  f.bar.dispose();
+  assert.equal(f.attributes.get("data-vs-native-tabbar"), "preset"); assert.equal(f.styles.get("--vs-native-tabbar-height"), "10px");
+});
+
+test("contract: de plugin registreert de methoden, beperkt tot de lokale client, en meldt alleen id's en hoogtes", () => {
+  const swift = readFileSync("ios/App/App/VersadoNativePlugin.swift", "utf8");
+  for (const name of ["tabBarSupport", "tabBarSync", "tabBarClear"]) {
+    assert.ok(swift.includes(`CAPPluginMethod(name: "${name}"`), `${name} geregistreerd`);
+    assert.match(swift, new RegExp(`@objc func ${name}[\\s\\S]*?guard localOnly\\(call\\)`), `${name} is localOnly`);
+  }
+  assert.ok(swift.includes('notifyListeners("tabBarSelect", data: ["id": id])'));
+  assert.ok(swift.includes('notifyListeners("tabBarLayout", data: ["height": Double(height)])'));
+  assert.ok(swift.includes("NativeTabBarPolicy.parse"), "payload wordt strikt gevalideerd vóór UIKit");
+  const policy = readFileSync("ios/App/App/NativeTabBarPolicy.swift", "utf8");
+  assert.ok(policy.includes("majorVersion >= 26"), "alleen iOS 26 en nieuwer");
+  assert.doesNotMatch(policy, /import UIKit|import Capacitor/, "beleid blijft zuiver Foundation (macOS-policyproef)");
+  const view = readFileSync("ios/App/App/NativeTabBar.swift", "utf8");
+  assert.match(view, /NativeTabBarPolicy\.symbols\[entry\.id\]/, "symbolen volgen uit het id, nooit uit JavaScript");
+});
+
+test("contract: nieuwe Swift-bestanden en accentkleur zitten in het Xcode-project", () => {
+  const project = readFileSync("ios/App/App.xcodeproj/project.pbxproj", "utf8");
+  for (const file of ["NativeTabBarPolicy.swift", "NativeTabBar.swift"]) {
+    // Eén keer als PBXBuildFile en één keer in de Sources-fase van het doel.
+    assert.equal((project.match(new RegExp(`${file.replace(".", "\\.")} in Sources`, "g")) ?? []).length, 2, `${file} in Sources`);
+    assert.ok(project.includes(`path = ${file};`));
+  }
+  const colors = JSON.parse(readFileSync("ios/App/App/Assets.xcassets/AccentColor.colorset/Contents.json", "utf8")) as { colors: Array<{ appearances?: unknown[]; color: { components: Record<string, string> } }> };
+  assert.equal(colors.colors.length, 2);
+  const [light, dark] = [colors.colors.find(c => !c.appearances)!, colors.colors.find(c => c.appearances)!];
+  const px = (c: typeof light) => ["red", "green", "blue"].map(k => Math.round(parseFloat(c.color.components[k]) * 255));
+  const css = readFileSync("src/app/globals.css", "utf8");
+  const accent = (block: string) => block.match(/--vs-accent:\s*(\d+) (\d+) (\d+);/)!.slice(1).map(Number);
+  const rootBlock = css.slice(css.indexOf("--vs-accent:") - 40);
+  const darkIndex = css.indexOf("--vs-accent:", css.indexOf("--vs-accent:") + 1);
+  assert.deepEqual(px(light), accent(rootBlock));
+  assert.deepEqual(px(dark), accent(css.slice(darkIndex - 40)));
+});
+
+test("contract: de React-balk wordt alleen een ruimtehouder na bevestigde native balk, en ShellMetrics meldt elke meting", () => {
+  const css = readFileSync("src/app/globals.css", "utf8");
+  const rule = css.slice(css.indexOf('html[data-vs-native-tabbar="true"] nav[data-main-nav] {'));
+  assert.match(rule, /height: var\(--vs-native-tabbar-height, 0px\) !important;/);
+  assert.match(rule, /pointer-events: none;/);
+  assert.match(css, /html\[data-vs-native-tabbar="true"\] nav\[data-main-nav\] > \* \{\s*visibility: hidden;/);
+  assert.match(readFileSync("src/components/shell/ShellMetrics.tsx", "utf8"), /dispatchEvent\(new Event\("vs-shell-metrics"\)\)/);
+  const foundation = readFileSync("src/components/native/NativeFoundation.tsx", "utf8");
+  assert.ok(foundation.includes("<NativeTabBarSync items={destinations} />"));
+  const sync = readFileSync("src/components/native/NativeTabBarSync.tsx", "utf8");
+  assert.ok(sync.includes('appPlatform() === "ios"'));
+  assert.ok(sync.includes("t(item.labelKey)"), "labels volgen de bestaande i18n-sleutels van BottomNav");
+});

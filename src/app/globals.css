@@ -843,3 +843,25 @@ html[data-vs-material="glass"][data-text-large] nav[data-main-nav] a > span {
   width: 24px;
   height: 24px;
 }
+/* iOS 26+: de echte systeemtabbalk (UIKit, Liquid Glass) staat over de WebView. De React-balk
+ * blijft dan als onzichtbare ruimtehouder met exact de hoogte van de native balk, zodat
+ * ShellMetrics, <main> en alle bestaande onderruimte-afspraken ongewijzigd blijven. De
+ * attributen worden pas gezet na een bevestigde native balk; zonder die bevestiging
+ * (iOS 15–25, Android, web, een fout) toont de React-balk zichzelf. `!important` houdt de
+ * hoogte gelijk aan de native balk, ook bij grote tekst (de regels hierboven). */
+html[data-vs-native-tabbar="true"] nav[data-main-nav] {
+  box-sizing: border-box;
+  height: var(--vs-native-tabbar-height, 0px) !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  overflow: hidden;
+  background: transparent !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+  pointer-events: none;
+}
+html[data-vs-native-tabbar="true"] nav[data-main-nav] > * {
+  visibility: hidden;
+}

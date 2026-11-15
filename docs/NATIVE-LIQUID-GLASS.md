@@ -30,9 +30,9 @@ dezelfde interface, geen tweede navigator, gekopieerde kaarten of aparte screens
 - Feedback: bestaande knop-/selectie-/focusregels, met begrensde schaduw-/druktransities. Paletwissels zijn atomisch om contrastflitsen te voorkomen.
   Geen nieuwe oneindige animatie, JS-scrollfilter of page-remount voor een overgang.
 
-De visuele laag is een WKWebView/CSS-equivalent van glasmaterialen. De bestaande
-React-bediening wordt niet bedekt door een tweede UIKit-tabbar. Dit claimt geen
-gebruik van `UIGlassEffect` voor HTML of nieuw native navigatiemodel.
+De visuele laag is een WKWebView/CSS-equivalent van glasmaterialen. HTML-inhoud krijgt
+nooit `UIGlassEffect`. Op iOS 26+ vervangt de systeemtabbalk (zie "Stap 2") de CSS-onderbalk;
+op iOS 15–25, Android en web blijft de CSS-variant de enige onderbalk.
 
 ## Echte iOS-toegankelijkheidsinstellingen
 
@@ -125,3 +125,56 @@ Vergelijkbare screenshots: [browserbewijs](native-liquid-glass/README.md).
 4. Fysieke iPhone/iPad-acceptatie van materiaal, Dynamic Type, VoiceOver,
    toetsenbord, rotatie en scrollprestaties, na aparte eigenaarstoestemming
    voor integratie/DEV-uitrol en de volgende TestFlight-build.
+
+## Stap 2 — echte systeemtabbalk op iOS 26+
+
+Besluit eigenaar (november 2026): op iOS 26 en nieuwer is de onderbalk de echte UIKit-tabbalk,
+die als Liquid Glass tekent. Dit herroept uitdrukkelijk de eerdere keuze "geen UIKit-tabbar" uit
+stap 1, voor die ene balk. De navigatie zelf blijft de gedeelde React-router.
+
+**Eén navigatiemodel.** `PRIMARY_NAV`, de vertaalde labels (`nav.*`), `activeDestination` en de
+router blijven de enige bron. `NativeTabBarSync` (uitsluitend in de lokale iOS-app) stuurt
+bestemmings-id, vertaalde titel en gekozen id naar de plugin; een tik meldt alleen het id terug en
+JavaScript navigeert via dezelfde `push` als de React-link. De native balk kent geen routes,
+accountgegevens of netwerk.
+
+**Beschikbaarheid en terugval.** `tabBarSupport` meldt of de systeemtabbalk beschikbaar is
+(iOS 26+, `NativeTabBarPolicy.available`). Alleen na een bevestigde `tabBarSync` zet de adapter
+`data-vs-native-tabbar="true"` en `--vs-native-tabbar-height` op `<html>`; de React-onderbalk wordt
+dan een onzichtbare ruimtehouder met precies die hoogte (`globals.css`), zodat `ShellMetrics`,
+`--nav-height`, `<main>` en alle onderruimte-afspraken ongewijzigd blijven. Bij iOS 15–25,
+Android, web, een fout, een ongeldig antwoord, uitloggen of opruimen verschijnt de React-balk
+weer. De volgorde is altijd: eerst de ruimte vrijhouden (native balk nog onzichtbaar), daarna
+tonen, zodat er nooit twee balken zichtbaar zijn.
+
+**Zichtbaarheid.** De native balk volgt exact de React-balk: `ShellMetrics` meldt na elke meting
+`vs-shell-metrics`; is `--nav-height` 0 (focus mode, immersive, open toetsenbord, uitgelogd, desktop)
+dan wordt de native balk doorzichtig en niet bedienbaar. De ruimtehoogte blijft staan, de hoogte
+komt uit UIKit (inclusief homeindicator) en wordt bij draaien of Dynamic Type via `tabBarLayout`
+bijgewerkt.
+
+**Materiaal.** Standaard `UITabBar`, zonder eigen blur of tekenwerk; gelinkt tegen de iOS 26 SDK
+(CI gebruikt Xcode 26, `UIDesignRequiresCompatibility` staat niet in `Info.plist`) tekent het
+systeem het Liquid Glass-materiaal. Icoon (SF Symbols) volgt uit het id in een vaste lijst, nooit uit
+een door JavaScript meegestuurde naam. De accentkleur komt uit `AccentColor.colorset` (licht en
+donker, gelijk aan `--vs-accent`); `overrideUserInterfaceStyle` volgt de gekozen app-thema's
+(licht/donker) omdat die kunnen afwijken van de systeemmodus. Reduce Transparency, Increase
+Contrast en Dynamic Type worden door UIKit zelf op deze balk toegepast.
+
+**Beveiliging en privacy.** Alleen via de bestaande `localOnly`-poort (lokale `capacitor://localhost`).
+De payload wordt in `NativeTabBarPolicy.parse` strikt gevalideerd (versie, vaste velden, ids uit
+de vier primaire bestemmingen, uniek, 1–4 items, titel 1–32 tekens zonder stuurtekens, selectie
+binnen de balk). Alleen id's en hoogtes gaan terug naar JavaScript. Geen opslag, logging of
+netwerk, en geen nieuwe rechten of backendroute.
+
+**Bekende beperkingen en vervolgacties.**
+- Niet op een toestel of simulator beoordeeld: de balk is hier alleen op Linux ontwikkeld. De
+  TypeScript-adapter, het contract en de Swift-beleidsproef (macOS-CI) zijn getest; het uiterlijk,
+  de hoogte (inclusief homeindicator), touch en VoiceOver op iPhone en iPad zijn nog niet
+  gevalideerd en vereisen een echte build.
+- De Kompas-rondleiding richt zich nog op `data-kompas-target="nav-*"` van de React-balk; op iOS 26
+  zijn die doelen onzichtbaar en ligt de native balk erover. Vervolg: de rondleiding laten
+  accentueren via de native balk of die stap overslaan.
+- Tablets: de balk staat onderaan (niet de zwevende bovenbalk van `UITabBarController`); een
+  iPad-specifieke plaatsing is een aparte, bewuste keuze.
+- iOS 15–25 behoudt de CSS-glasonderbalk uit stap 1.

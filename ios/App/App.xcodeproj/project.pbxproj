@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		A11E10000000000000000005 /* NativeAudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11E00000000000000000005 /* NativeAudioPlayer.swift */; };
+		A11E10000000000000000006 /* NativeTabBarPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11E00000000000000000006 /* NativeTabBarPolicy.swift */; };
+		A11E10000000000000000007 /* NativeTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11E00000000000000000007 /* NativeTabBar.swift */; };
 		A11E10000000000000000004 /* NativeAudioContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11E00000000000000000004 /* NativeAudioContext.swift */; };
 		A11E10000000000000000003 /* NativeAudioTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11E00000000000000000003 /* NativeAudioTransport.swift */; };
 		A11E10000000000000000002 /* NativeAccessTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11E00000000000000000002 /* NativeAccessTransport.swift */; };
@@ -28,6 +30,8 @@
 /* Begin PBXFileReference section */
 		A11E00000000000000000005 /* NativeAudioPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeAudioPlayer.swift; sourceTree = "<group>"; };
 		A11E00000000000000000004 /* NativeAudioContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeAudioContext.swift; sourceTree = "<group>"; };
+		A11E00000000000000000006 /* NativeTabBarPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeTabBarPolicy.swift; sourceTree = "<group>"; };
+		A11E00000000000000000007 /* NativeTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeTabBar.swift; sourceTree = "<group>"; };
 		A11E00000000000000000003 /* NativeAudioTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeAudioTransport.swift; sourceTree = "<group>"; };
 		A11E00000000000000000002 /* NativeAccessTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeAccessTransport.swift; sourceTree = "<group>"; };
 		2FAD9762203C412B000D30F8 /* config.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = config.xml; sourceTree = "<group>"; };
@@ -87,6 +91,8 @@
 				A11E00000000000000000003 /* NativeAudioTransport.swift */,
 				A11E00000000000000000005 /* NativeAudioPlayer.swift */,
 				A11E00000000000000000004 /* NativeAudioContext.swift */,
+				A11E00000000000000000006 /* NativeTabBarPolicy.swift */,
+				A11E00000000000000000007 /* NativeTabBar.swift */,
 				504EC30B1FED79650016851F /* Main.storyboard */,
 				504EC30E1FED79650016851F /* Assets.xcassets */,
 				504EC3101FED79650016851F /* LaunchScreen.storyboard */,
@@ -187,6 +193,8 @@
 				A11E10000000000000000003 /* NativeAudioTransport.swift in Sources */,
 				A11E10000000000000000005 /* NativeAudioPlayer.swift in Sources */,
 				A11E10000000000000000004 /* NativeAudioContext.swift in Sources */,
+				A11E10000000000000000006 /* NativeTabBarPolicy.swift in Sources */,
+				A11E10000000000000000007 /* NativeTabBar.swift in Sources */,
 				9582B6832FE993A70072D4E8 /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

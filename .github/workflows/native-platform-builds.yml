@@ -10,6 +10,7 @@ on:
       - 'capacitor.config.ts'
       - 'scripts/native/**'
       - 'tests/native-access-policy.swift'
+      - 'tests/native-tabbar-policy.swift'
       - 'tests/native-audio*'
       - 'tests/fixtures/native-audio/**'
       - 'tests/native-android-release*'
@@ -205,6 +206,8 @@ jobs:
           "$RUNNER_TEMP/versado-audio-transport" tests/fixtures/native-audio/synthetic.mp3
           swiftc -swift-version 5 -target "$(uname -m)-apple-macos14.0" ios/App/App/NativeAccessTransport.swift ios/App/App/NativeAudioTransport.swift ios/App/App/NativeAudioContext.swift tests/native-audio-context.swift -o "$RUNNER_TEMP/versado-audio-context"
           "$RUNNER_TEMP/versado-audio-context" tests/fixtures/native-audio/playback.json
+          swiftc -swift-version 5 ios/App/App/NativeTabBarPolicy.swift tests/native-tabbar-policy.swift -o "$RUNNER_TEMP/versado-tabbar-policy"
+          "$RUNNER_TEMP/versado-tabbar-policy"
       - name: Echte iOS-simulatorcompilatie zonder signing
         # Verzamel ook compilebewijs wanneer een onafhankelijke policyproef faalt; job blijft rood.
         if: ${{ !cancelled() && steps.ios-bundle.outcome == 'success' }}
