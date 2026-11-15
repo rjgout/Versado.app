@@ -8,10 +8,16 @@ on:
       - 'src/lib/native/**'
       - '.github/workflows/mobile-poc.yml'
   workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Welke runtime-job(s): all, android of ios'
+        default: all
+        type: choice
+        options: [all, android, ios]
 permissions:
   contents: read
 concurrency:
-  group: mobile-poc-${{ github.event_name }}-${{ github.head_ref || github.ref_name }}
+  group: mobile-poc-${{ github.event_name }}-${{ github.event_name == 'workflow_dispatch' && github.run_id || github.head_ref || github.ref_name }}
   cancel-in-progress: true
 jobs:
   logic-and-flow:
@@ -70,7 +76,7 @@ jobs:
   # accounts en een wegwerpbackend, nooit productiegegevens. Een geslaagde build telt niet als runtime-bewijs: de flows
   # (apps/mobile-poc/e2e) drijven de draaiende app aan en controleren het server-effect met een tweede client.
   android-runtime:
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' && inputs.platform != 'ios'
     runs-on: ubuntu-latest
     timeout-minutes: 75
     services:
@@ -140,7 +146,7 @@ jobs:
             apps/mobile-poc/android/app/build/outputs/apk/*/*.apk
           if-no-files-found: warn
   ios-runtime:
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' && inputs.platform != 'android'
     runs-on: macos-26-intel
     timeout-minutes: 90
     env:
