@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
-const reader = read("src/components/LessonFlow.tsx");
+const reader = read("src/components/learning/SharedLessonFlow.tsx");
 const player = read("src/components/ReadAloudPlayer.tsx");
 const actions = read("src/components/annotations/AnnotationActionsView.tsx");
 const menu = read("src/components/annotations/useVerseAnnotationMenu.tsx");

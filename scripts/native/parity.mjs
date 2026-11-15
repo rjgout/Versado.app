@@ -4,6 +4,7 @@ import { resolve, relative, dirname, join } from "node:path";
 import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
+import {GAME_PAGE_ROUTES} from "../../src/lib/native/gamesPagesRoutes.ts";
 
 const HTTP = new Set(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]);
 export function filesIn(root) {
@@ -35,7 +36,7 @@ export function inspectModule(file, source) {
       if (call === "import" && node.arguments[0] && ts.isStringLiteral(node.arguments[0])) imports.add(node.arguments[0].text);
       if (/^(getCurrentUser(Id)?|require\w*|assert\w*|can\w*|nativeUser|nativeApi|verify\w*|get\w*Access)$/.test(call)) checks.add(call);
       const input = node.arguments[0];
-      if (input && /(?:fetch|fetchJson|jsonMutation|\.api|\.publicRequest)$/.test(call)) {
+      if (input && /(?:fetch|applicationFetch|fetchJson|jsonMutation|\.api|\.publicRequest)$/.test(call)) {
         if (ts.isStringLiteral(input) || ts.isNoSubstitutionTemplateLiteral(input)) requests.add(input.text);
         else if (ts.isTemplateExpression(input)) requests.add(input.getText(ast).slice(1, -1));
       }
@@ -72,6 +73,8 @@ export function domainFor(route) {
  * Volledig betekent dezelfde aanwezige schermfuncties; ontbrekende doelroutes
  * en platformfuncties maken een rij gedeeltelijk. Nieuwe routes vallen dicht. */
 export function iosCoverageFor(route) {
+  if(GAME_PAGE_ROUTES.some(row=>row.path===route))return {status:"gedeeltelijk",native:route,reason:"Canonieke spel-/lees-/actiepresentatie lokaal via games-v1; gezamenlijke spel- en platformacceptatie nog open (NATIVE-GAMES.md)"};
+  if(route==="/kompas/[topicId]")return {status:"gedeeltelijk",native:"/kompas/play en alle play.<spel>-uitleg",reason:"Gedeelde volledige speluitleg en tour; overige Kompas-onderwerpen nog niet lokaal aangesloten"};
   const complete = new Set(["/privacy", "/cookies", "/disclaimer", "/profile/avatar", "/change-password", "/reset-password", "/verify-email", "/account-verwijderen"]);
   if (complete.has(route)) return { status: "volledig", native: route, reason: "Gedeelde lokale inhoud/formulieren en bestaande services; fysieke heracceptatie apart" };
   if (route.startsWith("/profile?view=")) return { status: "gedeeltelijk", native: route, reason: "Gedeelde profielweergave; totale instelling-/bestemmingspariteit en fysieke acceptatie nog open (NATIVE-PROFILE.md)" };

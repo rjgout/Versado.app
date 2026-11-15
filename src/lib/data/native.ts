@@ -1,3 +1,10 @@
+import {gameAudioPath,nativeGamePlaybackSchema,nativeGameAudioScope,type NativeGameAudioSelection} from "@/lib/native/gamesAudioContract";
+import {packagedGameManifest} from "@/lib/native/gamesAssets";
+import {nativeGameFetch,type GameActor} from "@/lib/native/gamesClient";
+import {nativeGamePageSchema} from "@/lib/native/gamesPageContract";
+import {gamePageRoute} from "@/lib/native/gamesPagesRoutes";
+import {INTERNAL_ACCESS_ORIGIN,TEST_API_ORIGIN} from "@/lib/native/access";
+import type {ApplicationRuntime} from "./applicationRuntime";
 import { twoFactorCommand,type TwoFactorCommand } from "@/lib/account/twoFactorContract";
 import { nativeProfileAction,nativeProfileActionResult,nativeProfileSchema,nativeProfileTwoFactorResult,type NativeProfileMutation } from "@/lib/native/profileContract";
 // Native adapter van dezelfde LiveDataStore als web. Geen cookiesocket,
@@ -13,7 +20,7 @@ import { DATA_EVENT_SOCKET_NAME,SOCKET_EVENT_TO_DATA_EVENT,dataEventsForSocketEv
 import { LiveDataStore,serializeKey,type LiveEnvironment,type QueryKey } from "./store";
 
 import type { AnnotationAction } from "@/lib/annotations/contract";
-import { nativeAnnotationContext,nativeAnnotationList,nativeAnnotationMutation,nativeAnnotationResult,type NativeAnnotationList } from "@/lib/native/annotationsContract";
+import { nativeGameAnnotationScope,nativeGameAnnotationList,nativeGameAnnotationResult,type NativeReaderAnnotationList,nativeAnnotationContext,nativeAnnotationList,nativeAnnotationMutation,nativeAnnotationResult,nativeAnnotationScope } from "@/lib/native/annotationsContract";
 import { nativePlaybackSchema,type NativePlayback } from "@/lib/native/audioPlaybackContract";
 import { nativeCourseId,nativeCoursePathSchema,nativeCoursesSchema } from "@/lib/native/coursesContract";
 import { NativeLearningFlow } from "@/lib/native/learningFlow";
@@ -33,12 +40,14 @@ export function nativeLearningTransientError(error: unknown): boolean {
     (["native_request_failed", "request_failed", "invalid_response"].includes(error.code) && error.status >= 500 && error.status < 600));
 }
 
-export const nativePlaybackQueryKey = (reader: NativeReader) =>
-  ["reader-audio",reader.userId,reader.activeCollectionId,reader.selectionVersion,reader.language,reader.sourceLanguage,reader.courseId,reader.kind,reader.targetId,reader.chapterId,reader.startVerse,reader.endVerse] as const;
+export const nativePlaybackQueryKey = (reader: NativeReader|NativeGameAudioSelection) =>
+  "game" in reader ? ["game-audio",reader.userId,reader.activeCollectionId,reader.selectionVersion,reader.language,reader.sourceLanguage,JSON.stringify(reader.game),reader.chapterId,reader.startVerse,reader.endVerse] as const : ["reader-audio",reader.userId,reader.activeCollectionId,reader.selectionVersion,reader.language,reader.sourceLanguage,reader.courseId,reader.kind,reader.targetId,reader.chapterId,reader.startVerse,reader.endVerse] as const;
 
-export const nativeAnnotationQueryKey = (reader: NativeReader) =>
-  ["reader-annotations",reader.userId,reader.activeCollectionId,reader.selectionVersion,reader.language,reader.courseId,reader.kind,reader.targetId,reader.chapterId,reader.startVerse,reader.endVerse] as const;
-function annotationPath(reader: NativeReader) {
+type AnnotationReader=NativeReader|NativeGameAudioSelection;
+export const nativeAnnotationQueryKey = (reader: AnnotationReader) =>
+  "game" in reader?["game-reader-annotations",reader.userId,reader.activeCollectionId,reader.selectionVersion,reader.language,reader.game.kind,reader.game.id,reader.chapterId,reader.startVerse,reader.endVerse] as const : ["reader-annotations",reader.userId,reader.activeCollectionId,reader.selectionVersion,reader.language,reader.courseId,reader.kind,reader.targetId,reader.chapterId,reader.startVerse,reader.endVerse] as const;
+function annotationPath(reader: AnnotationReader) {
+  if("game" in reader){if(reader.game.kind!=="reading"||reader.game.id!==reader.chapterId)throw new NativeClientError("content_unavailable",404);return `games/reading/${nativeCourseId.parse(reader.game.id)}/annotations`;}
   return `courses/${nativeCourseId.parse(reader.courseId)}/read/${nativeReaderKind.parse(reader.kind)}/${nativeCourseId.parse(reader.targetId)}/annotations`;
 }
 
@@ -50,6 +59,9 @@ export const nativeTodayQueryKey = (state: Pick<NativeTodayOverview, "userId" | 
 export class NativeDataRuntime {
   readonly store: LiveDataStore;
   private epoch = 0;
+  private gameActor: GameActor | null = null;
+  private sharedSocket: {value:Socket;stamp:string} | null = null;
+  private gameHttp: typeof fetch | null = null;
   private profileSignal: ((event:"friend_profile_changed"|"presence_settings_changed")=>void)|undefined;
   private activeLearning: NativeLearningFlow | null = null;
   private pendingTodayActions = new Set<string>();
@@ -57,7 +69,7 @@ export class NativeDataRuntime {
   constructor(readonly client: NativeSessionClient, private readonly environment: LiveEnvironment) { this.store = new LiveDataStore(environment); }
   getSnapshot = () => this.epoch;
   subscribe = (listener: () => void) => { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; };
-  reset = () => { this.profileSignal=undefined;this.activeLearning?.dispose(); this.activeLearning=null; this.epoch++; this.store.reset(); for (const listener of this.listeners) listener(); };
+  reset = () => { this.gameActor=null;this.sharedSocket=null;this.profileSignal=undefined;this.activeLearning?.dispose(); this.activeLearning=null; this.epoch++; this.store.reset(); for (const listener of this.listeners) listener(); };
   learningFlow(reader:NativeReader) {
     const epoch=this.epoch,stamp=this.client.getSessionStamp();
     const key=["native",epoch,"scripture-learning-flow",stamp,reader.userId,reader.activeCollectionId,reader.selectionVersion,reader.language,reader.courseId,reader.kind,reader.targetId,reader.chapterId,reader.startVerse,reader.endVerse] as const;
@@ -70,7 +82,46 @@ export class NativeDataRuntime {
     });
     return this.activeLearning;
   }
-  async account() { return nativeAccountSchema.parse(await this.client.api("me")); }
+  async account() {
+    const epoch=this.epoch,stamp=this.client.getSessionStamp(),value=nativeAccountSchema.parse(await this.client.api("me"));
+    if(epoch!==this.epoch||stamp!==this.client.getSessionStamp())throw new NativeClientError("session_changed",409);
+    this.gameActor={id:value.id,stamp};return value;
+  }
+  bindSharedSocket(socket:Socket) {
+    const slot={value:socket,stamp:this.client.getSessionStamp()};this.sharedSocket=slot;
+    return ()=>{if(this.sharedSocket===slot)this.sharedSocket=null;};
+  }
+  gameSocket() {
+    if(!this.sharedSocket||this.sharedSocket.stamp!==this.client.getSessionStamp())throw new NativeClientError("native_realtime_unavailable",503);
+    return this.sharedSocket.value;
+  }
+  application():ApplicationRuntime {
+    return {store:this.store,socket:()=>this.gameSocket(),selectGameContent:async(id,href)=>{
+      const actor=this.gameActor;
+      if(!actor||actor.stamp!==this.client.getSessionStamp()||!gamePageRoute(href))throw new NativeClientError("session_changed",409);
+      const state=await this.contentContext(actor.id);
+      await this.selectContent(actor.id,{contentCollectionId:id,expectedSelection:state.picker.selection,expectedSelectionVersion:state.picker.selectionVersion,location:href});
+    },request:(input,init)=>{
+      const manifest=typeof input==="string"&&(!init?.method||init.method==="GET")?packagedGameManifest(input):undefined;
+      if(manifest!==undefined)return Promise.resolve(new Response(JSON.stringify(manifest),{headers:{"Content-Type":"application/json"}}));
+      this.gameHttp??=nativeGameFetch(this.client,()=>this.gameActor);
+      return this.gameHttp(input,init);
+    },capture:()=>{
+      const stamp=this.client.getSessionStamp(),epoch=this.epoch;
+      if(!this.gameActor||this.gameActor.stamp!==stamp)throw new NativeClientError("session_changed",409);
+      return()=>{if(stamp!==this.client.getSessionStamp()||epoch!==this.epoch)throw new NativeClientError("session_changed",409);};
+    }};
+  }
+  async gamePage(userId:string,language:string,expected:{activeCollectionId:string|null;selectionVersion:number},route:string) {
+    const epoch=this.epoch;
+    if(!gamePageRoute(route))throw new NativeClientError("content_unavailable",404);
+    const result=nativeGamePageSchema.parse(await this.client.api(`games/page?route=${encodeURIComponent(route)}`));
+    if(result.path!==route)throw new NativeClientError("invalid_response",502);
+    const backend=new URL(this.client.baseUrl).origin;
+    const allowed=backend===TEST_API_ORIGIN?INTERNAL_ACCESS_ORIGIN:backend;
+    if(result.shareOrigin!==allowed)throw new NativeClientError("invalid_response",502);
+    return this.studyResponse(result,epoch,userId,language,expected);
+  }
   async learning(userId: string, expected: { activeCollectionId: string | null; selectionVersion: number }, courseId?: string) {
     const epoch = this.epoch;
     const path = courseId ? `courses/${nativeCourseId.parse(courseId)}/path` : "courses";
@@ -103,6 +154,14 @@ export class NativeDataRuntime {
     if(current.courseId!==reader.courseId||current.kind!==reader.kind||current.targetId!==reader.targetId||current.chapterId!==reader.chapterId||current.startVerse!==reader.startVerse||current.endVerse!==reader.endVerse||current.sourceLanguage!==reader.sourceLanguage||current.verses.some((v,i)=>v.id!==reader.verses[i]?.id||v.text!==reader.verses[i]?.text||v.number!==reader.verses[i]?.number))throw new NativeClientError("content_context_changed",409);
     return result;
   }
+  async gameReaderPlayback(reader:NativeGameAudioSelection,renew=false){
+    const epoch=this.epoch;this.studyResponse(reader,epoch,reader.userId,reader.language,reader);
+    const expected=nativeGameAudioScope.parse(reader),path=gameAudioPath(expected.game)+"/playback";
+    const result=nativeGamePlaybackSchema.parse(await(renew?this.client.renewReaderAudio(path):this.client.api(path)));
+    this.studyResponse(result.reader,epoch,reader.userId,reader.language,reader);
+    if(JSON.stringify(nativeGameAudioScope.parse(result.reader))!==JSON.stringify(expected)||result.reader.sourceLanguage!==reader.sourceLanguage||JSON.stringify(result.reader.verses)!==JSON.stringify(reader.verses))throw new NativeClientError("content_context_changed",409);
+    return result;
+  }
   async readerResume(userId:string,language:string,expected:{activeCollectionId:string|null;selectionVersion:number},courseId:string,kind:NativeReaderKind,targetId:string,positionEnabled:boolean):Promise<ReaderResume> {
     if(!positionEnabled)return {reader:await this.reader(userId,language,expected,courseId,kind,targetId),positionVersion:0,previous:null,next:null};
     const epoch=this.epoch;
@@ -131,21 +190,22 @@ export class NativeDataRuntime {
       return result;
     };
   }
-  private annotationResponse(value:NativeAnnotationList,reader:NativeReader,epoch:number) {
+  sharedQueryPrefix():QueryKey{return ["native",this.epoch,"shared",this.client.getSessionStamp()];}
+  private annotationResponse(value:NativeReaderAnnotationList,reader:AnnotationReader,epoch:number) {
     this.studyResponse(value,epoch,reader.userId,reader.language,reader);
-    if(value.courseId!==reader.courseId||value.kind!==reader.kind||value.targetId!==reader.targetId||value.chapterId!==reader.chapterId||value.startVerse!==reader.startVerse||value.endVerse!==reader.endVerse||value.annotations.some(row=>!reader.verses.some(verse=>verse.id===row.target.verseId)))throw new NativeClientError("content_context_changed",409);
+    if(JSON.stringify("game" in value?nativeGameAnnotationScope.parse(value):nativeAnnotationScope.parse(value))!==JSON.stringify("game" in reader?nativeGameAnnotationScope.parse(reader):nativeAnnotationScope.parse(reader))||value.annotations.some(row=>!reader.verses.some(verse=>verse.id===row.target.verseId)))throw new NativeClientError("content_context_changed",409);
     return value;
   }
-  async readerAnnotations(reader:NativeReader,verseId?:string) {
+  async readerAnnotations(reader:AnnotationReader,verseId?:string) {
     const epoch=this.epoch;
     this.studyResponse(reader,epoch,reader.userId,reader.language,reader);
     if(verseId&&!reader.verses.some(verse=>verse.id===verseId))throw new NativeClientError("content_unavailable",404);
-    const result=nativeAnnotationList.parse(await this.client.api(annotationPath(reader)+(verseId?`/${nativeCourseId.parse(verseId)}`:"")));
+    const result=("game" in reader?nativeGameAnnotationList:nativeAnnotationList).parse(await this.client.api(annotationPath(reader)+(verseId?`/${nativeCourseId.parse(verseId)}`:"")));
     this.annotationResponse(result,reader,epoch);
     if(verseId&&result.annotations.some(row=>row.target.verseId!==verseId))throw new NativeClientError("invalid_response");
     return result;
   }
-  async mutateReaderAnnotation(reader:NativeReader,action:AnnotationAction,method:"PUT"|"DELETE") {
+  async mutateReaderAnnotation(reader:AnnotationReader,action:AnnotationAction,method:"PUT"|"DELETE") {
     const epoch=this.epoch;
     this.studyResponse(reader,epoch,reader.userId,reader.language,reader);
     const input=nativeAnnotationMutation.parse({operation:method==="DELETE"?"delete":"put",context:nativeAnnotationContext.parse(reader),action});
@@ -156,18 +216,19 @@ export class NativeDataRuntime {
     const account=await this.account();
     this.studyResponse(reader,epoch,reader.userId,reader.language,reader);
     if(account.id!==reader.userId)throw new NativeClientError("session_changed",409);
-    const result=nativeAnnotationResult.parse(await this.client.actionOnce(annotationPath(reader),input));
+    const result=("game" in reader?nativeGameAnnotationResult:nativeAnnotationResult).parse(await this.client.actionOnce(annotationPath(reader),input));
     this.annotationResponse({...result,annotations:[result.annotation],complete:true},reader,epoch);
     if(result.actionId!==input.action.actionId||result.annotation.kind!==input.action.kind||result.annotation.targetKey!==`verse:${input.action.target.verseId}`||result.annotation.mutationVersion!==input.action.expectedVersion+1||result.annotation.deleted!==(method==="DELETE"))throw new NativeClientError("invalid_response");
     // Alleen bevestigde serverdata; writeVersion beschermt tegen oudere GETs.
-    this.store.setData<NativeAnnotationList>(["native",epoch,...nativeAnnotationQueryKey(reader)],old=>{
+    let confirmed=result.annotation;
+    this.store.setData<NativeReaderAnnotationList>([...("game" in reader?this.sharedQueryPrefix():["native",epoch]),...nativeAnnotationQueryKey(reader)],old=>{
       if(!old)return old;
       const current=old.annotations.find(row=>row.kind===result.annotation.kind&&row.targetKey===result.annotation.targetKey);
-      if(current&&current.mutationVersion>result.annotation.mutationVersion)return old;
+      if(current&&current.mutationVersion>result.annotation.mutationVersion){confirmed=current;return old;}
       return {...old,annotations:[...old.annotations.filter(row=>row.kind!==result.annotation.kind||row.targetKey!==result.annotation.targetKey),result.annotation]};
     });
     this.store.invalidate("annotationsChanged");
-    return result;
+    return {...result,annotation:confirmed};
   }
   async studyCourse(userId:string,language:string,expected:{activeCollectionId:string|null;selectionVersion:number},courseId:string,scope:"weeks"|"archive") {
     const epoch=this.epoch;

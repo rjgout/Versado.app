@@ -1,7 +1,7 @@
 "use client";
 
 import { useT } from "@/components/I18nProvider";
-import { useKompas } from "@/components/kompas/KompasProvider";
+import { useKompas } from "@/components/kompas/KompasRuntimeProvider";
 import { KompasIcon } from "@/components/kompas/KompasIcon";
 import { primaryButton, secondaryButton } from "@/components/versado/styles";
 import { useLiveQuery } from "@/lib/data/hooks";

@@ -34,7 +34,9 @@ export const nativeReaderSchema = z
       .max(500),
   })
   .strict()
-  .superRefine((value, ctx) => {
+  .superRefine(nativeReaderBounds);
+/** Dezelfde begrensde tekstsnapshot voor cursuslezen en spelgebonden audio. */
+export function nativeReaderBounds(value:{startVerse:number;endVerse:number;focusVerse:number;verses:{id:string;number:number}[]},ctx:z.RefinementCtx){
     if (
       value.endVerse < value.startVerse ||
       value.verses.length !== value.endVerse - value.startVerse + 1 ||
@@ -46,6 +48,8 @@ export const nativeReaderSchema = z
         NATIVE_READER_MAX_BYTES
     )
       ctx.addIssue({ code: "custom", message: "reader_contract_invalid" });
-  });
+
+}
+
 export type NativeReader = z.infer<typeof nativeReaderSchema>;
 export type NativeReaderKind = z.infer<typeof nativeReaderKind>;

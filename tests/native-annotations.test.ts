@@ -14,7 +14,7 @@ const row={id:"bookmark",kind:"bookmark" as const,targetKey:"verse:verse2",targe
 const action={kind:"bookmark" as const,target:row.target,expectedVersion:0,actionId:"00000000-0000-4000-8000-000000000001"};
 const environment:LiveEnvironment={now:()=>1000,random:()=>0,isOnline:()=>true,isVisible:()=>true,schedule:()=>()=>{}};
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
-function fixture(api:(path:string)=>Promise<unknown>,write:(path:string,body:unknown)=>Promise<unknown>=async()=>({ ...scope,actionId:action.actionId,changed:true,annotation:row }),env=environment){return new NativeDataRuntime({api,actionOnce:write} as unknown as NativeSessionClient,env);}
+function fixture(api:(path:string)=>Promise<unknown>,write:(path:string,body:unknown)=>Promise<unknown>=async()=>({ ...scope,actionId:action.actionId,changed:true,annotation:row }),env=environment){return new NativeDataRuntime({api,actionOnce:write,getSessionStamp:()=>"synthetic-session"} as unknown as NativeSessionClient,env);}
 
 test("native annotaties gebruiken bestaande UUID/versie/kleur/notitielimiet en alleen verzen",()=>{
  const base={operation:"put",context:nativeAnnotationContext.parse(reader),action};
@@ -79,7 +79,7 @@ test("late POST-bevestiging mag account B nooit cachedata of opgeslagen-status v
 });
 test("web/native gebruiken dezelfde menu- en versbediening zonder webtransport in native presentatie",()=>{
  const read=(p:string)=>readFileSync(p,"utf8");
- for(const p of ["src/components/LessonFlow.tsx","src/components/native/NativeReaderView.tsx"])assert.match(read(p),/useVerseAnnotationMenu/);
+ for(const p of ["src/components/learning/SharedLessonFlow.tsx","src/components/native/NativeReaderView.tsx"])assert.match(read(p),/useVerseAnnotationMenu/);
  assert.match(read("src/components/annotations/AnnotationActions.tsx"),/<AnnotationActionsView/);
  assert.match(read("src/components/native/NativeReaderView.tsx"),/<AnnotationActionsView/);
  assert.doesNotMatch(read("src/components/annotations/AnnotationActionsView.tsx"),/data\/client|fetchJson|jsonMutation|next\//);

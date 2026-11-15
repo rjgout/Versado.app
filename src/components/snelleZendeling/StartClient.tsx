@@ -1,8 +1,11 @@
 "use client";
+import {applicationFetch} from "@/lib/data/applicationRuntime";
 
-import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+
+import {useGameSearchParams} from "@/components/games/GameNavigation";
+import { useEffect,useState } from "react";
+import {AppLink as Link} from "@/components/navigation/AppNavigation";
+import {useGameRouter as useRouter} from "@/components/games/GameNavigation";
 import PersonalMascot, { useCompanion } from "@/components/versado/PersonalMascot";
 import { primaryButton, secondaryButton } from "@/components/versado/styles";
 import { useT } from "@/components/I18nProvider";
@@ -12,6 +15,8 @@ import { QUICK_MISSIONARY_RANKING_HREF } from "@/lib/navigation";
 
 export default function QuickMissionaryStartClient() {
   const t = useT();
+  const view=useGameSearchParams().get("view");
+  useEffect(()=>{if(view==="leaderboard")document.getElementById("quick-missionary-leaderboard")?.scrollIntoView({block:"start"});},[view]);
   const router = useRouter();
   const { character } = useCompanion();
   const [starting, setStarting] = useState(false);
@@ -24,7 +29,7 @@ export default function QuickMissionaryStartClient() {
     setCreatingTogether(true);
     setError(false);
     try {
-      const response = await fetch("/api/snelle-zendeling/together", { method: "POST", credentials: "same-origin", cache: "no-store" });
+      const response = await applicationFetch("/api/snelle-zendeling/together", { method: "POST", credentials: "same-origin", cache: "no-store" });
       const data = await response.json().catch(() => ({}));
       if (!response.ok || typeof data.code !== "string") {
         setError(true);
@@ -43,7 +48,7 @@ export default function QuickMissionaryStartClient() {
     setStarting(true);
     setError(false);
     try {
-      const response = await fetch("/api/snelle-zendeling/runs", {
+      const response = await applicationFetch("/api/snelle-zendeling/runs", {
         method: "POST",
         credentials: "same-origin",
         cache: "no-store",

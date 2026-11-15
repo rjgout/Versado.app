@@ -1,3 +1,4 @@
+import { nativeGameRequestUser } from "@/lib/games/requestIdentity.server";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/db";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
@@ -9,6 +10,8 @@ export async function navigationSessionKey(): Promise<string> {
 }
 
 export async function getCurrentUserId(): Promise<string | null> {
+  const actor = await nativeGameRequestUser();
+  if (actor !== undefined) return actor?.id ?? null;
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   if (!token) return null;
@@ -17,6 +20,8 @@ export async function getCurrentUserId(): Promise<string | null> {
 }
 
 export async function getCurrentUser() {
+  const actor = await nativeGameRequestUser();
+  if (actor !== undefined) return actor;
   const userId = await getCurrentUserId();
   if (!userId) return null;
   return prisma.user.findUnique({ where: { id: userId } });

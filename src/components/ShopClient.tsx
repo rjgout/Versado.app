@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { applicationFetch } from "@/lib/data/applicationRuntime";
 import { announceXpChanged } from "@/lib/xpBroadcast";
 import { useT } from "@/components/I18nProvider";
 import AppSelect from "@/components/AppSelect";
@@ -79,7 +80,7 @@ export default function ShopClient() {
     if (!data) return;
     setBuyingHints(true);
     setHintMessage(null);
-    const res = await fetch("/api/shop/hints", {
+    const res = await applicationFetch("/api/shop/hints", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ quantity: hintQuantity }),
@@ -99,7 +100,7 @@ export default function ShopClient() {
     if (!data) return;
     setBuyingFreezes(true);
     setFreezeMessage(null);
-    const res = await fetch("/api/shop/freezes", {
+    const res = await applicationFetch("/api/shop/freezes", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ quantity: freezeQuantity }),

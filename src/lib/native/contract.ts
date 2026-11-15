@@ -25,7 +25,7 @@ export const nativeShellHeaderSchema = z.object({
   }),
 });
 export type NativeShellHeader = z.infer<typeof nativeShellHeaderSchema>;
-export const nativeAccountSchema = z.object({ id: z.string(), handle: z.string(), uiLanguage: z.string(), onboardingRequired: z.boolean(), appleLinked: z.boolean(), passwordLoginEnabled: z.boolean(), totpEnabled: z.boolean().default(false), shellHeader: nativeShellHeaderSchema.optional() });
+export const nativeAccountSchema = z.object({ id: z.string(), handle: z.string(), uiLanguage: z.string(), onboardingRequired: z.boolean(), appleLinked: z.boolean(), passwordLoginEnabled: z.boolean(), totpEnabled: z.boolean().default(false), companion:z.enum(["novi","varo","vera"]).optional(),shellHeader: nativeShellHeaderSchema.optional() });
 export const nativeTodaySchema = z.object({ selectionVersion: z.number().int().nonnegative().optional(), activity: z.object({ id: z.string(), title: z.string() }).nullable() });
 export const nativeChapterSchema = z.object({ contentCollectionId: z.string().optional(), selectionVersion: z.number().int().nonnegative().optional(), id: z.string(), title: z.string(), verses: z.array(z.object({ number: z.number().int().positive(), text: z.string() })).max(499), state: z.object({ read: z.enum(["UNREAD", "READING", "READ"]) }).passthrough() });
 export type NativeAccount = z.infer<typeof nativeAccountSchema>;

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import {AppLink as Link} from "@/components/navigation/AppNavigation";
 import { Check, ChevronRight } from "lucide-react";
 import { TopicIcon } from "@/components/kompas/KompasIcon";
 import { interactiveCard } from "@/components/versado/styles";

@@ -1,7 +1,9 @@
 "use client";
+import {applicationFetch} from "@/lib/data/applicationRuntime";
+
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
-import { usePathname } from "next/navigation";
+import {useGamePathname as usePathname} from "@/components/games/GameNavigation";
 import { X } from "lucide-react";
 import StreakContinuationCardView, { ReturnProgress } from "@/components/today/StreakContinuationCardView";
 import { useT } from "@/components/I18nProvider";
@@ -47,7 +49,7 @@ export function StreakContinuationProvider({ userId, children }: { userId?: stri
     })) return;
     claimingCelebration.current = true;
     try {
-      const response = await fetch("/api/streak/celebration", { method: "POST", cache: "no-store" });
+      const response = await applicationFetch("/api/streak/celebration", { method: "POST", cache: "no-store" });
       if (!response.ok) return;
       const result = (await response.json()) as { show: boolean; streak: number | null; dayKey: string | null };
       if (result.show && result.streak !== null && result.dayKey) {
@@ -84,7 +86,7 @@ export function StreakContinuationProvider({ userId, children }: { userId?: stri
       if (busy) { pending = true; return; }
       busy = true;
       try {
-        const response = await fetch("/api/streak/continuation", { method: "POST", cache: "no-store" });
+        const response = await applicationFetch("/api/streak/continuation", { method: "POST", cache: "no-store" });
         if (!response.ok || cancelled) return;
         const next: StreakContinuationView = await response.json();
         if (cancelled) return;

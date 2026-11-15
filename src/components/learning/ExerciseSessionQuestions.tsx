@@ -1,4 +1,6 @@
 "use client";
+import {applicationFetch} from "@/lib/data/applicationRuntime";
+
 // De bestaande vraagpresentatie, los van webreader/navigatie. De adapter
 // levert controle/inzending; de server blijft de enige beoordelaar.
 import { useEffect, useMemo, useState } from "react";
@@ -220,7 +222,7 @@ function HintControl({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/hints")
+    applicationFetch("/api/hints")
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data && typeof data.hintBalance === "number")
@@ -234,7 +236,7 @@ function HintControl({
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/exercises/${exercise.id}/hint`, {
+      const res = await applicationFetch(`/api/exercises/${exercise.id}/hint`, {
         method: "POST",
       });
       const data = await res.json();
@@ -383,7 +385,7 @@ export function ExerciseCard({
         setGivenAnswer(given);
         return;
       }
-      const res = await fetch(
+      const res = await applicationFetch(
         checkEndpoint ?? `/api/exercises/${exercise.id}/check`,
         {
           method: "POST",

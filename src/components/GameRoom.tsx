@@ -1,7 +1,9 @@
 "use client";
+import {applicationFetch} from "@/lib/data/applicationRuntime";
+
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
+import {AppLink as Link} from "@/components/navigation/AppNavigation";
 import { getSocket } from "@/lib/socketClient";
 import { useLobbyExit } from "@/lib/useLobbyExit";
 import LobbyClosedNotice from "@/components/LobbyClosedNotice";
@@ -61,7 +63,7 @@ export default function GameRoom({ code, myUserId }: { code: string; myUserId: s
   const socket = getSocket();
 
   useEffect(() => {
-    socket.emit("join_game", { code });
+    const join=()=>socket.emit("join_game",{code});
 
     function onLobby(data: { hostId: string; status: string; players: LobbyPlayer[] }) {
       setHostId(data.hostId);
@@ -103,7 +105,11 @@ export default function GameRoom({ code, myUserId }: { code: string; myUserId: s
     socket.on("game_finished", onFinished);
     socket.on("error_message", onError);
 
+    socket.on("connect",join);
+    if(socket.connected)join();
+
     return () => {
+      socket.off("connect",join);
       socket.off("lobby_update", onLobby);
       socket.off("question", onQuestion);
       socket.off("answer_received", onAnswerReceived);
@@ -115,7 +121,7 @@ export default function GameRoom({ code, myUserId }: { code: string; myUserId: s
   }, [code]);
 
   useEffect(() => {
-    fetch("/api/friends")
+    applicationFetch("/api/friends")
       .then((r) => r.json())
       // /api/friends geeft per vriend { friendshipId, user } terug.
       .then((d) => setFriends((d.friends ?? []).map((entry: { user: Friend }) => entry.user)));

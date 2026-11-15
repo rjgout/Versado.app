@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import {useGameRouter as useRouter} from "@/components/games/GameNavigation";
 import { getSocket } from "@/lib/socketClient";
 import { useConfirm } from "@/components/ConfirmProvider";
 

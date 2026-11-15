@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
+import {AppLink as Link} from "@/components/navigation/AppNavigation";
 import { announceXpChanged } from "@/lib/xpBroadcast";
 import UserTag from "@/components/UserTag";
 import UserAvatar from "@/components/UserAvatar";

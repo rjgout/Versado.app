@@ -1,3 +1,4 @@
+import { nativeGameOriginAllowed } from "@/lib/games/requestIdentity.server";
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/session";
 import { apiError } from "@/lib/apiError";
@@ -19,7 +20,7 @@ export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) { const response = await apiError("apiErrors.notLoggedIn", 401); response.headers.set("Cache-Control", "no-store"); return response; }
   const t = getT(user.uiLanguage);
-  if (!inventoryOriginAllowed(req.headers, req.url, process.env.APP_URL)) return json({ error: t("apiErrors.forbidden") }, 403);
+  if ((!inventoryOriginAllowed(req.headers, req.url, process.env.APP_URL) && !await nativeGameOriginAllowed(req.headers))) return json({ error: t("apiErrors.forbidden") }, 403);
   const parsed = mysteryActionSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return json({ error: t("apiErrors.invalidInput") }, 400);
   try {

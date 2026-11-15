@@ -83,7 +83,7 @@ const front = createServer(async (req, res) => {
       const isLearning=req.method === "GET" && (url.pathname.endsWith("/courses") || url.pathname.endsWith("/path"));
       if(isLearning && learningFailure){res.writeHead(learningFailure,{"Content-Type":"application/json"});res.end(JSON.stringify({error:"content_unavailable"}));return;}
       if (isReader && readFailure) {
-        res.writeHead(readFailure, { "Content-Type": proxyFailure ? "text/html" : "application/json" });
+        res.writeHead(readFailure, { "Content-Type": proxyFailure ? "text/html; charset=utf-8" : "application/json" });
         res.end(proxyFailure ? "<html>Temporary upstream failure</html>" : JSON.stringify({ error: "native_request_failed" }));
         return;
       }
@@ -153,7 +153,7 @@ const front = createServer(async (req, res) => {
       return;
     }
     if (url.pathname === "/app.js") {
-      res.setHeader("Content-Type", "text/javascript");
+      res.setHeader("Content-Type", "text/javascript; charset=utf-8");
       res.end(bundle.outputFiles[0].text);
       return;
     }
@@ -189,9 +189,9 @@ const front = createServer(async (req, res) => {
       );
       return;
     }
-    res.setHeader("Content-Type", "text/html");
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
     res.end(
-      '<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="stylesheet" href="/index.css"></head><body><div id="root"></div><script src="/app.js"></script></body></html>',
+      '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="stylesheet" href="/index.css"></head><body><div id="root"></div><script src="/app.js"></script></body></html>',
     );
   } catch (e) {
     res.writeHead(500);

@@ -1,11 +1,14 @@
-import { redirect } from "next/navigation";
+import SharedGame4 from "@/components/alleskenner/SeasonListClient";
+import GameScreen from "@/components/games/GameScreen";
+import WebGameBoundary from "@/components/games/WebGameBoundary";
+import { gameRedirect as redirect } from "@/lib/games/navigation.server";
 import { getCurrentUser } from "@/lib/session";
 import { canStartGame } from "@/lib/gameAvailability";
-import SeasonListClient from "@/components/alleskenner/SeasonListClient";
+
 
 export default async function AlleskennerSeasonsPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
   if (!(await canStartGame(user.id, "alleskenner"))) redirect("/live?availability=unavailable");
-  return <SeasonListClient />;
+  return <WebGameBoundary><GameScreen component={SharedGame4} view="alleskennerSeasons" data={{  }}  /></WebGameBoundary>;
 }

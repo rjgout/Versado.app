@@ -6,10 +6,11 @@ export type AppLinkProps = AnchorHTMLAttributes<HTMLAnchorElement> & { href: str
 export type AppImageProps = Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "width" | "height" | "alt"> & { src: string; alt: string; width?: number; height?: number; fill?: boolean; priority?: boolean; unoptimized?: boolean };
 export interface AppNavigation {
   pathname: string;
+  revision?: number;
   contentDeparture?(): string;
   registerNavigationGuard?(guard: (proceed: () => void) => boolean): () => void;
-  push(href: string): void;
-  replace(href: string): void;
+  push(href: string,options?:{scroll?:boolean}): void;
+  replace(href: string,options?:{scroll?:boolean}): void;
   back(fallback?: string): void;
   canGoBack(): boolean;
   refresh(): void;

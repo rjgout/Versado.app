@@ -1,4 +1,6 @@
 "use client";
+import {applicationFetch} from "@/lib/data/applicationRuntime";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { MysteryDefinition, Placements } from "../types";
 import { emptyMysteryPlacements } from "../mystery001a";
@@ -10,7 +12,7 @@ type SaveStatus = "loading" | "saved" | "saving" | "unsaved" | "conflict" | "una
 type Reply = { attempt?: MysteryAttemptView; error?: string; correct?: boolean; hint?: string; hintBalance?: number };
 type Pending = { action: "save"; attemptId: string; actionId: string; expectedRevision: number } & Board;
 async function request(action: MysteryAction | Pending): Promise<Reply> {
-  const response = await fetch("/api/mysteries/attempts", { method: "POST", keepalive: true, headers: { "Content-Type": "application/json" }, body: JSON.stringify(action) });
+  const response = await applicationFetch("/api/mysteries/attempts", { method: "POST", keepalive: true, headers: { "Content-Type": "application/json" }, body: JSON.stringify(action) });
   const body = await response.json() as Reply;
   if (!response.ok && response.status !== 422) throw Object.assign(new Error(body.error ?? "request"), { status: response.status, body });
   return body;
@@ -71,7 +73,7 @@ export function useMysteryAttempt(userId: string, definition: MysteryDefinition,
   const initialize = useCallback(async () => {
     if (historicalResult) {
       try {
-        const response = await fetch(`/api/mysteries/attempts?variant=${definition.routeId}`, { cache: "no-store" });
+        const response = await applicationFetch(`/api/mysteries/attempts?variant=${definition.routeId}`, { cache: "no-store" });
         if (!response.ok) throw new Error("request");
         const reply = await response.json() as Reply;
         if (reply.attempt) accept(reply.attempt, false);
@@ -130,7 +132,7 @@ export function useMysteryAttempt(userId: string, definition: MysteryDefinition,
     }
   }, [accept, flush]);
   const reload = useCallback(async () => {
-    const response = await fetch(`/api/mysteries/attempts?variant=${definition.routeId}`, { cache: "no-store" });
+    const response = await applicationFetch(`/api/mysteries/attempts?variant=${definition.routeId}`, { cache: "no-store" });
     if (!response.ok) throw new Error("request");
     const reply = await response.json() as Reply;
     if (reply.attempt) { accept(reply.attempt, true); setStatus(reply.attempt.available ? "saved" : "unavailable"); }

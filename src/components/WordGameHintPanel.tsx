@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type RefObject } from "react";
 import { createPortal } from "react-dom";
-import Link from "next/link";
+import {AppLink as Link} from "@/components/navigation/AppNavigation";
 import { BookOpen, Lightbulb, Search, X, ShoppingBag } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
 import { useHintInventory } from "@/lib/data/hints";

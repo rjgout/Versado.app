@@ -1,8 +1,10 @@
 "use client";
+import {applicationFetch} from "@/lib/data/applicationRuntime";
+
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import Link from "next/link";
+import {AppLink as Link} from "@/components/navigation/AppNavigation";
 import { getSocket } from "@/lib/socketClient";
 import UserAvatar from "@/components/UserAvatar";
 import UserTag from "@/components/UserTag";
@@ -96,7 +98,7 @@ export default function FriendPicker({
     if (!open) return;
     setQuery("");
     setError(null);
-    fetch("/api/friends")
+    applicationFetch("/api/friends")
       .then((r) => r.json())
       .then((d: { friends?: { user: PickerFriend }[]; statusByUserId?: Record<string, FriendStatus> }) => {
         setFriends((d.friends ?? []).map((entry) => entry.user));
@@ -105,7 +107,7 @@ export default function FriendPicker({
         getSocket().emit("friend_statuses_request");
       })
       .catch(() => setFriends([]));
-    fetch("/api/friends/recent")
+    applicationFetch("/api/friends/recent")
       .then((r) => r.json())
       .then((d: { lastPlayed?: Record<string, string> }) => setLastPlayed(d.lastPlayed ?? {}))
       .catch(() => {});

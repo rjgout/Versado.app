@@ -1,3 +1,4 @@
+import { nativeGameOriginAllowed } from "@/lib/games/requestIdentity.server";
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/session";
 import { canResumeGameContent } from "@/lib/gameAvailability";
@@ -12,7 +13,7 @@ export async function puzzleRouteUser(req?: Request) {
   const user = await getCurrentUser();
   if (!user) return { response: await apiError("apiErrors.notLoggedIn", 401) } as const;
   const t = getT(user.uiLanguage);
-  if (req && !inventoryOriginAllowed(req.headers, req.url, process.env.APP_URL)) return { response: await apiError("apiErrors.forbidden", 403) } as const;
+  if (req && (!inventoryOriginAllowed(req.headers, req.url, process.env.APP_URL) && !await nativeGameOriginAllowed(req.headers))) return { response: await apiError("apiErrors.forbidden", 403) } as const;
   if (!await canResumeGameContent(PUZZLE_CONTENT_COLLECTION_ID)) return { response: NextResponse.json({ error: t("gameAvailability.unavailable") }, { status: 403 }) } as const;
   return { user, t } as const;
 }

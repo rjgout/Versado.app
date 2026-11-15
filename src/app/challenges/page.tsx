@@ -1,7 +1,10 @@
+import SharedGame5 from "@/components/ChallengesClient";
+import GameScreen from "@/components/games/GameScreen";
+import WebGameBoundary from "@/components/games/WebGameBoundary";
 import { Suspense } from "react";
-import { redirect } from "next/navigation";
+import { gameRedirect as redirect } from "@/lib/games/navigation.server";
 import { getCurrentUser } from "@/lib/session";
-import ChallengesClient from "@/components/ChallengesClient";
+
 import { getT } from "@/lib/i18n";
 
 export default async function ChallengesPage() {
@@ -9,8 +12,8 @@ export default async function ChallengesPage() {
   if (!user) redirect("/login");
 
   return (
-    <Suspense fallback={<p className="text-slate-400 dark:text-slate-500">{getT(user.uiLanguage)("common.loading")}</p>}>
-      <ChallengesClient />
-    </Suspense>
+    <WebGameBoundary><Suspense fallback={<p className="text-slate-400 dark:text-slate-500">{getT(user.uiLanguage)("common.loading")}</p>}>
+      <GameScreen component={SharedGame5} view="challenges" data={{  }}  />
+    </Suspense></WebGameBoundary>
   );
 }

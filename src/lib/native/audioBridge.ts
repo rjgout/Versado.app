@@ -1,3 +1,4 @@
+import {nativeGameAudioScope,type NativeGameAudioSelection} from "./gamesAudioContract";
 import { z } from "zod";
 import type { PluginListenerHandle } from "@capacitor/core";
 import type { NativeReader } from "./readerContract";
@@ -10,8 +11,8 @@ export const nativeAudioEventSchema=z.object({commandId:z.uuid(),actionVersion:z
 export const nativeVoiceSchema=z.object({id:z.string().min(1).max(512),name:z.string().min(1).max(512),language:z.string().min(2).max(35),local:z.literal(true)}).strict();
 export const nativeVoicesSchema=z.object({voices:z.array(nativeVoiceSchema).max(512)}).strict();
 export type NativeDeviceVoice=z.infer<typeof nativeVoiceSchema>;
-export type NativeAudioSelector=z.infer<typeof nativeAudioScope>;
-export const nativeAudioSelector=(reader:NativeReader):NativeAudioSelector=>nativeAudioScope.parse(reader);
+export type NativeAudioSelector=z.infer<typeof nativeAudioScope>|z.infer<typeof nativeGameAudioScope>;
+export const nativeAudioSelector=(reader:NativeReader|NativeGameAudioSelection):NativeAudioSelector=>"game" in reader?nativeGameAudioScope.parse(reader):nativeAudioScope.parse(reader);
 export interface NativeAudioCommand {
   action:"start"|"pause"|"resume"|"seek"|"speed";
   sessionStamp:string;ownerId:string;contextEpoch:number;readerHash:string;commandId:string;actionVersion:number;

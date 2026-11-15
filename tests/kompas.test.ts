@@ -670,7 +670,7 @@ test("de algemene uitleg belooft geen schriftwerk-specifieke functies en bronuit
     for (const text of texts(bundle.work)) assert.ok(!games.test(text), `bronuitleg noemt spellen: ${text}`);
   }
   // Wat bij een bron hoort aan spellen komt uit de echte gegevens: zonder spellen toont Spelen de bestaande melding.
-  const page = read("src/app/kompas/[topicId]/page.tsx");
+  const page = read("src/app/kompas/[topicId]/page.tsx") + read("src/components/kompas/KompasTopicView.tsx");
   assert.match(page, /gamesHub\.noGames/);
   assert.match(read("src/app/kompas/page.tsx"), /noGames/);
   const none: KompasContext = { work: "podcasts", switcherEnabled: true, visibleGameIds: [] };

@@ -1,3 +1,4 @@
+import {applicationFetch} from "@/lib/data/applicationRuntime";
 // Kleine, gedeelde helpers voor de persoonlijke kaartvolgorde van cursussen
 // (/courses) en spelletjes (/live) — zie /api/list-order en het
 // UserListOrder-model. Bewust geen "use client": applyPersonalOrder wordt ook
@@ -29,7 +30,7 @@ export interface ListState {
 }
 
 export async function fetchListState(listKey: ListKey): Promise<ListState> {
-  const res = await fetch(`/api/list-order?listKey=${listKey}`).catch(() => null);
+  const res = await applicationFetch(`/api/list-order?listKey=${listKey}`).catch(() => null);
   if (!res?.ok) return { order: [], hidden: [] };
   const data = await res.json().catch(() => null);
   return { order: data?.order ?? [], hidden: data?.hidden ?? [] };
@@ -41,7 +42,7 @@ export async function fetchListOrder(listKey: ListKey): Promise<string[]> {
 
 /** Bewaart de bestaande voorkeuren; de aanroeper verwerkt fouten en optimistische updates. */
 export async function saveListOrder(listKey: ListKey, itemKeys: string[], hiddenKeys?: string[]): Promise<void> {
-  const response = await fetch("/api/list-order", {
+  const response = await applicationFetch("/api/list-order", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ listKey, itemKeys, hiddenKeys }),
@@ -51,7 +52,7 @@ export async function saveListOrder(listKey: ListKey, itemKeys: string[], hidden
 
 /** Verbergt één item zonder een eventueel opgeslagen volgorde te wijzigen. */
 export async function hideListItem(listKey: ListKey, itemKey: string): Promise<void> {
-  const res = await fetch("/api/list-order", {
+  const res = await applicationFetch("/api/list-order", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ listKey, hideKeys: [itemKey] }),

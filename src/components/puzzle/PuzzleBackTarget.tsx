@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import {useGamePathname as usePathname} from "@/components/games/GameNavigation";
 import { useSetBackTarget } from "@/lib/backTarget";
 import { JIGSAW_ROUTE } from "@/lib/puzzle/navigation";
 

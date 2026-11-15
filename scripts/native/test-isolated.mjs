@@ -92,9 +92,12 @@ try{
   assert.equal((await client.query(`SELECT "passwordLoginEnabled" FROM "User" WHERE id='native-preserved'`)).rows[0].passwordLoginEnabled,true);
   console.log('Native migratiebehoud:',JSON.stringify({unchangedTables:tables.length,unchangedConstraints:constraints.length,faultRollback:true,setupFaultRollback:true,preservedNativeTables:nativeColumns.size,repeatedDeploy:true}));
  }finally{await client.end();}
- server=spawn('node',['scripts/content-architecture/test-server.mjs'],{env,stdio:'inherit',detached:true});
+ server=spawn('node',process.argv.includes('--games-adapter')||process.argv.includes('--games')?['--import','tsx','scripts/native/games-test-server.mjs']:['scripts/content-architecture/test-server.mjs'],{env,stdio:'inherit',detached:true});
  let healthy=false;for(let i=0;i<100;i++){try{if((await fetch(`${base}/api/health`)).ok){healthy=true;break;}}catch{}if(server.exitCode!==null)throw Error('Testserver gestopt');await delay(500);}if(!healthy)throw Error('Productiebuild niet bereikbaar');
- if(process.argv.includes('--glass-only')) {
+ if(process.argv.includes('--games-adapter')||process.argv.includes('--games')) {
+  await run('npx',['tsx','--test','--test-concurrency=1','tests/native-games.integration.test.mjs'],env);
+  if(process.argv.includes('--games'))await run('npx',['tsx','tests/native-games.browser.mjs'],env);
+ } else if(process.argv.includes('--glass-only')) {
   await run('npx',['tsx','tests/native-profile.browser.mjs'],env);
   await run('npx',['tsx','tests/native-today.browser.mjs'],env);
  } else if(process.argv.includes('--profile-only')||process.argv.includes('--profile-ui-only')) {

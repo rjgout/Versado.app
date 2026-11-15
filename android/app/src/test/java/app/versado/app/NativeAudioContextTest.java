@@ -48,4 +48,26 @@ public class NativeAudioContextTest {
   now.set(301000L*1000000);assertFalse(old.lifetime.current());assertTrue(c.capsule().lifetime.current());
   now.set(539000L*1000000);assertFalse(c.capsule().lifetime.current());
  }
+ @Test public void gameSelectionsUseTheSameAnchoredPlaybackCapsuleAndRejectMixedOrForeignScopes()throws Exception{
+  for(String kind:Arrays.asList("reading","intro-solo","intro-live","ak-solo","ak-live")){
+   JSONObject payload=new JSONObject(fixture());
+   for(String field:Arrays.asList("reader","audio")){
+    JSONObject value=payload.getJSONObject(field);
+    for(String key:Arrays.asList("courseId","kind","targetId"))value.remove(key);
+    JSONObject game=new JSONObject().put("kind",kind).put("id",kind.equals("reading")?"chapter":"run");if(!kind.equals("reading"))game.put("index",1);
+    value.put("game",game).put("chapterId","question").put("startVerse",1).put("endVerse",1);
+    if(field.equals("reader"))value.put("focusVerse",1).put("verses",new JSONArray().put(new JSONObject().put("id","question-intro").put("number",1).put("text","Synthetische vraagtekst")));
+    else value.put("sources",new JSONArray());
+   }
+   NativeAudioContext.Scope scope=new NativeAudioContext.Scope(payload.getJSONObject("reader"));
+   assertEquals("games/"+kind+"/"+(kind.equals("reading")?"chapter":"run/1")+"/audio/playback",scope.path());
+   NativeAudioContext c=new NativeAudioContext(()->0L);c.reset(STAMP);c.stage("login",200,pair("game"),c.tag(STAMP));c.saved(stored("game"),true);c.select(scope,"game-owner");
+   assertTrue(c.capture(scope.path(),200,payload.toString(),"Bearer "+token("game"),credentials(),c.tag(STAMP),0));assertNotNull(c.capsule());
+   JSONObject mixed=new JSONObject(payload.getJSONObject("reader").toString()).put("courseId","fake");assertThrows(Exception.class,()->new NativeAudioContext.Scope(mixed));
+   for(JSONObject game:Arrays.asList(new JSONObject().put("kind","remote").put("id","run").put("index",1),new JSONObject().put("kind","intro-solo").put("id","run").put("index",500),new JSONObject().put("kind","ak-live").put("id","https://evil.invalid").put("index",1))){
+    JSONObject bad=new JSONObject(payload.getJSONObject("reader").toString()).put("game",game);assertThrows(Exception.class,()->new NativeAudioContext.Scope(bad));
+   }
+  }
+ }
+
 }

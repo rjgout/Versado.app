@@ -1,7 +1,9 @@
 "use client";
+import {applicationFetch} from "@/lib/data/applicationRuntime";
+
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import {useGameRouter as useRouter} from "@/components/games/GameNavigation";
 import { useT } from "@/components/I18nProvider";
 
 type Level = "BEGINNER" | "ADVANCED" | "EXPERT";
@@ -25,7 +27,7 @@ export default function ChapterGuessSetupClient({ availableQuestionCounts = [5, 
   async function playSolo() {
     setError(null);
     setStarting("solo");
-    const res = await fetch("/api/chapter-guess/start", {
+    const res = await applicationFetch("/api/chapter-guess/start", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ level, questionCount }),
@@ -42,7 +44,7 @@ export default function ChapterGuessSetupClient({ availableQuestionCounts = [5, 
   async function playWithFriends() {
     setError(null);
     setStarting("live");
-    const res = await fetch("/api/live/create-chapter-guess", {
+    const res = await applicationFetch("/api/live/create-chapter-guess", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ level, questionCount }),

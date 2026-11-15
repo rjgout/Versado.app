@@ -26,7 +26,7 @@ const sources = walk(path.join(root, "src")).map((file) => ({
 // Een eigen verversingstrigger (focus, zichtbaarheid, netwerk, bfcache, interval) ...
 const OWN_TRIGGER = /addEventListener\(\s*["'](visibilitychange|focus|online|pageshow)["']|setInterval\(/;
 // ... in een bestand dat ook zelf data ophaalt of de serverpagina ververst.
-const OWN_FETCH = /\bfetch\(|fetchJson\(|router\.refresh\(|\.refresh\(\)/;
+const OWN_FETCH = /\b(?:applicationFetch|fetch)\(|fetchJson\(|router\.refresh\(|\.refresh\(\)/;
 
 /**
  * Bestanden die vóór de live-data-laag bestonden en nog een eigen trigger hebben.

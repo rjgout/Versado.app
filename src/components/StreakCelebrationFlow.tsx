@@ -1,4 +1,6 @@
 "use client";
+import {applicationFetch} from "@/lib/data/applicationRuntime";
+
 
 import { useEffect, useMemo, useState } from "react";
 import { Check, Clock3, Share2, X } from "lucide-react";
@@ -163,7 +165,7 @@ export default function StreakCelebrationFlow({ value, onDone }: { value: Streak
     setStep("personal");
     setShareMessage("");
     let cancelled = false;
-    fetch("/api/streak/celebration", { cache: "no-store" })
+    applicationFetch("/api/streak/celebration", { cache: "no-store" })
       .then((response) => response.ok ? response.json() as Promise<SocialData> : Promise.reject(new Error("social")))
       .then((next) => { if (!cancelled) setData(next); })
       .catch(() => { if (!cancelled) setData({ friends: [], groups: [] }); });

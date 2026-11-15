@@ -20,3 +20,13 @@ export const nativeAnnotationMutation = z.discriminatedUnion("operation",[
 export const nativeAnnotationResult = nativeAnnotationScope.extend({actionId:z.uuid(),changed:z.boolean(),annotation:nativeAnnotationView}).strict();
 export type NativeAnnotationMutation = z.infer<typeof nativeAnnotationMutation>;
 export type NativeAnnotationList = z.infer<typeof nativeAnnotationList>;
+
+/** Vrij lezen houdt dezelfde commit-/versiegrens; geen fictieve cursus. */
+export const nativeGameAnnotationScope=nativeAnnotationScope.omit({courseId:true,kind:true,targetId:true}).extend({game:z.object({kind:z.literal("reading"),id:z.string().regex(/^[A-Za-z0-9_-]{1,128}$/)}).strict()});
+export const nativeGameAnnotationList=nativeGameAnnotationScope.extend({annotations:z.array(nativeAnnotationView).max(600),complete:z.boolean()}).strict();
+export const nativeGameAnnotationResult=nativeGameAnnotationScope.extend({actionId:z.uuid(),changed:z.boolean(),annotation:nativeAnnotationView}).strict();
+export type NativeReaderAnnotationList=NativeAnnotationList|z.infer<typeof nativeGameAnnotationList>;
+export function gameAnnotationRoute(path:string,method:string){
+ const match=/^games\/reading\/([A-Za-z0-9_-]{1,128})\/annotations(?:\/([A-Za-z0-9_-]{1,128}))?$/.exec(path);
+ return match&&(method==="GET"||(method==="POST"&&!match[2]))?{chapterId:match[1],verseId:match[2]}:null;
+}

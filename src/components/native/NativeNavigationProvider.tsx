@@ -58,6 +58,7 @@ export default function NativeNavigationProvider({ children }: { children: React
   useLayoutEffect(() => {
     // Nieuwe routes beginnen eenmaal bovenaan. Een lees-/ankerscroll van de pagina
     // daarna heeft voorrang; alleen terug/vooruit vereist gevolgd positieherstel.
+    if(snapshot.scroll===false)return;
     if (!snapshot.traversal) { window.scrollTo({ top: 0, behavior: "instant" }); return; }
     const target = snapshot.traversal ? positions.current.get(snapshot.index) ?? 0 : 0;
     const root = document.documentElement, previousAnchor = root.style.overflowAnchor;
@@ -82,6 +83,6 @@ export default function NativeNavigationProvider({ children }: { children: React
       window.removeEventListener("touchstart", stop); window.removeEventListener("wheel", stop); window.removeEventListener("keydown", stop); window.removeEventListener("pointerdown", stop);
     };
   }, [snapshot]);
-  const adapter = useMemo(() => ({ pathname: snapshot.href, registerNavigationGuard:router.registerNavigationGuard, contentDeparture: router.contentDeparture, push: router.push, replace: router.replace, back: router.back, canGoBack: router.canGoBack, refresh: router.refresh, Link: NativeLink }), [router, snapshot]);
+  const adapter = useMemo(() => ({ pathname: snapshot.href, revision:snapshot.revision, registerNavigationGuard:router.registerNavigationGuard, contentDeparture: router.contentDeparture, push: router.push, replace: router.replace, back: router.back, canGoBack: router.canGoBack, refresh: router.refresh, Link: NativeLink }), [router, snapshot]);
   return <AppNavigationProvider adapter={adapter}>{children}</AppNavigationProvider>;
 }

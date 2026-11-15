@@ -59,10 +59,10 @@ const front=createServer(async(req,res)=>{
    if(req.method==='DELETE')sessions.delete(key);
    res.setHeader('Content-Type','application/json');res.end(JSON.stringify({value:sessions.get(key)??null}));return;
   }
-  if(url.pathname==='/app.js'){res.setHeader('Content-Type','text/javascript');res.end(bundle.outputFiles[0].text);return;}
+  if(url.pathname==='/app.js'){res.setHeader('Content-Type','text/javascript; charset=utf-8');res.end(bundle.outputFiles[0].text);return;}
   if(url.pathname==='/index.css'){res.setHeader('Content-Type','text/css');res.end(stylesheet);return;}
   if(url.pathname.startsWith('/icons/')||url.pathname.startsWith('/mascots/')||url.pathname.startsWith('/scripture/')){if(url.pathname.includes('..')){res.writeHead(404);res.end();return;}res.setHeader('Content-Type',url.pathname.endsWith('.png')?'image/png':'image/webp');res.end(readFileSync('public'+url.pathname));return;}
-  res.setHeader('Content-Type','text/html');res.end('<!doctype html><html lang="nl"><head><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="stylesheet" href="/index.css"></head><body><div id="root"></div><script src="/app.js"></script></body></html>');
+  res.setHeader('Content-Type','text/html; charset=utf-8');res.end('<!doctype html><html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="stylesheet" href="/index.css"></head><body><div id="root"></div><script src="/app.js"></script></body></html>');
  }catch{res.writeHead(500);res.end();}
 });
 await new Promise(resolve=>front.listen(0,'127.0.0.1',resolve));const origin='http://127.0.0.1:'+front.address().port;

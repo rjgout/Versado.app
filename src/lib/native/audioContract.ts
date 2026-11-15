@@ -13,9 +13,11 @@ export const nativeAudioSource = z.object({
 }).strict().superRefine((s,c)=>{
   if(s.start!==s.verses[0].start||s.end!==s.verses.at(-1)!.end||s.verses.some((v,i)=>v.end!==null&&v.end<=v.start||i>0&&(v.number!==s.verses[i-1].number+1||v.start<s.verses[i-1].start||(s.verses[i-1].end===null||s.verses[i-1].end!>v.start))))c.addIssue({code:"custom",message:"audio_bounds_invalid"});
 });
-export const nativeAudioCatalogue = nativeAudioScope.extend({sessionId:id,readerHash:hash,serverTime:z.number().int().positive(),maxAgeMs:z.literal(300000),sourceLanguage:z.enum(["nl","en","de","fr","es"]),sources:z.array(nativeAudioSource).max(10)}).strict().superRefine((s,c)=>{
+export const nativeAudioCatalogue = nativeAudioScope.extend({sessionId:id,readerHash:hash,serverTime:z.number().int().positive(),maxAgeMs:z.literal(300000),sourceLanguage:z.enum(["nl","en","de","fr","es"]),sources:z.array(nativeAudioSource).max(10)}).strict().superRefine(nativeCatalogueBounds);
+export function nativeCatalogueBounds(s:{sources:NativeAudioSource[];startVerse:number;endVerse:number},c:z.RefinementCtx){
   if(new Set(s.sources.map(x=>x.id)).size!==s.sources.length||s.sources.some(x=>x.verses[0].number!==s.startVerse||x.verses.at(-1)!.number!==s.endVerse))c.addIssue({code:"custom",message:"audio_scope_invalid"});
-});
+}
+
 export type NativeAudioSource=z.infer<typeof nativeAudioSource>;
 export type NativeAudioCatalogue=z.infer<typeof nativeAudioCatalogue>;
 /** Alleen eindige, enkelvoudige requests; nooit een volledige MP3 via de JSON-brug. */

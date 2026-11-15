@@ -26,7 +26,7 @@ import { nativeVoicesSchema,type NativeDeviceVoice } from "@/lib/native/audioBri
 import { NativeReadAloudOutput } from "@/lib/native/audioOutput";
 import { NativeClientError } from "@/lib/native/client";
 import { nativeContentSelectionSchema,type NativeAccount,type NativeContentState } from "@/lib/native/contract";
-import { nativeRoute } from "@/lib/native/navigation";
+import { nativeProfileDestination } from "@/lib/native/profileNavigation";
 import type { NativeProfileMutation } from "@/lib/native/profileContract";
 import type { ProfileSettingsPatch } from "@/lib/profile/settingsContract";
 import { parseProfileView,PROFILE_VIEWS,profileViewHref } from "@/lib/profileViews";
@@ -38,12 +38,12 @@ function ProfileImage(props:AppImageProps) {
   return src?<LocalAppImage {...props} src={src}/>:null;
 }
 
-export default function NativeProfileView(props: { account:NativeAccount; content?:NativeContentState; onLogout():Promise<void>; onAccountChanged():void; accountExtras?:ReactNode; onError(error:unknown):void }) {
+export default function NativeProfileView(props: { account:NativeAccount; content?:NativeContentState; gamesEnabled?:boolean; onLogout():Promise<void>; onAccountChanged():void; accountExtras?:ReactNode; onError(error:unknown):void }) {
   const navigation=useAppNavigationAdapter();
   const adapter=useMemo(()=>({...navigation,Image:ProfileImage,imageSource:(src:string)=>nativeProfileImageSource(src) ?? nativeTodayImageSource(src) ?? (navigation.imageSource?navigation.imageSource(src):src)}),[navigation]);
   return <AppNavigationProvider adapter={adapter}><ConfirmProvider nativeDialogs><NativeProfileContent {...props}/></ConfirmProvider></AppNavigationProvider>;
 }
-function NativeProfileContent({ account, content, onLogout, onAccountChanged, accountExtras, onError }: { account:NativeAccount; content?:NativeContentState; onLogout():Promise<void>; onAccountChanged():void; accountExtras?:ReactNode; onError(error:unknown):void }) {
+function NativeProfileContent({ account, content, gamesEnabled=false, onLogout, onAccountChanged, accountExtras, onError }: { account:NativeAccount; content?:NativeContentState; gamesEnabled?:boolean; onLogout():Promise<void>; onAccountChanged():void; accountExtras?:ReactNode; onError(error:unknown):void }) {
   const t=useT(), confirm=useConfirm(), navigation=useAppNavigation(), runtime=useNativeData();
   const epoch=runtime.getSnapshot();
   const reportSessionError=useCallback((reason:unknown)=>{
@@ -133,7 +133,7 @@ function NativeProfileContent({ account, content, onLogout, onAccountChanged, ac
         catch(reason){if(alive.current && epoch===runtime.getSnapshot())reportSessionError(reason);return Response.json({error:nativeProfileErrorText(reason,t,15)},{status:400});}
       }}/>}
       {view==="about"&&<WhatsNewView entries={state.changelog} enabled={data.changelogEnabled} saving={busy} onToggle={()=>save({changelogEnabled:!data.changelogEnabled})}/>}
-    </ProfilePageView> : <ProfileOverview data={data} editingHandle={editing} handleInput={handle} savingHandle={busy} handleError={handleError} startEditingHandle={()=>{setHandle(data.handle);setEditing(true);}} setHandleInput={setHandle} setEditingHandle={setEditing} saveHandle={saveHandle} openView={next=>navigation.push(profileViewHref(next))} savingNotifications={busy} toggleCategory={async field=>{await patch({[field]:!data[field]}).catch(()=>{});}} logout={logout} deleteAccount={()=>navigation.push("/account-verwijderen")} canNavigate={href=>nativeRoute(href)!==null && (href!=="/change-password" || account.passwordLoginEnabled)} accountExtras={accountExtras} timeZone={<TimeZoneRow known={data.timeZone} label={t("profile.timeZone")} format={zone=>t("profile.timeZoneAuto",{zone})} locale={getLanguage(data.uiLanguage).intlLocale}/>}/>}
+    </ProfilePageView> : <ProfileOverview data={data} editingHandle={editing} handleInput={handle} savingHandle={busy} handleError={handleError} startEditingHandle={()=>{setHandle(data.handle);setEditing(true);}} setHandleInput={setHandle} setEditingHandle={setEditing} saveHandle={saveHandle} openView={next=>navigation.push(profileViewHref(next))} savingNotifications={busy} toggleCategory={async field=>{await patch({[field]:!data[field]}).catch(()=>{});}} logout={logout} deleteAccount={()=>navigation.push("/account-verwijderen")} canNavigate={href=>nativeProfileDestination(href,gamesEnabled) && (href!=="/change-password" || account.passwordLoginEnabled)} accountExtras={accountExtras} timeZone={<TimeZoneRow known={data.timeZone} label={t("profile.timeZone")} format={zone=>t("profile.timeZoneAuto",{zone})} locale={getLanguage(data.uiLanguage).intlLocale}/>}/>}
   </CompanionProvider>;
 }
 function NativeVoicePreferences() {

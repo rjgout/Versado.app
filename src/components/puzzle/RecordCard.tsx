@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import NextImage from "next/image";
+import {AppLink as Link} from "@/components/navigation/AppNavigation";
+import {AppImage as NextImage} from "@/components/navigation/AppNavigation";
 import { useT } from "@/components/I18nProvider";
 import { formatPuzzleTime } from "@/lib/puzzle/recordFormat";
 import type { OwnRecordView } from "@/lib/puzzle/records";

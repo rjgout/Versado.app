@@ -1,13 +1,15 @@
 "use client";
+import {applicationFetch} from "@/lib/data/applicationRuntime";
 
-import Link from "next/link";
+
+import {AppLink as Link} from "@/components/navigation/AppNavigation";
 import { formatPuzzleTime } from "@/lib/puzzle/recordFormat";
 import RecordNotice from "@/components/puzzle/RecordNotice";
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import {useGamePathname as usePathname, useGameRouter as useRouter} from "@/components/games/GameNavigation";
 import { useHintInventory } from "@/lib/data/hints";
 import { liveMutation } from "@/lib/data/mutation";
-import NextImage from "next/image";
+import {AppImage as NextImage} from "@/components/navigation/AppNavigation";
 import { Ellipsis, Lightbulb } from "lucide-react";
 import RotateButton from "@/components/puzzle/RotateButton";
 import PuzzleHintPanel from "@/components/PuzzleHintPanel";
@@ -67,7 +69,7 @@ class RequestError extends Error {
 async function request(body: object, url = "/api/jigsaw-v2") {
   for (let attempt = 0; ; attempt++) {
     try {
-      const response = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      const response = await applicationFetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       const data: unknown = await response.json().catch(() => null);
       if (!response.ok || !data) throw new RequestError(typeof data === "object" && data && "error" in data && typeof data.error === "string" ? data.error : "", response.status);
       return data;
@@ -123,7 +125,7 @@ export default function JigsawV2Client({ images, allowStarts = true }: { images:
     starting.current = true; setIsStarting(true); setError("");
     try {
       const friendIds = chosen.map((friend) => friend.id);
-      const response = await fetch(mode === "COOP" ? "/api/puzzle/coop" : "/api/puzzle/match", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(mode === "COOP" ? { action: "create", imageId: selectedImage.src, pieceCount, difficulty, friendIds } : { action: "create", imageId: selectedImage.src, pieceCount, difficulty, friendIds, kind: matchKind }) });
+      const response = await applicationFetch(mode === "COOP" ? "/api/puzzle/coop" : "/api/puzzle/match", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(mode === "COOP" ? { action: "create", imageId: selectedImage.src, pieceCount, difficulty, friendIds } : { action: "create", imageId: selectedImage.src, pieceCount, difficulty, friendIds, kind: matchKind }) });
       const data = await response.json().catch(() => null) as { sessionId?: string; matchId?: string; error?: string } | null;
       if (!response.ok || !data) throw new Error(data?.error ?? "");
       router.push(mode === "COOP" ? `/jigsaw/samen/${data.sessionId}` : `/jigsaw/wedstrijd/${data.matchId}`);

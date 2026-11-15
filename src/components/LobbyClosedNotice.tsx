@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import {AppLink as Link} from "@/components/navigation/AppNavigation";
 import { useT } from "@/components/I18nProvider";
 
 /** Zie useLobbyExit: kort zichtbaar voordat je terug naar Spelen gaat. */

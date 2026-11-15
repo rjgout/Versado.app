@@ -1,8 +1,9 @@
 "use client";
 
-import Link from "next/link";
+import {applicationFetch,applicationRuntime} from "@/lib/data/applicationRuntime";
+import {AppLink as Link,useAppNavigation} from "@/components/navigation/AppNavigation";
 import { useEffect, useState, type MouseEvent } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import {useGamePathname as usePathname,useGameRouter as useRouter,useGameSearchParams as useSearchParams} from "@/components/games/GameNavigation";
 import { ArrowRight, Check, Gamepad2, Hand, UsersRound, X } from "lucide-react";
 import UserAvatar from "@/components/UserAvatar";
 import { useT } from "@/components/I18nProvider";
@@ -35,7 +36,7 @@ function actionText(action: OpenAction, t: ReturnType<typeof useT>) {
 
 export default function ActionsClient() {
   const t = useT();
-  const router = useRouter();
+  const router = useRouter(),navigation=useAppNavigation();
   const pathname = usePathname();
   const params = useSearchParams();
   const paramTab = params.get("tab");
@@ -61,7 +62,9 @@ export default function ActionsClient() {
   async function openGame(action: OpenAction, event: MouseEvent<HTMLAnchorElement>) {
     if (!action.contentCollectionId || action.contentCollectionId === data?.activeContentCollectionId) return;
     event.preventDefault();
-    const response = await fetch("/api/content-context", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ contentCollectionId: action.contentCollectionId }) });
+    const platform=applicationRuntime();
+    if(platform?.selectGameContent){await platform.selectGameContent(action.contentCollectionId,action.href);navigation.push(action.href);return;}
+    const response = await applicationFetch("/api/content-context", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ contentCollectionId: action.contentCollectionId }) });
     if (response.ok) window.location.assign(action.href);
   }
 

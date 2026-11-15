@@ -1,5 +1,6 @@
 "use client";
 
+import {useGameMedia} from "@/components/games/GameMediaContext";
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { getSocket } from "@/lib/socketClient";
 import { getVoice } from "@/lib/readAloudPlayerContext";
@@ -510,6 +511,7 @@ function Round369({ state, can }: { state: AkStateView; can: Abilities }) {
   const socket = getSocket();
   const t = useT();
   const q = state.r369!;
+  const nativeSpeak=useGameMedia()?.speak;
   // De luistervraag wordt maar op één apparaat voorgelezen (quizmaster, of
   // zonder quizmaster degene die namens de beurt antwoordt): anders praat
   // iedere telefoon in de kamer door elkaar heen.
@@ -522,8 +524,9 @@ function Round369({ state, can }: { state: AkStateView; can: Abilities }) {
     const key = `${q.number}`;
     if (spokenFor.current === key) return;
     spokenFor.current = key;
-    speak(q.listenText, state.me.language, () => socket.emit("ak:listen_done", { number: q.number }));
-  }, [q.listenText, q.number, q.listening, speaker, socket, state.me.language]);
+    const done=()=>socket.emit("ak:listen_done", { number: q.number });
+    if(nativeSpeak)nativeSpeak(q.listenText,state.me.language,q.number,done);else speak(q.listenText,state.me.language,done);
+  }, [q.listenText, q.number, q.listening, speaker, socket, state.me.language,nativeSpeak]);
   const activeName = state.contestants.find((c) => c.id === state.activeId)?.name;
 
   return (
@@ -549,7 +552,7 @@ function Round369({ state, can }: { state: AkStateView; can: Abilities }) {
           {(speaker || !q.listening) && (
             <button
               className="btn-secondary !px-3 !py-1.5 !text-xs shrink-0"
-              onClick={() => speak(q.listenText!, state.me.language, q.listening && speaker ? listenDone : undefined)}
+              onClick={() => {const done=q.listening&&speaker?listenDone:undefined;if(nativeSpeak)nativeSpeak(q.listenText!,state.me.language,q.number,done);else speak(q.listenText!,state.me.language,done);}}
             >
               {q.listening ? t("akGame.readAloud") : t("akGame.again")}
             </button>

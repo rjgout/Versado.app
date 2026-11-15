@@ -1,15 +1,39 @@
 import Foundation
 import CryptoKit
 
+/** Zelfde native speler, uitsluitend vaste spel-/leesselecties. */
+struct NativeGameAudioKey: Decodable, Equatable {
+    let kind: String, id: String
+    let index: Int?
+    var path: String { "games/\(kind)/\(id)" + (index.map { "/\($0)" } ?? "") + "/audio/playback" }
+    func validate() throws {
+        guard NativeAudioContext.id(id) else { throw NativeAudioFailure() }
+        if kind == "reading" { guard index == nil else { throw NativeAudioFailure() }; return }
+        guard ["intro-solo", "intro-live", "ak-solo", "ak-live"].contains(kind), let index = index, index >= 0, index <= 499 else { throw NativeAudioFailure() }
+    }
+}
 /** Alleen selectie-identiteit; deze waarden verlenen zelf geen toegang. */
 struct NativeAudioScope: Decodable, Equatable {
     let version: Int, userId: String, activeCollectionId: String, selectionVersion: Int, language: String
-    let courseId: String, kind: String, targetId: String, chapterId: String, startVerse: Int, endVerse: Int
-    var path: String { "courses/\(courseId)/read/\(kind)/\(targetId)/audio/playback" }
+    let courseId: String?, kind: String?, targetId: String?
+    let game: NativeGameAudioKey?
+    let chapterId: String, startVerse: Int, endVerse: Int
+    var path: String {
+        if let game = game { return game.path }
+        return "courses/\(courseId ?? "")/read/\(kind ?? "")/\(targetId ?? "")/audio/playback"
+    }
     func validate() throws {
         guard version == 1, selectionVersion >= 0, ["nl","en","de","fr","es"].contains(language),
-              [userId,activeCollectionId,courseId,targetId,chapterId].allSatisfy({ NativeAudioContext.id($0) }),
-              ["steps","chapters"].contains(kind), startVerse >= 1, endVerse >= startVerse, endVerse <= 500 else { throw NativeAudioFailure() }
+              [userId,activeCollectionId,chapterId].allSatisfy({ NativeAudioContext.id($0) }),
+              startVerse >= 1, endVerse >= startVerse, endVerse <= 500 else { throw NativeAudioFailure() }
+        if let game = game {
+            try game.validate()
+            guard courseId == nil, kind == nil, targetId == nil,
+                  game.kind == "reading" || (startVerse == 1 && endVerse == 1) else { throw NativeAudioFailure() }
+        } else {
+            guard let courseId = courseId, let kind = kind, let targetId = targetId,
+                  NativeAudioContext.id(courseId), NativeAudioContext.id(targetId), ["steps","chapters"].contains(kind) else { throw NativeAudioFailure() }
+        }
     }
 }
 struct NativeAudioText: Decodable { let id: String, number: Int, text: String }

@@ -35,7 +35,7 @@ const front=createServer(async(req,res)=>{try{
   if(holdProfile&&url.pathname==='/api/v1/native/profile'&&req.method==='GET')held.push(finish);else finish();return;
  }
  if(url.pathname.startsWith('/test-keychain/')){if(req.method==='PUT'){const chunks=[];for await(const c of req)chunks.push(c);secrets.set(url.pathname,Buffer.concat(chunks).toString());}if(req.method==='DELETE')secrets.delete(url.pathname);res.setHeader('Content-Type','application/json');res.end(JSON.stringify({value:secrets.get(url.pathname)??null}));return;}
- if(url.pathname==='/app.js'){res.setHeader('Content-Type','text/javascript');res.end(bundle.outputFiles[0].text);return;}
+ if(url.pathname==='/app.js'){res.setHeader('Content-Type','text/javascript; charset=utf-8');res.end(bundle.outputFiles[0].text);return;}
  if(url.pathname==='/index.css'){res.setHeader('Content-Type','text/css');res.end(readFileSync('dist/native/index.css'));return;}
  if(/\.(?:png|svg|webp|jpg)$/.test(url.pathname)){
   // Geen public/ of backendfallback: uitsluitend de daadwerkelijk verpakte assets.
@@ -44,7 +44,7 @@ const front=createServer(async(req,res)=>{try{
   res.setHeader('Content-Type',url.pathname.endsWith('.svg')?'image/svg+xml':url.pathname.endsWith('.png')?'image/png':'image/webp');res.end(readFileSync(path));return;
  }
  if(url.pathname.startsWith('/api/')){calls.push({path:url.pathname,method:req.method});res.writeHead(404);res.end();return;}
- res.setHeader('Content-Type','text/html');res.end('<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="stylesheet" href="/index.css"></head><body><div id="root"></div><script src="/app.js"></script></body></html>');
+ res.setHeader('Content-Type','text/html; charset=utf-8');res.end('<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="stylesheet" href="/index.css"></head><body><div id="root"></div><script src="/app.js"></script></body></html>');
 }catch{res.writeHead(500);res.end();}});
 await new Promise(resolve=>front.listen(0,'127.0.0.1',resolve));const origin=`http://127.0.0.1:${front.address().port}`;
 const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH,args:['--no-sandbox']});
