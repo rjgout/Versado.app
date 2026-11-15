@@ -141,11 +141,34 @@ accountgegevens of netwerk.
 **Beschikbaarheid en terugval.** `tabBarSupport` meldt of de systeemtabbalk beschikbaar is
 (iOS 26+, `NativeTabBarPolicy.available`). Alleen na een bevestigde `tabBarSync` zet de adapter
 `data-vs-native-tabbar="true"` en `--vs-native-tabbar-height` op `<html>`; de React-onderbalk wordt
-dan een onzichtbare ruimtehouder met precies die hoogte (`globals.css`), zodat `ShellMetrics`,
+dan een onzichtbare ruimtehouder met de gemeten UIKit-hoogte, naar boven afgerond op hele CSS-pixels (`globals.css`; zie "Hoogte en afronding"), zodat `ShellMetrics`,
 `--nav-height`, `<main>` en alle onderruimte-afspraken ongewijzigd blijven. Bij iOS 15–25,
 Android, web, een fout, een ongeldig antwoord, uitloggen of opruimen verschijnt de React-balk
 weer, en die terugval ruimt eerst de native balk op (`tabBarClear`) vóór de ruimtehouder verdwijnt, ook bij een fout ná een eerder zichtbare balk. Een native balk met hoogte < 1 telt als fout. De volgorde is altijd: eerst de ruimte vrijhouden (native balk nog onzichtbaar), daarna
 tonen, zodat er nooit twee balken zichtbaar zijn.
+
+**Hoogte en afronding.** UIKit meldt de hoogte in points (= CSS-pixels in de WebView), inclusief de
+ruimte onder de homeindicator, ook fractioneel. De adapter zet `--vs-native-tabbar-height` op
+`ceil(hoogte - 0,01)` px. Reden: `ShellMetrics` meet met `offsetHeight` (hele getallen) en zou bij een
+fractionele CSS-hoogte tot 0,5 px te weinig ruimte reserveren; afronden naar boven laat nooit ruimte
+tekort komen en het verschil met UIKit blijft kleiner dan 1 px (de 0,01 vangt drijvendekommaruis zoals
+83,0000001 op, dat anders 84 zou worden; dat betekent hoogstens 0,01 pt minder ruimte dan UIKit). De ruimtehouder is dus niet bit-voor-bit gelijk aan UIKit maar nooit kleiner dan
+de balk (op 0,01 pt na) en nooit meer dan 1 px groter. Elke wijziging (draaien, Dynamic Type, safe area,
+terugkeer uit de achtergrond via `didBecomeActive`) loopt via `tabBarLayout`; een herhaalde melding
+met dezelfde hoogte meet niet opnieuw. Gedekt door `tests/native-tabbar.test.ts` en de
+Chromium-browserproef (`tests/native-tabbar.browser.mjs`, met de echte `NativeTabBar`).
+
+**Foutgrenzen bij het opstarten (listeners).** `start()` registreert eerst beide native listeners
+(`tabBarSelect` en `tabBarLayout`) als één geheel (`registerPairedListeners`): lukt er één niet, dan
+worden de geslaagde direct verwijderd; blijft er één hangen, dan geeft de aanvrager na 1500 ms op
+(`AbortSignal`) en wordt een later alsnog binnenkomend handvat meteen verwijderd. Een time-out, fout of
+`dispose()` tijdens de registratie laat de React-balk staan (geen `support`, geen `sync`, geen
+ruimtehouder) en probeert, binnen dezelfde time-out, een mogelijk achtergebleven native balk op te
+ruimen (`tabBarClear`). Een late of verlopen registratie herstelt geen balk. **Grens:** reageert de
+native bridge zelf helemaal niet meer (ook `tabBarClear` hangt), dan is opruimen niet te garanderen: een
+achtergebleven UIKit-balk uit een eerdere WebView-sessie kan dan zichtbaar blijven naast de React-balk;
+hij meldt tikken aan een luisteraar die er niet meer is. De React-navigatie blijft in alle gevallen
+volledig bruikbaar; dit is geen garantie op een opgeruimde native balk.
 
 **Zichtbaarheid.** De native balk volgt exact de React-balk: `ShellMetrics` meldt na elke meting
 `vs-shell-metrics`; is `--nav-height` 0 (focus mode, immersive, open toetsenbord, uitgelogd, desktop)

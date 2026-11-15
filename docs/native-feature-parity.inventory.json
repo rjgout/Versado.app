@@ -22487,7 +22487,7 @@
     },
     {
       "file": "src/lib/native/bridge.ts",
-      "sha256": "ff93e6cadde8ab6d6b96ecb2e7a8b8fe7bfe2880cde2911e872c9da477bf0fc2",
+      "sha256": "348ba0688664fd194e268544cec669e04413b7f4e2d7183a748f7d26b70594df",
       "boundary": "context-dependent",
       "imports": [
         "./access",
@@ -23715,7 +23715,7 @@
     },
     {
       "file": "src/lib/native/tabBar.ts",
-      "sha256": "fa2785e47c7662ced762e916e629d3232ea2ac3d943e41bfd6b2ffd3ea8a42f2",
+      "sha256": "6691e2b69eeb0a3dba41cb3773f990fca2cdbab866b89a2da2e28f10812f99f0",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/navigation",
@@ -23726,6 +23726,7 @@
       "checks": [],
       "exports": [
         "TAB_BAR_CALL_TIMEOUT_MS",
+        "registerPairedListeners",
         "tabBarLayoutSchema",
         "tabBarSelectSchema",
         "tabBarSupportSchema"

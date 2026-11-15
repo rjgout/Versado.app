@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
-import { NativeTabBar, TAB_BAR_CALL_TIMEOUT_MS, tabBarLayoutSchema, tabBarSupportSchema, type NativeTabBarBridge, type NativeTabBarState } from "../src/lib/native/tabBar";
+import { NativeTabBar, TAB_BAR_CALL_TIMEOUT_MS, registerPairedListeners, tabBarLayoutSchema, tabBarSupportSchema, type NativeTabBarBridge, type NativeTabBarState } from "../src/lib/native/tabBar";
 
 const flush = () => new Promise<void>(resolve => setImmediate(resolve));
 const settle = async () => { for (let i = 0; i < 3; i++) { await flush(); await new Promise(resolve => setTimeout(resolve, 3)); } };
@@ -14,12 +14,12 @@ const state = (patch: Partial<NativeTabBarState> = {}): NativeTabBarState => ({ 
 
 function fixture(options: {
   platform?: string; support?: unknown; sync?: (payload: unknown, call: number) => Promise<unknown> | unknown;
-  clear?: (call: number) => Promise<void> | void; listen?: () => Promise<void> | void; supportFn?: () => Promise<unknown> | unknown;
+  clear?: (call: number) => Promise<void> | void; listen?: () => Promise<void> | void; listenFn?: (signal: AbortSignal) => Promise<{ remove(): Promise<void> }>; supportFn?: () => Promise<unknown> | unknown;
 } = {}) {
   const attributes = new Map<string, string>(), styles = new Map<string, string>();
   const log: string[] = [], payloads: Array<{ items: unknown[]; selectedId: string | null; visible: boolean; style: string }> = [];
   const hrefs: string[] = [], clearSawAttribute: boolean[] = [];
-  let changes = 0, removed = 0, select: (value: unknown) => void = () => {}, layout: (value: unknown) => void = () => {};
+  let changes = 0, removed = 0, listens = 0, select: (value: unknown) => void = () => {}, layout: (value: unknown) => void = () => {};
   const bridge: NativeTabBarBridge = {
     support: async () => { log.push("support"); if (options.supportFn) return options.supportFn(); return options.support ?? { version: 1, available: true }; },
     sync: async payload => {
@@ -30,7 +30,11 @@ function fixture(options: {
       log.push("clear"); clearSawAttribute.push(attributes.get("data-vs-native-tabbar") === "true");
       await options.clear?.(log.filter(entry => entry === "clear").length);
     },
-    listen: async callbacks => { log.push("listen"); await options.listen?.(); select = callbacks.select; layout = callbacks.layout; return { remove: async () => { removed++; } }; },
+    listen: async (callbacks, signal) => {
+      log.push("listen");
+      if (options.listenFn) { listens++; return options.listenFn(signal); }
+      await options.listen?.(); select = callbacks.select; layout = callbacks.layout; return { remove: async () => { removed++; } };
+    },
   };
   const root = {
     getAttribute: (key: string) => attributes.get(key) ?? null,
@@ -43,7 +47,7 @@ function fixture(options: {
     },
   };
   const bar = new NativeTabBar(bridge, { platform: options.platform ?? "ios", root, onSelectHref: href => { hrefs.push(href); }, onChange: () => { changes++; } });
-  return { bar, attributes, styles, log, payloads, hrefs, clearSawAttribute, changes: () => changes, removed: () => removed, select: (v: unknown) => select(v), layout: (v: unknown) => layout(v) };
+  return { bar, attributes, styles, log, payloads, hrefs, clearSawAttribute, changes: () => changes, removed: () => removed, listens: () => listens, select: (v: unknown) => select(v), layout: (v: unknown) => layout(v) };
 }
 
 test("web en Android doen niets: geen bridge, geen attributen", async () => {
@@ -461,4 +465,84 @@ test("contract: didBecomeActive laat een bestaande balk zijn hoogte opnieuw meld
   assert.ok(!report.includes("onSelect"), "geen selectiemelding");
   const policy = readFileSync("ios/App/App/NativeTabBarPolicy.swift", "utf8");
   assert.match(policy, /height >= 1 && height <= 240/, "gelijk aan tabBarLayoutSchema (1–240)");
+});
+
+const wait2 = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms));
+
+test("hangende listenerregistratie: na de time-out blijft de React-balk, wordt best-effort opgeruimd en komt een laat antwoord nergens terecht", async () => {
+  let removes = 0, release!: (handle: { remove(): Promise<void> }) => void;
+  const f = fixture({ listenFn: () => new Promise(resolve => { release = resolve; }) });
+  f.bar.start(); f.bar.update(state());
+  await wait2(TAB_BAR_CALL_TIMEOUT_MS + 200);
+  assert.deepEqual(f.log, ["listen", "clear"], "geen support en geen sync zonder listeners; wel een poging een oude balk op te ruimen");
+  assert.equal(f.attributes.size, 0); assert.equal(f.styles.size, 0);
+  f.bar.update(state({ selectedId: "learn" })); await settle();
+  assert.equal(f.payloads.length, 0, "later gewijzigde staat maakt geen balk");
+  // Het late antwoord van de native bridge: de listeners worden direct verwijderd, er volgt niets.
+  release({ remove: async () => { removes++; } }); await settle();
+  assert.equal(removes, 1, "het late handvat wordt precies één keer verwijderd");
+  assert.deepEqual(f.log, ["listen", "clear"]); assert.equal(f.attributes.size, 0);
+});
+
+test("hangende listenerregistratie én hangende clear: geen fout, geen balk, React-navigatie blijft", async () => {
+  const hang = new Promise<never>(() => {});
+  const f = fixture({ listenFn: () => hang, clear: () => hang });
+  f.bar.start(); f.bar.update(state());
+  await wait2(2 * TAB_BAR_CALL_TIMEOUT_MS + 300);
+  assert.equal(f.attributes.size, 0); assert.equal(f.payloads.length, 0);
+});
+
+test("een falende listenerregistratie laat de React-balk staan en probeert een oude balk op te ruimen", async () => {
+  const f = fixture({ listenFn: async () => { throw new Error("listen_failed"); } });
+  f.bar.start(); f.bar.update(state()); await settle();
+  assert.deepEqual(f.log, ["listen", "clear"]); assert.equal(f.attributes.size, 0); assert.equal(f.payloads.length, 0);
+});
+
+test("opruimen tijdens de listenerregistratie: een later binnenkomend handvat wordt verwijderd, geen sync, geen attributen, geen tweede registratie", async () => {
+  let removes = 0, release!: (handle: { remove(): Promise<void> }) => void;
+  const f = fixture({ listenFn: () => new Promise(resolve => { release = resolve; }) });
+  f.bar.start(); f.bar.start(); f.bar.update(state()); await settle();
+  assert.equal(f.listens(), 1, "een tweede start() registreert niets opnieuw");
+  f.bar.dispose(); await settle();
+  release({ remove: async () => { removes++; } }); await settle();
+  assert.equal(removes, 1);
+  assert.equal(f.payloads.length, 0); assert.equal(f.attributes.size, 0); assert.equal(f.styles.size, 0);
+  assert.ok(!f.log.includes("support") && !f.log.includes("sync"));
+  f.bar.start(); await settle();
+  assert.equal(f.listens(), 1, "na dispose start niets meer");
+});
+
+test("registerPairedListeners: gedeeltelijk mislukt = alles of niets, en late of hangende listeners blijven niet achter", async () => {
+  const noop = { select: () => {}, layout: () => {} };
+  // 1. layout mislukt, select slaagde: het geslaagde handvat wordt verwijderd.
+  const removed: string[] = [];
+  const handle = (name: string) => ({ remove: async () => { removed.push(name); } });
+  await assert.rejects(registerPairedListeners(async name => { if (name === "tabBarLayout") throw new Error("layout_failed"); return handle(name); }, noop, new AbortController().signal), /layout_failed/);
+  assert.deepEqual(removed, ["tabBarSelect"]);
+  // 2. beide slagen: precies twee registraties, remove is idempotent.
+  removed.length = 0;
+  const ok = await registerPairedListeners(async name => handle(name), noop, new AbortController().signal);
+  await ok.remove(); await ok.remove();
+  assert.deepEqual(removed.sort(), ["tabBarLayout", "tabBarSelect"]);
+  // 3. één blijft hangen, de aanvrager geeft op: het geslaagde handvat wordt verwijderd en het late handvat ook.
+  removed.length = 0;
+  const abort = new AbortController(); let late!: (value: { remove(): Promise<void> }) => void;
+  const pending = registerPairedListeners(name => name === "tabBarSelect" ? Promise.resolve(handle(name)) : new Promise(resolve => { late = resolve; }), noop, abort.signal);
+  pending.catch(() => {});
+  await settle(); abort.abort(); await settle();
+  assert.deepEqual(removed, ["tabBarSelect"]);
+  late(handle("tabBarLayout")); await settle();
+  assert.deepEqual(removed.sort(), ["tabBarLayout", "tabBarSelect"], "het late handvat is direct verwijderd");
+  // 4. een remove die zelf faalt maakt de opruiming niet kapot.
+  await assert.rejects(registerPairedListeners(async name => name === "tabBarLayout" ? Promise.reject(new Error("x")) : ({ remove: async () => { throw new Error("remove_failed"); } }), noop, new AbortController().signal), /x/);
+});
+
+test("hoogteafronding: naar boven op hele CSS-pixels (ShellMetrics meet met offsetHeight), met marge voor drijvendekommaruis", async () => {
+  const f = fixture();
+  f.bar.start(); f.bar.update(state()); await settle();
+  for (const [height, expected] of [[83, "83px"], [83.0000001, "83px"], [82.9999999, "83px"], [83.2, "84px"], [83.5, "84px"], [83.99, "84px"], [84, "84px"], [49.02, "50px"], [49.01, "49px"]] as const) {
+    f.layout({ height });
+    assert.equal(f.styles.get("--vs-native-tabbar-height"), expected, `hoogte ${height}`);
+    assert.ok(parseFloat(expected) >= height - 0.01 && parseFloat(expected) - height < 1.01, "nooit minder ruimte dan UIKit en minder dan 1 px extra");
+  }
 });

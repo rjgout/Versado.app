@@ -23,7 +23,12 @@ export interface NativeTabBarBridge {
     version: 1; items: { id: string; title: string }[]; selectedId: string | null; visible: boolean; style: "light" | "dark";
   }): Promise<unknown>;
   clear(): Promise<void>;
-  listen(callbacks: { select(value: unknown): void; layout(value: unknown): void }): Promise<{ remove(): Promise<void> }>;
+  /**
+   * Registreert beide native listeners of geen: een gedeeltelijke registratie wordt door de adapter zelf
+   * weer opgeruimd. `signal` meldt dat de aanvrager niet meer wacht (time-out of dispose); een listener die
+   * daarna alsnog binnenkomt moet de adapter direct verwijderen.
+   */
+  listen(callbacks: { select(value: unknown): void; layout(value: unknown): void }, signal: AbortSignal): Promise<{ remove(): Promise<void> }>;
 }
 type TabBarRoot = Pick<HTMLElement, "getAttribute" | "setAttribute" | "removeAttribute"> & {
   style: Pick<CSSStyleDeclaration, "setProperty" | "getPropertyValue" | "removeProperty">;
@@ -41,11 +46,46 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   });
 }
 
+type ListenerHandle = { remove(): Promise<void> };
+/**
+ * Registreert de twee tabbalklisteners als één geheel: alles of niets. Een gedeeltelijke registratie
+ * (één fout, of één die blijft hangen terwijl de ander slaagt) laat nooit een listener achter, en een
+ * listener die ná `signal.abort()` alsnog binnenkomt wordt direct verwijderd. Remove is idempotent.
+ * Grens: reageert de native bridge zelf helemaal niet meer, dan kan ook dit niets verwijderen.
+ */
+export async function registerPairedListeners(
+  add: (name: "tabBarSelect" | "tabBarLayout", callback: (value: unknown) => void) => Promise<ListenerHandle>,
+  callbacks: { select(value: unknown): void; layout(value: unknown): void },
+  signal: AbortSignal,
+): Promise<ListenerHandle> {
+  const handles: ListenerHandle[] = [];
+  const removed = new Set<ListenerHandle>();
+  const removeOnce = (handle: ListenerHandle): Promise<void> => {
+    if (removed.has(handle)) return Promise.resolve();
+    removed.add(handle);
+    return Promise.resolve().then(() => handle.remove()).catch(() => {});
+  };
+  const register = (name: "tabBarSelect" | "tabBarLayout", callback: (value: unknown) => void) =>
+    add(name, callback).then(handle => {
+      handles.push(handle);
+      if (signal.aborted) void removeOnce(handle);
+      return handle;
+    });
+  signal.addEventListener("abort", () => { handles.forEach(handle => void removeOnce(handle)); }, { once: true });
+  const results = await Promise.allSettled([register("tabBarSelect", callbacks.select), register("tabBarLayout", callbacks.layout)]);
+  const failed = results.find((result): result is PromiseRejectedResult => result.status === "rejected");
+  if (failed || signal.aborted) {
+    await Promise.all(handles.map(removeOnce));
+    throw failed ? failed.reason : new Error("tabbar_listen_aborted");
+  }
+  return { remove: async () => { await Promise.all(handles.map(removeOnce)); } };
+}
+
 /**
  * Zet de systeemtabbalk (UIKit, iOS 26+) naast de bestaande navigatie.
  * De React-balk blijft de enige bron van bestemmingen en actieve staat, en de terugval op
  * iOS 15–25, Android en web. Alleen na een bevestigde native balk verandert hij in een
- * onzichtbare ruimtehouder met exact de hoogte van de native balk. Bij elke fout, bij een
+ * onzichtbare ruimtehouder met de hoogte van de native balk (naar boven afgerond op hele CSS-pixels). Bij elke fout, bij een
  * ongeldig antwoord, bij een time-out en bij opruimen wordt de native balk eerst verwijderd
  * en verschijnt daarna pas de React-balk weer: nooit twee balken, nooit geen bediening.
  *
@@ -63,6 +103,8 @@ export class NativeTabBar {
   /** Elk gestart verzoek krijgt een nummer; een antwoord met een ouder nummer is verlopen en telt niet. */
   private generation = 0;
   private handle: { remove(): Promise<void> } | null = null;
+  private listenAbort: AbortController | null = null;
+  private listenState: "pending" | "adopted" | "abandoned" = "pending";
   private previousHeight = "";
   private previousAttribute: string | null = null;
 
@@ -81,21 +123,53 @@ export class NativeTabBar {
     this.active = true;
     this.previousAttribute = this.options.root.getAttribute(ATTRIBUTE);
     this.previousHeight = this.options.root.style.getPropertyValue(HEIGHT);
-    void Promise.resolve().then(() => this.bridge.listen({
+    void this.initialize();
+  }
+
+  private async initialize(): Promise<void> {
+    const abort = new AbortController();
+    this.listenAbort = abort;
+    this.listenState = "pending";
+    // Het antwoord wordt pas hier "geadopteerd". Komt de registratie na een time-out of dispose alsnog
+    // binnen, dan verwijdert deze keten de listeners zelf: er blijft nooit een listener zonder eigenaar.
+    const registered = Promise.resolve().then(() => this.bridge.listen({
       select: value => this.onSelect(value),
       layout: value => this.onLayout(value),
-    })).then(async handle => {
-      if (this.disposed) { void handle.remove().catch(() => {}); return null; }
-      this.handle = handle;
-      try { await withTimeout(this.bridge.clear(), TAB_BAR_CALL_TIMEOUT_MS); } catch { /* geen oude balk of geen bridge: de support-vraag beslist */ }
-      if (this.disposed) return null;
-      return withTimeout(this.bridge.support(), TAB_BAR_CALL_TIMEOUT_MS);
-    }).then(raw => {
-      if (this.disposed || raw === null) return;
-      const parsed = tabBarSupportSchema.safeParse(raw);
-      this.available = parsed.success && parsed.data.available;
-      if (this.available) void this.flush();
-    }).catch(() => { if (!this.disposed) this.available = false; });
+    }, abort.signal)).then(handle => {
+      if (this.listenState === "abandoned") {
+        void handle.remove().catch(() => {});
+        throw new Error("tabbar_listen_abandoned");
+      }
+      this.listenState = "adopted";
+      return handle;
+    });
+    let handle: { remove(): Promise<void> };
+    try {
+      handle = await withTimeout(registered, TAB_BAR_CALL_TIMEOUT_MS);
+    } catch {
+      // Mislukt, gedeeltelijk mislukt, verlopen of opgeruimd: niemand wacht meer op deze registratie.
+      this.listenState = "abandoned";
+      abort.abort();
+      registered.catch(() => {});
+      if (this.disposed) return;
+      this.available = false;
+      // Zonder listeners is de systeemtabbalk onbruikbaar (tikken komen nergens aan) en blijft de React-balk
+      // de enige bediening. Een mogelijk achtergebleven native balk (na een WebView-herlaad) wordt nog
+      // wel geprobeerd op te ruimen; reageert de native bridge niet meer, dan kan dat niet worden gegarandeerd.
+      try { await withTimeout(this.bridge.clear(), TAB_BAR_CALL_TIMEOUT_MS); } catch { /* bridge reageert niet */ }
+      return;
+    }
+    if (this.disposed) { void handle.remove().catch(() => {}); return; }
+    this.handle = handle;
+    // Opruimen van een eventueel achtergebleven native balk (de plugin overleeft een herlaad van de WebView).
+    try { await withTimeout(this.bridge.clear(), TAB_BAR_CALL_TIMEOUT_MS); } catch { /* geen oude balk of geen bridge: de support-vraag beslist */ }
+    if (this.disposed) return;
+    let raw: unknown;
+    try { raw = await withTimeout(this.bridge.support(), TAB_BAR_CALL_TIMEOUT_MS); } catch { this.available = false; return; }
+    if (this.disposed) return;
+    const parsed = tabBarSupportSchema.safeParse(raw);
+    this.available = parsed.success && parsed.data.available;
+    if (this.available) void this.flush();
   }
 
   update(state: NativeTabBarState): void {
@@ -113,6 +187,9 @@ export class NativeTabBar {
     if (this.disposed) return;
     this.disposed = true;
     this.generation++;
+    // Een nog lopende registratie wordt losgelaten: komt die later alsnog binnen, dan ruimt de keten in initialize() op.
+    this.listenState = "abandoned";
+    this.listenAbort?.abort();
     const handle = this.handle; this.handle = null;
     if (handle) void handle.remove().catch(() => {});
     if (!this.active) return;
@@ -183,7 +260,10 @@ export class NativeTabBar {
 
   private mirror(height: number): void {
     const { root, onChange } = this.options;
-    const value = `${Math.ceil(height)}px`;
+    // Naar boven afgerond op hele CSS-pixels: ShellMetrics meet met offsetHeight (hele getallen), dus een
+    // fractionele waarde zou tot 0,5 px te weinig ruimte laten. De kleine marge vangt drijvendekommaruis
+    // uit UIKit op (83,0000001 mag geen 84 worden); het verschil met UIKit blijft altijd kleiner dan 1 px.
+    const value = `${Math.ceil(height - 0.01)}px`;
     // Een herhaalde melding met dezelfde hoogte (bv. na terugkeer uit de achtergrond) verandert niets en
     // hoeft ShellMetrics dus niet opnieuw te laten meten.
     const changed = root.style.getPropertyValue(HEIGHT) !== value || root.getAttribute(ATTRIBUTE) !== "true" || !this.mirrored;

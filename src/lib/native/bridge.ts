@@ -2,7 +2,7 @@ import { registerPlugin, type PluginListenerHandle } from "@capacitor/core";
 import { NativeClientError, type SecureSessionStore } from "./client";
 import type { NativeAudioBridge } from "./audioBridge";
 import type { NativeAccessBridge } from "./access";
-import type { NativeTabBarBridge } from "./tabBar";
+import { registerPairedListeners, type NativeTabBarBridge } from "./tabBar";
 interface NativeBridge extends NativeAccessBridge, NativeAudioBridge {
   interfacePreferences(): Promise<unknown>;
   tabBarSupport(): Promise<unknown>;
@@ -28,11 +28,6 @@ export const nativeTabBarBridge: NativeTabBarBridge = {
   support: () => nativeBridge.tabBarSupport(),
   sync: payload => nativeBridge.tabBarSync(payload),
   clear: () => nativeBridge.tabBarClear(),
-  async listen(callbacks) {
-    const handles = await Promise.all([
-      nativeBridge.addListener("tabBarSelect", callbacks.select),
-      nativeBridge.addListener("tabBarLayout", callbacks.layout),
-    ]);
-    return { remove: async () => { await Promise.all(handles.map(handle => handle.remove())); } };
-  },
+  listen: (callbacks, signal) => registerPairedListeners(
+    (name, callback) => nativeBridge.addListener(name, callback), callbacks, signal),
 };
