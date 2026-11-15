@@ -21,6 +21,25 @@ xcrun simctl install "$UDID" "$APP" || exit 1
 xcrun simctl launch "$UDID" app.versado.poc || exit 1
 sleep 8
 mkdir -p e2e-results/ios
+# De XCTest-driver van Maestro start op de trage Intel-runner pas na enkele minuten: ruime timeout en voorverwarmen.
+export MAESTRO_DRIVER_STARTUP_TIMEOUT=900000
+echo "::group::diagnose na start"
+echo "app draait: $(xcrun simctl spawn "$UDID" launchctl list | grep -c app.versado.poc) regel(s) in launchctl"
+xcrun simctl listapps "$UDID" | grep -A3 app.versado.poc | head -8
+echo "::endgroup::"
+echo "::group::warm-up Maestro-driver"
+cat > e2e-results/ios/warmup.yaml <<'YAML'
+appId: app.versado.poc
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: login-submit
+    timeout: 120000
+YAML
+for i in 1 2 3; do maestro test e2e-results/ios/warmup.yaml && break || echo "warm-up poging $i mislukt"; done
+echo "::endgroup::"
 E2E_OUT=e2e-results/ios ./scripts/e2e.sh; rc=$?
 xcrun simctl io "$UDID" screenshot e2e-results/ios/final.png || true
+echo "::group::backend-log (websocket/auth)"; grep -iE "socket|origin|403|401|native" "${BACKEND_LOG:-/dev/null}" | tail -40; echo "::endgroup::"
 exit $rc
