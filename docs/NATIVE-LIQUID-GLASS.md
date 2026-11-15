@@ -144,7 +144,7 @@ accountgegevens of netwerk.
 dan een onzichtbare ruimtehouder met precies die hoogte (`globals.css`), zodat `ShellMetrics`,
 `--nav-height`, `<main>` en alle onderruimte-afspraken ongewijzigd blijven. Bij iOS 15–25,
 Android, web, een fout, een ongeldig antwoord, uitloggen of opruimen verschijnt de React-balk
-weer. De volgorde is altijd: eerst de ruimte vrijhouden (native balk nog onzichtbaar), daarna
+weer, en die terugval ruimt eerst de native balk op (`tabBarClear`) vóór de ruimtehouder verdwijnt, ook bij een fout ná een eerder zichtbare balk. Een native balk met hoogte < 1 telt als fout. De volgorde is altijd: eerst de ruimte vrijhouden (native balk nog onzichtbaar), daarna
 tonen, zodat er nooit twee balken zichtbaar zijn.
 
 **Zichtbaarheid.** De native balk volgt exact de React-balk: `ShellMetrics` meldt na elke meting
@@ -168,6 +168,7 @@ binnen de balk). Alleen id's en hoogtes gaan terug naar JavaScript. Geen opslag,
 netwerk, en geen nieuwe rechten of backendroute.
 
 **Bekende beperkingen en vervolgacties.**
+- **Open risico: losse `UITabBar` of `UITabBarController`.** De balk is een losse `UITabBar` als subview van de Capacitor-host. Apple toont het automatische iOS 26-glaseffect, het scrollgedrag en de iPad-adaptiviteit uitdrukkelijk voor `UITabBarController`; of een losse `UITabBar` boven een scrollende WebView hetzelfde materiaal tekent, is hier niet vastgesteld. Pas na een echte iOS 26-simulator- of toestelscreenshot (licht/donker, scrollende inhoud, homeindicator, rotatie, Reduce Transparency) beslissen of dit volstaat of dat een `UITabBarController` als host (met een lege `UIViewController` per tab) nodig is. Tot dan geen claim dat het resultaat gelijk is aan het systeem-Liquid Glass.
 - Niet op een toestel of simulator beoordeeld: de balk is hier alleen op Linux ontwikkeld. De
   TypeScript-adapter, het contract en de Swift-beleidsproef (macOS-CI) zijn getest; het uiterlijk,
   de hoogte (inclusief homeindicator), touch en VoiceOver op iPhone en iPad zijn nog niet

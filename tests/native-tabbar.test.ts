@@ -15,7 +15,7 @@ const state = (patch: Partial<NativeTabBarState> = {}): NativeTabBarState => ({ 
 function fixture(options: { platform?: string; support?: unknown; sync?: (payload: unknown, call: number) => Promise<unknown> | unknown } = {}) {
   const attributes = new Map<string, string>(), styles = new Map<string, string>();
   const log: string[] = [], payloads: Array<{ items: unknown[]; selectedId: string | null; visible: boolean; style: string }> = [];
-  const hrefs: string[] = [];
+  const hrefs: string[] = [], clearSawAttribute: boolean[] = [];
   let changes = 0, removed = 0, select: (value: unknown) => void = () => {}, layout: (value: unknown) => void = () => {};
   const bridge: NativeTabBarBridge = {
     support: async () => { log.push("support"); return options.support ?? { version: 1, available: true }; },
@@ -23,7 +23,7 @@ function fixture(options: { platform?: string; support?: unknown; sync?: (payloa
       log.push("sync"); payloads.push(payload as never);
       return options.sync ? options.sync(payload, payloads.length) : { height: 83 };
     },
-    clear: async () => { log.push("clear"); },
+    clear: async () => { log.push("clear"); clearSawAttribute.push(attributes.get("data-vs-native-tabbar") === "true"); },
     listen: async callbacks => { log.push("listen"); select = callbacks.select; layout = callbacks.layout; return { remove: async () => { removed++; } }; },
   };
   const root = {
@@ -37,7 +37,7 @@ function fixture(options: { platform?: string; support?: unknown; sync?: (payloa
     },
   };
   const bar = new NativeTabBar(bridge, { platform: options.platform ?? "ios", root, onSelectHref: href => { hrefs.push(href); }, onChange: () => { changes++; } });
-  return { bar, attributes, styles, log, payloads, hrefs, changes: () => changes, removed: () => removed, select: (v: unknown) => select(v), layout: (v: unknown) => layout(v) };
+  return { bar, attributes, styles, log, payloads, hrefs, clearSawAttribute, changes: () => changes, removed: () => removed, select: (v: unknown) => select(v), layout: (v: unknown) => layout(v) };
 }
 
 test("web en Android doen niets: geen bridge, geen attributen", async () => {
@@ -141,6 +141,34 @@ test("elke fout in de native balk laat de React-balk terugkeren zonder herhaalpo
   const calls = f.payloads.length;
   f.bar.update(state({ selectedId: "learn" })); await settle();
   assert.equal(f.payloads.length, calls, "na een fout wordt de native balk niet opnieuw geprobeerd");
+});
+
+test("een latere fout na een zichtbare native balk ruimt eerst de native balk op, dan pas keert de React-balk terug", async () => {
+  // Aanroep 1 = verborgen eerste sync, 2 = zichtbaar; de derde (selectiewijziging) faalt.
+  const f = fixture({ sync: (_payload, call) => { if (call === 3) throw new Error("tabbar_unavailable"); return { height: 83 }; } });
+  f.bar.start(); f.bar.update(state()); await settle();
+  assert.equal(f.payloads.at(-1)!.visible, true, "de native balk was zichtbaar");
+  assert.equal(f.attributes.get("data-vs-native-tabbar"), "true");
+  f.bar.update(state({ selectedId: "learn" })); await settle();
+  assert.equal(f.log.at(-1), "clear", "de native balk wordt opgeruimd");
+  assert.deepEqual(f.clearSawAttribute.slice(-1), [true], "de React-balk blijft een ruimtehouder tot de native balk weg is");
+  assert.equal(f.attributes.size, 0); assert.equal(f.styles.size, 0);
+  const calls = f.payloads.length;
+  f.bar.update(state({ selectedId: "today" })); await settle();
+  assert.equal(f.payloads.length, calls, "na een fout geen nieuwe poging");
+});
+
+test("een native balk zonder hoogte is een fout: nooit de React-balk verbergen zonder zichtbare bediening", async () => {
+  for (const height of [0, 0.4]) {
+    const f = fixture({ sync: () => ({ height }) });
+    f.bar.start(); f.bar.update(state()); await settle();
+    assert.equal(f.attributes.size, 0, `hoogte ${height}`); assert.equal(f.log.at(-1), "clear");
+  }
+  const f = fixture();
+  f.bar.start(); f.bar.update(state()); await settle();
+  f.layout({ height: 0 });
+  assert.equal(f.styles.get("--vs-native-tabbar-height"), "83px", "een lay-outmelding zonder hoogte wordt genegeerd");
+  assert.equal(tabBarLayoutSchema.safeParse({ height: 0 }).success, false);
 });
 
 test("een ongeldig lay-outantwoord telt als fout", async () => {

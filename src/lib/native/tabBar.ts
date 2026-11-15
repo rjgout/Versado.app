@@ -4,8 +4,9 @@ import type { PrimaryDestination } from "@/lib/navigation";
 const destinationSchema = z.enum(["today", "learn", "play", "friends"]);
 /** Antwoord van `tabBarSupport`: alleen of de systeemtabbalk (iOS 26+) beschikbaar is. */
 export const tabBarSupportSchema = z.object({ version: z.literal(1), available: z.boolean() }).strict();
-/** Hoogte inclusief de ruimte onder de homeindicator, in CSS-pixels (= UIKit-points). */
-export const tabBarLayoutSchema = z.object({ height: z.number().finite().min(0).max(240) }).strict();
+/** Hoogte inclusief de ruimte onder de homeindicator, in CSS-pixels (= UIKit-points). Een balk zonder
+ * hoogte zou de React-balk verbergen zonder zichtbare native bediening; dat telt dus als fout. */
+export const tabBarLayoutSchema = z.object({ height: z.number().finite().min(1).max(240) }).strict();
 export const tabBarSelectSchema = z.object({ id: destinationSchema }).strict();
 
 export interface NativeTabBarEntry { id: PrimaryDestination; title: string; href: string }
@@ -126,12 +127,21 @@ export class NativeTabBar {
       this.mirror(layout.data.height);
       if (first) this.again = true;
     } catch {
-      if (!this.disposed) { this.available = false; this.unmirror(); }
+      // Ook een latere fout, terwijl de native balk al zichtbaar is: eerst die balk echt opruimen,
+      // dan pas de React-balk terugzetten, zodat er nooit twee balken of een dubbele bediening staat.
+      await this.fallback();
     } finally {
       this.busy = false;
       if (this.again && !this.disposed && this.available) { this.again = false; void this.flush(); }
       else this.again = false;
     }
+  }
+
+  private async fallback(): Promise<void> {
+    if (this.disposed) return;
+    this.available = false;
+    try { await this.bridge.clear(); } catch { /* niets meer te doen: de React-balk neemt het over */ }
+    if (!this.disposed) this.unmirror();
   }
 
   private async stop(): Promise<void> {
