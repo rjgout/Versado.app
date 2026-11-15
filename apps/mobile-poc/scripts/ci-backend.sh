@@ -15,7 +15,6 @@ warm() {
   [ -n "$tok" ] || return 0
   for p in today-overview games/friends; do curl -s -o /dev/null "$B/$p" "${H[@]}" -H "authorization: Bearer $tok"; done
   curl -s -o /dev/null -X POST "$B/realtime/session" "${H[@]}" -H "authorization: Bearer $tok" -d '{}'
-  curl -s -o /dev/null -X POST "$B/logout" "${H[@]}" -H "authorization: Bearer $tok" -d '{}'
 }
 nohup npx tsx server.ts > "${BACKEND_LOG:-/tmp/backend.log}" 2>&1 &
 for i in $(seq 1 90); do

@@ -131,7 +131,9 @@ jobs:
         with:
           api-level: 34
           arch: x86_64
-          target: google_apis
+          # AOSP-image zonder Google-launcher: op de software-gerenderde CI-emulator gaf de Pixel-launcher ANR-dialogen
+          # die de app aan het zicht onttrokken.
+          target: default
           profile: pixel_6
           disable-animations: true
           working-directory: apps/mobile-poc
