@@ -13,14 +13,14 @@ Zekerheidslabels: **[B]** bevestigd door broncode (pad genoemd), **[T]** bevesti
    (`today-actions/friend-response`) en bevatten de profielinstellingen de privacyvelden (`profileContract.ts`). **[B]**
 2. **Het ontbrekende deel is groot maar regelmatig:** verzoek sturen, vriend verwijderen, vriendenprofiel, uitnodigingslinks,
    vriendenreeksen, groepen (±15 routes), competitie, activiteitenfeed met reacties, notificatie-inbox. Geen enkele van de
-   ~20 sociale pagina's heeft een native route (`docs/NATIVE-FEATURE-PARITY.md`: allemaal *ontbreekt*; `nativeRoute()` kent geen
+   ±15 sociale pagina's heeft een native route (`docs/NATIVE-FEATURE-PARITY.md`: allemaal *ontbreekt*; `nativeRoute()` kent geen
    enkele sociale route). **[B]**
 3. **De architectuur hoeft niet nieuw.** De vier bestemmingen staan al in `PRIMARY_NAV`; `friends` ontbreekt alleen in
    `nativePrimaryNav(features)`. De losse UIKit-`UITabBar` ondersteunt vier items (`NativeTabBarPolicy`, symbool `person.2`);
    de CI-simulator toonde al "Vandaag, Leren, Spelen, Vrienden" in Liquid Glass. **[B][T]**
 4. **De sociale clients zijn bijna platformneutraal.** Ze gebruiken `useLiveQuery`/`liveMutation` en `getSocket()`, die de
-   `ApplicationRuntime` al abstraheert. Aanpassen is mechanisch: 6 bestanden gebruiken `next/link`, 3 `useRouter`, 6 een ruwe
-   `fetch(`. **[B]**
+   `ApplicationRuntime` al abstraheert. Aanpassen is mechanisch: 5 bestanden gebruiken `next/link`, 2 `useRouter`, 5 een ruwe
+   `fetch(` (6 aanroepen). **[B]**
 5. **Er is een bevestigde beperking in de zojuist gemerge testproxy die Vrienden zou breken:** zoeken op tag (`Jan#83`) en op
    e-mail (`@`) wordt door de test-API geweigerd, omdat `%23` en `%40` niet zijn toegestaan. Dit geldt nu al voor de
    vriendenkiezer in Spelen. Gemeten met de gegenereerde regels. **[T]** Het is een omissie in mijn eigen #285; zie §7.
@@ -82,7 +82,7 @@ bestaan dus niet en moeten een expliciet productbesluit worden.
 - Web praat via cookie-sessie en `/api/*`; native alleen Bearer op `/api/v1/native/*` via de native transportlaag (Swift/Java
   allowlist) **[B]** `src/lib/native/access.ts`, `NativeAccessTransport.swift`.
 - `nativeRoute()` weigert `%`, `?` (behalve spel- en profielroutes) en kent geen sociale routes **[B]** `navigation.ts`.
-- Sociale clients gebruiken `next/link` (6×), `useRouter` (3×), ruwe `fetch(` (6×) **[B]**; `applicationFetch` en `getSocket()` zijn
+- Sociale clients gebruiken `next/link` (5 bestanden), `useRouter` (2), ruwe `fetch(` (5 bestanden, 6 aanroepen) **[B]**; `applicationFetch` en `getSocket()` zijn
   de reeds bestaande platformpoorten **[B]** `data/applicationRuntime.ts`, `socketClient.ts`.
 - PATCH/PUT bestaan in de native route-handler alleen voor `games` (`src/app/api/v1/native/[...path]/route.ts`); DELETE is algemeen.
 
@@ -103,7 +103,7 @@ gevalideerde queryafhandeling als `gamePageRoute`; geen algemene versoepeling va
 herkomst. Open punt: in Vrienden bestaan eigen sub-tabs (`SOCIAL_TABS`) — die moeten `replace` gebruiken zoals de CFM-stappen, zodat
 terug niet door tabs bladert. **[A][N]**
 **4.5 Liquid Glass met vier items.** Gemeten in CI-simulator iOS 26.5: vier items, selectiepil, hoogte 83 pt **[T]**. Kleinere iPhones en
-Dynamic Type: `UITabBar` schaalt niet met Dynamic Type; vier titels (max 32 tekens) vragen controle in alle vijf talen op 320 pt **[N]**.
+Dynamic Type: gedrag van de `UITabBar` bij grote tekst en lange vertalingen is niet gemeten; vier titels (max 32 tekens) vragen controle in alle vijf talen op 320 pt **[N]**.
 **4.6 iOS 26+ ↔ oudere iOS ↔ Android.** iOS 26+: UIKit-balk, React-balk als onzichtbare ruimtehouder. iOS 15–25 en Android: dezelfde
 `BottomNav` met vier items (grid-kolommen zijn al `1…4`) **[B]** `src/components/BottomNav.tsx`. Android-specifiek: Material 3 uit de
 designstrategie; er is geen Android-equivalent van de native balk nodig.
@@ -112,8 +112,9 @@ designstrategie; er is geen Android-equivalent van de native balk nodig.
 
 Alle gecontroleerde sociale routes beginnen met `getCurrentUser()` (401) **[B]**; invoer is meestal met zod gevalideerd
 (`friends/request`, `nudges`, `friend-streaks`, `groups/*`), niet bij `activity-feed`, `friends/[id]` (id uit pad).
-Rate limiting: **alleen bij toegangsverzoeken** (5/uur, `JOIN_REQUEST_HOURLY_LIMIT`) en in de login-/native-poorten; **niet** bij
-`friends/request`, `users/search`, `invite/[code]` (GET zonder inlog), `activity-feed/*/reaction`. **[B]**
+Rate limiting: **op routeniveau** vond ik geen begrenzing in de sociale routes; **in services** alleen bij toegangsverzoeken (5/uur,
+`JOIN_REQUEST_HOURLY_LIMIT`) en seintjes (6 u), plus de login-/native-poorten. Er is dus geen begrenzing voor `friends/request`,
+`users/search`, `invite/[code]` (GET zonder inlog) en `activity-feed/*/reaction`. **[B]** (gezocht met `rateLimit|authBudget` in de routes; services niet uitputtend nagelopen **[N]**)
 
 **Hergebruik via de bestaande identiteitsbrug.** Native Spelen draait de gewone webhandlers binnen `withNativeGameIdentity`
 (`src/lib/games/requestIdentity.server.ts`): `getCurrentUser()` levert dan de Bearer-gebruiker, zonder cookies en met herverificatie
