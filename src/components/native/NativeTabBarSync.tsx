@@ -14,6 +14,11 @@ export const SHELL_METRICS_EVENT = "vs-shell-metrics";
 function readNavVisible(): boolean {
   return parseFloat(document.documentElement.style.getPropertyValue("--nav-height")) > 0;
 }
+/** Een modaal paneel of rondleiding ligt in de WebView; de native balk zou er als aparte laag boven blijven staan en bediening ervoor vangen. */
+export const MODAL_SELECTOR = 'dialog[open], [aria-modal="true"]';
+function readModalOpen(): boolean {
+  return document.querySelector(MODAL_SELECTOR) !== null;
+}
 function readStyle(): "light" | "dark" {
   return document.documentElement.classList.contains("dark") ? "dark" : "light";
 }
@@ -31,6 +36,7 @@ export default function NativeTabBarSync({ items }: { items: readonly PrimaryNav
   const controller = useRef<NativeTabBar | null>(null);
   const [navVisible, setNavVisible] = useState(readNavVisible);
   const [style, setStyle] = useState(readStyle);
+  const [modalOpen, setModalOpen] = useState(readModalOpen);
   const ios = appPlatform() === "ios";
 
   useEffect(() => {
@@ -47,7 +53,10 @@ export default function NativeTabBarSync({ items }: { items: readonly PrimaryNav
     const theme = new MutationObserver(() => setStyle(readStyle()));
     theme.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
     window.addEventListener(SHELL_METRICS_EVENT, metrics);
+    const modal = new MutationObserver(() => setModalOpen(readModalOpen()));
+    modal.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["open", "aria-modal"] });
     return () => {
+      modal.disconnect();
       window.removeEventListener(SHELL_METRICS_EVENT, metrics);
       theme.disconnect();
       controller.current = null;
@@ -58,7 +67,7 @@ export default function NativeTabBarSync({ items }: { items: readonly PrimaryNav
   const active = activeDestination(navigation.pathname);
   const state: NativeTabBarState = {
     items: items.map(item => ({ id: item.id, href: item.href, title: t(item.labelKey) })),
-    selectedId: active, visible: navVisible && items.length > 0, style,
+    selectedId: active, visible: navVisible && !modalOpen && items.length > 0, style,
   };
   const signature = JSON.stringify(state);
   useEffect(() => { controller.current?.update(JSON.parse(signature) as NativeTabBarState); }, [signature]);

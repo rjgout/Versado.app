@@ -13719,7 +13719,7 @@
     },
     {
       "file": "src/components/native/NativeTabBarSync.tsx",
-      "sha256": "14efe32fc79c9c7134326fa4d6d4b505f2efffe11797a6a58413cdb98a616e09",
+      "sha256": "142078a2b6c08ebaf1b7d986abc13fd3b1d0ae5494f7e537ac805889bf30aeb1",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -13734,6 +13734,7 @@
       "requests": [],
       "checks": [],
       "exports": [
+        "MODAL_SELECTOR",
         "NativeTabBarSync",
         "SHELL_METRICS_EVENT"
       ]
@@ -82795,7 +82796,7 @@
     },
     {
       "file": "src/components/native/NativeTabBarSync.tsx",
-      "sha256": "14efe32fc79c9c7134326fa4d6d4b505f2efffe11797a6a58413cdb98a616e09",
+      "sha256": "142078a2b6c08ebaf1b7d986abc13fd3b1d0ae5494f7e537ac805889bf30aeb1",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -82810,6 +82811,7 @@
       "requests": [],
       "checks": [],
       "exports": [
+        "MODAL_SELECTOR",
         "NativeTabBarSync",
         "SHELL_METRICS_EVENT"
       ]

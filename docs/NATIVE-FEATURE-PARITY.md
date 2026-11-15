@@ -1158,7 +1158,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/native/NativeReaderView.tsx](../src/components/native/NativeReaderView.tsx) | use client | NativeReaderView
 [src/components/native/NativeShellHeader.tsx](../src/components/native/NativeShellHeader.tsx) | use client | NativeShellHeader
 [src/components/native/NativeStudyImage.tsx](../src/components/native/NativeStudyImage.tsx) | use client | NativeStudyImage, NativeStudyMediaProvider
-[src/components/native/NativeTabBarSync.tsx](../src/components/native/NativeTabBarSync.tsx) | use client | NativeTabBarSync, SHELL_METRICS_EVENT
+[src/components/native/NativeTabBarSync.tsx](../src/components/native/NativeTabBarSync.tsx) | use client | MODAL_SELECTOR, NativeTabBarSync, SHELL_METRICS_EVENT
 [src/components/native/NativeTodayView.tsx](../src/components/native/NativeTodayView.tsx) | use client | NativeTodayView
 [src/components/native/entry.tsx](../src/components/native/entry.tsx) | contextafhankelijk / server-entry waar page/layout | default/locale declaratie; zie bron
 [src/components/navigation/AppNavigation.tsx](../src/components/navigation/AppNavigation.tsx) | use client | AppImage, AppLink, AppNavigationProvider, LocalAppImage, useAppImageSource, useAppNavigation, useAppNavigationAdapter

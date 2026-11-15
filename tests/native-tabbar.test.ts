@@ -384,3 +384,9 @@ test("contract: de React-balk wordt alleen een ruimtehouder na bevestigde native
   assert.ok(sync.includes('appPlatform() === "ios"'));
   assert.ok(sync.includes("t(item.labelKey)"), "labels volgen de bestaande i18n-sleutels van BottomNav");
 });
+
+test("contract: een open modaal paneel of rondleiding verbergt de native balk", () => {
+  const source = readFileSync(new URL("../src/components/native/NativeTabBarSync.tsx", import.meta.url), "utf8");
+  assert.match(source, /dialog\[open\], \[aria-modal="true"\]/);
+  assert.match(source, /navVisible && !modalOpen/);
+});
