@@ -6,6 +6,9 @@ FROM node:24-alpine AS development-config
 WORKDIR /config
 COPY deploy/nginx/nginx.conf deploy/nginx/nginx.conf
 COPY scripts/native/render-test-api-proxy.mjs scripts/native/render-test-api-proxy.mjs
+# De spelroutes komen uit dezelfde expliciete tabellen als de native client (alleen data; Node 24 verwijdert de typen).
+COPY src/lib/native/gamesRoutes.ts src/lib/native/gamesRoutes.ts
+COPY src/lib/native/gamesPagesRoutes.ts src/lib/native/gamesPagesRoutes.ts
 RUN node scripts/native/render-test-api-proxy.mjs > /config/nginx.conf
 
 FROM nginx:alpine AS proxy-base

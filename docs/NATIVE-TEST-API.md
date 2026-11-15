@@ -30,7 +30,8 @@ handmatig gemounte nginxconfiguratie. De generator kan lokaal nog voor review
 worden uitgevoerd; zijn uitvoer hoeft niet naar de NAS te worden gekopieerd.
 
 De listener staat standaard gesloten voor alle overige routes/methoden/hosts en
-niet-native Origins. Hij biedt uitsluitend de bestaande native JSON-routes,
+niet-native Origins. Hij biedt uitsluitend de bestaande native JSON-routes (inclusief de spelroutes, zie
+`docs/NATIVE-TEST-API-SPELEN.md`),
 brongebonden audio-Range-routes en websocket-only Socket.IO aan. Geen `/api/audio`
 met webcookies, `/api/auth`, webpagina's, admin, health, onderhoudsprobe, diagnostiek
 of generieke `/api`-proxy. Encoded/traversal/ongekende queryroutes worden geweigerd.

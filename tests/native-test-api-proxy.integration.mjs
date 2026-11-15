@@ -7,6 +7,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import http from 'node:http';
 import { render, routes, TEST_API_HOST } from '../scripts/native/render-test-api-proxy.mjs';
+import { clientRequests, rejectedRequests } from './fixtures/native-test-api-game-cases.mjs';
 const docker = (...args) => execFileSync('docker', ['--host=unix:///var/run/docker.sock', ...args], { encoding:'utf8', env:{...process.env,DOCKER_CONTEXT:'',DOCKER_HOST:'unix:///var/run/docker.sock'}, stdio:['ignore','pipe','pipe'] }).trim();
 const root = mkdtempSync(join(tmpdir(),'versado-api-edge-'));
 const suffix=randomUUID(), network=`versado-proxy-${suffix}`, devImage=`versado-proxy-test:${suffix}-dev`, prodImage=`versado-proxy-test:${suffix}-prod`;
@@ -67,6 +68,15 @@ try {
   assert.deepEqual(JSON.parse(r.body),{cookie:'',cf:'',authorization:'Bearer synthetic',range:'bytes=0-9',host:TEST_API_HOST});assert.equal(r.headers['set-cookie'],undefined);
   await check('/socket.io/?EIO=4&transport=websocket',200);
   await check('/socket.io/?EIO=4&transport=polling',404);
+  // Spelen (store-test): alles wat de native Spelen-client kan sturen komt door; verkeerde methoden, extra/dubbele
+  // parameters, verdachte coderingen en traversal blijven 404. Dezelfde gevallen als tests/native-test-api-games.test.ts.
+  for(const [method,uri] of clientRequests())await check('/api/v1/native/'+uri,200,method);
+  for(const [reason,method,uri] of rejectedRequests)await check('/api/v1/native/'+uri,404,method);
+  await check('/api/v1/native/games/page?route=%2Flive',403,'GET',{Origin:'https://dev.versado.app'});
+  await check('/api/v1/native/games/page?route=%2Flive',404,'GET',{Host:'dev.versado.app'});
+  await check('/api/v1/native/games/page?route=%2Flive',200,'OPTIONS');
+  const gameRequest=await check('/api/v1/native/games/page?route=%2Flive',200,'GET',{Cookie:'web-session=secret',Authorization:'Bearer synthetic'});
+  assert.equal(JSON.parse(gameRequest.body).cookie,'');assert.equal(JSON.parse(gameRequest.body).authorization,'Bearer synthetic');
   const range=await check(streamPath,206,'GET',{Range:'bytes=0-9'});
   assert.equal(range.headers['content-range'],'bytes 0-9/100');assert.equal(range.body,'0123456789');
   assert.equal((await check(streamPath,206,'HEAD',{Range:'bytes=0-9'})).body,'');

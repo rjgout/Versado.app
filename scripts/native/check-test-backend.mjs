@@ -10,7 +10,7 @@ const NATIVE_HEADERS = { Origin: "capacitor://localhost", "X-Versado-Client": "n
 const DEFAULT_CAPABILITIES = ["security-setup-v1", "account-password-v1", "account-deletion-v1", "password-reset-v1", "email-confirmation-v1", "games-v1", "realtime-ticket-v1"];
 
 /** Pure beoordeling van de antwoorden; los testbaar zonder netwerk. */
-export function evaluate({ origin, production, allowlist, profile, capabilities, native, cross, root, expectCapabilities = DEFAULT_CAPABILITIES }) {
+export function evaluate({ origin, production, allowlist, profile, capabilities, native, cross, root, gamesPage, expectCapabilities = DEFAULT_CAPABILITIES }) {
   const problems = [], notes = [];
   if (production && origin === production) problems.push("Dit is de productie-origin; een testbuild mag daar nooit naartoe wijzen.");
   if (profile) {
@@ -22,6 +22,12 @@ export function evaluate({ origin, production, allowlist, profile, capabilities,
     if (capabilities.body?.apiVersion !== 1) problems.push(`apiVersion is ${capabilities.body?.apiVersion}, verwacht 1.`);
     const features = Array.isArray(capabilities.body?.features) ? capabilities.body.features : [];
     for (const name of expectCapabilities) if (!features.includes(name)) problems.push(`Capability ontbreekt: ${name}.`);
+  }
+  // Alleen lezen en zonder sessie: een bereikbare spelroute antwoordt 401 met een JSON-foutcode en de native CORS-header. Een kale
+  // 404/403 zonder JSON betekent dat een rand (bv. de test-API-proxy) games/* blokkeert, ook al meldt `capabilities` games-v1.
+  if (gamesPage) {
+    if (gamesPage.status !== 401 || typeof gamesPage.body?.error !== "string") problems.push(`GET /api/v1/native/games/page?route=%2Flive zonder sessie gaf ${gamesPage.status}${gamesPage.body ? "" : " zonder JSON"} (verwacht 401 met een JSON-foutcode); een kale 404 betekent dat de rand games/* blokkeert.`);
+    else if (gamesPage.allowOrigin !== "capacitor://localhost") problems.push(`games/page geeft de native origin geen CORS-toegang (Access-Control-Allow-Origin: ${gamesPage.allowOrigin ?? "geen"}).`);
   }
   if (capabilities.redirected) problems.push("De backend stuurt door (redirect); een native build volgt nooit redirects.");
   if (native.allowOrigin !== "capacitor://localhost") problems.push(`De backend staat de native origin niet toe (Access-Control-Allow-Origin: ${native.allowOrigin ?? "geen"}).`);
@@ -45,12 +51,14 @@ export async function check(origin, { fetchImpl = fetch, profile, expectCapabili
   const normalized = parseDistributionOrigin(origin); // exact HTTPS, geen pad/poortgoochelarij/credentials; geldig certificaat via fetch
   const cap = await probe(normalized, "/api/v1/native/capabilities", NATIVE_HEADERS, fetchImpl);
   const cross = await probe(normalized, "/api/v1/native/capabilities", { ...NATIVE_HEADERS, Origin: "https://aanvaller.example" }, fetchImpl);
+  const games = await probe(normalized, "/api/v1/native/games/page?route=%2Flive", NATIVE_HEADERS, fetchImpl); // geen Authorization, geen account
   const root = await probe(normalized, "/", {}, fetchImpl);
   return evaluate({
     origin: normalized, production: env.VERSADO_PRODUCTION_ORIGIN, allowlist: allowlist ?? loadAllowedOrigins(process.cwd()), profile, expectCapabilities,
     capabilities: { status: cap.status, redirected: cap.redirected, body: cap.body },
     native: { allowOrigin: cap.headers.get("access-control-allow-origin") },
     cross: { allowOrigin: cross.headers.get("access-control-allow-origin") },
+    gamesPage: { status: games.status, body: games.body, allowOrigin: games.headers.get("access-control-allow-origin") },
     root: { status: root.status, permissionsPolicy: root.headers.get("permissions-policy"), hsts: root.headers.get("strict-transport-security") },
   });
 }
