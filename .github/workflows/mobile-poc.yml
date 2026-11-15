@@ -47,7 +47,7 @@ jobs:
       - name: Backend starten (echte server.ts)
         run: |
           nohup npx tsx server.ts > "$RUNNER_TEMP/server.log" 2>&1 &
-          for i in $(seq 1 90); do curl -s -o /dev/null http://127.0.0.1:3100/api/v1/native/capabilities && break; sleep 2; done
+          for i in $(seq 1 90); do curl -s -o /dev/null -H "Origin: https://localhost" -H "X-Versado-Client: native-v1" -w "%{http_code}" http://127.0.0.1:3100/api/v1/native/capabilities | grep -q 200 && break; sleep 2; done
       - name: App-afhankelijkheden
         working-directory: apps/mobile-poc
         run: npm ci
