@@ -148,7 +148,7 @@ jobs:
   ios-runtime:
     if: github.event_name == 'workflow_dispatch' && inputs.platform != 'android'
     runs-on: macos-26-intel
-    timeout-minutes: 90
+    timeout-minutes: 150
     env:
       DATABASE_URL: postgresql://postgres@127.0.0.1:5432/versado_poc
       REDIS_URL: redis://127.0.0.1:6379

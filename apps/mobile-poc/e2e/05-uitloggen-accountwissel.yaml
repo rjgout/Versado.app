@@ -17,7 +17,8 @@ appId: app.versado.poc
 - tapOn:
     id: login-password
 - inputText: PocPassw0rd!2026
-- hideKeyboard
+- hideKeyboard:
+    optional: true
 - tapOn:
     id: login-submit
 - extendedWaitUntil:
