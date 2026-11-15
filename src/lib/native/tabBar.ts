@@ -13,7 +13,7 @@ export interface NativeTabBarEntry { id: PrimaryDestination; title: string; href
 export interface NativeTabBarState {
   items: readonly NativeTabBarEntry[];
   selectedId: PrimaryDestination | null;
-  /** De React-shell toont zijn onderbalk (niet in focus mode, niet bij toetsenbord, niet uitgelogd). */
+  /** De React-shell toont zijn onderbalk (niet in focus mode, niet bij toetsenbord, niet achter een modaal paneel, niet uitgelogd). */
   visible: boolean;
   style: "light" | "dark";
 }
@@ -31,13 +31,23 @@ type TabBarRoot = Pick<HTMLElement, "getAttribute" | "setAttribute" | "removeAtt
 
 const ATTRIBUTE = "data-vs-native-tabbar";
 const HEIGHT = "--vs-native-tabbar-height";
+/** Een hangende bridge mag de React-balk niet voor altijd verborgen houden. */
+export const TAB_BAR_CALL_TIMEOUT_MS = 1500;
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("tabbar_timeout")), ms);
+    promise.then(value => { clearTimeout(timer); resolve(value); }, error => { clearTimeout(timer); reject(error); });
+  });
+}
 
 /**
- * Zet de systeemtabbalk (UIKit, Liquid Glass op iOS 26+) naast de bestaande navigatie.
+ * Zet de systeemtabbalk (UIKit, iOS 26+) naast de bestaande navigatie.
  * De React-balk blijft de enige bron van bestemmingen en actieve staat, en de terugval op
  * iOS 15–25, Android en web. Alleen na een bevestigde native balk verandert hij in een
- * onzichtbare ruimtehouder met exact de hoogte van de native balk; bij elke fout of bij
- * opruimen verschijnt hij weer. Zo is er nooit een scherm zonder bediening.
+ * onzichtbare ruimtehouder met exact de hoogte van de native balk. Bij elke fout, bij een
+ * ongeldig antwoord, bij een time-out en bij opruimen wordt de native balk eerst verwijderd
+ * en verschijnt daarna pas de React-balk weer: nooit twee balken, nooit geen bediening.
  *
  * Geen accountdata, opslag of netwerk: alleen vertaalde titels en bestemmings-id's.
  */
@@ -50,6 +60,8 @@ export class NativeTabBar {
   private sent = "";
   private busy = false;
   private again = false;
+  /** Elk gestart verzoek krijgt een nummer; een antwoord met een ouder nummer is verlopen en telt niet. */
+  private generation = 0;
   private handle: { remove(): Promise<void> } | null = null;
   private previousHeight = "";
   private previousAttribute: string | null = null;
@@ -59,7 +71,11 @@ export class NativeTabBar {
     private readonly options: { platform: string; root: TabBarRoot; onSelectHref(href: string): void; onChange(): void },
   ) {}
 
-  /** Eerst luisteren, dan vragen; een laat antwoord mag niets terugzetten. */
+  /**
+   * Eerst luisteren, dan een eventueel achtergebleven native balk opruimen, dan pas vragen of de
+   * systeemtabbalk beschikbaar is. Opruimen is nodig omdat de plugin een herlaad van de WebView
+   * overleeft: zonder dit staat na een herlaad de oude UIKit-balk naast de nieuwe React-balk.
+   */
   start(): void {
     if (this.options.platform !== "ios" || this.active || this.disposed) return;
     this.active = true;
@@ -68,12 +84,14 @@ export class NativeTabBar {
     void Promise.resolve().then(() => this.bridge.listen({
       select: value => this.onSelect(value),
       layout: value => this.onLayout(value),
-    })).then(handle => {
-      if (this.disposed) void handle.remove().catch(() => {});
-      else this.handle = handle;
-      return this.bridge.support();
+    })).then(async handle => {
+      if (this.disposed) { void handle.remove().catch(() => {}); return null; }
+      this.handle = handle;
+      try { await withTimeout(this.bridge.clear(), TAB_BAR_CALL_TIMEOUT_MS); } catch { /* geen oude balk of geen bridge: de support-vraag beslist */ }
+      if (this.disposed) return null;
+      return withTimeout(this.bridge.support(), TAB_BAR_CALL_TIMEOUT_MS);
     }).then(raw => {
-      if (this.disposed) return;
+      if (this.disposed || raw === null) return;
       const parsed = tabBarSupportSchema.safeParse(raw);
       this.available = parsed.success && parsed.data.available;
       if (this.available) void this.flush();
@@ -85,15 +103,22 @@ export class NativeTabBar {
     if (this.active && this.available) void this.flush();
   }
 
+  /** Stuurt de gewenste staat opnieuw, bijvoorbeeld na terugkeer uit de achtergrond. */
+  resync(): void {
+    this.sent = "";
+    if (this.active && this.available) void this.flush();
+  }
+
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
+    this.generation++;
     const handle = this.handle; this.handle = null;
     if (handle) void handle.remove().catch(() => {});
-    if (this.active) {
-      void this.bridge.clear().catch(() => {});
-      this.unmirror();
-    }
+    if (!this.active) return;
+    // Eerst de native balk weg, dan pas de React-balk terug. Een hangende of falende bridge houdt de
+    // ruimtehouder niet langer dan de time-out vast.
+    void withTimeout(this.bridge.clear(), TAB_BAR_CALL_TIMEOUT_MS).catch(() => {}).then(() => this.unmirror());
   }
 
   private payload(state: NativeTabBarState, visible: boolean) {
@@ -118,9 +143,11 @@ export class NativeTabBar {
     const key = JSON.stringify(payload);
     if (key === this.sent) return;
     this.busy = true;
+    const generation = ++this.generation;
     try {
-      const layout = tabBarLayoutSchema.safeParse(await this.bridge.sync(payload));
-      if (this.disposed) return;
+      const layout = tabBarLayoutSchema.safeParse(await withTimeout(this.bridge.sync(payload), TAB_BAR_CALL_TIMEOUT_MS));
+      // Een antwoord van vóór een opruiming, fout of dispose mag niets herstellen.
+      if (this.disposed || generation !== this.generation) return;
       if (!layout.success) throw new Error("tabbar_invalid_layout");
       this.sent = key;
       const first = !this.mirrored;
@@ -129,7 +156,7 @@ export class NativeTabBar {
     } catch {
       // Ook een latere fout, terwijl de native balk al zichtbaar is: eerst die balk echt opruimen,
       // dan pas de React-balk terugzetten, zodat er nooit twee balken of een dubbele bediening staat.
-      await this.fallback();
+      if (!this.disposed && generation === this.generation) await this.fallback();
     } finally {
       this.busy = false;
       if (this.again && !this.disposed && this.available) { this.again = false; void this.flush(); }
@@ -140,15 +167,18 @@ export class NativeTabBar {
   private async fallback(): Promise<void> {
     if (this.disposed) return;
     this.available = false;
-    try { await this.bridge.clear(); } catch { /* niets meer te doen: de React-balk neemt het over */ }
+    this.generation++;
+    this.sent = "";
+    try { await withTimeout(this.bridge.clear(), TAB_BAR_CALL_TIMEOUT_MS); } catch { /* niets meer te doen: de React-balk neemt het over */ }
     if (!this.disposed) this.unmirror();
   }
 
   private async stop(): Promise<void> {
     if (!this.mirrored && !this.sent) return;
     this.sent = "";
-    try { await this.bridge.clear(); } catch { /* de React-balk neemt het over */ }
-    this.unmirror();
+    this.generation++;
+    try { await withTimeout(this.bridge.clear(), TAB_BAR_CALL_TIMEOUT_MS); } catch { /* de React-balk neemt het over */ }
+    if (!this.disposed) this.unmirror();
   }
 
   private mirror(height: number): void {

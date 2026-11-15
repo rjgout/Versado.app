@@ -23702,7 +23702,7 @@
     },
     {
       "file": "src/lib/native/tabBar.ts",
-      "sha256": "f55cec9b462c38304e416932268f9add921c9a0f1b727d28d05f70c139a611b4",
+      "sha256": "c58341aeb08ca35171d255ba735cf8e108bbd1bb77b5f5b31b397b62788ace4b",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/navigation",
@@ -23712,6 +23712,7 @@
       "requests": [],
       "checks": [],
       "exports": [
+        "TAB_BAR_CALL_TIMEOUT_MS",
         "tabBarLayoutSchema",
         "tabBarSelectSchema",
         "tabBarSupportSchema"

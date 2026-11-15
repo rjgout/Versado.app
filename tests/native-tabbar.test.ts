@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
-import { NativeTabBar, tabBarLayoutSchema, tabBarSupportSchema, type NativeTabBarBridge, type NativeTabBarState } from "../src/lib/native/tabBar";
+import { NativeTabBar, TAB_BAR_CALL_TIMEOUT_MS, tabBarLayoutSchema, tabBarSupportSchema, type NativeTabBarBridge, type NativeTabBarState } from "../src/lib/native/tabBar";
 
 const flush = () => new Promise<void>(resolve => setImmediate(resolve));
 const settle = async () => { for (let i = 0; i < 3; i++) { await flush(); await new Promise(resolve => setTimeout(resolve, 3)); } };
@@ -12,19 +12,25 @@ const items = [
 ] as const;
 const state = (patch: Partial<NativeTabBarState> = {}): NativeTabBarState => ({ items, selectedId: "today", visible: true, style: "light", ...patch });
 
-function fixture(options: { platform?: string; support?: unknown; sync?: (payload: unknown, call: number) => Promise<unknown> | unknown } = {}) {
+function fixture(options: {
+  platform?: string; support?: unknown; sync?: (payload: unknown, call: number) => Promise<unknown> | unknown;
+  clear?: (call: number) => Promise<void> | void; listen?: () => Promise<void> | void; supportFn?: () => Promise<unknown> | unknown;
+} = {}) {
   const attributes = new Map<string, string>(), styles = new Map<string, string>();
   const log: string[] = [], payloads: Array<{ items: unknown[]; selectedId: string | null; visible: boolean; style: string }> = [];
   const hrefs: string[] = [], clearSawAttribute: boolean[] = [];
   let changes = 0, removed = 0, select: (value: unknown) => void = () => {}, layout: (value: unknown) => void = () => {};
   const bridge: NativeTabBarBridge = {
-    support: async () => { log.push("support"); return options.support ?? { version: 1, available: true }; },
+    support: async () => { log.push("support"); if (options.supportFn) return options.supportFn(); return options.support ?? { version: 1, available: true }; },
     sync: async payload => {
       log.push("sync"); payloads.push(payload as never);
       return options.sync ? options.sync(payload, payloads.length) : { height: 83 };
     },
-    clear: async () => { log.push("clear"); clearSawAttribute.push(attributes.get("data-vs-native-tabbar") === "true"); },
-    listen: async callbacks => { log.push("listen"); select = callbacks.select; layout = callbacks.layout; return { remove: async () => { removed++; } }; },
+    clear: async () => {
+      log.push("clear"); clearSawAttribute.push(attributes.get("data-vs-native-tabbar") === "true");
+      await options.clear?.(log.filter(entry => entry === "clear").length);
+    },
+    listen: async callbacks => { log.push("listen"); await options.listen?.(); select = callbacks.select; layout = callbacks.layout; return { remove: async () => { removed++; } }; },
   };
   const root = {
     getAttribute: (key: string) => attributes.get(key) ?? null,
@@ -53,7 +59,7 @@ test("web en Android doen niets: geen bridge, geen attributen", async () => {
 test("zonder systeemtabbalk (iOS 15–25) blijft de React-balk volledig staan", async () => {
   const f = fixture({ support: { version: 1, available: false } });
   f.bar.start(); f.bar.update(state()); await settle();
-  assert.deepEqual(f.log, ["listen", "support"]);
+  assert.deepEqual(f.log, ["listen", "clear", "support"]);
   assert.equal(f.attributes.size, 0); assert.equal(f.styles.size, 0); assert.equal(f.changes(), 0);
 });
 
@@ -69,7 +75,7 @@ test("ongeldig of ontbrekend supportantwoord telt als niet beschikbaar", async (
 test("eerst luisteren, dan vragen; eerst ruimte vrijhouden, dan pas tonen", async () => {
   const f = fixture();
   f.bar.start(); f.bar.update(state()); await settle();
-  assert.deepEqual(f.log.slice(0, 2), ["listen", "support"]);
+  assert.deepEqual(f.log.slice(0, 3), ["listen", "clear", "support"], "eerst luisteren, dan een achtergebleven native balk opruimen, dan vragen");
   assert.equal(f.payloads[0].visible, false, "de eerste synchronisatie toont de native balk nog niet");
   assert.equal(f.payloads.length, 2);
   assert.equal(f.payloads[1].visible, true, "pas na het vrijhouden van de ruimte verschijnt de native balk");
@@ -209,8 +215,125 @@ test("een bestaand attribuut of hoogte wordt na opruimen hersteld", async () => 
   const f = fixture();
   f.attributes.set("data-vs-native-tabbar", "preset"); f.styles.set("--vs-native-tabbar-height", "10px");
   f.bar.start(); f.bar.update(state()); await settle();
-  f.bar.dispose();
+  f.bar.dispose(); await settle();
   assert.equal(f.attributes.get("data-vs-native-tabbar"), "preset"); assert.equal(f.styles.get("--vs-native-tabbar-height"), "10px");
+});
+
+const wait = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms));
+
+test("scenario: native balk verschijnt, de gebruiker navigeert, een volgende synchronisatie faalt, native balk weg en React-balk volledig terug", async () => {
+  // Aanroepen: 1 verborgen, 2 zichtbaar, 3 na de navigatie (selectiewijziging): die faalt.
+  const f = fixture({ sync: (_payload, call) => { if (call === 3) throw new Error("tabbar_unavailable"); return { height: 83 }; } });
+  f.bar.start(); f.bar.update(state()); await settle();
+  assert.equal(f.payloads.at(-1)!.visible, true);
+  assert.equal(f.attributes.get("data-vs-native-tabbar"), "true", "1. native balk is zichtbaar, React-balk is ruimtehouder");
+  f.select({ id: "learn" }); await settle();
+  assert.deepEqual(f.hrefs, ["/courses"], "2. de tik navigeert via de bestaande href");
+  f.bar.update(state({ selectedId: "learn" })); await settle();
+  // 3. de synchronisatie na de navigatie faalde; 4. de native balk is eerst verwijderd
+  assert.equal(f.log.at(-1), "clear");
+  assert.deepEqual(f.clearSawAttribute.slice(-1), [true], "de ruimtehouder stond nog toen de native balk werd verwijderd");
+  // 5. de React-balk is weer volledig beschikbaar: geen attribuut, geen hoogtevariabele
+  assert.equal(f.attributes.size, 0); assert.equal(f.styles.size, 0);
+  assert.ok(f.changes() >= 2, "ShellMetrics meet opnieuw");
+});
+
+test("eerste initialisatie: een mislukte luisteraar, support of onverwacht antwoord laat de React-balk staan", async () => {
+  const failures: Array<ReturnType<typeof fixture>> = [
+    fixture({ listen: () => { throw new Error("listen_failed"); } }),
+    fixture({ supportFn: () => { throw new Error("support_failed"); } }),
+    fixture({ supportFn: () => undefined }),
+    fixture({ supportFn: () => ({ version: 1, available: true, junk: 1 }) }),
+  ];
+  for (const f of failures) {
+    f.bar.start(); f.bar.update(state()); await settle();
+    assert.equal(f.payloads.length, 0); assert.equal(f.attributes.size, 0); assert.equal(f.styles.size, 0);
+  }
+});
+
+test("een achtergebleven native balk (na een WebView-herlaad) wordt bij het opstarten opgeruimd, ook als dat faalt", async () => {
+  const ok = fixture();
+  ok.bar.start(); await settle();
+  assert.deepEqual(ok.log.slice(0, 3), ["listen", "clear", "support"]);
+  const failing = fixture({ clear: () => { throw new Error("clear_failed"); } });
+  failing.bar.start(); failing.bar.update(state()); await settle();
+  assert.equal(failing.attributes.get("data-vs-native-tabbar"), "true", "een mislukte opruiming bij het opstarten blokkeert de systeemtabbalk niet");
+});
+
+test("een hangende bridge (support, sync of clear) houdt de React-balk niet langer dan de time-out verborgen", async () => {
+  const hang = new Promise<never>(() => {});
+  const support = fixture({ supportFn: () => hang });
+  support.bar.start(); support.bar.update(state());
+  await wait(TAB_BAR_CALL_TIMEOUT_MS + 200);
+  assert.equal(support.payloads.length, 0); assert.equal(support.attributes.size, 0);
+
+  const sync = fixture({ sync: (_payload, call) => (call === 2 ? hang : { height: 83 }) });
+  sync.bar.start(); sync.bar.update(state()); await settle();
+  assert.equal(sync.attributes.get("data-vs-native-tabbar"), "true");
+  await wait(TAB_BAR_CALL_TIMEOUT_MS + 300);
+  assert.equal(sync.attributes.size, 0, "na de time-out van de tweede synchronisatie is de React-balk terug");
+});
+
+test("opruimen: een falende of hangende clear laat de React-balk toch terugkeren", async () => {
+  const failing = fixture({ clear: call => { if (call > 1) throw new Error("clear_failed"); } });
+  failing.bar.start(); failing.bar.update(state()); await settle();
+  failing.bar.dispose(); await settle();
+  assert.equal(failing.attributes.size, 0); assert.equal(failing.styles.size, 0);
+
+  const hang = new Promise<never>(() => {});
+  const hanging = fixture({ clear: call => (call > 1 ? hang : undefined) });
+  hanging.bar.start(); hanging.bar.update(state()); await settle();
+  hanging.bar.dispose();
+  assert.equal(hanging.attributes.get("data-vs-native-tabbar"), "true", "de ruimtehouder blijft staan zolang de native balk nog verdwijnt");
+  await wait(TAB_BAR_CALL_TIMEOUT_MS + 300);
+  assert.equal(hanging.attributes.size, 0, "maar nooit langer dan de time-out");
+});
+
+test("een vertraagd native antwoord na opruimen of terugval herstelt geen oude balk", async () => {
+  let release!: (value: unknown) => void;
+  const late = fixture({ sync: (_payload, call) => (call === 1 ? new Promise(resolve => { release = resolve; }) : { height: 83 }) });
+  late.bar.start(); late.bar.update(state()); await settle();
+  late.bar.dispose(); await settle();
+  release({ height: 83 }); await settle();
+  assert.equal(late.attributes.size, 0, "een antwoord ná dispose zet niets terug");
+  assert.equal(late.payloads.length, 1, "en veroorzaakt geen vervolgsynchronisatie");
+
+  // Terugval tijdens een lopend verzoek: het late antwoord van het eerdere verzoek is verlopen.
+  let resolveFirst!: (value: unknown) => void;
+  const stale = fixture({ sync: (_payload, call) => (call === 1 ? new Promise(resolve => { resolveFirst = resolve; }) : { height: 83 }) });
+  stale.bar.start(); stale.bar.update(state()); await settle();
+  stale.layout({ height: 90 });
+  assert.equal(stale.attributes.size, 0, "een lay-outmelding vóór de bevestiging telt niet");
+  resolveFirst({ height: 83 }); await settle();
+  assert.equal(stale.attributes.get("data-vs-native-tabbar"), "true");
+});
+
+test("terugkeer uit de achtergrond: resync stuurt de gewenste staat opnieuw, zonder dubbele balk of verloren selectie", async () => {
+  const f = fixture();
+  f.bar.start(); f.bar.update(state({ selectedId: "learn" })); await settle();
+  const before = f.payloads.length;
+  f.bar.resync(); await settle();
+  assert.equal(f.payloads.length, before + 1);
+  assert.equal(f.payloads.at(-1)!.selectedId, "learn"); assert.equal(f.payloads.at(-1)!.visible, true);
+  assert.equal(f.attributes.get("data-vs-native-tabbar"), "true");
+});
+
+test("rotatie en Dynamic Type: elke hoogtewijziging werkt de ruimtehouder bij, ongeldige hoogtes niet", async () => {
+  const f = fixture();
+  f.bar.start(); f.bar.update(state()); await settle();
+  for (const [height, expected] of [[83, "83px"], [49, "49px"], [96.2, "97px"], [0, "97px"], [-5, "97px"], [Number.NaN, "97px"], [500, "97px"]] as const) {
+    f.layout({ height });
+    assert.equal(f.styles.get("--vs-native-tabbar-height"), expected, `hoogte ${height}`);
+  }
+});
+
+test("iOS 15–25 en Android: React-navigatie blijft volledig werken zonder native ondersteuning", async () => {
+  const old = fixture({ support: { version: 1, available: false } });
+  old.bar.start(); old.bar.update(state()); old.select({ id: "learn" }); await settle();
+  assert.equal(old.attributes.size, 0); assert.equal(old.payloads.length, 0); assert.deepEqual(old.hrefs, ["/courses"].slice(0, 0));
+  const android = fixture({ platform: "android" });
+  android.bar.start(); android.bar.update(state()); await settle();
+  assert.deepEqual(android.log, []);
 });
 
 test("contract: de plugin registreert de methoden, beperkt tot de lokale client, en meldt alleen id's en hoogtes", () => {
