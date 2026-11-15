@@ -1,5 +1,12 @@
 # Versado Mobile — Vrienden: architectuur- en uitvoeringsaudit
 
+> **Status na de koerswijziging naar app-first.** Dit rapport blijft de referentie voor de inventarisatie (§2), de verschillen (§3), de
+> API- en privacybevindingen (§5), de testproxy-analyse (§6.1–6.2) en de risico's en ontbrekende testdekking (§9). De
+> **architectuuraanbevelingen zijn niet langer automatisch leidend en staan open voor herziening**: §4 (architectuuradvies),
+> het Swift-/Java-gedeelte van §6.3, het uitvoeringsplan in §8 (PR 0, `social/`-generatoren, Fase A–C) en het eerste-PR-voorstel in §10.
+> Zie `docs/NATIVE-APP-FIRST-ARCHITECTUUR.md` voor de nieuwe route. De backend-/edge-bevindingen (rate limits, Friendship-race, `#`/`@` in de
+> testproxy, ontbrekende tests) zijn onafhankelijk van de mobiele architectuur en blijven geldig.
+
 Uitsluitend audit; er is niets geïmplementeerd. Basis: `develop` op `1539e4b5` (na #284 en #285).
 Zekerheidslabels: **[B]** bevestigd door broncode (pad genoemd), **[T]** bevestigd door een uitgevoerde test of meting,
 **[N]** nog niet geverifieerd, **[A]** aanbevolen ontwerpkeuze.
