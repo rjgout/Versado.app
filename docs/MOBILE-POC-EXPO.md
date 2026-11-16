@@ -47,7 +47,7 @@ afzonderlijk op de simulator/emulator.
 | Accepteren (dubbel tikken = één verzoek), servereffect en `friends_changed` bij de tweede client | ja | ja |
 | Uitloggen en accountwissel zonder gegevens van de vorige gebruiker | ja | ja |
 
-Resultaten per commit: Android slaagde op `e9986168`, `4bdea412` en `48fdb111` (drie runs); iOS slaagde pas op `7df51e71` (run 40). Eerdere
+Resultaten per commit: Android slaagde op `e9986168`, `4bdea412`, `48fdb111` en, na de laatste harnesswijziging, op `e9df8458` (run 42); iOS slaagde pas op `7df51e71` (run 40). Eerdere
 iOS-runs faalden om redenen buiten de app: het iOS-systeemvenster "Save Password?", een testbinary zonder ATS-uitzondering voor de
 lokale testbackend, en een overbelaste Intel-runner. Op die runner liepen databaseverzoeken (`today-overview` 15,0 s) en de
 clienttijdslimiet van 15 s verliep, ook voor de tweede client in Node. De iOS-job draait daarom op Apple Silicon (`macos-26`),
