@@ -1,0 +1,21 @@
+appId: app.versado.poc
+---
+# Lang indrukken op een woord selecteert het. Op witruimte (tussen woorden, dubbele spatie) selecteert het besturingssysteem
+# bewust niets; daarom volgen twee terugvalpunten, allemaal ruim binnen het tekstgebied bij elke lettergrootte.
+- longPressOn:
+    point: "50%,52%"
+- runFlow:
+    when:
+      notVisible: "Selectie: «[^»\\s]+» · vers \\d+"
+    commands:
+      - longPressOn:
+          point: "30%,60%"
+- runFlow:
+    when:
+      notVisible: "Selectie: «[^»\\s]+» · vers \\d+"
+    commands:
+      - longPressOn:
+          point: "70%,66%"
+- extendedWaitUntil:
+    visible: "Selectie: «[^»\\s]+» · vers \\d+"
+    timeout: 15000

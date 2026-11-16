@@ -8,19 +8,11 @@ appId: app.versado.poc
       id: chapter-text
     timeout: 60000
 - assertVisible: "Lettergrootte 18"
-- longPressOn:
-    point: "50%,45%"
-- extendedWaitUntil:
-    visible: "Selectie: «[^»\\s]+» · vers \\d+"
-    timeout: 15000
+- runFlow: _selecteer-woord.yaml
 - tapOn:
     id: font-larger
 - assertVisible: "Lettergrootte 24"
-- longPressOn:
-    point: "50%,45%"
-- extendedWaitUntil:
-    visible: "Selectie: «[^»\\s]+» · vers \\d+"
-    timeout: 15000
+- runFlow: _selecteer-woord.yaml
 - takeScreenshot: 16-lettergrootte-24
 - tapOn:
     id: debug-select-5-7
@@ -30,11 +22,7 @@ appId: app.versado.poc
 - tapOn:
     id: font-larger
 - assertVisible: "Lettergrootte 32"
-- longPressOn:
-    point: "50%,45%"
-- extendedWaitUntil:
-    visible: "Selectie: «[^»\\s]+» · vers \\d+"
-    timeout: 15000
+- runFlow: _selecteer-woord.yaml
 - takeScreenshot: 17-lettergrootte-32
 - tapOn:
     id: font-smaller
@@ -43,9 +31,5 @@ appId: app.versado.poc
 - tapOn:
     id: font-smaller
 - assertVisible: "Lettergrootte 14"
-- longPressOn:
-    point: "50%,45%"
-- extendedWaitUntil:
-    visible: "Selectie: «[^»\\s]+» · vers \\d+"
-    timeout: 15000
+- runFlow: _selecteer-woord.yaml
 - takeScreenshot: 18-lettergrootte-14

@@ -59,7 +59,8 @@ export default function Lezen() {
     if (!layout) return;
     const a = layout.spans[from - 1]!.textStart, b = layout.spans[to - 1]!.textEnd;
     inputRef.current?.focus();
-    inputRef.current?.setSelection(a, b);
+    // Een aanwezige systeemselectie (loupe/menu) sluit zich net na de tik en klapt dan in; pas daarna het bereik zetten.
+    setTimeout(() => inputRef.current?.setSelection(a, b), 250);
   };
 
   return (

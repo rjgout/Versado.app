@@ -8,11 +8,7 @@ appId: app.versado.poc
       id: chapter-text
     timeout: 60000
 - takeScreenshot: 19-systeemtekst-groot
-- longPressOn:
-    point: "50%,50%"
-- extendedWaitUntil:
-    visible: "Selectie: «[^»\\s]+» · vers \\d+"
-    timeout: 15000
+- runFlow: _selecteer-woord.yaml
 - takeScreenshot: 20-systeemtekst-woord
 - tapOn:
     id: debug-select-5-7

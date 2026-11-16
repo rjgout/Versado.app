@@ -9,9 +9,5 @@ appId: app.versado.poc
     timeout: 60000
 - assertVisible: "Geen selectie"
 - takeScreenshot: 10-lezen-hoofdstuk
-- longPressOn:
-    point: "50%,45%"
-- extendedWaitUntil:
-    visible: "Selectie: «[^»\\s]+» · vers \\d+"
-    timeout: 15000
+- runFlow: _selecteer-woord.yaml
 - takeScreenshot: 11-woord-geselecteerd
