@@ -18,10 +18,10 @@ appId: app.versado.poc
 - extendedWaitUntil:
     visible: "Selectie: .* · 2 blokken"
     timeout: 15000
-- tapOn:
-    id: unmark-button
-- extendedWaitUntil:
-    visible: "Markering gewist: 1"
-    timeout: 30000
+- runFlow:
+    file: _opslaan.yaml
+    env:
+      TAP_ID: unmark-button
+      EXPECT: "Markering gewist: 1"
 - assertVisible: "Markeringen: geen"
 - takeScreenshot: 44-les-gewist

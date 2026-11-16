@@ -7,8 +7,7 @@ appId: app.versado.poc
     timeout: 120000
 - tapOn: "Les"
 - extendedWaitUntil:
-    visible:
-      id: run-b-title1
+    visible: "Geen selectie"
     timeout: 60000
 - takeScreenshot: 41-les-systeemtekst-groot
 - runFlow: _selecteer-woord-les.yaml

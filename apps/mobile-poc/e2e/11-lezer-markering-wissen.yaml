@@ -14,11 +14,11 @@ appId: app.versado.poc
 - extendedWaitUntil:
     visible: "Selectie: .* · vers 5–7"
     timeout: 15000
-- tapOn:
-    id: unmark-button
-- extendedWaitUntil:
-    visible: "Markering gewist: vers 5–7"
-    timeout: 30000
+- runFlow:
+    file: _opslaan.yaml
+    env:
+      TAP_ID: unmark-button
+      EXPECT: "Markering gewist: vers 5–7"
 - assertVisible: "Markeringen: geen"
 - assertVisible: "Notitie vers 8: Proefnotitie bij vers 8"
 - takeScreenshot: 21-markering-gewist

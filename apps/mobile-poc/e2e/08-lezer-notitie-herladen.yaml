@@ -20,11 +20,11 @@ appId: app.versado.poc
 - tapOn:
     id: note-input
 - inputText: "Proefnotitie bij vers 8"
-- tapOn:
-    id: note-save
-- extendedWaitUntil:
-    visible: "Notitie opgeslagen bij vers 8"
-    timeout: 30000
+- runFlow:
+    file: _opslaan.yaml
+    env:
+      TAP_ID: note-save
+      EXPECT: "Notitie opgeslagen bij vers 8"
 - assertVisible: "Notitie vers 8: Proefnotitie bij vers 8"
 - launchApp
 - tapOn: "Lezen"

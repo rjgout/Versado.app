@@ -1,0 +1,19 @@
+appId: app.versado.poc
+---
+# Een schrijfactie (markeren, notitie, wissen) met herhaling zoals een gebruiker zou doen: de app meldt "Opslaan mislukt" als de
+# server niet binnen de tijdslimiet antwoordt (op de gedeelde CI-runner liep een annotatieschrijfactie soms voorbij de
+# transactielimiet van 5 s); daarna tikt de gebruiker opnieuw. Parameters: TAP_ID (knop) en EXPECT (verwachte melding).
+- tapOn:
+    id: ${TAP_ID}
+- retry:
+    maxRetries: 3
+    commands:
+      - runFlow:
+          when:
+            visible: "Opslaan mislukt.*"
+          commands:
+            - tapOn:
+                id: ${TAP_ID}
+      - extendedWaitUntil:
+          visible: ${EXPECT}
+          timeout: 40000

@@ -50,3 +50,21 @@ Elke richting raakt de gedeelde accountmutatie en vraagt een eigen beoordeling (
 Op een geïsoleerde testdatabase: start de backend vers (koude route en cache), laat een gebruiker een binnenkomend vriendenverzoek
 accepteren terwijl de machine zwaar belast is (bijvoorbeeld tijdens een Xcode-build). Zonder belasting en na één opwarmaanroep
 treedt het niet op; de proef-CI warmt de route daarom vooraf op met een los testpaar.
+
+## Tweede voorkomen: annotatieschrijfacties (gemeten op de iOS-CI-runner, studielessen-spike)
+
+Dezelfde fout trad op bij `POST …/annotations`, zowel op de **bestaande** schriftroute (`courses/<cursus>/read/chapters/<id>/annotations`)
+als op de nieuwe lesroute van de spike. Beide lopen via `commitAccountMutation` (`src/lib/account/mutation.ts`) met `timeout: 5000`:
+
+```
+Invalid `db.note.create()` invocation … Transaction API error: A query cannot be executed on an expired transaction.
+The timeout for this transaction was 5000 ms, however 10977 ms passed since the start of the transaction.
+POST …/annotations 500 in 21.8s
+```
+
+Op een runner waar simulator, Maestro-driver, Postgres en de Next-dev-server samen de CPU delen duurde de transactie 11–17 s; de
+backend-latentiemeting liet in dezelfde run pieken tot 17 s zien. De app toonde "Opslaan mislukt. Probeer het opnieuw." en de
+schrijfactie was teruggedraaid (geen half resultaat). Het is dus hetzelfde robuustheidsrisico als hierboven en geen fout in de lesroute:
+de bestaande schriftroute valt er identiek onder. Voor productie (NAS onder belasting) is een kortere transactie of een grotere
+`timeout` voor annotaties een afzonderlijke beoordeling waard; de proef wijzigt dit niet. De testflows herhalen de schrijfactie nu
+zoals een gebruiker zou doen (`e2e/_opslaan.yaml`).

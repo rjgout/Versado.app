@@ -16,10 +16,10 @@ appId: app.versado.poc
     visible: "Selectie: .* · vers 5–7"
     timeout: 15000
 - takeScreenshot: 12-meerdere-verzen-geselecteerd
-- tapOn:
-    id: mark-button
-- extendedWaitUntil:
-    visible: "Gemarkeerd: vers 5–7"
-    timeout: 30000
+- runFlow:
+    file: _opslaan.yaml
+    env:
+      TAP_ID: mark-button
+      EXPECT: "Gemarkeerd: vers 5–7"
 - assertVisible: "Markeringen: vers 5, 6, 7"
 - takeScreenshot: 13-gemarkeerd
