@@ -92,18 +92,17 @@ annotaties, plaatsing, rechten, vervalste selector, verouderde versie, andere re
 | 13 Woord selecteren (echt lang indrukken, grepen zichtbaar) | groen | groen (73, 74, 75) |
 | 14 Selectie over twee alinea's → één markering + notitie; server bevestigt (peer) | groen | groen (73, 74, 75) |
 | 15 Herstart: markering en notitie terug (server plaatst EXACT) | groen | groen (73, 74, 75) |
-| 16 Lettergroottes 14/18/24/32, selectie na elke wijziging | groen | groen in run 69; in 73/74/75 telkens een testprobleem (zie §5a) |
+| 16 Lettergroottes 14/18/24/32, selectie na elke wijziging | groen | groen (runs 69 en 76); in 73/74/75 een testprobleem (zie §5a) |
 | 17 Systeemtekstgrootte (Android 1,6×; iOS accessibility-extra-large) | groen | groen (73, 74, 75) |
 | 18 Tabelcel selecteren | groen | groen (73, 74, 75) |
-| 19 Markering wissen; server bevestigt (peer) | groen | groen in 73; in 74 en 75 mislukt (testknop getikt vóór het laden van de les; lesverzoek traag) |
+| 19 Markering wissen; server bevestigt (peer) | groen | groen (runs 73 en 76); in 74/75 testknop vóór het laden van de les resp. lesverzoek traag |
 | 20 Toegankelijkheidsboom (namen, rollen) | groen | groen (73, 74, 75) |
 | Lezerflows 06–11, **waaronder de eerder niet bevestigde iOS-flow 10 (systeemtekst)** | alle groen | alle zes groen in één run (75); flow 10 ook groen in run 74 |
-| Basisflows 01–05 (inloggen, vrienden, realtime) | groen | alle vijf groen in 69; in 73 alleen 04 (opwarmgeval) mis; in 74/75 mislukt door een traag startende backend (zie §5a) |
+| Basisflows 01–05 (inloggen, vrienden, realtime) | groen | 01–03 en 05 groen in run 76; 04 faalt in 73–76 (401/opwarmgeval, zie §5b); in 74/75 ook 01–03/05 mislukt door een traag startende backend |
 
-### 5a. iOS: wat er is gemeten en waarom er geen volledig groene iOS-run is
+### 5a. iOS: verloop van de vier runs (69, 73, 74, 75) en wat er is gemeten
 
-Er zijn vier iOS-runs gedaan (69, 73, 74, 75). **Elke iOS-flow is minstens één keer groen geweest op de huidige app-code, maar niet alle twintig in één run.**
-De app-code is sinds run 69 niet meer gewijzigd; wat tussen de runs veranderde, zijn de testflows en de omgeving.
+Er zijn vijf iOS-runs gedaan (69, 73, 74, 75, 76). De app-code is sinds run 69 niet meer gewijzigd; wat tussen de runs veranderde, zijn de testflows en de omgeving. De laatste run (76, §5b) is de beste: **19 van 20 flows groen in één run.**
 
 | Run | Groen | Reden van de fouten |
 |---|---|---|
@@ -115,13 +114,18 @@ De app-code is sinds run 69 niet meer gewijzigd; wat tussen de runs veranderde, 
 Gemeenschappelijke oorzaak: op de gedeelde macOS-runner delen simulator, Maestro-driver, Postgres en de Next-dev-server de CPU. De backend-latentiemeting
 (`backend-probe.log`) toont pieken van 5–20 s, terwijl de clients na 15 s opgeven. De app gedraagt zich dan correct ("Laden mislukt. Tik om opnieuw te
 proberen."), maar de flows wisten dat niet te herhalen. In `d7a73983` doen ze dat nu wel (zoals een gebruiker), plus een herhaling van schrijfacties.
-**Een laatste iOS-run op die versie (run 76) loopt nog;** de uitkomst staat in §5b.
+Dit is **omgevingsbelasting en testgeluk, geen functioneel bewijs tegen de lezer**; run 76 laat dat zien (§5b).
 
-Dit is **omgevingsbelasting en testgeluk, geen functioneel bewijs tegen de lezer**, maar het betekent wel dat "alles groen in één iOS-run" niet is aangetoond.
+### 5b. Uitkomst iOS-run 76 (`d7a73983`): 19 van 20 flows groen in één run
 
-### 5b. Uitkomst iOS-run 76 (`d7a73983`)
+Alle flows 01–03, 05–11 (inclusief de eerder niet bevestigde **flow 10, systeemtekstgrootte**) en **alle studieflows 12–20** zijn groen in dezelfde
+gecombineerde run: les, woordselectie met echte lange druk, selectie over twee alinea's, markeren en notitie met server-bevestiging door een tweede client,
+herstart, lettergroottes 14–32, accessibility-extra-large, tabelcel, wissen en toegankelijkheidsboom. Backend: 0 keer een 500, 2 van 282 latentiemetingen
+boven 5 s.
 
-_Wordt bijgewerkt zodra de run klaar is._
+De ene mislukte flow is **04 (vriend accepteren)**, een basisflow van de eerste proef en geen onderdeel van de lesproef: de acceptatie kreeg in deze run
+een 401 van de server (sessie), de flow was groen in run 69. Dat is niet onderzocht omdat het buiten de lesproef valt; het staat hier als open punt van
+de basisproef.
 
 ## 6. Toegankelijkheid: wat is gemeten en wat niet
 
