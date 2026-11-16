@@ -10,15 +10,15 @@ appId: app.versado.poc
 - takeScreenshot: 19-systeemtekst-groot
 - runFlow: _selecteer-woord.yaml
 - takeScreenshot: 20-systeemtekst-woord
-# De bediening (hoogstens 45% van het scherm) scrolt zelf; schuif haar omhoog tot de testknop in beeld is.
+# De bediening (hoogstens 65% van het inhoudsgebied) scrolt zelf; schuif haar omhoog tot de testknop in beeld is.
 - swipe:
-    start: "50%,40%"
+    start: "50%,30%"
     end: "50%,8%"
 - swipe:
-    start: "50%,40%"
+    start: "50%,30%"
     end: "50%,8%"
 - swipe:
-    start: "50%,40%"
+    start: "50%,30%"
     end: "50%,8%"
 - tapOn:
     id: debug-select-5-7

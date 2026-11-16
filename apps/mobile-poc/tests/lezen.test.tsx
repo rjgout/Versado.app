@@ -122,14 +122,14 @@ test("een mislukte opslag toont een melding en laat de tekst staan", async () =>
   expect(screen.getByTestId("selection-info")).toHaveTextContent(/«proefwoord»/);
 });
 
-test("de bediening houdt rekening met de bovenste safe area en neemt hoogstens 45% van het scherm (grote systeemtekst)", async () => {
+test("de bediening houdt rekening met de bovenste safe area en neemt hoogstens 65% van het inhoudsgebied (grote systeemtekst)", async () => {
   await render(<Lezen />);
   await screen.findByTestId("chapter-text");
   const controls = screen.getByTestId("reader-controls");
   const content = Object.assign({}, ...([] as object[]).concat(controls.props.contentContainerStyle)) as { paddingTop?: number };
   expect(content.paddingTop).toBe(47 + 8);
   const style = Object.assign({}, ...([] as object[]).concat(controls.props.style)) as { maxHeight?: string; flexShrink?: number };
-  expect(style.maxHeight).toBe("45%");
+  expect(style.maxHeight).toBe("65%");
   // zonder flexShrink 0 krimpt de bediening mee met de (veel grotere) hoofdstuktekst en worden knoppen afgekapt
   expect(style.flexShrink).toBe(0);
 });

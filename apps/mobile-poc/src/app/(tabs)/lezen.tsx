@@ -71,10 +71,10 @@ export default function Lezen() {
 
   return (
     <View style={{ flex: 1 }}>
-      {/* De bediening is hoogstens 45% van het scherm en scrolt zelf: bij een grote systeemtekstgrootte blijft de hoofdstuktekst zichtbaar. */}
-      <ScrollView testID="reader-controls" style={{ maxHeight: "45%", flexGrow: 0, flexShrink: 0, borderBottomWidth: 1, borderColor: "#ccc" }} contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: 12, paddingTop: insets.top + 8, gap: 8 }}>
-        <Text accessibilityRole="header" style={{ fontSize: 22, fontWeight: "700" }}>{data ? `Lezen · ${data.reader.bookName} ${data.reader.chapterNumber}` : "Lezen"}</Text>
-        <View style={{ flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+      {/* De bediening is hoogstens 65% van het inhoudsgebied en scrolt zelf: bij een grote systeemtekstgrootte blijft de hoofdstuktekst zichtbaar. */}
+      <ScrollView testID="reader-controls" style={{ maxHeight: "65%", flexGrow: 0, flexShrink: 0, borderBottomWidth: 1, borderColor: "#ccc" }} contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: 12, paddingTop: insets.top + 8, gap: 8 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", flexWrap: "wrap", columnGap: 12, rowGap: 6 }}>
+          <Text accessibilityRole="header" style={{ fontSize: 20, fontWeight: "700" }}>{data ? `Lezen · ${data.reader.bookName} ${data.reader.chapterNumber}` : "Lezen"}</Text>
           <Pressable testID="font-smaller" accessibilityRole="button" accessibilityLabel="Kleinere letters" disabled={sizeIndex === 0} onPress={() => setSizeIndex(i => Math.max(0, i - 1))} style={button(sizeIndex === 0)}><Text>A−</Text></Pressable>
           <Text testID="font-size-label" accessibilityLabel={`Lettergrootte ${fontSize}`}>{`Lettergrootte ${fontSize}`}</Text>
           <Pressable testID="font-larger" accessibilityRole="button" accessibilityLabel="Grotere letters" disabled={sizeIndex === FONT_SIZES.length - 1} onPress={() => setSizeIndex(i => Math.min(FONT_SIZES.length - 1, i + 1))} style={button(sizeIndex === FONT_SIZES.length - 1)}><Text>A+</Text></Pressable>
