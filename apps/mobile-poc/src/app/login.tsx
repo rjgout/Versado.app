@@ -14,7 +14,7 @@ export default function Login() {
     catch (e) {
       const base = e instanceof Error && /wrong|credentials|401/.test(e.message) ? "Onjuiste gegevens." : "Inloggen mislukt. Probeer het opnieuw.";
       // Alleen in de runtime-testbuilds: de oorzaak zichtbaar maken voor de UI-dump (nooit in een gewone build).
-      const detail = process.env.EXPO_PUBLIC_POC_DEBUG === "1" && e instanceof Error ? ` [${e.name}: ${e.message}]` : "";
+      const detail = process.env.EXPO_PUBLIC_POC_DEBUG === "1" && e instanceof Error ? ` [${e.name}: ${e.message}; ${(globalThis as { __lastNetError?: string }).__lastNetError ?? "geen transportfout"}]` : "";
       setError(base + detail);
     }
     finally { setBusy(false); }

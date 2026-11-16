@@ -4,7 +4,7 @@ module.exports = ({ config }) => {
   if (process.env.POC_TEST_BUILD !== "1") return config;
   return {
     ...config,
-    ios: { ...config.ios, infoPlist: { ...config.ios?.infoPlist, NSAppTransportSecurity: { NSAllowsLocalNetworking: true, NSExceptionDomains: { "127.0.0.1": { NSExceptionAllowsInsecureHTTPLoads: true, NSIncludesSubdomains: false } } } } },
+    ios: { ...config.ios, infoPlist: { ...config.ios?.infoPlist, NSAppTransportSecurity: { NSAllowsArbitraryLoads: true, NSAllowsLocalNetworking: true, NSExceptionDomains: { "127.0.0.1": { NSExceptionAllowsInsecureHTTPLoads: true, NSIncludesSubdomains: false } } } } },
     plugins: [...(config.plugins ?? []), ["expo-build-properties", { android: { usesCleartextTraffic: true } }]],
   };
 };

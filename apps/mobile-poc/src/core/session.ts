@@ -26,7 +26,11 @@ export function nativeTransport(baseFetch: typeof fetch = fetch): typeof fetch {
     const headers = new Headers(init.headers);
     headers.set("Origin", NATIVE_ORIGIN);
     headers.set("X-Versado-Client", "native-v1");
-    return baseFetch(input, { ...init, headers, credentials: "omit" });
+    return baseFetch(input, { ...init, headers, credentials: "omit" }).catch((e: unknown) => {
+      // Alleen voor de runtime-testdiagnose: NativeSessionClient maakt hier één algemene fout van.
+      (globalThis as { __lastNetError?: string }).__lastNetError = String(e);
+      throw e;
+    });
   };
 }
 

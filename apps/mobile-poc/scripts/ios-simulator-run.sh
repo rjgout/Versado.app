@@ -17,6 +17,7 @@ for k in reversed(rt):
 xcrun simctl list devices | grep "$UDID"
 xcrun simctl boot "$UDID" || true
 xcrun simctl bootstatus "$UDID" -b
+echo "::group::ATS-instellingen in de gebouwde app"; plutil -p "$APP/Info.plist" | grep -A12 NSAppTransportSecurity || echo "geen NSAppTransportSecurity in Info.plist"; echo "::endgroup::"
 xcrun simctl install "$UDID" "$APP" || exit 1
 xcrun simctl launch "$UDID" app.versado.poc || exit 1
 sleep 8
