@@ -33,11 +33,15 @@ test("dubbel tikken stuurt één accept-verzoek en de knop is tijdens het verzoe
   expect(screen.getByLabelText("Verzoek van Bob accepteren").props.accessibilityState).toMatchObject({ disabled: true, busy: true });
   await waitFor(() => expect(calls.filter(c => c.startsWith("POST")).length).toBe(1));
   expect(calls.filter(c => c.startsWith("POST"))).toEqual(["POST /api/friends/fr1/accept"]);
+  // Na het accepteren herlaadt het scherm de lijst; wacht daarop zodat dat verzoek niet in de volgende test valt.
+  await waitFor(() => expect(calls.filter(c => c === "GET /api/friends").length).toBeGreaterThanOrEqual(2));
 });
 
 test("een realtime-signaal laadt de lijst opnieuw", async () => {
   await render(<Vrienden />);
   await screen.findByLabelText("Verzoek van Bob accepteren");
+  // Eerst laten rusten: pas tellen als er geen laadverzoek meer onderweg is.
+  await act(async () => { await new Promise(r => setTimeout(r, 100)); });
   const before = calls.filter(c => c === "GET /api/friends").length;
   await act(async () => { mockListener!(); });
   await waitFor(() => expect(calls.filter(c => c === "GET /api/friends").length).toBe(before + 1));
