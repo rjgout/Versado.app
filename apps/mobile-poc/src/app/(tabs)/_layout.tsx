@@ -16,6 +16,10 @@ export default function TabsLayout() {
         <NativeTabs.Trigger.Icon sf="book.fill" md="menu_book" />
         <NativeTabs.Trigger.Label>Lezen</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="les">
+        <NativeTabs.Trigger.Icon sf="text.book.closed.fill" md="article" />
+        <NativeTabs.Trigger.Label>Les</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="vrienden">
         <NativeTabs.Trigger.Icon sf="person.2.fill" md="group" />
         <NativeTabs.Trigger.Label>Vrienden</NativeTabs.Trigger.Label>
