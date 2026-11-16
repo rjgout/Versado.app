@@ -122,12 +122,14 @@ test("een mislukte opslag toont een melding en laat de tekst staan", async () =>
   expect(screen.getByTestId("selection-info")).toHaveTextContent(/«proefwoord»/);
 });
 
-test("de kop houdt rekening met de bovenste safe area (geen overlap met statusbalk of Dynamic Island)", async () => {
+test("de bediening houdt rekening met de bovenste safe area en neemt hoogstens 45% van het scherm (grote systeemtekst)", async () => {
   await render(<Lezen />);
   await screen.findByTestId("chapter-text");
-  const header = screen.getByText(/^Lezen · Proefboek 1/).parent!;
-  const flat = Object.assign({}, ...([] as object[]).concat(header.props.style)) as { paddingTop?: number };
-  expect(flat.paddingTop).toBe(47 + 8);
+  const controls = screen.getByTestId("reader-controls");
+  const content = Object.assign({}, ...([] as object[]).concat(controls.props.contentContainerStyle)) as { paddingTop?: number };
+  expect(content.paddingTop).toBe(47 + 8);
+  const style = Object.assign({}, ...([] as object[]).concat(controls.props.style)) as { maxHeight?: string };
+  expect(style.maxHeight).toBe("45%");
 });
 
 test("platformgedrag: iOS niet bewerkbaar (UITextView blijft selecteerbaar), Android bewerkbaar zonder toetsenbord", async () => {

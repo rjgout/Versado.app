@@ -71,9 +71,10 @@ export default function Lezen() {
 
   return (
     <View style={{ flex: 1 }}>
-      <View style={{ paddingHorizontal: 12, paddingBottom: 12, paddingTop: insets.top + 8, gap: 8, borderBottomWidth: 1, borderColor: "#ccc" }}>
+      {/* De bediening is hoogstens 45% van het scherm en scrolt zelf: bij een grote systeemtekstgrootte blijft de hoofdstuktekst zichtbaar. */}
+      <ScrollView testID="reader-controls" style={{ maxHeight: "45%", flexGrow: 0, borderBottomWidth: 1, borderColor: "#ccc" }} contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: 12, paddingTop: insets.top + 8, gap: 8 }}>
         <Text accessibilityRole="header" style={{ fontSize: 22, fontWeight: "700" }}>{data ? `Lezen · ${data.reader.bookName} ${data.reader.chapterNumber}` : "Lezen"}</Text>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
           <Pressable testID="font-smaller" accessibilityRole="button" accessibilityLabel="Kleinere letters" disabled={sizeIndex === 0} onPress={() => setSizeIndex(i => Math.max(0, i - 1))} style={button(sizeIndex === 0)}><Text>A−</Text></Pressable>
           <Text testID="font-size-label" accessibilityLabel={`Lettergrootte ${fontSize}`}>{`Lettergrootte ${fontSize}`}</Text>
           <Pressable testID="font-larger" accessibilityRole="button" accessibilityLabel="Grotere letters" disabled={sizeIndex === FONT_SIZES.length - 1} onPress={() => setSizeIndex(i => Math.min(FONT_SIZES.length - 1, i + 1))} style={button(sizeIndex === FONT_SIZES.length - 1)}><Text>A+</Text></Pressable>
@@ -99,7 +100,7 @@ export default function Lezen() {
             <Pressable testID="debug-select-8" accessibilityRole="button" accessibilityLabel="Selecteer vers 8 (test)" onPress={() => selectVerses(8, 8)} style={button(false)}><Text>Test: vers 8</Text></Pressable>
           </View>
         ) : null}
-      </View>
+      </ScrollView>
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 120 }}>
         {loading && !data ? <ActivityIndicator accessibilityLabel="Laden" /> : null}
         {error && !data ? <Pressable accessibilityRole="button" onPress={refresh}><Text style={{ color: "#b00020" }}>Laden mislukt. Tik om opnieuw te proberen.</Text></Pressable> : null}
