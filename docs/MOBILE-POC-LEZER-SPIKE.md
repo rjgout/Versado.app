@@ -101,6 +101,9 @@ gele markeringen die na herstart op de juiste verzen terugkomen, en de notitiesa
 | Kop overlapte de statusbalk / Dynamic Island | Geen top-safe-area in de eigen kop | `useSafeAreaInsets`; getest |
 | iOS met accessibility-tekstgrootte: de vaste kop vulde het hele scherm, de tekst viel buiten beeld, de `A+`-knop liep buiten het scherm (horizontale overflow) | Vaste, niet-scrollende kop met een rij zonder omslag | Bediening hoogstens 45% van het scherm en zelf scrollbaar, rij met `flexWrap`; `flexShrink: 0` (anders kapt flex de knoppen af) |
 | Programmatische selectie viel samen met het sluiten van de systeemselectiebalk (Android) | Race | Testhook wacht kort |
+| Knoppen in de bediening reageerden niet op de eerste tik zodra het notitieveld (toetsenbord) open was (Android én iOS) | Een knop in een `ScrollView` krijgt de eerste tik niet bij een open toetsenbord | `keyboardShouldPersistTaps="handled"`; getest |
+| Bediening van 45% kapte statusregel, samenvattingen en notitieveld af; de bediening kromp mee met de enorme hoofdstuk-`ScrollView` | Flexbox-krimp (`flexShrink`) | 65% van het inhoudsgebied, `flexShrink: 0`, hoofdstuk `flex: 1`; getest |
+| **Opstartgedrag van de proef:** een tijdelijke netwerkfout bij het herstellen van de sessie leidde naar het inlogscherm, hoewel de sessie geldig was | Proefcode behandelde élke fout als uitlog | Alleen 401/ontbrekende sessie is uitgelogd; anders "Geen verbinding" met automatisch opnieuw proberen. Getest (5 tests). Dit is een algemeen punt voor elke native schermlaag |
 ## 6. Gerichte vergelijking met de huidige Capacitor-schriftlezer
 
 | Aspect | Huidige lezer (web/Capacitor, WebView) | Spike (React Native, native tekst) |
