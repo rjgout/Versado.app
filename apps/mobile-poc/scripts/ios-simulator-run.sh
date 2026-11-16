@@ -40,6 +40,8 @@ appId: app.versado.poc
 YAML
 for i in 1 2 3; do maestro test e2e-results/ios/warmup.yaml && break || echo "warm-up poging $i mislukt"; done
 echo "::endgroup::"
+# De backend deelt de runner met simulator en Maestro-driver; geef zijn node-proces voorrang zodat hij binnen de clienttijdslimiet (15 s) antwoordt.
+for p in $(pgrep -f "server.ts"); do sudo renice -n -10 -p "$p" >/dev/null 2>&1 || true; done
 # Latentiemeter: bewijst achteraf of de backend tijdens de flows traag was (de clients geven na 15 s op).
 ( while true; do
     printf '%s %s\n' "$(date -u +%H:%M:%S)" "$(curl -s -o /dev/null -m 20 -H 'Origin: https://localhost' -H 'X-Versado-Client: native-v1' -w '%{http_code} %{time_total}s' http://127.0.0.1:3100/api/v1/native/capabilities || echo curl-mislukt)" >> e2e-results/ios/backend-probe.log

@@ -21,18 +21,7 @@ appId: app.versado.poc
     optional: true
 - tapOn:
     id: login-submit
-# iOS toont na het inloggen het systeemvenster "Save Password?"; dat bedekt de app voor de UI-test.
-- extendedWaitUntil:
-    visible: "Not Now"
-    timeout: 40000
-    optional: true
-- tapOn:
-    text: "Not Now"
-    optional: true
-- extendedWaitUntil:
-    visible:
-      id: vandaag-streak
-    timeout: 150000
+- runFlow: _na-inloggen.yaml
 - tapOn: "Vrienden"
 - extendedWaitUntil:
     visible: "Alice#01"
