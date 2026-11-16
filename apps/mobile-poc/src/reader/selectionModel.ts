@@ -60,7 +60,7 @@ export function normalizedOffset(raw: string, utf16: number): number {
 }
 
 /** Een selectie kan midden in een surrogaatpaar beginnen; schuif zo'n grens naar buiten zodat er nooit een half teken in zit. */
-function snap(raw: string, offset: number, direction: -1 | 1): number {
+export function snap(raw: string, offset: number, direction: -1 | 1): number {
   if (offset > 0 && offset < raw.length && /[\uD800-\uDBFF]/u.test(raw[offset - 1]!) && /[\uDC00-\uDFFF]/u.test(raw[offset]!)) return offset + (direction === -1 ? -1 : 1);
   return offset;
 }
