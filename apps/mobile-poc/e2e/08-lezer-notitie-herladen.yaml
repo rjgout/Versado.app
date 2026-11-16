@@ -1,0 +1,32 @@
+appId: app.versado.poc
+---
+# Markeringen komen na een volledige herstart terug (server is de bron); notitie op het eerste geselecteerde vers
+- launchApp
+- tapOn: "Lezen"
+- extendedWaitUntil:
+    visible: "Markeringen: vers 5, 6, 7"
+    timeout: 60000
+- takeScreenshot: 14-herladen-markeringen
+- tapOn:
+    id: debug-select-8
+- extendedWaitUntil:
+    visible: "Selectie: .* · vers 8"
+    timeout: 15000
+- tapOn:
+    id: note-open
+- tapOn:
+    id: note-input
+- inputText: "Proefnotitie bij vers 8"
+- tapOn:
+    id: note-save
+- extendedWaitUntil:
+    visible: "Notitie opgeslagen bij vers 8"
+    timeout: 30000
+- assertVisible: "Notitie vers 8: Proefnotitie bij vers 8"
+- launchApp
+- tapOn: "Lezen"
+- extendedWaitUntil:
+    visible: "Notitie vers 8: Proefnotitie bij vers 8"
+    timeout: 60000
+- assertVisible: "Markeringen: vers 5, 6, 7"
+- takeScreenshot: 15-herladen-notitie

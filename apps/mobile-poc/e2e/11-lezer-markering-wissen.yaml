@@ -1,0 +1,21 @@
+appId: app.versado.poc
+---
+# Opruimen én bewijs dat wissen werkt: markering op vers 5–7 weg, notitie blijft
+- launchApp
+- tapOn: "Lezen"
+- extendedWaitUntil:
+    visible: "Markeringen: vers 5, 6, 7"
+    timeout: 60000
+- tapOn:
+    id: debug-select-5-7
+- extendedWaitUntil:
+    visible: "Selectie: .* · vers 5–7"
+    timeout: 15000
+- tapOn:
+    id: unmark-button
+- extendedWaitUntil:
+    visible: "Markering gewist: vers 5–7"
+    timeout: 30000
+- assertVisible: "Markeringen: geen"
+- assertVisible: "Notitie vers 8: Proefnotitie bij vers 8"
+- takeScreenshot: 21-markering-gewist

@@ -1,0 +1,22 @@
+appId: app.versado.poc
+---
+# Selectie over meerdere verzen (native selectie, bereik via setSelection), markeren en bevestigen door de server
+- launchApp
+- tapOn: "Lezen"
+- extendedWaitUntil:
+    visible:
+      id: chapter-text
+    timeout: 60000
+- tapOn:
+    id: debug-select-5-7
+- extendedWaitUntil:
+    visible: "Selectie: .* · vers 5–7"
+    timeout: 15000
+- takeScreenshot: 12-meerdere-verzen-geselecteerd
+- tapOn:
+    id: mark-button
+- extendedWaitUntil:
+    visible: "Gemarkeerd: vers 5–7"
+    timeout: 30000
+- assertVisible: "Markeringen: vers 5, 6, 7"
+- takeScreenshot: 13-gemarkeerd

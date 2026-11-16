@@ -1,0 +1,21 @@
+appId: app.versado.poc
+---
+# Met een grotere systeemtekstgrootte (Dynamic Type / lettergrootte van Android) blijft de selectie werken
+- launchApp
+- tapOn: "Lezen"
+- extendedWaitUntil:
+    visible:
+      id: chapter-text
+    timeout: 60000
+- takeScreenshot: 19-systeemtekst-groot
+- longPressOn:
+    point: "50%,50%"
+- extendedWaitUntil:
+    visible: "Selectie: «[^»\\s]+» · vers \\d+"
+    timeout: 15000
+- takeScreenshot: 20-systeemtekst-woord
+- tapOn:
+    id: debug-select-5-7
+- extendedWaitUntil:
+    visible: "Selectie: .* · vers 5–7"
+    timeout: 15000

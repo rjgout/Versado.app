@@ -5,6 +5,8 @@ set -euo pipefail
 npm run db:generate
 npx prisma migrate deploy
 npx tsx apps/mobile-poc/scripts/seed-synthetic.ts
+# Synthetisch proefhoofdstuk (eigen tekst) via de echte importer voor de lezer-spike.
+npx tsx apps/mobile-poc/scripts/seed-reader-content.ts
 # De dev-server compileert routes bij het eerste verzoek (meerdere seconden): warm ze op, zodat de eerste echte
 # verzoeken uit de app of de tweede client niet door een koude compilatie in een timeout lopen.
 warm() {
@@ -22,6 +24,8 @@ warm() {
   [ -n "$ftok" ] || return 0
   fid=$(curl -s "$B/games/friends" "${H[@]}" -H "authorization: Bearer $ftok" | python3 -c "import json,sys;d=json.load(sys.stdin);print(d['incoming'][0]['friendshipId'])" 2>/dev/null || true)
   [ -n "$fid" ] && curl -s -o /dev/null -m 60 -X POST "$B/games/friends/$fid/accept" "${H[@]}" -H "authorization: Bearer $ftok" -d '{}'
+  # Leesroutes en annotatie-schrijfroute (zelfde reden), met hetzelfde losse testaccount.
+  (cd apps/mobile-poc && npx tsx scripts/warm-reader.ts) || true
   return 0
 }
 nohup npx tsx server.ts > "${BACKEND_LOG:-/tmp/backend.log}" 2>&1 &

@@ -50,6 +50,7 @@ jobs:
       - run: npm run db:generate
       - run: npx prisma migrate deploy
       - run: npx tsx apps/mobile-poc/scripts/seed-synthetic.ts
+      - run: npx tsx apps/mobile-poc/scripts/seed-reader-content.ts
       - name: Backend starten (echte server.ts)
         run: |
           nohup npx tsx server.ts > "$RUNNER_TEMP/server.log" 2>&1 &
@@ -65,6 +66,9 @@ jobs:
       - name: Volledige gebruikersstroom tegen de echte backend
         working-directory: apps/mobile-poc
         run: npm run test:flow
+      - name: Lezer-spike tegen de echte backend (hoofdstuk, markeren, notitie, herladen, versiecontrole)
+        working-directory: apps/mobile-poc
+        run: npm run test:reader
       - name: Metro-bundel iOS + Android (Hermes) en grootte
         working-directory: apps/mobile-poc
         run: |
@@ -102,6 +106,7 @@ jobs:
       BACKEND_LOG: ${{ github.workspace }}/backend-android.log
       POC_TEST_BUILD: '1'
       EXPO_PUBLIC_VERSADO_API_URL: http://10.0.2.2:3100
+      EXPO_PUBLIC_POC_DEBUG: '1'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -109,9 +114,9 @@ jobs:
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: 21 }
       - run: npm ci
-      - run: apps/mobile-poc/scripts/ci-backend.sh
       - working-directory: apps/mobile-poc
         run: npm ci
+      - run: apps/mobile-poc/scripts/ci-backend.sh
       - name: Prebuild Android (tijdelijk, niet gecommit)
         working-directory: apps/mobile-poc
         run: npx expo prebuild --platform android --no-install

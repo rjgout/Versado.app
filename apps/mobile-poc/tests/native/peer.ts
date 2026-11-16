@@ -1,11 +1,13 @@
 /* Tweede/derde client voor de runtime-test: gewone clients buiten de app, tegen dezelfde echte backend.
  *   listen-bob <bestand>   native sessie van Bob; schrijft het bestand zodra friends_changed binnenkomt
  *   dave-request           Dave (webclient, cookie) zoekt Alice en stuurt een vriendenverzoek
- *   verify                 server-effect van het accepteren in de app: Bob en Alice zijn vrienden */
+ *   verify                 server-effect van het accepteren in de app: Bob en Alice zijn vrienden
+ *   verify-reader present|cleared   server-effect van markeren/notitie in de lezer: Alice' annotaties volgens de server */
 import { writeFileSync, existsSync } from "node:fs";
 import assert from "node:assert/strict";
 import { createAppSession } from "@poc/core/session";
 import { loadFriends } from "@poc/core/friends";
+import { highlightsByVerse, loadBundle, notesByVerse } from "@poc/reader/api";
 import type { SecureSessionStore } from "@/lib/native/client";
 
 const base = process.env.POC_BASE_URL ?? "http://127.0.0.1:3100";
@@ -41,6 +43,16 @@ async function main() {
     assert.ok(a.incoming.some(r => r.from.handle === "Dave"), "verzoek van Dave staat nog open");
     if (arg) assert.ok(existsSync(arg), "Bob ontving friends_changed op zijn tweede client");
     console.log("server-effect en realtime op tweede client bevestigd"); return;
+  }
+  if (cmd === "verify-reader") {
+    const alice = await nativeAs("alice@example.invalid");
+    const { reader, annotations } = await loadBundle(alice.client);
+    const hl = highlightsByVerse(annotations.annotations), notes = notesByVerse(annotations.annotations);
+    const id = (n: number) => reader.verses[n - 1]!.id;
+    if (arg === "present") assert.deepEqual(Object.keys(hl).sort(), [5, 6, 7].map(id).sort(), "server heeft de markering op vers 5–7 (gezet in de app)");
+    else assert.deepEqual(Object.keys(hl), [], "server heeft geen markeringen meer (gewist in de app)");
+    assert.equal(notes[id(8)], "Proefnotitie bij vers 8", "server heeft de notitie bij vers 8 (opgeslagen in de app)");
+    console.log(`server-effect van de lezer bevestigd (${arg})`); return;
   }
   throw new Error(`onbekend commando ${cmd}`);
 }

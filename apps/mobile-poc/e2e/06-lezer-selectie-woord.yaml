@@ -1,0 +1,17 @@
+appId: app.versado.poc
+---
+# Echte platformselectie: lang indrukken op de tekst selecteert een woord; de app ontvangt de offsets en toont tekst + vers
+- launchApp
+- tapOn: "Lezen"
+- extendedWaitUntil:
+    visible:
+      id: chapter-text
+    timeout: 60000
+- assertVisible: "Geen selectie"
+- takeScreenshot: 10-lezen-hoofdstuk
+- longPressOn:
+    point: "50%,45%"
+- extendedWaitUntil:
+    visible: "Selectie: «[^»\\s]+» · vers \\d+"
+    timeout: 15000
+- takeScreenshot: 11-woord-geselecteerd

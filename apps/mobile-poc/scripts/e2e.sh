@@ -27,6 +27,14 @@ dump_ui() {
   fi
   echo "::endgroup::"
 }
+# Systeemtekstgrootte (Dynamic Type / lettergrootte van Android) voor de flow die de selectie bij grote systeemtekst test.
+text_scale() {
+  if command -v adb >/dev/null 2>&1 && adb get-state >/dev/null 2>&1; then
+    adb shell settings put system font_scale "$([ "$1" = large ] && echo 1.6 || echo 1.0)"
+  else
+    xcrun simctl ui booted content_size "$([ "$1" = large ] && echo accessibility-extra-large || echo large)"
+  fi
+}
 run_flow() { step "maestro $1"; maestro test --format junit --output "$OUT/$1.xml" --test-output-dir "$OUT/$1" "e2e/$1.yaml" || { fail=1; dump_ui "$1"; }; end; }
 
 rm -f "$OUT/bob.signal"
@@ -40,6 +48,14 @@ run_flow 02-tabs-vrienden
 run_flow 03-realtime-nieuw-verzoek
 run_flow 04-accepteren
 step "peer: server-effect + realtime op tweede client"; npx tsx tests/native/peer.ts verify "$OUT/bob.signal" || fail=1; end
+run_flow 06-lezer-selectie-woord
+run_flow 07-lezer-meerdere-verzen
+run_flow 08-lezer-notitie-herladen
+step "peer: lezer, server-effect van markeren en notitie"; npx tsx tests/native/peer.ts verify-reader present || fail=1; end
+run_flow 09-lezer-lettergroottes
+text_scale large; run_flow 10-lezer-systeemtekstgrootte; text_scale normal
+run_flow 11-lezer-markering-wissen
+step "peer: lezer, markering gewist op de server"; npx tsx tests/native/peer.ts verify-reader cleared || fail=1; end
 run_flow 05-uitloggen-accountwissel
 kill $BOB $TRIG 2>/dev/null
 exit $fail
