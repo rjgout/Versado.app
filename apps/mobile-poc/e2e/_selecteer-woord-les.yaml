@@ -7,118 +7,121 @@ appId: app.versado.poc
     point: "50%,52%"
 - runFlow:
     when:
-      notVisible: "Selectie: «[^»\\s]+» · 1 blok"
+      notVisible: "Selectie: «[^»\\s]+\\s?» · 1 blok"
     commands:
       - longPressOn:
           point: "30%,60%"
 - runFlow:
     when:
-      notVisible: "Selectie: «[^»\\s]+» · 1 blok"
+      notVisible: "Selectie: «[^»\\s]+\\s?» · 1 blok"
     commands:
       - longPressOn:
           point: "70%,66%"
 - runFlow:
     when:
-      notVisible: "Selectie: «[^»\\s]+» · 1 blok"
+      notVisible: "Selectie: «[^»\\s]+\\s?» · 1 blok"
     commands:
       - longPressOn:
           point: "20%,54%"
 - runFlow:
     when:
-      notVisible: "Selectie: «[^»\\s]+» · 1 blok"
+      notVisible: "Selectie: «[^»\\s]+\\s?» · 1 blok"
     commands:
       - longPressOn:
           point: "15%,58%"
 - runFlow:
     when:
-      notVisible: "Selectie: «[^»\\s]+» · 1 blok"
+      notVisible: "Selectie: «[^»\\s]+\\s?» · 1 blok"
     commands:
       - longPressOn:
           point: "15%,62%"
 - runFlow:
     when:
-      notVisible: "Selectie: «[^»\\s]+» · 1 blok"
+      notVisible: "Selectie: «[^»\\s]+\\s?» · 1 blok"
     commands:
       - longPressOn:
           point: "15%,66%"
 - runFlow:
     when:
-      notVisible: "Selectie: «[^»\\s]+» · 1 blok"
+      notVisible: "Selectie: «[^»\\s]+\\s?» · 1 blok"
     commands:
       - longPressOn:
           point: "15%,70%"
 - runFlow:
     when:
-      notVisible: "Selectie: «[^»\\s]+» · 1 blok"
+      notVisible: "Selectie: «[^»\\s]+\\s?» · 1 blok"
     commands:
       - longPressOn:
           point: "60%,74%"
 - runFlow:
     when:
-      notVisible: "Selectie: «[^»\\s]+» · 1 blok"
+      notVisible: "Selectie: «[^»\\s]+\\s?» · 1 blok"
     commands:
       - longPressOn:
           point: "60%,78%"
 - runFlow:
     when:
-      notVisible: "Selectie: «[^»\\s]+» · 1 blok"
+      notVisible: "Selectie: «[^»\\s]+\\s?» · 1 blok"
     commands:
       - longPressOn:
           point: "40%,63%"
 - runFlow:
     when:
-      notVisible: "Selectie: «[^»\\s]+» · 1 blok"
+      notVisible: "Selectie: «[^»\\s]+\\s?» · 1 blok"
     commands:
       - longPressOn:
           point: "40%,68%"
 - runFlow:
     when:
-      notVisible: "Selectie: «[^»\\s]+» · 1 blok"
+      notVisible: "Selectie: «[^»\\s]+\\s?» · 1 blok"
     commands:
       - longPressOn:
           point: "40%,72%"
 - runFlow:
     when:
-      notVisible: "Selectie: «[^»\\s]+» · 1 blok"
+      notVisible: "Selectie: «[^»\\s]+\\s?» · 1 blok"
     commands:
       - longPressOn:
           point: "40%,76%"
 - runFlow:
     when:
-      notVisible: "Selectie: «[^»\\s]+» · 1 blok"
+      notVisible: "Selectie: «[^»\\s]+\\s?» · 1 blok"
     commands:
       - longPressOn:
           point: "40%,80%"
 - runFlow:
     when:
-      notVisible: "Selectie: «[^»\\s]+» · 1 blok"
+      notVisible: "Selectie: «[^»\\s]+\\s?» · 1 blok"
     commands:
       - longPressOn:
           point: "30%,70%"
 - runFlow:
     when:
-      notVisible: "Selectie: «[^»\\s]+» · 1 blok"
+      notVisible: "Selectie: «[^»\\s]+\\s?» · 1 blok"
     commands:
       - longPressOn:
           point: "70%,72%"
 - runFlow:
     when:
-      notVisible: "Selectie: «[^»\\s]+» · 1 blok"
+      notVisible: "Selectie: «[^»\\s]+\\s?» · 1 blok"
     commands:
       - longPressOn:
           point: "30%,76%"
 - runFlow:
     when:
-      notVisible: "Selectie: «[^»\\s]+» · 1 blok"
+      notVisible: "Selectie: «[^»\\s]+\\s?» · 1 blok"
     commands:
       - longPressOn:
           point: "70%,80%"
 - runFlow:
     when:
-      notVisible: "Selectie: «[^»\\s]+» · 1 blok"
+      notVisible: "Selectie: «[^»\\s]+\\s?» · 1 blok"
     commands:
       - longPressOn:
           point: "30%,84%"
+- tapOn:
+    text: "Continue"
+    optional: true
 - extendedWaitUntil:
-    visible: "Selectie: «[^»\\s]+» · 1 blok"
+    visible: "Selectie: «[^»\\s]+\\s?» · 1 blok"
     timeout: 15000

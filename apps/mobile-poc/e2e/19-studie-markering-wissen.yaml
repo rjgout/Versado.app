@@ -8,7 +8,7 @@ appId: app.versado.poc
 - tapOn: "Les"
 - extendedWaitUntil:
     visible:
-      id: debug-select-blocks
+      id: run-b-title1
     timeout: 60000
 - swipe:
     start: "50%,30%"

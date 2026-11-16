@@ -6,46 +6,49 @@ appId: app.versado.poc
     point: "50%,52%"
 - runFlow:
     when:
-      notVisible: "Selectie: «[^»\\s]+» · vers \\d+"
+      notVisible: "Selectie: «[^»\\s]+\\s?» · vers \\d+"
     commands:
       - longPressOn:
           point: "30%,60%"
 - runFlow:
     when:
-      notVisible: "Selectie: «[^»\\s]+» · vers \\d+"
+      notVisible: "Selectie: «[^»\\s]+\\s?» · vers \\d+"
     commands:
       - longPressOn:
           point: "70%,66%"
 - runFlow:
     when:
-      notVisible: "Selectie: «[^»\\s]+» · vers \\d+"
+      notVisible: "Selectie: «[^»\\s]+\\s?» · vers \\d+"
     commands:
       - longPressOn:
           point: "30%,70%"
 - runFlow:
     when:
-      notVisible: "Selectie: «[^»\\s]+» · vers \\d+"
+      notVisible: "Selectie: «[^»\\s]+\\s?» · vers \\d+"
     commands:
       - longPressOn:
           point: "70%,72%"
 - runFlow:
     when:
-      notVisible: "Selectie: «[^»\\s]+» · vers \\d+"
+      notVisible: "Selectie: «[^»\\s]+\\s?» · vers \\d+"
     commands:
       - longPressOn:
           point: "30%,76%"
 - runFlow:
     when:
-      notVisible: "Selectie: «[^»\\s]+» · vers \\d+"
+      notVisible: "Selectie: «[^»\\s]+\\s?» · vers \\d+"
     commands:
       - longPressOn:
           point: "70%,80%"
 - runFlow:
     when:
-      notVisible: "Selectie: «[^»\\s]+» · vers \\d+"
+      notVisible: "Selectie: «[^»\\s]+\\s?» · vers \\d+"
     commands:
       - longPressOn:
           point: "30%,84%"
+- tapOn:
+    text: "Continue"
+    optional: true
 - extendedWaitUntil:
-    visible: "Selectie: «[^»\\s]+» · vers \\d+"
+    visible: "Selectie: «[^»\\s]+\\s?» · vers \\d+"
     timeout: 15000
