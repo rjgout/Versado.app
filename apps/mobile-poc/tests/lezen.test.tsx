@@ -9,6 +9,7 @@ const mockReader = { bookName: "Proefboek", chapterNumber: 1, verses, chapterId:
 let mockRows: unknown[] = [];
 const mockPut = jest.fn(async () => ({}));
 const mockDelete = jest.fn(async () => ({}));
+jest.mock("react-native-safe-area-context", () => ({ useSafeAreaInsets: () => ({ top: 47, bottom: 34, left: 0, right: 0 }) }));
 jest.mock("@poc/core/AppSessionProvider", () => ({ useAppSession: () => ({ session: { client: {} } }) }));
 jest.mock("@poc/reader/api", () => ({
   ...jest.requireActual("@poc/reader/api"),
@@ -119,6 +120,14 @@ test("een mislukte opslag toont een melding en laat de tekst staan", async () =>
   await fireEvent.press(screen.getByTestId("mark-button"));
   await waitFor(() => expect(screen.getByTestId("status-line")).toHaveTextContent(/^Opslaan mislukt/));
   expect(screen.getByTestId("selection-info")).toHaveTextContent(/«proefwoord»/);
+});
+
+test("de kop houdt rekening met de bovenste safe area (geen overlap met statusbalk of Dynamic Island)", async () => {
+  await render(<Lezen />);
+  await screen.findByTestId("chapter-text");
+  const header = screen.getByText(/^Lezen · Proefboek 1/).parent!;
+  const flat = Object.assign({}, ...([] as object[]).concat(header.props.style)) as { paddingTop?: number };
+  expect(flat.paddingTop).toBe(47 + 8);
 });
 
 test("platformgedrag: iOS niet bewerkbaar (UITextView blijft selecteerbaar), Android bewerkbaar zonder toetsenbord", async () => {

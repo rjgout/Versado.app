@@ -32,7 +32,7 @@ appId: app.versado.poc
 - extendedWaitUntil:
     visible:
       id: vandaag-streak
-    timeout: 60000
+    timeout: 150000
 - tapOn: "Vrienden"
 - extendedWaitUntil:
     visible: "Alice#01"

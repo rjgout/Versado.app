@@ -29,6 +29,6 @@ appId: app.versado.poc
 - extendedWaitUntil:
     visible:
       id: vandaag-streak
-    timeout: 60000
+    timeout: 150000
 - assertVisible: "Vandaag"
 - takeScreenshot: 02-vandaag

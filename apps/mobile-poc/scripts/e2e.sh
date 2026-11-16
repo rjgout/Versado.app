@@ -43,6 +43,14 @@ BOB=$!
 npx tsx tests/native/trigger-server.ts > "$OUT/trigger.log" 2>&1 &
 TRIG=$!
 sleep 10
+# Wacht tot de backend rustig is: de opstart-/compilatiepieken van een dev-server liepen op de trage runner voorbij de clienttijdslimiet (15 s).
+quiet=0
+for i in $(seq 1 60); do
+  t=$(curl -s -o /dev/null -m 20 -H "Origin: https://localhost" -H "X-Versado-Client: native-v1" -w "%{time_total}" "$POC_BASE_URL/api/v1/native/capabilities" || echo 99)
+  if awk "BEGIN{exit !($t < 0.8)}"; then quiet=$((quiet+1)); else quiet=0; fi
+  [ "$quiet" -ge 4 ] && { echo "backend rustig na $((i*3)) s"; break; }
+  sleep 3
+done
 run_flow 01-login-vandaag
 run_flow 02-tabs-vrienden
 run_flow 03-realtime-nieuw-verzoek

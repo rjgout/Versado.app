@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAppSession } from "@poc/core/AppSessionProvider";
 import { useLive } from "@poc/core/useLive";
 import { deleteAnnotation, highlightsByVerse, liveAnnotation, loadBundle, notesByVerse, putAnnotation } from "@poc/reader/api";
@@ -14,6 +15,7 @@ export default function Lezen() {
   const { session } = useAppSession();
   const { data, error, loading, refresh } = useLive(useCallback(() => loadBundle(session.client), [session]));
   const inputRef = useRef<ChapterInput>(null);
+  const insets = useSafeAreaInsets();
   const [sizeIndex, setSizeIndex] = useState(1);
   const [selection, setSelection] = useState<{ start: number; end: number } | null>(null);
   const [noteOpen, setNoteOpen] = useState(false);
@@ -60,12 +62,16 @@ export default function Lezen() {
     const a = layout.spans[from - 1]!.textStart, b = layout.spans[to - 1]!.textEnd;
     inputRef.current?.focus();
     // Een aanwezige systeemselectie (loupe/menu) sluit zich net na de tik en klapt dan in; pas daarna het bereik zetten.
-    setTimeout(() => inputRef.current?.setSelection(a, b), 250);
+    setTimeout(() => {
+      inputRef.current?.setSelection(a, b);
+      // iOS stuurt bij een programmatische selectie geen onSelectionChange (wel bij een gebruikersselectie): zet de staat zelf.
+      setSelection({ start: a, end: b });
+    }, 250);
   };
 
   return (
     <View style={{ flex: 1 }}>
-      <View style={{ padding: 12, gap: 8, borderBottomWidth: 1, borderColor: "#ccc" }}>
+      <View style={{ paddingHorizontal: 12, paddingBottom: 12, paddingTop: insets.top + 8, gap: 8, borderBottomWidth: 1, borderColor: "#ccc" }}>
         <Text accessibilityRole="header" style={{ fontSize: 22, fontWeight: "700" }}>{data ? `Lezen · ${data.reader.bookName} ${data.reader.chapterNumber}` : "Lezen"}</Text>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
           <Pressable testID="font-smaller" accessibilityRole="button" accessibilityLabel="Kleinere letters" disabled={sizeIndex === 0} onPress={() => setSizeIndex(i => Math.max(0, i - 1))} style={button(sizeIndex === 0)}><Text>A−</Text></Pressable>
