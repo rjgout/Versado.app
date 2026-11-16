@@ -149,7 +149,9 @@ jobs:
           if-no-files-found: warn
   ios-runtime:
     if: github.event_name == 'workflow_dispatch' && inputs.platform != 'android'
-    runs-on: macos-26-intel
+    # Apple Silicon: op macos-26-intel liepen simulator, Xcode, Maestro-driver, Postgres en de Next-dev-server
+    # samen zo vast dat databaseverzoeken na 15 s verliepen (gemeten in run 36).
+    runs-on: macos-26
     timeout-minutes: 150
     env:
       DATABASE_URL: postgresql://postgres@127.0.0.1:5432/versado_poc
@@ -177,7 +179,7 @@ jobs:
           PGBIN="$(brew --prefix postgresql@16)/bin"
           export PATH="$PGBIN:$PATH"
           initdb -D "$RUNNER_TEMP/pg" -U postgres --auth=trust >/dev/null
-          pg_ctl -D "$RUNNER_TEMP/pg" -l "$RUNNER_TEMP/pg.log" -o "-p 5432" start
+          pg_ctl -D "$RUNNER_TEMP/pg" -l "$RUNNER_TEMP/pg.log" -o "-p 5432 -c fsync=off -c synchronous_commit=off -c max_connections=200" start
           createdb -h 127.0.0.1 -U postgres versado_poc
           redis-server --port 6379 --daemonize yes
       - run: xcodebuild -version; xcrun simctl list runtimes | head
