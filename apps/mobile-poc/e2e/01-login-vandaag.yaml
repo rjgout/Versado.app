@@ -18,6 +18,10 @@ appId: app.versado.poc
 - tapOn:
     id: login-submit
 # iOS toont na het inloggen het systeemvenster "Save Password?"; dat bedekt de app voor de UI-test.
+- extendedWaitUntil:
+    visible: "Not Now"
+    timeout: 40000
+    optional: true
 - tapOn:
     text: "Not Now"
     optional: true
