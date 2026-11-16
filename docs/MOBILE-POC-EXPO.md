@@ -31,17 +31,42 @@ Bewezen (lokaal gedraaid, isolatiebackend met wegwerp-Postgres/Redis, synthetisc
 | `expo export` iOS + Android (Metro + Hermes) | beide gebundeld, 3,4 MB `.hbc` per platform |
 | Eén React (19.3.0) in het bundel; gedeelde contractmodules (`NativeSessionClient`, `NativeSocketConnection`, `gameApiRoute`, `nativeTodayOverviewSchema`) zitten erin | gecontroleerd |
 
-**Niet bewezen** (de sandbox is Linux zonder iOS-simulator of Android-emulator):
+### 2a. Native runtimebewijs (CI, `mobile-poc.yml`, handmatig gestart)
 
-- draaien op een iOS-simulator/-toestel en een Android-emulator/-toestel (`native-builds`-job in de workflow, handmatig te starten);
-- dat `NativeTabs` correct rendert (Liquid Glass op iOS 26), scrolt en voor VoiceOver/TalkBack klopt;
-- dat een React Native-`WebSocket` de `Origin`-header uit `extraHeaders` doorgeeft (in Node bewezen; op iOS/Android **te verifiëren**). Als dat niet werkt is een kleine, aparte servervoorziening nodig (zie risico R1).
+Gemeten met een geïsoleerde testbackend (echte `server.ts`, wegwerp-Postgres/Redis, uitsluitend synthetische accounts) en
+Maestro-flows op de gebouwde app (Release-build met ingebed JS). Een geslaagde build telt niet als bewijs; de flows draaien
+afzonderlijk op de simulator/emulator.
 
-Deze punten staan als open acceptatiecriteria; geen apparaatclaim zonder echte test.
+| Controle | Android (emulator, API 34, AOSP) | iOS (simulator iPhone 17 Pro, iOS 26) |
+|---|---|---|
+| Build slaagt (inclusief native afhankelijkheden) | ja (debug en release) | ja (Release, ad-hoc ondertekend, simulator) |
+| App start en toont het echte React Native-inlogscherm | ja | ja |
+| Inloggen, Vandaag met echte gegevens | ja | ja |
+| Native tabs tonen en reageren (Vandaag, Vrienden) | ja | ja (iOS 26 floating tabbalk met SF-symbolen, screenshot bekeken) |
+| WebSocket met `Origin` door de bestaande backend geaccepteerd; realtime verzoek verschijnt zonder interactie | ja (3–5 s) | ja (`realtime/session` door de app, nieuw verzoek zichtbaar in de flow) |
+| Accepteren (dubbel tikken = één verzoek), servereffect en `friends_changed` bij de tweede client | ja | ja |
+| Uitloggen en accountwissel zonder gegevens van de vorige gebruiker | ja | ja |
+
+Resultaten per commit: Android slaagde op `e9986168`, `4bdea412` en `48fdb111` (drie runs); iOS slaagde pas op `7df51e71` (run 40). Eerdere
+iOS-runs faalden om redenen buiten de app: het iOS-systeemvenster "Save Password?", een testbinary zonder ATS-uitzondering voor de
+lokale testbackend, en een overbelaste Intel-runner. Op die runner liepen databaseverzoeken (`today-overview` 15,0 s) en de
+clienttijdslimiet van 15 s verliep, ook voor de tweede client in Node. De iOS-job draait daarom op Apple Silicon (`macos-26`),
+met de backend pas na de build en de externe synchronisatiehosts (kerksite, podcastfeeds) alleen op de runner geblokkeerd.
+
+Testbinary-afwijkingen (nooit in een releasebuild): `NSAllowsArbitraryLoads`/`NSAllowsLocalNetworking` (iOS) en `usesCleartextTraffic`
+(Android) voor HTTP naar de lokale backend, ad-hoc ondertekening (`-`) voor Keychain op de simulator, en een AOSP-emulatorimage.
+
+**Bevinding voor de backend (niet gewijzigd):** de eerste, koude accepteer-aanroep gaf op een trage machine een 500, doordat de
+interactieve Prisma-transactie (5 s) verliep in de beloningscontrole (`podcastEpisodeProgress.count`). De app toonde terecht
+"Accepteren mislukt" en bleef bruikbaar. De harness warmt de route nu vooraf op met een los paar (Erin/Frank). Het is een
+robuustheidsrisico voor een koude of trage productieserver en verdient een eigen beoordeling.
+
+**Nog niet getest:** verlopen sessie in de draaiende app (alleen op Node-niveau), VoiceOver/TalkBack, toetsenbord- en scrollgedrag,
+fysieke toestellen, achtergrond/voorgrond en netwerkverlies, en Android-landscape/tablet. Er is geen apparaatvalidatie geclaimd.
 
 ## 3. Bevindingen tijdens de bouw
 
-- **R1 – Origin.** De bestaande native API eist `Origin: capacitor://localhost` of `https://localhost` (ook voor de websocket). React Native stuurt die niet vanzelf; de proef zet hem in `nativeTransport` en via `extraHeaders`. Voor fetch is dit eenvoudig; voor de websocket moet het op een toestel worden bevestigd.
+- **R1 – Origin.** De bestaande native API eist `Origin: capacitor://localhost` of `https://localhost` (ook voor de websocket). React Native stuurt die niet vanzelf; de proef zet hem in `nativeTransport` en via `extraHeaders`. Bevestigd op de Android-emulator en iOS-simulator: de websocket wordt door de bestaande backend geaccepteerd, zonder servervoorziening.
 - **R2 – `crypto.randomUUID`.** `NativeSessionClient` gebruikt het; Hermes heeft het niet. Opgelost met een polyfill (`expo-crypto`, 5 regels).
 - **R3 – Dubbele React/zod.** De hoofdapp heeft een andere React-versie dan RN 0.88. Metro en jest dwingen één kopie af (`metro.config.js`, `jest.config.js`). Zonder dit crasht de app met "invalid hook call". Dit is structureel onderhoud bij een gedeelde repository.
 - **R4 – `@/`-alias en generated Prisma-enums.** De gedeelde contracten importeren via `@/…` (o.a. `leagueTiers` → generated Prisma-enums, `todayContract` → type-importen uit DOM-componenten). Het werkt via een Metro-resolver, maar trekt onnodige modules in het bundel en vereist `prisma generate` in CI. Vervolgstap: contracten naar een eigen pakket/map zonder app-afhankelijkheden (`shared/contracts`), zoals Ringtools doet met `shared/api-types.ts`.
@@ -99,7 +124,7 @@ Totaal grofweg 8–14 maanden voor één kleine ploeg; dit is een bandbreedte, g
 
 **Nog geen go/no-go voor een volledige RN-migratie.** Eerst deze drie dingen:
 
-1. Draai de `native-builds`-job en test de stroom op een iOS-simulator en een Android-emulator (inclusief `Origin` op de websocket, native tabs, VoiceOver/TalkBack).
+1. ~~Draai de stroom op een iOS-simulator en een Android-emulator~~ (gedaan, zie 2a). Nog te doen: VoiceOver/TalkBack, verlopen sessie in de app, echte toestellen.
 2. Doe een afzonderlijke spike voor lezer-selectie/annotaties (de grootste onzekerheid).
 3. Vergelijk objectief met de Capacitor-weg volgens het Ringtools-model (één UI voor web+mobiel): meet scrollen, tabbalk, opstarttijd en onderhoudskosten.
 
