@@ -182,7 +182,6 @@ jobs:
           redis-server --port 6379 --daemonize yes
       - run: xcodebuild -version; xcrun simctl list runtimes | head
       - run: npm ci
-      - run: apps/mobile-poc/scripts/ci-backend.sh
       - working-directory: apps/mobile-poc
         run: npm ci
       - name: Prebuild iOS (tijdelijk, niet gecommit; installeert pods)
@@ -195,6 +194,15 @@ jobs:
           xcodebuild -workspace "$WS" -scheme "$SCHEME" -configuration Release -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath "$RUNNER_TEMP/dd" CODE_SIGN_IDENTITY="-" CODE_SIGNING_ALLOWED=YES CODE_SIGNING_REQUIRED=NO build | tail -40
           ls "$RUNNER_TEMP/dd/Build/Products/Release-iphonesimulator/"
       - run: apps/mobile-poc/scripts/install-maestro.sh
+      # De backend start pas nu, niet vóór de Xcode-build: op de trage Intel-runner liet hij anders de hele build
+      # (17 minuten) scheduler- en feedtaken draaien en gaf hij daarna antwoorden na meer dan 15 s (de
+      # clienttijdslimiet), waardoor de app en de tweede client "network_unavailable" kregen. De externe
+      # synchronisatiehosts (kerksite, podcastfeeds) worden alleen op deze wegwerprunner geblokkeerd, zodat de
+      # opstarttaken niet het netwerk op gaan; er verandert niets aan de backendcode of beveiliging.
+      - name: Backend starten (externe synchronisatiehosts geblokkeerd, alleen op de runner)
+        run: |
+          echo "127.0.0.1 www.churchofjesuschrist.org churchofjesuschrist.org rss.buzzsprout.com geloofjedatook.nl www.geloofjedatook.nl jehova.app www.jehova.app" | sudo tee -a /etc/hosts
+          apps/mobile-poc/scripts/ci-backend.sh
       - name: Simulator, installeren, flows
         working-directory: apps/mobile-poc
         run: ./scripts/ios-simulator-run.sh "$(ls -d $RUNNER_TEMP/dd/Build/Products/Release-iphonesimulator/*.app | head -1)"

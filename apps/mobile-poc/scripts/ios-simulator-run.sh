@@ -40,7 +40,14 @@ appId: app.versado.poc
 YAML
 for i in 1 2 3; do maestro test e2e-results/ios/warmup.yaml && break || echo "warm-up poging $i mislukt"; done
 echo "::endgroup::"
+# Latentiemeter: bewijst achteraf of de backend tijdens de flows traag was (de clients geven na 15 s op).
+( while true; do
+    printf '%s %s\n' "$(date -u +%H:%M:%S)" "$(curl -s -o /dev/null -m 20 -H 'Origin: https://localhost' -H 'X-Versado-Client: native-v1' -w '%{http_code} %{time_total}s' http://127.0.0.1:3100/api/v1/native/capabilities || echo curl-mislukt)" >> e2e-results/ios/backend-probe.log
+    sleep 10
+  done ) &
+PROBE_PID=$!
 E2E_OUT=e2e-results/ios ./scripts/e2e.sh; rc=$?
+kill "$PROBE_PID" 2>/dev/null || true
 xcrun simctl io "$UDID" screenshot e2e-results/ios/final.png || true
 echo "::group::backend-log (websocket/auth)"; grep -iE "socket|origin|403|401|native" "${BACKEND_LOG:-/dev/null}" | tail -40; echo "::endgroup::"
 exit $rc
