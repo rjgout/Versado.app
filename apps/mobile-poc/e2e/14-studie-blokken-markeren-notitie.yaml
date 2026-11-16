@@ -1,0 +1,39 @@
+appId: app.versado.poc
+---
+# Selectie over twee alinea's → één markering en één notitie via de bestaande annotatieservice
+- launchApp
+- extendedWaitUntil:
+    visible: "Les"
+    timeout: 120000
+- tapOn: "Les"
+- extendedWaitUntil:
+    visible:
+      id: debug-select-blocks
+    timeout: 60000
+- swipe:
+    start: "50%,30%"
+    end: "50%,8%"
+- tapOn:
+    id: debug-select-blocks
+- extendedWaitUntil:
+    visible: "Selectie: .* · 2 blokken"
+    timeout: 15000
+- takeScreenshot: 35-les-twee-blokken
+- tapOn:
+    id: mark-button
+- extendedWaitUntil:
+    visible: "Gemarkeerd: 2 blokken"
+    timeout: 30000
+- assertVisible: "Markeringen: 1"
+- tapOn:
+    id: note-open
+- tapOn:
+    id: note-input
+- inputText: "Proefnotitie bij de les"
+- tapOn:
+    id: note-save
+- extendedWaitUntil:
+    visible: "Notitie opgeslagen"
+    timeout: 30000
+- assertVisible: "Notitie: Proefnotitie bij de les"
+- takeScreenshot: 36-les-gemarkeerd

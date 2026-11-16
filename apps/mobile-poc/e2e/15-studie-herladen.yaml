@@ -1,0 +1,13 @@
+appId: app.versado.poc
+---
+# Na een volledige herstart komen markering en notitie terug (de server plaatst ze in de gepubliceerde revisie)
+- launchApp
+- extendedWaitUntil:
+    visible: "Les"
+    timeout: 120000
+- tapOn: "Les"
+- extendedWaitUntil:
+    visible: "Markeringen: 1"
+    timeout: 60000
+- assertVisible: "Notitie: Proefnotitie bij de les"
+- takeScreenshot: 37-les-herladen

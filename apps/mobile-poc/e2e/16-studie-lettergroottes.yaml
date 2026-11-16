@@ -1,0 +1,33 @@
+appId: app.versado.poc
+---
+# Verschillende lettergroottes: groter en kleiner; selectie werkt na elke wijziging
+- launchApp
+- extendedWaitUntil:
+    visible: "Les"
+    timeout: 120000
+- tapOn: "Les"
+- extendedWaitUntil:
+    visible:
+      id: font-larger
+    timeout: 60000
+- tapOn:
+    id: font-larger
+- assertVisible: "Lettergrootte 24"
+- runFlow: _selecteer-woord-les.yaml
+- takeScreenshot: 38-les-24
+- tapOn:
+    id: font-larger
+- assertVisible: "Lettergrootte 32"
+- takeScreenshot: 39-les-32
+- tapOn:
+    id: font-smaller
+- tapOn:
+    id: font-smaller
+- tapOn:
+    id: font-smaller
+- assertVisible: "Lettergrootte 14"
+- runFlow: _selecteer-woord-les.yaml
+- takeScreenshot: 40-les-14
+- tapOn:
+    id: font-larger
+- assertVisible: "Lettergrootte 18"

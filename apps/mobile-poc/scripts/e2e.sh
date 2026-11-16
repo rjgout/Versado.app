@@ -35,6 +35,14 @@ text_scale() {
     xcrun simctl ui booted content_size "$([ "$1" = large ] && echo accessibility-extra-large || echo large)"
   fi
 }
+# Toegankelijkheidsboom als bewijs wat een schermlezer te zien krijgt (labels, rollen, aantikbare vlakken).
+a11y_dump() {
+  if command -v adb >/dev/null 2>&1 && adb get-state >/dev/null 2>&1; then
+    adb shell uiautomator dump /sdcard/a11y.xml >/dev/null 2>&1 && adb shell cat /sdcard/a11y.xml > "$OUT/a11y-$1.xml" || true
+  else
+    maestro hierarchy > "$OUT/a11y-$1.json" 2>/dev/null || true
+  fi
+}
 run_flow() { step "maestro $1"; maestro test --format junit --output "$OUT/$1.xml" --test-output-dir "$OUT/$1" "e2e/$1.yaml" || { fail=1; dump_ui "$1"; }; end; }
 
 rm -f "$OUT/bob.signal"
@@ -64,6 +72,19 @@ run_flow 09-lezer-lettergroottes
 text_scale large; run_flow 10-lezer-systeemtekstgrootte; text_scale normal
 run_flow 11-lezer-markering-wissen
 step "peer: lezer, markering gewist op de server"; npx tsx tests/native/peer.ts verify-reader cleared || fail=1; end
+# Architectuurproef rijke studielessen (als Gerda, account in de synthetische studiecollectie)
+run_flow 12-studie-les-weergave
+run_flow 13-studie-selectie-woord
+run_flow 14-studie-blokken-markeren-notitie
+step "peer: studieles, server-effect van markeren en notitie"; npx tsx tests/native/peer.ts verify-study present || fail=1; end
+run_flow 15-studie-herladen
+run_flow 16-studie-lettergroottes
+run_flow 18-studie-tabelcel
+run_flow 20-studie-toegankelijkheid
+a11y_dump 20-studie-toegankelijkheid
+text_scale large; run_flow 17-studie-systeemtekstgrootte; text_scale normal
+run_flow 19-studie-markering-wissen
+step "peer: studieles, markering gewist op de server"; npx tsx tests/native/peer.ts verify-study cleared || fail=1; end
 run_flow 05-uitloggen-accountwissel
 kill $BOB $TRIG 2>/dev/null
 exit $fail

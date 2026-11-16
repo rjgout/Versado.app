@@ -1,0 +1,15 @@
+appId: app.versado.poc
+---
+# Echte platformselectie in de les: lang indrukken selecteert een woord; de app ontvangt offsets en toont tekst + aantal blokken
+- launchApp
+- extendedWaitUntil:
+    visible: "Les"
+    timeout: 120000
+- tapOn: "Les"
+- extendedWaitUntil:
+    visible:
+      id: run-b-title1
+    timeout: 60000
+- assertVisible: "Geen selectie"
+- runFlow: _selecteer-woord-les.yaml
+- takeScreenshot: 34-les-woord-geselecteerd

@@ -2,12 +2,14 @@
  *   listen-bob <bestand>   native sessie van Bob; schrijft het bestand zodra friends_changed binnenkomt
  *   dave-request           Dave (webclient, cookie) zoekt Alice en stuurt een vriendenverzoek
  *   verify                 server-effect van het accepteren in de app: Bob en Alice zijn vrienden
- *   verify-reader present|cleared   server-effect van markeren/notitie in de lezer: Alice' annotaties volgens de server */
+ *   verify-reader present|cleared   server-effect van markeren/notitie in de lezer: Alice' annotaties volgens de server
+ *   verify-study present|cleared    server-effect in de studieles: Gerda's annotaties volgens de server (door de server geplaatst) */
 import { writeFileSync, existsSync } from "node:fs";
 import assert from "node:assert/strict";
 import { createAppSession } from "@poc/core/session";
 import { loadFriends } from "@poc/core/friends";
 import { highlightsByVerse, loadBundle, notesByVerse } from "@poc/reader/api";
+import { loadStudy } from "@poc/study/api";
 import type { SecureSessionStore } from "@/lib/native/client";
 
 const base = process.env.POC_BASE_URL ?? "http://127.0.0.1:3100";
@@ -53,6 +55,20 @@ async function main() {
     else assert.deepEqual(Object.keys(hl), [], "server heeft geen markeringen meer (gewist in de app)");
     assert.equal(notes[id(8)], "Proefnotitie bij vers 8", "server heeft de notitie bij vers 8 (opgeslagen in de app)");
     console.log(`server-effect van de lezer bevestigd (${arg})`); return;
+  }
+  if (cmd === "verify-study") {
+    const gerda = await nativeAs("gerda@example.invalid");
+    const { annotations } = await loadStudy(gerda.client);
+    const live = annotations.annotations.filter(r => !r.deleted);
+    if (arg === "present") {
+      const hl = live.filter(r => r.kind === "highlight"), notes = live.filter(r => r.kind === "note");
+      assert.equal(hl.length, 1, "server heeft één markering over twee blokken (gezet in de app)");
+      assert.deepEqual(hl[0]!.target.selector.ranges.map(r => r.blockId), ["b-p1", "b-p2"], "de markering ligt op de twee alinea's");
+      assert.equal(hl[0]!.placement?.status, "EXACT", "de server plaatst de markering exact in de gepubliceerde revisie");
+      assert.equal(notes.length, 1);
+      assert.equal(notes[0]!.text, "Proefnotitie bij de les");
+    } else assert.equal(live.filter(r => r.kind === "highlight").length, 0, "server heeft geen markering meer (gewist in de app)");
+    console.log(`server-effect van de studieles bevestigd (${arg})`); return;
   }
   throw new Error(`onbekend commando ${cmd}`);
 }

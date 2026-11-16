@@ -1,0 +1,35 @@
+appId: app.versado.poc
+---
+# Architectuurproef rijke studielessen: de bestaande synthetische les als native onderdelen (geen WebView).
+- launchApp
+- extendedWaitUntil:
+    visible: "Vandaag"
+    timeout: 120000
+- runFlow: _na-wisselen-naar-gerda.yaml
+- tapOn: "Les"
+- extendedWaitUntil:
+    visible:
+      id: run-b-title1
+    timeout: 90000
+- assertVisible: "Geen selectie"
+- assertVisible: "Proeflezing: de weg naar het beloofde land"
+- takeScreenshot: 30-les-boven
+# Naar beneden door de les: afbeelding met bijschrift, opsommingen, citaat, tabel, verwijzingen
+- scrollUntilVisible:
+    element:
+      id: figure-img-img2
+    direction: DOWN
+    timeout: 30000
+- takeScreenshot: 31-les-afbeelding
+- scrollUntilVisible:
+    element:
+      id: table-b-table
+    direction: DOWN
+    timeout: 30000
+- takeScreenshot: 32-les-tabel
+- scrollUntilVisible:
+    element:
+      id: ref-ref-block
+    direction: DOWN
+    timeout: 30000
+- takeScreenshot: 33-les-verwijzing

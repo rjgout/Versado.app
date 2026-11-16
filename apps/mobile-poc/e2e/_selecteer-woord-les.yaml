@@ -1,0 +1,20 @@
+appId: app.versado.poc
+---
+# Lang indrukken selecteert een woord (witruimte selecteert bewust niets; daarom terugvalpunten, ruim binnen het tekstgebied).
+- longPressOn:
+    point: "50%,52%"
+- runFlow:
+    when:
+      notVisible: "Selectie: «[^»\\s]+» · 1 blok"
+    commands:
+      - longPressOn:
+          point: "30%,60%"
+- runFlow:
+    when:
+      notVisible: "Selectie: «[^»\\s]+» · 1 blok"
+    commands:
+      - longPressOn:
+          point: "70%,66%"
+- extendedWaitUntil:
+    visible: "Selectie: «[^»\\s]+» · 1 blok"
+    timeout: 15000
