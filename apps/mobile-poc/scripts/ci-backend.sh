@@ -15,6 +15,14 @@ warm() {
   [ -n "$tok" ] || return 0
   for p in today-overview games/friends; do curl -s -o /dev/null "$B/$p" "${H[@]}" -H "authorization: Bearer $tok"; done
   curl -s -o /dev/null -X POST "$B/realtime/session" "${H[@]}" -H "authorization: Bearer $tok" -d '{}'
+  # De eerste accepteer-aanroep compileert de route en laadt de beloningscontrole; op een trage runner verliep daarbij de
+  # interactieve transactie (5 s) en gaf de backend een 500. Daarom eenmalig doorlopen met een los opwarmpaar (Erin -> Frank).
+  local ftok fid
+  ftok=$(curl -s -X POST "$B/login" "${H[@]}" -d '{"identifier":"frank@example.invalid","password":"'"${POC_PASSWORD:-PocPassw0rd!2026}"'"}' | python3 -c "import json,sys;print(json.load(sys.stdin).get('accessToken',''))" 2>/dev/null || true)
+  [ -n "$ftok" ] || return 0
+  fid=$(curl -s "$B/games/friends" "${H[@]}" -H "authorization: Bearer $ftok" | python3 -c "import json,sys;d=json.load(sys.stdin);print(d['incoming'][0]['friendshipId'])" 2>/dev/null || true)
+  [ -n "$fid" ] && curl -s -o /dev/null -m 60 -X POST "$B/games/friends/$fid/accept" "${H[@]}" -H "authorization: Bearer $ftok" -d '{}'
+  return 0
 }
 nohup npx tsx server.ts > "${BACKEND_LOG:-/tmp/backend.log}" 2>&1 &
 for i in $(seq 1 90); do
