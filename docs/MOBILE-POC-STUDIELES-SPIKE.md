@@ -95,10 +95,10 @@ annotaties, plaatsing, rechten, vervalste selector, verouderde versie, andere re
 | 16 Lettergroottes 14/18/24/32, selectie na elke wijziging | groen | groen in run 69; in 73/74/75 telkens een testprobleem (zie §5a) |
 | 17 Systeemtekstgrootte (Android 1,6×; iOS accessibility-extra-large) | groen | groen (73, 74, 75) |
 | 18 Tabelcel selecteren | groen | groen (73, 74, 75) |
-| 19 Markering wissen; server bevestigt (peer) | groen | groen (73, 74); in 75 mislukte het laden van de les (backend traag) |
+| 19 Markering wissen; server bevestigt (peer) | groen | groen in 73; in 74 en 75 mislukt (testknop getikt vóór het laden van de les; lesverzoek traag) |
 | 20 Toegankelijkheidsboom (namen, rollen) | groen | groen (73, 74, 75) |
 | Lezerflows 06–11, **waaronder de eerder niet bevestigde iOS-flow 10 (systeemtekst)** | alle groen | alle zes groen in één run (75); flow 10 ook groen in run 74 |
-| Basisflows 01–05 (inloggen, vrienden, realtime) | groen | groen in 69 en 73; in 74/75 mislukt door een traag startende backend (zie §5a) |
+| Basisflows 01–05 (inloggen, vrienden, realtime) | groen | alle vijf groen in 69; in 73 alleen 04 (opwarmgeval) mis; in 74/75 mislukt door een traag startende backend (zie §5a) |
 
 ### 5a. iOS: wat er is gemeten en waarom er geen volledig groene iOS-run is
 
@@ -107,10 +107,10 @@ De app-code is sinds run 69 niet meer gewijzigd; wat tussen de runs veranderde, 
 
 | Run | Groen | Reden van de fouten |
 |---|---|---|
-| 69 | 12/20 | annotatieschrijfacties 11–22 s en daardoor 500 (transactielimiet 5 s, ook op de bestaande schriftroute); wachtvoorwaarde bij grote tekst |
+| 69 | 13/20 | annotatieschrijfacties 11–22 s en daardoor 500 (transactielimiet 5 s, ook op de bestaande schriftroute); wachtvoorwaarde bij grote tekst |
 | 73 | 17/20 | opwarmgeval van "vriend accepteren"; wachtvoorwaarde flow 10; woordselectie flow 16 |
-| 74 | 9/20 | traag startende backend (login/Vandaag "Laden mislukt"); regex zonder eindspatie + eenmalig iOS-systeemvenster (Look Up); testknop getikt vóór het laden van de les |
-| 75 | 14/20 | alle lezer- en bijna alle studieflows groen; basisflows 01–05 door "Laden mislukt" op Vandaag (backend traag); 16 en 19 door een gemiste tik en een mislukt lesverzoek |
+| 74 | 8/20 | traag startende backend (login/Vandaag "Laden mislukt"); regex zonder eindspatie + eenmalig iOS-systeemvenster (Look Up); testknop getikt vóór het laden van de les |
+| 75 | 13/20 | alle lezer- en bijna alle studieflows groen; basisflows 01–05 door "Laden mislukt" op Vandaag (backend traag); 16 en 19 door een gemiste tik en een mislukt lesverzoek |
 
 Gemeenschappelijke oorzaak: op de gedeelde macOS-runner delen simulator, Maestro-driver, Postgres en de Next-dev-server de CPU. De backend-latentiemeting
 (`backend-probe.log`) toont pieken van 5–20 s, terwijl de clients na 15 s opgeven. De app gedraagt zich dan correct ("Laden mislukt. Tik om opnieuw te
