@@ -2,6 +2,9 @@ appId: app.versado.poc
 ---
 # Met een grotere systeemtekstgrootte (Dynamic Type / lettergrootte van Android) blijft de selectie werken
 - launchApp
+- extendedWaitUntil:
+    visible: "Lezen"
+    timeout: 120000
 - tapOn: "Lezen"
 - extendedWaitUntil:
     visible:

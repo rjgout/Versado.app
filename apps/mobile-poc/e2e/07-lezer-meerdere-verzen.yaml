@@ -2,6 +2,9 @@ appId: app.versado.poc
 ---
 # Selectie over meerdere verzen (native selectie, bereik via setSelection), markeren en bevestigen door de server
 - launchApp
+- extendedWaitUntil:
+    visible: "Lezen"
+    timeout: 120000
 - tapOn: "Lezen"
 - extendedWaitUntil:
     visible:

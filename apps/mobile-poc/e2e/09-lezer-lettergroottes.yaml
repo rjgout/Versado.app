@@ -2,6 +2,9 @@ appId: app.versado.poc
 ---
 # Selectie werkt bij elke lettergrootte: lang indrukken selecteert een woord, een bereik over verzen blijft exact
 - launchApp
+- extendedWaitUntil:
+    visible: "Lezen"
+    timeout: 120000
 - tapOn: "Lezen"
 - extendedWaitUntil:
     visible:

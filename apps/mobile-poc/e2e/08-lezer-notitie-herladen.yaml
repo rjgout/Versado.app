@@ -2,6 +2,9 @@ appId: app.versado.poc
 ---
 # Markeringen komen na een volledige herstart terug (server is de bron); notitie op het eerste geselecteerde vers
 - launchApp
+- extendedWaitUntil:
+    visible: "Lezen"
+    timeout: 120000
 - tapOn: "Lezen"
 - extendedWaitUntil:
     visible: "Markeringen: vers 5, 6, 7"
