@@ -5,14 +5,12 @@ appId: app.versado.poc
 - extendedWaitUntil:
     visible: "Les"
     timeout: 120000
-- tapOn: "Les"
-- extendedWaitUntil:
-    visible:
-      id: font-larger
-    timeout: 60000
+- runFlow: _open-les.yaml
 - tapOn:
     id: font-larger
-- assertVisible: "Lettergrootte 24"
+- extendedWaitUntil:
+    visible: "Lettergrootte 24"
+    timeout: 15000
 - runFlow: _selecteer-woord-les.yaml
 - takeScreenshot: 38-les-24
 - tapOn:

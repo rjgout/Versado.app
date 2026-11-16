@@ -11,6 +11,11 @@ appId: app.versado.poc
           commands:
             - tapOn:
                 id: login-submit
+      - runFlow:
+          when:
+            visible: "Laden mislukt.*"
+          commands:
+            - tapOn: "Laden mislukt.*"
       - extendedWaitUntil:
           visible: "Not Now"
           timeout: 25000

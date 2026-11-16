@@ -5,7 +5,7 @@ appId: app.versado.poc
 - extendedWaitUntil:
     visible: "Les"
     timeout: 120000
-- tapOn: "Les"
+- runFlow: _open-les.yaml
 - extendedWaitUntil:
     visible: "Markeringen: 1"
     timeout: 60000
