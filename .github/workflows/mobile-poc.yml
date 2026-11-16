@@ -25,7 +25,7 @@ jobs:
     services:
       postgres:
         image: postgres:16
-        env: { POSTGRES_PASSWORD: poc, POSTGRES_DB: versado_poc }
+        env: { POSTGRES_PASSWORD: poc, POSTGRES_DB: versado_content_access_test }
         ports: ['5432:5432']
         options: >-
           --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
@@ -33,7 +33,7 @@ jobs:
         image: redis:7
         ports: ['6379:6379']
     env:
-      DATABASE_URL: postgresql://postgres:poc@127.0.0.1:5432/versado_poc
+      DATABASE_URL: postgresql://postgres:poc@127.0.0.1:5432/versado_content_access_test
       REDIS_URL: redis://127.0.0.1:6379
       SESSION_SECRET: ci-session-secret-0123456789abcdef0123456789abcdef
       NATIVE_SESSION_SECRET: ci-native-secret-0123456789abcdef0123456789abcdef
@@ -42,6 +42,9 @@ jobs:
       APP_URL: http://127.0.0.1:3100
       PORT: '3100'
       POC_BASE_URL: http://127.0.0.1:3100
+      STUDY_PUBLICATION_PROFILE: synthetic-test
+      STUDY_MEDIA_DIR: ${{ github.workspace }}/.study-media-poc
+      STUDY_MEDIA_TEST_ROOT: ${{ github.workspace }}/.study-media-poc
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -49,8 +52,10 @@ jobs:
       - run: npm ci
       - run: npm run db:generate
       - run: npx prisma migrate deploy
+      - run: apps/mobile-poc/scripts/study-media-init.sh
       - run: npx tsx apps/mobile-poc/scripts/seed-synthetic.ts
       - run: npx tsx apps/mobile-poc/scripts/seed-reader-content.ts
+      - run: npx tsx apps/mobile-poc/scripts/seed-study-lesson.ts
       - name: Backend starten (echte server.ts)
         run: |
           nohup npx tsx server.ts > "$RUNNER_TEMP/server.log" 2>&1 &
@@ -69,6 +74,9 @@ jobs:
       - name: Lezer-spike tegen de echte backend (hoofdstuk, markeren, notitie, herladen, versiecontrole)
         working-directory: apps/mobile-poc
         run: npm run test:reader
+      - name: Studielessen-spike tegen de echte backend (les, afbeelding, selector, annotaties, plaatsing, rechten)
+        working-directory: apps/mobile-poc
+        run: npm run test:study
       - name: Metro-bundel iOS + Android (Hermes) en grootte
         working-directory: apps/mobile-poc
         run: |
@@ -86,7 +94,7 @@ jobs:
     services:
       postgres:
         image: postgres:16
-        env: { POSTGRES_PASSWORD: poc, POSTGRES_DB: versado_poc }
+        env: { POSTGRES_PASSWORD: poc, POSTGRES_DB: versado_content_access_test }
         ports: ['5432:5432']
         options: >-
           --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
@@ -94,7 +102,7 @@ jobs:
         image: redis:7
         ports: ['6379:6379']
     env:
-      DATABASE_URL: postgresql://postgres:poc@127.0.0.1:5432/versado_poc
+      DATABASE_URL: postgresql://postgres:poc@127.0.0.1:5432/versado_content_access_test
       REDIS_URL: redis://127.0.0.1:6379
       SESSION_SECRET: ci-session-secret-0123456789abcdef0123456789abcdef
       NATIVE_SESSION_SECRET: ci-native-secret-0123456789abcdef0123456789abcdef
@@ -103,6 +111,9 @@ jobs:
       APP_URL: http://127.0.0.1:3100
       PORT: '3100'
       POC_BASE_URL: http://127.0.0.1:3100
+      STUDY_PUBLICATION_PROFILE: synthetic-test
+      STUDY_MEDIA_DIR: ${{ github.workspace }}/.study-media-poc
+      STUDY_MEDIA_TEST_ROOT: ${{ github.workspace }}/.study-media-poc
       BACKEND_LOG: ${{ github.workspace }}/backend-android.log
       POC_TEST_BUILD: '1'
       EXPO_PUBLIC_VERSADO_API_URL: http://10.0.2.2:3100
@@ -159,7 +170,7 @@ jobs:
     runs-on: macos-26
     timeout-minutes: 150
     env:
-      DATABASE_URL: postgresql://postgres@127.0.0.1:5432/versado_poc
+      DATABASE_URL: postgresql://postgres@127.0.0.1:5432/versado_content_access_test
       REDIS_URL: redis://127.0.0.1:6379
       SESSION_SECRET: ci-session-secret-0123456789abcdef0123456789abcdef
       NATIVE_SESSION_SECRET: ci-native-secret-0123456789abcdef0123456789abcdef
@@ -168,6 +179,9 @@ jobs:
       APP_URL: http://127.0.0.1:3100
       PORT: '3100'
       POC_BASE_URL: http://127.0.0.1:3100
+      STUDY_PUBLICATION_PROFILE: synthetic-test
+      STUDY_MEDIA_DIR: ${{ github.workspace }}/.study-media-poc
+      STUDY_MEDIA_TEST_ROOT: ${{ github.workspace }}/.study-media-poc
       BACKEND_LOG: ${{ github.workspace }}/backend-ios.log
       POC_TEST_BUILD: '1'
       EXPO_PUBLIC_VERSADO_API_URL: http://127.0.0.1:3100
@@ -185,7 +199,7 @@ jobs:
           export PATH="$PGBIN:$PATH"
           initdb -D "$RUNNER_TEMP/pg" -U postgres --auth=trust >/dev/null
           pg_ctl -D "$RUNNER_TEMP/pg" -l "$RUNNER_TEMP/pg.log" -o "-p 5432 -c fsync=off -c synchronous_commit=off -c max_connections=200" start
-          createdb -h 127.0.0.1 -U postgres versado_poc
+          createdb -h 127.0.0.1 -U postgres versado_content_access_test
           redis-server --port 6379 --daemonize yes
       - run: xcodebuild -version; xcrun simctl list runtimes | head
       - run: npm ci

@@ -2,11 +2,16 @@
 # Start de echte backend (server.ts) tegen een wegwerp-Postgres/Redis met synthetische accounts.
 # Draait vanuit de repo-root; verwacht DATABASE_URL, REDIS_URL en de overige testvariabelen in de omgeving.
 set -euo pipefail
+# De studieopslag en de synthetische publicatie werken alleen in het bestaande testprofiel (database versado_content_access_test,
+# STUDY_PUBLICATION_PROFILE=synthetic-test, eigen mediamap met markering); die controles worden hier niet omzeild maar vervuld.
+apps/mobile-poc/scripts/study-media-init.sh
 npm run db:generate
 npx prisma migrate deploy
 npx tsx apps/mobile-poc/scripts/seed-synthetic.ts
 # Synthetisch proefhoofdstuk (eigen tekst) via de echte importer voor de lezer-spike.
 npx tsx apps/mobile-poc/scripts/seed-reader-content.ts
+# Synthetische rijke studieles via de echte importketen voor de studielessen-spike.
+npx tsx apps/mobile-poc/scripts/seed-study-lesson.ts
 # De dev-server compileert routes bij het eerste verzoek (meerdere seconden): warm ze op, zodat de eerste echte
 # verzoeken uit de app of de tweede client niet door een koude compilatie in een timeout lopen.
 warm() {
@@ -25,7 +30,7 @@ warm() {
   fid=$(curl -s "$B/games/friends" "${H[@]}" -H "authorization: Bearer $ftok" | python3 -c "import json,sys;d=json.load(sys.stdin);print(d['incoming'][0]['friendshipId'])" 2>/dev/null || true)
   [ -n "$fid" ] && curl -s -o /dev/null -m 60 -X POST "$B/games/friends/$fid/accept" "${H[@]}" -H "authorization: Bearer $ftok" -d '{}'
   # Leesroutes en annotatie-schrijfroute (zelfde reden), met hetzelfde losse testaccount.
-  (cd apps/mobile-poc && npx tsx scripts/warm-reader.ts) || true
+  (cd apps/mobile-poc && npx tsx scripts/warm-reader.ts && npx tsx scripts/warm-study.ts) || true
   return 0
 }
 nohup npx tsx server.ts > "${BACKEND_LOG:-/tmp/backend.log}" 2>&1 &

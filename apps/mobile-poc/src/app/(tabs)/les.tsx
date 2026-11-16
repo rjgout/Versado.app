@@ -43,14 +43,14 @@ export default function Les() {
     finally { setBusy(false); }
   };
   const selector = () => rangesToLessonSelector(data!.lesson.body, selection!.run.sectionId, data!.lesson.revisionId, ranges);
-  const mark = () => run(async () => { await putStudyAnnotation(session.client, data!.lesson, rows, selector(), { kind: "highlight", color: "yellow" }); return `Gemarkeerd: ${rangesLabel(ranges)}`; });
+  const mark = () => run(async () => { await putStudyAnnotation(session.client, data!.lesson, rows, data!.annotations.tombstones, selector(), { kind: "highlight", color: "yellow" }); return `Gemarkeerd: ${rangesLabel(ranges)}`; });
   const unmark = () => run(async () => {
     const hit = overlapping(rows, "highlight", ranges);
     for (const row of hit) await deleteStudyAnnotation(session.client, data!.lesson, row);
     return hit.length ? `Markering gewist: ${hit.length}` : "Geen markering gevonden";
   });
   const saveNote = () => run(async () => {
-    await putStudyAnnotation(session.client, data!.lesson, rows, selector(), { kind: "note", text: noteText.trim() });
+    await putStudyAnnotation(session.client, data!.lesson, rows, data!.annotations.tombstones, selector(), { kind: "note", text: noteText.trim() });
     setNoteOpen(false); setNoteText("");
     return "Notitie opgeslagen";
   });

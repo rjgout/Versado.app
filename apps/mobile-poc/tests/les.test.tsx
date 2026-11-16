@@ -15,7 +15,7 @@ jest.mock("@poc/study/api", () => ({
   loadStudy: async () => {
     const { richLessonBody } = jest.requireActual("../fixtures/rijkeles");
     const lesson = { version: 1, userId: "u1", activeCollectionId: "c1", selectionVersion: 0, language: "nl", courseId: "course1", editionId: "ed1", lessonId: "l1", collectionId: "c1", revisionId: "rev1", title: "Synthetische rijke proeflezing", body: richLessonBody(), media: [{ mediaKey: "media-painting", mediaId: "m1" }] };
-    return { lesson, annotations: { annotations: mockRows } };
+    return { lesson, annotations: { annotations: mockRows, tombstones: [] } };
   },
   loadStudyImage: async () => ({ uri: "data:image/webp;base64,AAAA", width: 400, height: 300 }),
   putStudyAnnotation: (...args: unknown[]) => (mockPut as (...a: unknown[]) => unknown)(...args),
@@ -85,7 +85,7 @@ test("een woord selecteren toont tekst en aantal blokken; markeren slaat één h
   expect(screen.getByTestId("selection-info")).toHaveTextContent("Selectie: «Eerste» · 1 blok");
   await fireEvent.press(screen.getByTestId("mark-button"));
   expect(mockPut).toHaveBeenCalledTimes(1);
-  const [, , , selector, input] = mockPut.mock.calls[0] as unknown as [unknown, unknown, unknown, { ranges: unknown[]; exact: string; sectionAnchor: string }, { kind: string; color: string }];
+  const [, , , , selector, input] = mockPut.mock.calls[0] as unknown as [unknown, unknown, unknown, unknown, { ranges: unknown[]; exact: string; sectionAnchor: string }, { kind: string; color: string }];
   expect(input).toEqual({ kind: "highlight", color: "yellow" });
   expect(selector.sectionAnchor).toBe("section-main");
   expect(selector.ranges).toEqual([{ blockId: "b-p1", start: 0, end: 6 }]);
@@ -102,9 +102,9 @@ test("een selectie over een kop en twee alinea's is één annotatie met drie ber
   await fireEvent.changeText(screen.getByTestId("note-input"), "  Mijn notitie  ");
   await fireEvent.press(screen.getByTestId("note-save"));
   expect(mockPut).toHaveBeenCalledTimes(1);
-  const call = mockPut.mock.calls[0] as unknown as [unknown, unknown, unknown, { ranges: { blockId: string }[] }, { kind: string; text: string }];
-  expect(call[4]).toEqual({ kind: "note", text: "Mijn notitie" });
-  expect(call[3].ranges.map(r => r.blockId)).toEqual(["b-topic1", "b-p1", "b-p2"]);
+  const call = mockPut.mock.calls[0] as unknown as [unknown, unknown, unknown, unknown, { ranges: { blockId: string }[] }, { kind: string; text: string }];
+  expect(call[5]).toEqual({ kind: "note", text: "Mijn notitie" });
+  expect(call[4].ranges.map(r => r.blockId)).toEqual(["b-topic1", "b-p1", "b-p2"]);
 });
 
 test("een tabelcel is een eigen selecteerbare run; een selectie bij een andere run vervangt de vorige", async () => {

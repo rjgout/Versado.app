@@ -8,7 +8,8 @@
     "typecheck": "tsc --noEmit",
     "test": "jest",
     "test:flow": "tsx tests/flow.integration.ts",
-    "test:reader": "tsx tests/reader.integration.ts"
+    "test:reader": "tsx tests/reader.integration.ts",
+    "test:study": "tsx tests/study.integration.ts"
   },
   "dependencies": {
     "expo": "^58.0.25",

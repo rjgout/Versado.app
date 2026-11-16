@@ -12,6 +12,7 @@ import type { PassageSelector } from "@/lib/annotations/contract";
 import { z } from "zod";
 
 export type StudyAnnotation = NativeStudyLessonAnnotation;
+export type StudyTombstones = z.infer<typeof nativeStudyLessonAnnotationList>["tombstones"];
 export interface StudyBundle { lesson: NativeStudyLesson; annotations: z.infer<typeof nativeStudyLessonAnnotationList> }
 const base = (courseId: string, editionId: string) => `courses/${courseId}/weeks/${editionId}`;
 
@@ -43,11 +44,11 @@ const sameSelection = (a: PassageSelector, b: PassageSelector) => JSON.stringify
 const target = (lesson: NativeStudyLesson, selector: PassageSelector) => ({ type: "lesson" as const, lessonEditionId: lesson.editionId, revisionId: lesson.revisionId, selector });
 
 export async function putStudyAnnotation(
-  client: NativeSessionClient, lesson: NativeStudyLesson, rows: readonly StudyAnnotation[], selector: PassageSelector,
+  client: NativeSessionClient, lesson: NativeStudyLesson, rows: readonly StudyAnnotation[], tombstones: StudyTombstones, selector: PassageSelector,
   input: { kind: "highlight"; color: "yellow" | "green" | "blue" | "pink" | "purple" } | { kind: "note"; text: string },
 ) {
   // Dezelfde selectie opnieuw: de bestaande rij (ook een gewiste) levert de verwachte versie, zoals het contract eist.
-  const existing = rows.find(r => r.kind === input.kind && sameSelection(r.target.selector, selector));
+  const existing = rows.find(r => r.kind === input.kind && sameSelection(r.target.selector, selector)) ?? tombstones.find(r => r.kind === input.kind && sameSelection(r.selector, selector));
   const body = nativeStudyLessonMutation.parse({
     operation: "put",
     action: { kind: input.kind, target: target(lesson, selector), expectedVersion: existing?.mutationVersion ?? 0, actionId: uuid(), ...(input.kind === "highlight" ? { color: input.color } : { text: input.text }) },
@@ -64,5 +65,5 @@ export async function deleteStudyAnnotation(client: NativeSessionClient, lesson:
 
 /** Levende markeringen/notities die (een deel van) de selectie raken: blok-id en overlappend codepuntbereik. */
 export function overlapping(rows: readonly StudyAnnotation[], kind: StudyAnnotation["kind"], ranges: readonly { blockId: string; start: number; end: number }[]) {
-  return rows.filter(r => r.kind === kind && !r.deleted && r.placement?.status === "EXACT" && "selector" in r.placement && r.placement.selector.ranges.some(pr => ranges.some(s => s.blockId === pr.blockId && s.start < pr.end && pr.start < s.end)));
+  return rows.filter(r => r.kind === kind && !r.deleted && r.placement?.status === "EXACT" && !!r.placement.selector && r.placement.selector.ranges.some(pr => ranges.some(s => s.blockId === pr.blockId && s.start < pr.end && pr.start < s.end)));
 }

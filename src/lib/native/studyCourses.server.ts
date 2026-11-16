@@ -80,8 +80,13 @@ function lessonScope(l:{version:1;userId:string;activeCollectionId:string|null;s
 export async function nativeStudyLessonAnnotations(binding:NativeSessionBinding,courseId:string,editionId:string) {
  const lesson=await nativeStudyLesson(binding,courseId,editionId),input=await studyContext(binding,courseId);
  const list=await readerAnnotations(input.value.user,{lessonEditionId:editionId,revisionId:lesson.revisionId});
+ // Een gewiste annotatie blijft als tombstone met een versie bestaan; zonder die versie kan de client dezelfde selectie niet opnieuw zetten
+ // (het bestaande contract eist de verwachte versie). Alleen kind, versie en selector; geen tekst van gewiste notities.
+ const where={userId:input.value.user.id,lessonEditionId:editionId,deletedAt:{not:null}},pick={mutationVersion:true,selector:true} as const;
+ const [bookmarks,highlights,notes]=await Promise.all([prisma.bookmark.findMany({where,take:200,select:pick}),prisma.highlight.findMany({where,take:200,select:pick}),prisma.note.findMany({where,take:200,select:pick})]);
+ const tombstones=[...bookmarks.map(r=>({kind:"bookmark" as const,...r})),...highlights.map(r=>({kind:"highlight" as const,...r})),...notes.map(r=>({kind:"note" as const,...r}))];
  await finalCheck(binding,input,[{id:editionId,revisionId:lesson.revisionId}]);
- return nativeStudyLessonAnnotationList.parse({...lessonScope(lesson),annotations:list.annotations,complete:list.complete});
+ return nativeStudyLessonAnnotationList.parse({...lessonScope(lesson),annotations:list.annotations,tombstones,complete:list.complete});
 }
 /** Schrijven loopt via dezelfde `mutateAnnotation` als de webreader; hier alleen de native sessie- en contextgrens eromheen. */
 export async function mutateNativeStudyLessonAnnotation(binding:NativeSessionBinding,courseId:string,editionId:string,raw:unknown) {
@@ -90,7 +95,7 @@ export async function mutateNativeStudyLessonAnnotation(binding:NativeSessionBin
  const lesson=await nativeStudyLesson(binding,courseId,editionId);
  if(input.action.target.revisionId!==lesson.revisionId)throw new NativeAuthError("content_context_changed",409);
  // De selector wordt tegen het gepubliceerde document gecontroleerd voordat er iets wordt opgeslagen.
- validatePassageSelector(lesson.body,input.action.target.selector);
+ try{validatePassageSelector(lesson.body,input.action.target.selector);}catch{throw new NativeAuthError("invalid_input",400);}
  const authorized=await context(binding);
  const result=await mutateAnnotation(authorized.user,input.action,input.operation==="delete",prisma,run=>
   commitAccountMutation({userId:binding.userId,nativeSession:binding},[],async tx=>{await recheck(binding,authorized,tx);return run(tx);}));
