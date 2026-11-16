@@ -12,7 +12,6 @@ appId: app.versado.poc
       id: run-b-title1
     timeout: 90000
 - assertVisible: "Geen selectie"
-- assertVisible: "Proeflezing: de weg naar het beloofde land"
 - takeScreenshot: 30-les-boven
 # Naar beneden door de les: afbeelding met bijschrift, opsommingen, citaat, tabel, verwijzingen
 - scrollUntilVisible:

@@ -1,6 +1,8 @@
 appId: app.versado.poc
 ---
-# Lang indrukken selecteert een woord (witruimte selecteert bewust niets; daarom terugvalpunten, ruim binnen het tekstgebied).
+# Lang indrukken selecteert een woord. Op witruimte (tussen woorden, tussen alinea's, achter een regeleinde) selecteert het
+# besturingssysteem bewust niets; daarom volgt een reeks terugvalpunten over het hele tekstgebied, zodat dit bij elke lettergrootte
+# en systeemtekstgrootte (waarbij het tekstgebied kleiner wordt en de regels verschuiven) een woord raakt.
 - longPressOn:
     point: "50%,52%"
 - runFlow:
@@ -15,6 +17,78 @@ appId: app.versado.poc
     commands:
       - longPressOn:
           point: "70%,66%"
+- runFlow:
+    when:
+      notVisible: "Selectie: «[^»\\s]+» · 1 blok"
+    commands:
+      - longPressOn:
+          point: "20%,54%"
+- runFlow:
+    when:
+      notVisible: "Selectie: «[^»\\s]+» · 1 blok"
+    commands:
+      - longPressOn:
+          point: "15%,58%"
+- runFlow:
+    when:
+      notVisible: "Selectie: «[^»\\s]+» · 1 blok"
+    commands:
+      - longPressOn:
+          point: "15%,62%"
+- runFlow:
+    when:
+      notVisible: "Selectie: «[^»\\s]+» · 1 blok"
+    commands:
+      - longPressOn:
+          point: "15%,66%"
+- runFlow:
+    when:
+      notVisible: "Selectie: «[^»\\s]+» · 1 blok"
+    commands:
+      - longPressOn:
+          point: "15%,70%"
+- runFlow:
+    when:
+      notVisible: "Selectie: «[^»\\s]+» · 1 blok"
+    commands:
+      - longPressOn:
+          point: "60%,74%"
+- runFlow:
+    when:
+      notVisible: "Selectie: «[^»\\s]+» · 1 blok"
+    commands:
+      - longPressOn:
+          point: "60%,78%"
+- runFlow:
+    when:
+      notVisible: "Selectie: «[^»\\s]+» · 1 blok"
+    commands:
+      - longPressOn:
+          point: "40%,63%"
+- runFlow:
+    when:
+      notVisible: "Selectie: «[^»\\s]+» · 1 blok"
+    commands:
+      - longPressOn:
+          point: "40%,68%"
+- runFlow:
+    when:
+      notVisible: "Selectie: «[^»\\s]+» · 1 blok"
+    commands:
+      - longPressOn:
+          point: "40%,72%"
+- runFlow:
+    when:
+      notVisible: "Selectie: «[^»\\s]+» · 1 blok"
+    commands:
+      - longPressOn:
+          point: "40%,76%"
+- runFlow:
+    when:
+      notVisible: "Selectie: «[^»\\s]+» · 1 blok"
+    commands:
+      - longPressOn:
+          point: "40%,80%"
 - extendedWaitUntil:
     visible: "Selectie: «[^»\\s]+» · 1 blok"
     timeout: 15000
