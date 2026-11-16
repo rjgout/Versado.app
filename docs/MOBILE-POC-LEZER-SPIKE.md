@@ -86,11 +86,18 @@ proefhoofdstuk (12 verzen, eigen tekst). Een groene CI-run is geen apparaatvalid
 | 3c. Tekst over meerdere verzen (`setSelection` op het native bereik; app toont `· vers 5–7`) | ja | ja (na correctie: iOS meldt een programmatische selectie niet als event) |
 | 4. Markeren en annotatie (notitie) opslaan; server bevestigd door een tweede client | ja | ja |
 | 5. Bestaande markeringen na een **volledige herstart** correct getoond (en notitie) | ja | ja |
-| 6. Lettergroottes 14/18/24/32 en systeemtekstgrootte (Dynamic Type / lettergrootte) | ja bij 14–32; systeemtekst ja | ja bij 14–32; systeemtekst: zie §5c |
+| 6. Lettergroottes 14/18/24/32 en systeemtekstgrootte (Dynamic Type / lettergrootte) | ja bij 14–32; systeemtekst ja | ja bij 14–32; systeemtekst: layoutcorrectie gemaakt en op Android bewezen, op iOS **niet opnieuw bevestigd** (zie hieronder) |
 | Markering wissen (server bevestigd) | ja | ja |
 
 Visueel gecontroleerd op screenshots: systeemselectie met grepen en menu (iOS: Copy / Look Up / Translate; Android: Select all),
 gele markeringen die na herstart op de juiste verzen terugkomen, en de notitiesamenvatting.
+
+**Eerlijke stand iOS.** De volledige iOS-reeks (flows 01–09 en 11 groen, echte lange-druk-selectie, meerdere verzen, herladen) is
+bewezen in run 51 (commit b4056376). De laatste run met de eindcode (run 65, commit 446c6384) faalde al in flow 01 (inloggen →
+Vandaag) en de overige flows vielen daarna door de volgorde uit; alleen 06 en 09 slaagden nog. De backend-probe in die run toont
+10 van 284 metingen boven 5 s en pieken tot 19,9 s (de clientlimiet is 15 s) op de gedeelde CI-runner: omgevingsbelasting, geen
+leesfout. Daarom is flow 10 (iOS-systeemtekstgrootte) met de gecorrigeerde layout nog niet groen op iOS bevestigd. Wie dit hard
+nodig heeft, draait de iOS-job opnieuw of test het op een lokale Mac/fysiek toestel.
 
 ### 5c. Gevonden en opgelost tijdens de spike (belangrijk voor een echte lezer)
 
