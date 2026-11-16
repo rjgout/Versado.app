@@ -134,6 +134,12 @@ test("de bediening houdt rekening met de bovenste safe area en neemt hoogstens 6
   expect(style.flexShrink).toBe(0);
 });
 
+test("knoppen reageren op de eerste tik ook als het toetsenbord (notitieveld) open is", async () => {
+  await render(<Lezen />);
+  await screen.findByTestId("chapter-text");
+  expect(screen.getByTestId("reader-controls").props.keyboardShouldPersistTaps).toBe("handled");
+});
+
 test("platformgedrag: iOS niet bewerkbaar (UITextView blijft selecteerbaar), Android bewerkbaar zonder toetsenbord", async () => {
   jest.replaceProperty(Platform, "OS", "ios");
   const ios = await render(<Lezen />);

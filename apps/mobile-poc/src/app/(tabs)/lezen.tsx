@@ -16,6 +16,8 @@ export default function Lezen() {
   const { data, error, loading, refresh } = useLive(useCallback(() => loadBundle(session.client), [session]));
   const inputRef = useRef<ChapterInput>(null);
   const insets = useSafeAreaInsets();
+  // Testhook: het systeem klapt een selectie nog één keer in terwijl zijn selectiebalk sluit; die gebeurtenis negeren we kort.
+  const ignoreCollapseUntil = useRef(0);
   const [sizeIndex, setSizeIndex] = useState(1);
   const [selection, setSelection] = useState<{ start: number; end: number } | null>(null);
   const [noteOpen, setNoteOpen] = useState(false);
@@ -62,17 +64,20 @@ export default function Lezen() {
     const a = layout.spans[from - 1]!.textStart, b = layout.spans[to - 1]!.textEnd;
     inputRef.current?.focus();
     // Een aanwezige systeemselectie (loupe/menu) sluit zich net na de tik en klapt dan in; pas daarna het bereik zetten.
-    setTimeout(() => {
+    const apply = () => {
+      ignoreCollapseUntil.current = Date.now() + 1500;
       inputRef.current?.setSelection(a, b);
       // iOS stuurt bij een programmatische selectie geen onSelectionChange (wel bij een gebruikersselectie): zet de staat zelf.
       setSelection({ start: a, end: b });
-    }, 250);
+    };
+    setTimeout(apply, 250);
+    setTimeout(apply, 900);
   };
 
   return (
     <View style={{ flex: 1 }}>
       {/* De bediening is hoogstens 65% van het inhoudsgebied en scrolt zelf: bij een grote systeemtekstgrootte blijft de hoofdstuktekst zichtbaar. */}
-      <ScrollView testID="reader-controls" style={{ maxHeight: "65%", flexGrow: 0, flexShrink: 0, borderBottomWidth: 1, borderColor: "#ccc" }} contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: 12, paddingTop: insets.top + 8, gap: 8 }}>
+      <ScrollView testID="reader-controls" keyboardShouldPersistTaps="handled" style={{ maxHeight: "65%", flexGrow: 0, flexShrink: 0, borderBottomWidth: 1, borderColor: "#ccc" }} contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: 12, paddingTop: insets.top + 8, gap: 8 }}>
         <View style={{ flexDirection: "row", alignItems: "center", flexWrap: "wrap", columnGap: 12, rowGap: 6 }}>
           <Text accessibilityRole="header" style={{ fontSize: 20, fontWeight: "700" }}>{data ? `Lezen · ${data.reader.bookName} ${data.reader.chapterNumber}` : "Lezen"}</Text>
           <Pressable testID="font-smaller" accessibilityRole="button" accessibilityLabel="Kleinere letters" disabled={sizeIndex === 0} onPress={() => setSizeIndex(i => Math.max(0, i - 1))} style={button(sizeIndex === 0)}><Text>A−</Text></Pressable>
@@ -101,7 +106,7 @@ export default function Lezen() {
           </View>
         ) : null}
       </ScrollView>
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16, paddingBottom: 120 }}>
+      <ScrollView style={{ flex: 1 }} keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, paddingBottom: 120 }}>
         {loading && !data ? <ActivityIndicator accessibilityLabel="Laden" /> : null}
         {error && !data ? <Pressable accessibilityRole="button" onPress={refresh}><Text style={{ color: "#b00020" }}>Laden mislukt. Tik om opnieuw te proberen.</Text></Pressable> : null}
         {data && layout ? (
@@ -111,7 +116,7 @@ export default function Lezen() {
             highlights={highlights}
             notes={notes}
             fontSize={fontSize}
-            onSelect={s => setSelection(s.start === s.end ? null : s)}
+            onSelect={s => { if (s.start === s.end) { if (Date.now() >= ignoreCollapseUntil.current) setSelection(null); } else setSelection(s); }}
           />
         ) : null}
       </ScrollView>
