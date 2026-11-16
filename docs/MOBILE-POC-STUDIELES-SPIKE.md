@@ -86,29 +86,40 @@ eerdere lezerflows (01–11, waaronder de eerder niet bevestigde iOS-**flow 10**
 Zonder toestel (elke run): `jest` 48 tests, `tsc`, Metro-export iOS + Android, `test:study` tegen de echte backend (les, afbeelding, selector,
 annotaties, plaatsing, rechten, vervalste selector, verouderde versie, andere revisie, wissen).
 
-| Eis | Android (run 73) | iOS |
+| Eis | Android (run 73, alles in één run) | iOS (beste bewijs, zie §5a) |
 |---|---|---|
-| 12 Les als native onderdelen: koppen, alinea's, opmaak, verwijzing, afbeelding+bijschrift, opsommingen, citaat, tabel | groen | groen (run 73) |
-| 13 Woord selecteren (echt lang indrukken) | groen | groen |
-| 14 Selectie over twee alinea's → één markering + notitie; server bevestigt (peer) | groen | groen |
-| 15 Herstart: markering en notitie terug (server plaatst EXACT) | groen | groen |
-| 16 Lettergroottes 14/18/24/32, selectie na elke wijziging | groen | zie §5a |
-| 17 Systeemtekstgrootte (Android 1,6×; iOS accessibility-extra-large) | groen | groen |
-| 18 Tabelcel selecteren | groen | groen |
-| 19 Markering wissen; server bevestigt (peer) | groen | groen |
-| 20 Toegankelijkheidsboom (namen, rollen) | groen | groen |
-| Lezerflows 01–11 (waaronder flow 10 systeemtekst) | alle groen | zie §5a |
+| 12 Les als native onderdelen: koppen, alinea's, opmaak, verwijzing, afbeelding+bijschrift, opsommingen, citaat, tabel | groen | groen (runs 73, 75) |
+| 13 Woord selecteren (echt lang indrukken, grepen zichtbaar) | groen | groen (73, 74, 75) |
+| 14 Selectie over twee alinea's → één markering + notitie; server bevestigt (peer) | groen | groen (73, 74, 75) |
+| 15 Herstart: markering en notitie terug (server plaatst EXACT) | groen | groen (73, 74, 75) |
+| 16 Lettergroottes 14/18/24/32, selectie na elke wijziging | groen | groen in run 69; in 73/74/75 telkens een testprobleem (zie §5a) |
+| 17 Systeemtekstgrootte (Android 1,6×; iOS accessibility-extra-large) | groen | groen (73, 74, 75) |
+| 18 Tabelcel selecteren | groen | groen (73, 74, 75) |
+| 19 Markering wissen; server bevestigt (peer) | groen | groen (73, 74); in 75 mislukte het laden van de les (backend traag) |
+| 20 Toegankelijkheidsboom (namen, rollen) | groen | groen (73, 74, 75) |
+| Lezerflows 06–11, **waaronder de eerder niet bevestigde iOS-flow 10 (systeemtekst)** | alle groen | alle zes groen in één run (75); flow 10 ook groen in run 74 |
+| Basisflows 01–05 (inloggen, vrienden, realtime) | groen | groen in 69 en 73; in 74/75 mislukt door een traag startende backend (zie §5a) |
 
-### 5a. iOS, stand van de bewijsvoering
+### 5a. iOS: wat er is gemeten en waarom er geen volledig groene iOS-run is
 
-Run 69 (eerste versie van de flows) had iOS 12 van 20 groen; de fouten waren **omgeving en testgeluk**, niet functioneel: op de gedeelde
-runner liepen annotatieschrijfacties 11–22 s en faalden met de bekende transactielimiet van 5 s (ook op de **bestaande** schriftroute; zie het
-backendpunt), en bij de grootste tekst werd een wachtvoorwaarde op het tekstveld niet herkend. Run 73 (robuustere selectiepunten) had iOS 17 van 20
-groen; de overige drie waren het opwarmgeval van "vriend accepteren" (backendpunt), de wachtvoorwaarde in flow 10 en woordselectie in flow 16
-bij lettergrootte 14. Die drie zijn in `f65d0537` aangepast (herhaling van een schrijfactie zoals een gebruiker zou doen, wachten op een altijd
-zichtbaar element, meer selectiepunten). **De uitkomst van die run staat onderaan in §5b.**
+Er zijn vier iOS-runs gedaan (69, 73, 74, 75). **Elke iOS-flow is minstens één keer groen geweest op de huidige app-code, maar niet alle twintig in één run.**
+De app-code is sinds run 69 niet meer gewijzigd; wat tussen de runs veranderde, zijn de testflows en de omgeving.
 
-### 5b. Uitkomst iOS-run op `f65d0537`
+| Run | Groen | Reden van de fouten |
+|---|---|---|
+| 69 | 12/20 | annotatieschrijfacties 11–22 s en daardoor 500 (transactielimiet 5 s, ook op de bestaande schriftroute); wachtvoorwaarde bij grote tekst |
+| 73 | 17/20 | opwarmgeval van "vriend accepteren"; wachtvoorwaarde flow 10; woordselectie flow 16 |
+| 74 | 9/20 | traag startende backend (login/Vandaag "Laden mislukt"); regex zonder eindspatie + eenmalig iOS-systeemvenster (Look Up); testknop getikt vóór het laden van de les |
+| 75 | 14/20 | alle lezer- en bijna alle studieflows groen; basisflows 01–05 door "Laden mislukt" op Vandaag (backend traag); 16 en 19 door een gemiste tik en een mislukt lesverzoek |
+
+Gemeenschappelijke oorzaak: op de gedeelde macOS-runner delen simulator, Maestro-driver, Postgres en de Next-dev-server de CPU. De backend-latentiemeting
+(`backend-probe.log`) toont pieken van 5–20 s, terwijl de clients na 15 s opgeven. De app gedraagt zich dan correct ("Laden mislukt. Tik om opnieuw te
+proberen."), maar de flows wisten dat niet te herhalen. In `d7a73983` doen ze dat nu wel (zoals een gebruiker), plus een herhaling van schrijfacties.
+**Een laatste iOS-run op die versie (run 76) loopt nog;** de uitkomst staat in §5b.
+
+Dit is **omgevingsbelasting en testgeluk, geen functioneel bewijs tegen de lezer**, maar het betekent wel dat "alles groen in één iOS-run" niet is aangetoond.
+
+### 5b. Uitkomst iOS-run 76 (`d7a73983`)
 
 _Wordt bijgewerkt zodra de run klaar is._
 
