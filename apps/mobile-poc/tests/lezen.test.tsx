@@ -128,8 +128,10 @@ test("de bediening houdt rekening met de bovenste safe area en neemt hoogstens 4
   const controls = screen.getByTestId("reader-controls");
   const content = Object.assign({}, ...([] as object[]).concat(controls.props.contentContainerStyle)) as { paddingTop?: number };
   expect(content.paddingTop).toBe(47 + 8);
-  const style = Object.assign({}, ...([] as object[]).concat(controls.props.style)) as { maxHeight?: string };
+  const style = Object.assign({}, ...([] as object[]).concat(controls.props.style)) as { maxHeight?: string; flexShrink?: number };
   expect(style.maxHeight).toBe("45%");
+  // zonder flexShrink 0 krimpt de bediening mee met de (veel grotere) hoofdstuktekst en worden knoppen afgekapt
+  expect(style.flexShrink).toBe(0);
 });
 
 test("platformgedrag: iOS niet bewerkbaar (UITextView blijft selecteerbaar), Android bewerkbaar zonder toetsenbord", async () => {

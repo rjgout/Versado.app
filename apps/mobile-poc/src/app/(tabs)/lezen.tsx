@@ -72,7 +72,7 @@ export default function Lezen() {
   return (
     <View style={{ flex: 1 }}>
       {/* De bediening is hoogstens 45% van het scherm en scrolt zelf: bij een grote systeemtekstgrootte blijft de hoofdstuktekst zichtbaar. */}
-      <ScrollView testID="reader-controls" style={{ maxHeight: "45%", flexGrow: 0, borderBottomWidth: 1, borderColor: "#ccc" }} contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: 12, paddingTop: insets.top + 8, gap: 8 }}>
+      <ScrollView testID="reader-controls" style={{ maxHeight: "45%", flexGrow: 0, flexShrink: 0, borderBottomWidth: 1, borderColor: "#ccc" }} contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: 12, paddingTop: insets.top + 8, gap: 8 }}>
         <Text accessibilityRole="header" style={{ fontSize: 22, fontWeight: "700" }}>{data ? `Lezen · ${data.reader.bookName} ${data.reader.chapterNumber}` : "Lezen"}</Text>
         <View style={{ flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
           <Pressable testID="font-smaller" accessibilityRole="button" accessibilityLabel="Kleinere letters" disabled={sizeIndex === 0} onPress={() => setSizeIndex(i => Math.max(0, i - 1))} style={button(sizeIndex === 0)}><Text>A−</Text></Pressable>
@@ -101,7 +101,7 @@ export default function Lezen() {
           </View>
         ) : null}
       </ScrollView>
-      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 120 }}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16, paddingBottom: 120 }}>
         {loading && !data ? <ActivityIndicator accessibilityLabel="Laden" /> : null}
         {error && !data ? <Pressable accessibilityRole="button" onPress={refresh}><Text style={{ color: "#b00020" }}>Laden mislukt. Tik om opnieuw te proberen.</Text></Pressable> : null}
         {data && layout ? (
