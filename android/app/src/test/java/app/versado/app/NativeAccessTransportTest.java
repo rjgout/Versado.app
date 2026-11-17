@@ -247,6 +247,13 @@ public class NativeAccessTransportTest {
         assertEquals(true, NativeAccessTransport.routeAllowed("games/exercises/synthetic/hint", "POST"));
         assertEquals(true, NativeAccessTransport.routeAllowed("games/feedback/exercise", "POST"));
         assertEquals(true, NativeAccessTransport.routeAllowed("games/friends/recent", "GET"));
+        assertEquals(true, NativeAccessTransport.routeAllowed("games/friends/request", "POST"));
+        assertEquals(true, NativeAccessTransport.routeAllowed("games/friends/profiles/synthetic", "GET"));
+        assertEquals(true, NativeAccessTransport.routeAllowed("games/friends/synthetic", "DELETE"));
+        assertEquals(true, NativeAccessTransport.routeAllowed("games/friend-streaks/synthetic", "POST"));
+        assertEquals(true, NativeAccessTransport.routeAllowed("games/friend-streaks", "GET"));
+        assertEquals(true, NativeAccessTransport.routeAllowed("games/friend-streaks", "POST"));
+        assertEquals(true, NativeAccessTransport.routeAllowed("games/freezes/gift", "POST"));
         assertEquals(true, NativeAccessTransport.routeAllowed("games/friends", "GET"));
         assertEquals(true, NativeAccessTransport.routeAllowed("games/hints", "GET"));
         assertEquals(true, NativeAccessTransport.routeAllowed("games/jigsaw-v2", "POST"));

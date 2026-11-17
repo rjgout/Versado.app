@@ -90,6 +90,8 @@ export function iosCoverageFor(route) {
     ["/courses/[courseId]", "Bestaande cursuscontext; volledige webdetails/acties nog niet lokaal gelijk"],
     ["/courses/[courseId]/pad", "Drie schriftelijke leespaden en CFM-weken; overige cursus-/vraag-/afrondingsflows ontbreken"],
     ["/courses/[courseId]/archief", "Gedeeld CFM-archief; daadwerkelijke studie-/vragenflow ontbreekt"],
+    ["/friends", "Gedeelde vriendenlijst, zoeken, verzoek sturen/annuleren, verwijderen, seintjes, vriendenreeksen en bevriezers lokaal via de spelbrug (friends-v1); uitnodigingslink en groepen (fase C), tabbalk-/toestelacceptatie nog open (NATIVE-VRIENDEN.md)"],
+    ["/friends/[userId]", "Gedeeld vriendenprofiel (privacy server-side); dorpvoorbeeld en groepslinks nog niet lokaal, toestelacceptatie open (NATIVE-VRIENDEN.md)"],
   ]);
   if (partial.has(route)) return { status: "gedeeltelijk", native: route, reason: partial.get(route) };
   const reader = ["/lesson/[chapterId]", "/reading-lesson/[lessonId]", "/courses/[courseId]/chapter/[chapterId]"];

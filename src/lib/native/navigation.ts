@@ -3,7 +3,7 @@ import { parseProfileView } from "@/lib/profileViews";
 /** Alleen daadwerkelijk lokaal geïmplementeerde routes worden geaccepteerd.
  * Breid deze grens samen met scherm, contract en tests uit, nooit als placeholder.
  */
-const ROUTES = [/^\/courses\/[A-Za-z0-9_-]{1,128}\/read\/(?:steps|chapters)\/[A-Za-z0-9_-]{1,128}$/, /^\/courses$/, /^\/courses\/[A-Za-z0-9_-]{1,128}(?:\/(?:pad|archief))?$/, /^\/content$/, /^\/diagnostics$/, /^\/dashboard$/, /^\/profile(?:\/avatar)?$/, /^\/account-verwijderen$/, /^\/change-password$/, /^\/reset-password$/, /^\/verify-email$/, /^\/lesson\/[A-Za-z0-9_-]{1,128}$/, /^\/privacy$/, /^\/cookies$/, /^\/disclaimer$/, /^\/contact$/, /^\/login$/, /^\/register$/, /^\/forgot-password$/];
+const ROUTES = [/^\/courses\/[A-Za-z0-9_-]{1,128}\/read\/(?:steps|chapters)\/[A-Za-z0-9_-]{1,128}$/, /^\/courses$/, /^\/courses\/[A-Za-z0-9_-]{1,128}(?:\/(?:pad|archief))?$/, /^\/content$/, /^\/diagnostics$/, /^\/dashboard$/, /^\/profile(?:\/avatar)?$/, /^\/account-verwijderen$/, /^\/change-password$/, /^\/reset-password$/, /^\/verify-email$/, /^\/lesson\/[A-Za-z0-9_-]{1,128}$/, /^\/privacy$/, /^\/cookies$/, /^\/disclaimer$/, /^\/contact$/, /^\/login$/, /^\/register$/, /^\/forgot-password$/, /^\/friends$/, /^\/friends\/[A-Za-z0-9_-]{1,128}$/];
 export function nativeRoute(raw: string): string | null {
   if(raw==="/snelle-zendeling?view=leaderboard#quick-missionary-leaderboard")return "/snelle-zendeling?view=leaderboard";
   const game=gamePageRoute(raw);if(game)return game.href;
