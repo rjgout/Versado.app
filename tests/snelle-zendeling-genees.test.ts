@@ -1,7 +1,8 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { createElement } from "react";
-import { renderToStaticMarkup } from "react-dom/server";
+import { renderToStaticMarkup as renderMarkup } from "react-dom/server";
+import { AppNavigationProvider, type AppLinkProps } from "@/components/navigation/AppNavigation";
 import {
   REVIVE_START, comparePosition, cursorAfterAnswer, pickReviveQuestion,
   type ReviveChapterEntry, type ReviveCursor,
@@ -11,6 +12,14 @@ import {
   type GeneesBankSeed,
 } from "@/lib/snelleZendeling/reviveBank";
 import { ReviveFailurePanel, ReviveQuestionPanel } from "@/components/snelleZendeling/RevivePanels";
+
+// De panelen gebruiken AppLink; de echte schermen krijgen de provider van de webshell
+// (layout.tsx) of van NativeGamesView. Zonder provider hoort AppLink bewust te falen,
+// dus de test levert dezelfde minimale adapter als de kaartentests.
+function renderToStaticMarkup(node: React.ReactNode) {
+  const Link = ({ replace, prefetch, onNavigate, ...props }: AppLinkProps) => { void replace; void prefetch; void onNavigate; return createElement("a", props); };
+  return renderMarkup(createElement(AppNavigationProvider, { adapter: { pathname: "/", Link, push() {}, replace() {}, back() {}, refresh() {}, canGoBack: () => false } }, node));
+}
 
 /** Een kleine uitgave: twee boeken, één hoofdstuk zonder vragen, wisselend aantal varianten. */
 function bank(): ReviveChapterEntry[] {
@@ -199,6 +208,13 @@ describe("Genees: schermen", () => {
     assert.match(html, /Lees 1 Nephi 4 om het antwoord te ontdekken\./);
     assert.match(html, /href="\/lesson\/ch-123"/);
     assert.match(html, />Lees 1 Nephi 4</);
+  });
+
+  it("vereist de navigatieprovider en de echte schermen leveren die", async () => {
+    assert.throws(() => renderMarkup(createElement(ReviveFailurePanel, { reading: { chapterId: "c", label: "x" } })), /AppNavigationProvider ontbreekt/);
+    const { readFileSync } = await import("node:fs");
+    assert.match(readFileSync("src/app/layout.tsx", "utf8"), /<NextNavigationProvider>/);
+    assert.match(readFileSync("src/components/native/NativeGamesView.tsx", "utf8"), /<AppNavigationProvider adapter=\{adapter\}>/);
   });
 
   it("verraadt na een fout antwoord het juiste antwoord niet", () => {
