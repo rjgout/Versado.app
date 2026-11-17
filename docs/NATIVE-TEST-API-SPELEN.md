@@ -112,3 +112,11 @@ werken. Voer geen `migrate reset`, seed of productiehandeling uit.
 - Een Cloudflare-pagina of HTML: de WAF of managed rules blokkeren `%2F` in de querystring; stel een
   uitzondering in voor uitsluitend `/api/v1/native/games/page` van de API-host (eigenaar, apart besluit).
 - `5xx`: de app is niet bereikbaar of niet gezond; dit staat los van deze wijziging.
+
+## Zoektermen met `#` en `@` (`%23`, `%40`, `%2B`)
+
+`games/users/search?q=` krijgt een tag (`Jan#83`) of e-mailadres. Alleen de `q`-waarde van die route accepteert daarom
+`%23`, `%40` en `%2B` (per-parameterklasse `QUERY_VALUE_EXTRA` in `scripts/native/render-test-api-proxy.mjs`). De URI-guard laat
+deze drie bytes door, maar elke andere route en parameter weigert ze nog steeds (404). Dit is geen algemene verbreding van de
+allowlist. Na het samenvoegen moet de proxy-image op de teststack worden vernieuwd (alleen door de eigenaar; zie de uitrolparagraaf
+hierboven), want een app-update vernieuwt de proxy niet vanzelf.

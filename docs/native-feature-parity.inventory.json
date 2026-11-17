@@ -3086,7 +3086,7 @@
     },
     {
       "file": "src/app/api/friends/request/route.ts",
-      "sha256": "64868da04b93ce329f79275aeb99a1951db670790b860b71357d90fa4f0e351d",
+      "sha256": "aa9e223d1cf7163bba17af228b17d02336e2578c65a217756ffd629a1a7fe204",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
@@ -3094,6 +3094,8 @@
         "@/lib/notify",
         "@/lib/realtime",
         "@/lib/session",
+        "@/lib/social/abuseBudgets",
+        "@/lib/social/friendshipPair",
         "next/server",
         "zod"
       ],
@@ -3608,13 +3610,15 @@
     },
     {
       "file": "src/app/api/invite/[code]/route.ts",
-      "sha256": "c70c407a0601fcc97837009449edf22e2e61866db9487be03b1261a9dfb65c51",
+      "sha256": "11aa277f5915cb18bf61323c5355834c288238415c8de1dca09532d7e9e58088",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
         "@/lib/friendInvite",
         "@/lib/handle",
+        "@/lib/rateLimit",
         "@/lib/session",
+        "@/lib/social/abuseBudgets",
         "next/server"
       ],
       "methods": [
@@ -5747,13 +5751,14 @@
     },
     {
       "file": "src/app/api/users/search/route.ts",
-      "sha256": "4033d76629119c2b2fe3678a0f06cedc71fdf80de4be2a8fa4be8257b6e4ae8f",
+      "sha256": "26f015b41521347e338dd59e883294ab481f3d2824a38dab23ce45498c01fd2c",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
         "@/lib/db",
         "@/lib/handle",
         "@/lib/session",
+        "@/lib/social/abuseBudgets",
         "next/server"
       ],
       "methods": [
@@ -19598,13 +19603,14 @@
     },
     {
       "file": "src/lib/friendInvite.ts",
-      "sha256": "ee75ace86107800520d534885a14dc6e41dc26bf4e58a4aa1ee3845e2fbbc314",
+      "sha256": "70feab12ffa02324a86ae419e3e8cc451c8555a788f2e8bb06886a43bc1078e7",
       "boundary": "context-dependent",
       "imports": [
         "@/generated/prisma/client",
         "@/lib/achievements",
         "@/lib/db",
         "@/lib/notify",
+        "@/lib/social/friendshipPair",
         "crypto"
       ],
       "methods": [],
@@ -26510,6 +26516,22 @@
       ]
     },
     {
+      "file": "src/lib/social/abuseBudgets.ts",
+      "sha256": "c2bdf79cb1bb230b2cc953aa1ec85bc1886be0beb5a6309ee8e5164289dcce42",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/lib/authBudget",
+        "next/server"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "SOCIAL_BUDGETS",
+        "socialBudget"
+      ]
+    },
+    {
       "file": "src/lib/social/common.ts",
       "sha256": "164bfc9f082a76eb8e027d25b44fd513e09b65f029f48ac59e9f0fc32c7c1a32",
       "boundary": "context-dependent",
@@ -26576,6 +26598,21 @@
         "refreshFriendStreak",
         "refreshFriendStreaksFor",
         "respondFriendStreak"
+      ]
+    },
+    {
+      "file": "src/lib/social/friendshipPair.ts",
+      "sha256": "f53dff1481d36f4d6e7c06b041f3f9408f4cf754b052cc2e6976df2bc06efbc2",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/generated/prisma/client"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "createFriendRequestOnce",
+        "lockFriendPair"
       ]
     },
     {
@@ -34959,6 +34996,7 @@
         "src/lib/session.ts",
         "src/lib/social/common.ts",
         "src/lib/social/friendStreaks.ts",
+        "src/lib/social/friendshipPair.ts",
         "src/lib/social/groupDays.ts",
         "src/lib/social/groupFreeze.ts",
         "src/lib/social/groups.ts",
@@ -37172,6 +37210,7 @@
         "src/lib/session.ts",
         "src/lib/social/common.ts",
         "src/lib/social/friendStreaks.ts",
+        "src/lib/social/friendshipPair.ts",
         "src/lib/social/groupDays.ts",
         "src/lib/social/groupFreeze.ts",
         "src/lib/social/groups.ts",
@@ -37457,6 +37496,7 @@
         "src/lib/session.ts",
         "src/lib/social/common.ts",
         "src/lib/social/friendStreaks.ts",
+        "src/lib/social/friendshipPair.ts",
         "src/lib/social/groupDays.ts",
         "src/lib/social/groupFreeze.ts",
         "src/lib/social/groups.ts",
@@ -37681,6 +37721,7 @@
         "src/lib/registration.ts",
         "src/lib/social/common.ts",
         "src/lib/social/friendStreaks.ts",
+        "src/lib/social/friendshipPair.ts",
         "src/lib/social/groupDays.ts",
         "src/lib/social/groupFreeze.ts",
         "src/lib/social/groups.ts",
@@ -41879,6 +41920,7 @@
         "src/lib/realtime.ts",
         "src/lib/requestLanguage.ts",
         "src/lib/session.ts",
+        "src/lib/social/friendshipPair.ts",
         "src/lib/unsubscribe.ts"
       ],
       "directModules": [
@@ -42043,7 +42085,7 @@
     },
     {
       "file": "src/app/api/friends/request/route.ts",
-      "sha256": "64868da04b93ce329f79275aeb99a1951db670790b860b71357d90fa4f0e351d",
+      "sha256": "aa9e223d1cf7163bba17af228b17d02336e2578c65a217756ffd629a1a7fe204",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
@@ -42051,6 +42093,8 @@
         "@/lib/notify",
         "@/lib/realtime",
         "@/lib/session",
+        "@/lib/social/abuseBudgets",
+        "@/lib/social/friendshipPair",
         "next/server",
         "zod"
       ],
@@ -42071,6 +42115,7 @@
         "src/app/api/friends/request/route.ts",
         "src/lib/apiError.ts",
         "src/lib/auth.ts",
+        "src/lib/authBudget.ts",
         "src/lib/baseUrl.ts",
         "src/lib/brand.ts",
         "src/lib/crypto.ts",
@@ -42101,9 +42146,12 @@
         "src/lib/push.ts",
         "src/lib/pushEndpoint.ts",
         "src/lib/puzzle/puzzleNotify.ts",
+        "src/lib/rateLimit.ts",
         "src/lib/realtime.ts",
         "src/lib/requestLanguage.ts",
         "src/lib/session.ts",
+        "src/lib/social/abuseBudgets.ts",
+        "src/lib/social/friendshipPair.ts",
         "src/lib/unsubscribe.ts"
       ],
       "directModules": [
@@ -42111,7 +42159,9 @@
         "src/lib/db.ts",
         "src/lib/notify.ts",
         "src/lib/realtime.ts",
-        "src/lib/session.ts"
+        "src/lib/session.ts",
+        "src/lib/social/abuseBudgets.ts",
+        "src/lib/social/friendshipPair.ts"
       ],
       "clientBoundaries": [],
       "requestEvidence": [],
@@ -43797,13 +43847,15 @@
     },
     {
       "file": "src/app/api/invite/[code]/route.ts",
-      "sha256": "c70c407a0601fcc97837009449edf22e2e61866db9487be03b1261a9dfb65c51",
+      "sha256": "11aa277f5915cb18bf61323c5355834c288238415c8de1dca09532d7e9e58088",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
         "@/lib/friendInvite",
         "@/lib/handle",
+        "@/lib/rateLimit",
         "@/lib/session",
+        "@/lib/social/abuseBudgets",
         "next/server"
       ],
       "methods": [
@@ -43827,6 +43879,7 @@
         "src/lib/activityFeed.ts",
         "src/lib/apiError.ts",
         "src/lib/auth.ts",
+        "src/lib/authBudget.ts",
         "src/lib/baseUrl.ts",
         "src/lib/brand.ts",
         "src/lib/crypto.ts",
@@ -43859,16 +43912,21 @@
         "src/lib/push.ts",
         "src/lib/pushEndpoint.ts",
         "src/lib/puzzle/puzzleNotify.ts",
+        "src/lib/rateLimit.ts",
         "src/lib/realtime.ts",
         "src/lib/requestLanguage.ts",
         "src/lib/session.ts",
+        "src/lib/social/abuseBudgets.ts",
+        "src/lib/social/friendshipPair.ts",
         "src/lib/unsubscribe.ts"
       ],
       "directModules": [
         "src/lib/apiError.ts",
         "src/lib/friendInvite.ts",
         "src/lib/handle.ts",
-        "src/lib/session.ts"
+        "src/lib/rateLimit.ts",
+        "src/lib/session.ts",
+        "src/lib/social/abuseBudgets.ts"
       ],
       "clientBoundaries": [],
       "requestEvidence": [],
@@ -53635,13 +53693,14 @@
     },
     {
       "file": "src/app/api/users/search/route.ts",
-      "sha256": "4033d76629119c2b2fe3678a0f06cedc71fdf80de4be2a8fa4be8257b6e4ae8f",
+      "sha256": "26f015b41521347e338dd59e883294ab481f3d2824a38dab23ce45498c01fd2c",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
         "@/lib/db",
         "@/lib/handle",
         "@/lib/session",
+        "@/lib/social/abuseBudgets",
         "next/server"
       ],
       "methods": [
@@ -53661,6 +53720,7 @@
         "src/app/api/users/search/route.ts",
         "src/lib/apiError.ts",
         "src/lib/auth.ts",
+        "src/lib/authBudget.ts",
         "src/lib/db.ts",
         "src/lib/games/requestIdentity.server.ts",
         "src/lib/handle.ts",
@@ -53679,14 +53739,17 @@
         "src/lib/i18n/serverTexts.ts",
         "src/lib/languages.ts",
         "src/lib/native/origin.ts",
+        "src/lib/rateLimit.ts",
         "src/lib/requestLanguage.ts",
-        "src/lib/session.ts"
+        "src/lib/session.ts",
+        "src/lib/social/abuseBudgets.ts"
       ],
       "directModules": [
         "src/lib/apiError.ts",
         "src/lib/db.ts",
         "src/lib/handle.ts",
-        "src/lib/session.ts"
+        "src/lib/session.ts",
+        "src/lib/social/abuseBudgets.ts"
       ],
       "clientBoundaries": [],
       "requestEvidence": [],
@@ -54380,9 +54443,11 @@
         "src/lib/snelleZendeling/source.ts",
         "src/lib/snelleZendeling/streak.ts",
         "src/lib/snelleZendeling/validation.ts",
+        "src/lib/social/abuseBudgets.ts",
         "src/lib/social/common.ts",
         "src/lib/social/friendRequests.ts",
         "src/lib/social/friendStreaks.ts",
+        "src/lib/social/friendshipPair.ts",
         "src/lib/social/groupDays.ts",
         "src/lib/social/groupFreeze.ts",
         "src/lib/social/groupStreak.ts",
@@ -73881,6 +73946,7 @@
         "src/lib/realtime.ts",
         "src/lib/requestLanguage.ts",
         "src/lib/session.ts",
+        "src/lib/social/friendshipPair.ts",
         "src/lib/socketClient.ts",
         "src/lib/systemIcons.ts",
         "src/lib/unsubscribe.ts",
@@ -85900,7 +85966,9 @@
     "tests/exercise-feedback.test.ts",
     "tests/exercise-sync.test.ts",
     "tests/focus-mode.test.ts",
+    "tests/friend-abuse.test.ts",
     "tests/friend-profiles.integration.test.ts",
+    "tests/friend-request-race.integration.test.ts",
     "tests/fsy-conversion.browser.mjs",
     "tests/fsy-conversion.integration.test.mjs",
     "tests/fsy-conversion.test.ts",

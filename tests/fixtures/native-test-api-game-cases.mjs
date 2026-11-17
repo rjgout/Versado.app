@@ -74,6 +74,11 @@ export const rejectedRequests = [
   ['API DELETE op GET-route', 'DELETE', 'games/shop'], ['API extra queryparameter', 'GET', 'games/open-actions?tab=required&token=geheim'],
   ['API dubbele parameter', 'GET', 'games/open-actions?tab=a&tab=b'], ['API query op route zonder query', 'GET', 'games/shop?x=1'],
   ['API gecodeerde slash in pad', 'POST', 'games/shop%2Ffreezes'], ['API gecodeerde slash in id', 'GET', 'games/chapter-guess/a%2Fb'],
+  // %23 (#), %40 (@) en %2B (+) zijn alleen toegestaan in q van users/search; overal elders blijven ze geweigerd.
+  ['API %23 in avatars-ids', 'GET', 'games/users/avatars?ids=a%23b'], ['API %40 in avatars-ids', 'GET', 'games/users/avatars?ids=a%40b'],
+  ['API %23 in puzzelgeschiedenis', 'GET', 'games/puzzle/history?cursor=a%23b'], ['API %40 in open-actions', 'GET', 'games/open-actions?tab=a%40b'],
+  ['API %2B in avatars-ids', 'GET', 'games/users/avatars?ids=a%2Bb'], ['API %23 in padsegment', 'GET', 'games/users/%23x/search'],
+  ['API dubbel gecodeerd %2523 in q', 'GET', 'games/users/search?q=Jan%2523'], ['API %23 in onbekende sleutel', 'GET', 'games/users/search?x=Jan%2383'],
   ['API traversal', 'GET', 'games/shop/../admin'], ['API dubbele slash', 'GET', 'games//shop'], ['API %25 in query', 'GET', 'games/users/search?q=a%25b'],
   ['API %2F in query', 'GET', 'games/users/search?q=a%2Fb'], ['API %00 in query', 'GET', 'games/users/search?q=a%00b'],
   ['API %2E in query', 'GET', 'games/users/search?q=%2E%2E'], ['API %26 in query', 'GET', 'games/users/search?q=a%26b%3Dc'],
@@ -82,4 +87,10 @@ export const rejectedRequests = [
   ['audio POST', 'POST', 'games/reading/ch1/audio/playback'], ['audio korte hash', 'GET', `games/reading/ch1/audio/${'a'.repeat(63)}/stream`],
   ['annotatie DELETE', 'DELETE', 'games/reading/ch1/annotations/v1'], ['annotatie POST op item', 'POST', 'games/reading/ch1/annotations/v1'],
   ['bestaande route met %-codering', 'GET', '%63apabilities'], ['bestaande route met query', 'GET', 'capabilities?token=secret'],
+];
+
+/** Verzoeken die de proxy wél moet doorlaten: een tag of e-mailadres als zoekterm. */
+export const searchRequests = [
+  ['GET', 'games/users/search?q=Jan%2383'], ['GET', 'games/users/search?q=jan%40example.com'], ['GET', 'games/users/search?q=a%2Bb%40example.com'],
+  ['GET', 'games/users/search?q=Z%C3%B6e%2301'],
 ];
