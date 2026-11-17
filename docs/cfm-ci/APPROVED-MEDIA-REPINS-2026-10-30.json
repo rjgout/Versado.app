@@ -1,0 +1,97 @@
+{
+  "approval": "Expliciete projecteigenaar-goedkeuring in deze opdracht op 2026-10-30; uitsluitend deze zeven gecontroleerde pins en groottes.",
+  "verification": "Officiële bron-ID, leskoppeling, visuele inhoud, JPEG-decodering, afmetingen, herhaalde HTTP-antwoorden; originele oude bytes ontbreken, geen bewijs van pixelgelijkheid geclaimd.",
+  "changes": [
+    {
+      "file": "930d33407d990d4d1fe5d0ac559e91dc16665d789e4bc59bfa6b382c24909952",
+      "oldHash": "8ae97680cc6972cc7887055fcd52930b02f7cb2b9300a4ffd89006e44d18d722",
+      "newHash": "7a5fb47c286795ae453db402c2877d75c328fcb92e719c6ee5a8d93817d7ff9b",
+      "oldBytes": 17694,
+      "newBytes": 17696,
+      "width": 500,
+      "height": 281,
+      "mimeType": "image/jpeg",
+      "sourceImageId": "52f0264301a011ef8782eeeeac1ea8d2a7fad334",
+      "httpStatus": 200,
+      "responseType": "image/jpeg"
+    },
+    {
+      "file": "ebaf728974261116ba5427d1a99fb8f365de7382d82aab253cb6bde826a888e3",
+      "oldHash": "06e6bd7953aa53af8cb8829f1b13eb805bb46fafcf20a371c04a4a57c1abd693",
+      "newHash": "c263ded7488cbfebb5ef2fc760b87d4ca692c78c52d9725087d5a28ff3e47faa",
+      "oldBytes": 28267,
+      "newBytes": 28254,
+      "width": 500,
+      "height": 281,
+      "mimeType": "image/jpeg",
+      "sourceImageId": "687a7dba13ae11efbf2feeeeac1e59432305a0b9",
+      "httpStatus": 200,
+      "responseType": "image/jpeg"
+    },
+    {
+      "file": "17321b600c83036016f1f91fb9bbbdc3411219573e3048109bac3d065c7a790f",
+      "oldHash": "5d2f8c0c8bc85d7383981875c558e1def4707e38b95028017fe5fdade2c821e3",
+      "newHash": "247fc4d82bcd693664417b1c740a7213714296b7bd82b209f8eb26e208266220",
+      "oldBytes": 24633,
+      "newBytes": 24654,
+      "width": 320,
+      "height": 427,
+      "mimeType": "image/jpeg",
+      "sourceImageId": "79fdf07801ad11efa291eeeeac1ea149373bfba2",
+      "httpStatus": 200,
+      "responseType": "image/jpeg"
+    },
+    {
+      "file": "5dc933a6b34012644f3ab158d74bb625e1d08549d9b0b71f2452257fb82c5b36",
+      "oldHash": "baa84c199de94e8e39c90a1f3c15d9b1c6eaf5f6015a2db0ad41d2b8144c8d25",
+      "newHash": "321273745c0dbdde875ab26dd643ce55d0a160ea58d12e3ebc8c404c85cd985e",
+      "oldBytes": 20190,
+      "newBytes": 20191,
+      "width": 500,
+      "height": 281,
+      "mimeType": "image/jpeg",
+      "sourceImageId": "a86753a2c9ed11eebfd7eeeeac1ecb47a51b9fa6",
+      "httpStatus": 200,
+      "responseType": "image/jpeg"
+    },
+    {
+      "file": "6b4f476973c11d0be68ac7cb34251a09bdf5e021c04adbcf00715df3421bc80b",
+      "oldHash": "1d50ed7c30b535391918498401edb9e12a8ec7ccb828db7bf39dc001d3aa41ca",
+      "newHash": "8c2a42c4770eaf39b616ef9ccfba20cd461cf8180fde81ce1c355f6b7e93ee8f",
+      "oldBytes": 17209,
+      "newBytes": 17189,
+      "width": 500,
+      "height": 281,
+      "mimeType": "image/jpeg",
+      "sourceImageId": "e802e04801ac11ef93d4eeeeac1e060835c31f4f",
+      "httpStatus": 200,
+      "responseType": "image/jpeg"
+    },
+    {
+      "file": "d33c6782e0131cc21714a034514659306edf07d11c8205623353fc20ce79d155",
+      "oldHash": "2a31fa3037295fa829442e1a6bc67b023ee5d965ebfc61c8d6802897c44fa64f",
+      "newHash": "d859b0da9566e234d11a1bbf2fe84b719abe6e7f469f53426eb1589aa7839947",
+      "oldBytes": 28640,
+      "newBytes": 28948,
+      "width": 320,
+      "height": 240,
+      "mimeType": "image/jpeg",
+      "sourceImageId": "ed50a062f56a04d4cf20ad4e6b2ce9177ba79de6",
+      "httpStatus": 200,
+      "responseType": "image/jpeg"
+    },
+    {
+      "file": "fa1ee428b903e47e5f5fb9032f03e516d78e54dea86a30cb790149431b75e99a",
+      "oldHash": "ddad42f912e9b6326b91a9d1472436f3a600d9bcc2f9d9e58550eeba971a8699",
+      "newHash": "f0f3296057b7207185eaa22b421e24ce58833662aafd3f5961e78282b73afcec",
+      "oldBytes": 23960,
+      "newBytes": 23959,
+      "width": 500,
+      "height": 281,
+      "mimeType": "image/jpeg",
+      "sourceImageId": "fcd5df16dd9e11ee8184eeeeac1e5eb3cd52bef3",
+      "httpStatus": 200,
+      "responseType": "image/jpeg"
+    }
+  ]
+}

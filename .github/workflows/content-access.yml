@@ -2,8 +2,11 @@ name: Contentarchitectuur 1A–2D toegang, context, selectie en spellen
 
 on:
   pull_request:
-    branches: [main, 'codex/v2-phase-*', 'codex/versado-dorp-*', 'claude/cfm-doorlopend-*']
+    branches: [main, develop, 'codex/v2-phase-*', 'codex/versado-dorp-*', 'claude/cfm-doorlopend-*']
     paths:
+      - 'tests/fixtures/cfm/**'
+      - 'tests/cfm-test-assets.test.mjs'
+      - 'tests/cfm-ci-workflow.test.mjs'
       - 'src/lib/hymnAvailability.ts'
       - 'src/lib/hymnLibraryClient.ts'
       - 'src/lib/hymns/access.ts'
@@ -481,9 +484,9 @@ jobs:
           path: /tmp/versado-reference-preview-browser
           if-no-files-found: ignore
 
-  cfm-2026-import:
+  cfm-test-setup:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
     env:
       DATABASE_URL: postgresql://validation:validation@127.0.0.1:1/validation
       SESSION_SECRET: cfm-ci-build-only-secret
@@ -496,15 +499,55 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
-      - name: Schema, types, alle 52 bronnen en productiebuild
+      - name: Datasetintegriteit zonder netwerk, schema, types en alle CFM-bronnen
         run: |
+          node --test tests/cfm-test-assets.test.mjs tests/cfm-ci-workflow.test.mjs
+          node scripts/study-content/prepare-cfm-test-assets.mjs --offline
           npx prisma validate
           npm run db:generate
           npx tsc --noEmit
           npm run test:cfm-2026
+      - name: Eén productiebuild voor alle vijf CFM-consumers
+        run: |
           npm run build
-      - name: Gepinde publieke OTB- en mediabestanden voorbereiden
-        run: node scripts/study-content/prepare-cfm-test-assets.mjs
+          tar --exclude='.next/cache' --exclude='.next/standalone' -czf "$RUNNER_TEMP/cfm-test-build.tar.gz" .next
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cfm-test-build-${{ github.sha }}
+          path: ${{ runner.temp }}/cfm-test-build.tar.gz
+          retention-days: 1
+
+  cfm-2026-import:
+    needs: cfm-test-setup
+    # Een geblokkeerde voorbereiding mag verplichte consumenten niet groen laten overslaan.
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DATABASE_URL: postgresql://validation:validation@127.0.0.1:1/validation
+      SESSION_SECRET: cfm-ci-build-only-secret
+      NEXT_TELEMETRY_DISABLED: '1'
+      CFM_TEST_ASSETS: /tmp/versado-cfm-test-assets
+    steps:
+      - name: Voorbereiding moet geslaagd zijn
+        env:
+          SETUP_RESULT: ${{ needs.cfm-test-setup.result }}
+        run: test "$SETUP_RESULT" = success
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run db:generate
+      - uses: actions/download-artifact@v4
+        with:
+          name: cfm-test-build-${{ github.sha }}
+          path: ${{ runner.temp }}/cfm-build
+      - name: Build van dezelfde commit en bevroren dataset installeren (geen bronverzoeken)
+        run: |
+          tar -xzf "$RUNNER_TEMP/cfm-build/cfm-test-build.tar.gz"
+          node scripts/study-content/prepare-cfm-test-assets.mjs --offline
       - name: Browser klaarzetten
         run: |
           npm install --prefix "$RUNNER_TEMP/versado-browser" playwright@1.64.0
@@ -520,6 +563,8 @@ jobs:
           if-no-files-found: ignore
 
   cfm-programme:
+    needs: cfm-test-setup
+    if: ${{ always() }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
@@ -536,6 +581,10 @@ jobs:
       NEXT_TELEMETRY_DISABLED: '1'
       CFM_TEST_ASSETS: /tmp/versado-cfm-test-assets
     steps:
+      - name: Voorbereiding moet geslaagd zijn
+        env:
+          SETUP_RESULT: ${{ needs.cfm-test-setup.result }}
+        run: test "$SETUP_RESULT" = success
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
@@ -543,9 +592,14 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run db:generate
-      - run: npm run build
-      - name: Gepinde publieke OTB- en mediabestanden voorbereiden
-        run: node scripts/study-content/prepare-cfm-test-assets.mjs
+      - uses: actions/download-artifact@v4
+        with:
+          name: cfm-test-build-${{ github.sha }}
+          path: ${{ runner.temp }}/cfm-build
+      - name: Build van dezelfde commit en bevroren dataset installeren (geen bronverzoeken)
+        run: |
+          tar -xzf "$RUNNER_TEMP/cfm-build/cfm-test-build.tar.gz"
+          node scripts/study-content/prepare-cfm-test-assets.mjs --offline
       - name: Integratietest op eigen verse database
         run: node scripts/content-architecture/test-access-isolated.mjs --cfm-suite=${{ matrix.suite }}
 

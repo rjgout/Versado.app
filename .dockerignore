@@ -16,3 +16,5 @@ next-env.d.ts
 
 # Lokale gecontroleerde bronbestanden/modellen blijven buiten de runtime-image.
 .audio-v2-work
+# Vaste CFM-CI-bronnen horen niet in buildcontext of runtime-image.
+tests/fixtures/cfm/
