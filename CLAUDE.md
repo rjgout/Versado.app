@@ -37,6 +37,13 @@ importscript voor die content, of een featurebeschrijving die vandaag klopt)
 "Podcastafleveringen verwerken" hieronder voor hoe dat onderscheid in de
 praktijk toegepast wordt.
 
+## App-first (Capacitor)
+
+Versado is app-first: iOS/Android zijn primair, de website is aanvullend. Architectuur is
+Capacitor met één gedeelde, lokaal gebundelde React-client en de bestaande backend (geen
+Expo-migratie, geen tweede accountsysteem). Zie `docs/ARCHITECTUURBESLUIT-APP-FIRST.md`,
+`docs/APP-FIRST-IMPLEMENTATIEPLAN.md` en `docs/RINGTOOLS-REFERENTIE.md`.
+
 ## Werkwijze
 
 Volg de vaste taakverdeling in [AI-ontwikkelworkflow](docs/AI-DEVELOPMENT-WORKFLOW.md).
