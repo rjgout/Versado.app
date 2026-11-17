@@ -3,6 +3,7 @@ import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { checkAndAwardAchievements } from "@/lib/achievements";
 import { notifyInviteAccepted } from "@/lib/notify";
+import { lockFriendPair } from "@/lib/social/friendshipPair";
 
 // Persoonlijke uitnodigingslinks: /uitnodiging/<code>. De link zelf is de
 // toestemming van de uitnodiger, de klik (een account maken of "Word
@@ -82,17 +83,18 @@ export async function becomeFriendsViaInvite(
   if (!inviter) return { ok: false, error: INVALID_INVITE_ERROR };
   if (inviter.id === userId) return { ok: false, error: "Dit is je eigen uitnodigingslink." };
 
-  const existing = await prisma.friendship.findFirst({
-    where: {
-      OR: [
-        { senderId: inviter.id, receiverId: userId },
-        { senderId: userId, receiverId: inviter.id },
-      ],
-    },
-  });
-  if (existing?.status === "ACCEPTED") return { ok: true, inviterId: inviter.id, alreadyFriends: true };
-
-  await prisma.$transaction(async (tx) => {
+  // Zoeken en schrijven onder één paarvergrendeling, zodat een gelijktijdig verzoek in de andere richting geen tweede rij maakt.
+  const alreadyFriends = await prisma.$transaction(async (tx) => {
+    await lockFriendPair(tx, inviter.id, userId);
+    const existing = await tx.friendship.findFirst({
+      where: {
+        OR: [
+          { senderId: inviter.id, receiverId: userId },
+          { senderId: userId, receiverId: inviter.id },
+        ],
+      },
+    });
+    if (existing?.status === "ACCEPTED") return true;
     if (existing) {
       await tx.friendship.update({ where: { id: existing.id }, data: { status: "ACCEPTED" } });
     } else {
@@ -100,7 +102,9 @@ export async function becomeFriendsViaInvite(
     }
     await checkAndAwardAchievements(tx, inviter.id);
     await checkAndAwardAchievements(tx, userId);
+    return false;
   });
+  if (alreadyFriends) return { ok: true, inviterId: inviter.id, alreadyFriends: true };
 
   const friend = await prisma.user.findUnique({ where: { id: userId }, select: { handle: true } });
   if (friend) notifyInviteAccepted(inviter.id, friend.handle, isNewAccount).catch(() => {});
