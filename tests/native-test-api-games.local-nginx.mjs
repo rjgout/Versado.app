@@ -8,7 +8,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import http from 'node:http';
 import { render, TEST_API_HOST } from '../scripts/native/render-test-api-proxy.mjs';
-import { clientRequests, rejectedRequests } from './fixtures/native-test-api-game-cases.mjs';
+import { clientRequests, rejectedRequests, searchRequests } from './fixtures/native-test-api-game-cases.mjs';
 
 const nginx = spawnSync('nginx', ['-v'], { encoding: 'utf8' });
 if (nginx.error) { console.error('nginx ontbreekt in het PATH: deze lokale variant is niet uitgevoerd (de Docker-integratietest draait in CI).'); process.exit(2); }
@@ -37,6 +37,12 @@ try {
     const r = await request(base + uri, method);
     assert.equal(r.status, 200, `client-verzoek moet door: ${method} ${uri} -> ${r.status}`);
     if (method !== 'HEAD') assert.equal(JSON.parse(r.body).uri, base + uri, 'de upstream ziet exact de oorspronkelijke request-uri');
+    accepted++;
+  }
+  for (const [method, uri] of searchRequests) {
+    const r = await request(base + uri, method);
+    assert.equal(r.status, 200, `zoekverzoek moet door: ${method} ${uri} -> ${r.status}`);
+    assert.equal(JSON.parse(r.body).uri, base + uri, 'de upstream ziet de gecodeerde zoekterm ongewijzigd');
     accepted++;
   }
   let refused = 0;
