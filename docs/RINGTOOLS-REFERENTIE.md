@@ -1,7 +1,7 @@
 # Ringtools als referentie
 
 Doel: dezelfde eenvoud, geen letterlijke kopie. Bron: `rjgout/Ringtools` (`AGENTS.md`,
-`mobile/`, `docs/MOBILE.md`).
+`mobile/`, en `docs/MOBILE.md` in die repository).
 
 ## Wat Ringtools doet
 
