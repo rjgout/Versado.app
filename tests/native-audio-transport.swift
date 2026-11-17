@@ -3,7 +3,7 @@ import AVFoundation
 
 private final class AudioFixtureProtocol: URLProtocol {
     static var bytes = Data(), status = 206, type = "audio/mpeg", encoding: String?, origin = "capacitor://localhost"
-    static var wrongRange = false, shortBody = false, oversizedBody = false
+    static var wrongRange = false, shortBody = false, oversizedBody = false, chunked = false, wrongLength = false
     static var beforeReply: (() -> Void)?
     static var requests: [URLRequest] = []
     private static let lock = NSLock()
@@ -16,14 +16,16 @@ private final class AudioFixtureProtocol: URLProtocol {
         let start = parts[0], end = parts[1], length = end - start + 1
         var data = Self.bytes.subdata(in: start..<(end + 1))
         if Self.shortBody { data.removeLast() }; if Self.oversizedBody { data.append(0) }
-        var headers = ["Content-Type": Self.type, "Content-Length": String(length), "Content-Range": "bytes \(start)-\(end)/\(Self.bytes.count + (Self.wrongRange ? 1 : 0))", "Access-Control-Allow-Origin": Self.origin]
+        var headers = ["Content-Type": Self.type, "Content-Range": "bytes \(start)-\(end)/\(Self.bytes.count + (Self.wrongRange ? 1 : 0))", "Access-Control-Allow-Origin": Self.origin]
+        // Zonder Content-Length (chunked) zoals Next.js 16.4.5+; met een foute lengte moet het antwoord worden geweigerd.
+        if !Self.chunked { headers["Content-Length"] = String(length + (Self.wrongLength ? 1 : 0)) }
         if let value = Self.encoding { headers["Content-Encoding"] = value }
         let response = HTTPURLResponse(url: request.url!, statusCode: Self.status, httpVersion: "HTTP/1.1", headerFields: headers)!
         client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
         client?.urlProtocol(self, didLoad: data); client?.urlProtocolDidFinishLoading(self)
     }
     override func stopLoading() { }
-    static func reset() { status = 206; type = "audio/mpeg"; encoding = nil; origin = "capacitor://localhost"; wrongRange = false; shortBody = false; oversizedBody = false; beforeReply = nil; requests = [] }
+    static func reset() { status = 206; type = "audio/mpeg"; encoding = nil; origin = "capacitor://localhost"; wrongRange = false; shortBody = false; oversizedBody = false; chunked = false; wrongLength = false; beforeReply = nil; requests = [] }
 }
 private func configuration() -> URLSessionConfiguration { let c = URLSessionConfiguration.ephemeral; c.protocolClasses = [AudioFixtureProtocol.self]; return c }
 private func read(_ source: NativeAudioSourceRequest, _ life: NativeAudioLifetime, offset: Int64 = 0, length: Int = 100) async throws -> Data {
@@ -51,7 +53,7 @@ private func read(_ source: NativeAudioSourceRequest, _ life: NativeAudioLifetim
         precondition(directRequest.url?.host == "api-test.versado.app")
         precondition(directRequest.value(forHTTPHeaderField:"CF-Access-Client-Id") == nil && directRequest.value(forHTTPHeaderField:"CF-Access-Client-Secret") == nil)
         precondition(directRequest.value(forHTTPHeaderField:"Authorization") == source.authorization && directRequest.value(forHTTPHeaderField:"Range") == "bytes=0-99")
-        for scenario in 0..<10 {
+        for scenario in 0..<13 {
             AudioFixtureProtocol.reset()
             switch scenario {
             case 0: AudioFixtureProtocol.status = 200
@@ -63,10 +65,17 @@ private func read(_ source: NativeAudioSourceRequest, _ life: NativeAudioLifetim
             case 6: AudioFixtureProtocol.origin = "https://evil.invalid"
             case 7: AudioFixtureProtocol.wrongRange = true
             case 8: AudioFixtureProtocol.shortBody = true
-            default: AudioFixtureProtocol.oversizedBody = true
+            case 9: AudioFixtureProtocol.oversizedBody = true
+            case 10: AudioFixtureProtocol.chunked = true; AudioFixtureProtocol.shortBody = true
+            case 11: AudioFixtureProtocol.chunked = true; AudioFixtureProtocol.oversizedBody = true
+            default: AudioFixtureProtocol.wrongLength = true
             }
             do { _ = try await read(source, life); fatalError("Afwijkende respons werd toegelaten: \(scenario)") } catch is NativeAudioFailure { }
         }
+        // Zonder Content-Length (Next.js 16.4.5+): exacte Content-Range en exacte bytes blijven vereist.
+        AudioFixtureProtocol.reset(); AudioFixtureProtocol.chunked = true
+        let chunkedBytes = try await read(source, life)
+        precondition(chunkedBytes == AudioFixtureProtocol.bytes.prefix(100))
         AudioFixtureProtocol.reset()
         let changed = NativeAudioLifetime(validFor: 120); AudioFixtureProtocol.beforeReply = { changed.invalidate() }
         do { _ = try await read(source, changed); fatalError("Laat antwoord na intrekking") } catch is NativeAudioFailure { }

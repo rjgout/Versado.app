@@ -127,7 +127,22 @@ bij lokale contextintrekking.
 
 GET accepteert uitsluitend één eindige Range van maximaal 256 KiB en geeft 206;
 ontbrekende, te grote, open of meervoudige ranges geven 416. HEAD geeft alleen
-metadata. Maximaal 256 MiB per bron. Responses zijn private/no-store/no-transform.
+metadata.
+
+**Next.js 16.4.5 en hoger: geen `Content-Length` op routeantwoorden.** `sendResponse`
+(`next/dist/server/send-response.js`) laat `content-length`, `content-encoding` en
+`transfer-encoding` van een routeantwoord bewust weg omdat een (door fetch ontsleuteld)
+lichaam anders ongeldige framing kan krijgen. Gemeten op dezelfde fixture: 16.4.2 geeft bij
+HEAD en bij elke 206 een exacte `Content-Length` en `Content-Encoding: identity`; 16.4.5 en 16.4.6
+geven bij HEAD geen lengte en bij 206 `Transfer-Encoding: chunked`, terwijl `Content-Range`,
+`Accept-Ranges`, `Content-Type`, `Cache-Control: no-transform` en de bytes zelf ongewijzigd zijn.
+Het contract is daarom: de totale grootte volgt uit `Content-Range` (ook van een 1-byte
+Range-GET); de native Swift- en Java-adapters accepteren een ontbrekende lengte (-1), eisen
+dat een opgegeven lengte exact klopt, en houden de exacte `Content-Range` en de byte-telling
+(precies de gevraagde lengte, nooit meer) als integriteitsgrens. De fix wordt niet omzeild
+(geen eigen HTTP-schrijfpad of header-injectie). Oudere appbuilds die `Content-Length` eisen
+kunnen tegen een 16.4.5-backend geen stream lezen: lever eerst een build met deze adapters,
+dan pas de backend (zie het uitrolrapport). Maximaal 256 MiB per bron. Responses zijn private/no-store/no-transform.
 Ratebudgets: 20 catalogusvoorbereidingen en 240 rangeverzoeken per minuut/gebruiker.
 Metadata-caches zijn begrensd, tijdelijk en nooit autorisatie: iedere chunk krijgt
 opnieuw rechtencontrole. Dit is geen accountspecifieke clientcache.

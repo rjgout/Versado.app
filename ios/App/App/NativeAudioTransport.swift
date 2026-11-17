@@ -86,7 +86,10 @@ final class NativeAudioRangeRequest: NSObject, URLSessionDataDelegate, URLSessio
               response.value(forHTTPHeaderField: "Access-Control-Allow-Origin") == "capacitor://localhost",
               [nil, "identity"].contains(response.value(forHTTPHeaderField: "Content-Encoding")?.lowercased()),
               response.value(forHTTPHeaderField: "Content-Range") == "bytes \(offset)-\(offset + Int64(length) - 1)/\(source.byteSize)",
-              response.expectedContentLength == Int64(length) else { completionHandler(.cancel); finish(.failure(NativeAudioFailure())); return }
+              [Int64(length), -1].contains(response.expectedContentLength) else { completionHandler(.cancel); finish(.failure(NativeAudioFailure())); return }
+        // Next.js 16.4.5+ verwijdert Content-Length uit routeantwoorden (chunked). Een ontbrekende lengte (-1) is
+        // daarom toegestaan; een opgegeven lengte moet exact kloppen, en de exacte Content-Range plus de telling
+        // van de ontvangen bytes (precies `length`, nooit meer) blijven de integriteitsgrens.
         accepted = true; completionHandler(.allow)
     }
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
