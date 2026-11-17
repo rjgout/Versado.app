@@ -99,3 +99,14 @@ test("workflowinvoer wordt nooit in shelltekst geïnterpoleerd (alleen via env),
   }
   assert.match(text, /\^\[0-9\]\+\\\.\[0-9\]\+\\\.\[0-9\]\+\$/);
 });
+
+test("de Play-testworkflow draait alleen vanaf main of develop, nooit vanaf een featurebranch, en uploadt niets", () => {
+  const workflow = readFileSync(new URL("../.github/workflows/native-android-release.yml", import.meta.url), "utf8");
+  assert.match(workflow, /if: github\.ref == 'refs\/heads\/main' \|\| github\.ref == 'refs\/heads\/develop'\n/);
+  assert.equal((workflow.match(/^\s+if: github\.ref/gm) ?? []).length, 1);
+  assert.match(workflow, /workflow_dispatch:/);
+  assert.doesNotMatch(workflow, /^\s*(push|pull_request|schedule):/m);
+  assert.match(workflow, /environment: android-play-test/);
+  assert.match(workflow, /CAPACITOR_BUILD_PROFILE: local-store-test/);
+  assert.doesNotMatch(workflow, /r0adkll|upload-google-play|androidpublisher|fastlane|supply/i);
+});
