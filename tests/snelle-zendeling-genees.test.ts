@@ -18,7 +18,10 @@ import { ReviveFailurePanel, ReviveQuestionPanel } from "@/components/snelleZend
 // dus de test levert dezelfde minimale adapter als de kaartentests.
 function renderToStaticMarkup(node: React.ReactNode) {
   const Link = ({ replace, prefetch, onNavigate, ...props }: AppLinkProps) => { void replace; void prefetch; void onNavigate; return createElement("a", props); };
-  return renderMarkup(createElement(AppNavigationProvider, { adapter: { pathname: "/", Link, push() {}, replace() {}, back() {}, refresh() {}, canGoBack: () => false } }, node));
+  // Alias zoals in cards.test.ts: de provider heeft een verplichte children-prop (tsc), en dezelfde
+  // aanroep via createElement(...) wordt door react/no-children-prop afgekeurd.
+  const h = createElement;
+  return renderMarkup(h(AppNavigationProvider, { adapter: { pathname: "/", Link, push() {}, replace() {}, back() {}, refresh() {}, canGoBack: () => false }, children: node }));
 }
 
 /** Een kleine uitgave: twee boeken, één hoofdstuk zonder vragen, wisselend aantal varianten. */
