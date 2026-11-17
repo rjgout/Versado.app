@@ -7,11 +7,11 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
 import { render, routes, gameRoutes } from "../scripts/native/render-test-api-proxy.mjs";
-import { clientRequests, rejectedRequests } from "./fixtures/native-test-api-game-cases.mjs";
+import { clientRequests, rejectedRequests, searchRequests } from "./fixtures/native-test-api-game-cases.mjs";
 import { accessRouteAllowed, nativeAccessTransport, TEST_API_ORIGIN } from "../src/lib/native/access";
 import { nativeGamePathAllowed } from "../src/lib/native/gamesAccess";
 import { GAME_PAGE_ROUTES } from "../src/lib/native/gamesPagesRoutes";
-import { GAME_API_ROUTES } from "../src/lib/native/gamesRoutes";
+import { GAME_API_ROUTES, gameApiRoute } from "../src/lib/native/gamesRoutes";
 import { NativeClientError } from "../src/lib/native/client";
 
 const PREFIX = "/api/v1/native/";
@@ -64,7 +64,7 @@ test("afgewezen: verkeerde methoden, extra of dubbele parameters, verdachte code
 
 test("de algemene beveiliging is niet verzwakt: % blijft alleen toegestaan voor de vaste bytes en bestaande routes gedragen zich gelijk", () => {
   for (const bad of ["%25", "%2E", "%2e", "%00", "%5C", "%63", "%2f", "%41", "%7F", "%1F", "%"]) assert.equal(GUARD.test(`${PREFIX}x${bad}y`), true, `${bad} wordt door de guard geweigerd`);
-  for (const good of ["%2F", "%3F", "%3D", "%26", "%20", "%2C", "%C3%A9", "%E2%80%99"]) assert.equal(GUARD.test(`${PREFIX}x${good}y`), false, `${good} is een toegestane byte`);
+  for (const good of ["%2F", "%3F", "%3D", "%26", "%20", "%2C", "%23", "%40", "%2B", "%C3%A9", "%E2%80%99"]) assert.equal(GUARD.test(`${PREFIX}x${good}y`), false, `${good} is een toegestane byte`);
   for (const bad of ["x/../y", "a//b", "a/./..", "/.."]) assert.equal(GUARD.test(bad), true, `traversal/dubbele slash ${bad}`);
   // Bestaande (niet-spel)routes: zelfde beslissing met en zonder spelroutes, en codering blijft daar verboden.
   for (const [method, uri] of [["GET", "capabilities"], ["GET", "%63apabilities"], ["GET", "capabilities?token=secret"], ["GET", "capabilities/extra"], ["POST", "login"], ["DELETE", "account"], ["GET", "profile%2Ftwo-factor"], ["GET", "courses/c%2Fx/path"], ["POST", "realtime/session"]] as const) {
@@ -101,4 +101,20 @@ test("NativeGamesView geeft de fout door aan NativeFoundation.report (de bron va
   assert.match(view, /useEffect\(\(\)=>\{if\(failure&&!nativeLearningTransientError\(failure\)\)onError\(failure\);\},\[failure,onError\]\);/);
   const foundation = readFileSync("src/components/native/NativeFoundation.tsx", "utf8");
   assert.match(foundation, /onError=\{err=>\{if\(err instanceof NativeClientError&&err\.code==="content_context_changed"\)void refreshContent\(\);else report\(err\);\}\}/);
+});
+
+test("zoektermen met # en @ (tag of e-mailadres) gaan door, ook via de gedeelde client", () => {
+  for (const [method, uri] of searchRequests as string[][]) {
+    assert.equal(allowed(method, uri), true, `${uri} hoort door de proxy`);
+    assert.ok(gameApiRoute(`/api/${uri.slice(6)}`, method), `${uri} hoort door de client`);
+  }
+});
+
+test("de verruiming is beperkt tot q van users/search", () => {
+  const sensitive = ["games/users/avatars?ids=a%23b", "games/users/avatars?ids=a%40b", "games/puzzle/history?cursor=a%23b", "games/users/search?x=a%23b", "games/users/search?q=a%2523b", "games/users/search?q=a%2Fb", "games/users/search?q=a%26b"];
+  for (const uri of sensitive) assert.equal(allowed("GET", uri), false, `${uri} blijft geweigerd`);
+  // Alle andere routes zijn byte-voor-byte onveranderd: alleen users/search draagt de uitgebreide klasse.
+  const withExtra = (routes as string[][]).filter(([, path]) => path.includes("%23"));
+  assert.equal(withExtra.length, 1);
+  assert.ok(withExtra[0]![1].includes("users/search"));
 });
