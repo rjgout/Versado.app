@@ -1,0 +1,10 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "skipLibCheck": true,
+    "types": ["jest"],
+    "paths": { "@/*": ["../../src/*"], "@poc/*": ["./src/*"] }
+  },
+  "include": ["src", "tests", "*.ts", "*.js", ".expo/types/**/*.ts", "expo-env.d.ts"]
+}

@@ -13,6 +13,12 @@ import { userDayKey,userTimeZone } from "@/lib/timeZone";
 import { context,recheck,envelope } from "./courses.server";
 import { NativeAuthError,type NativeSessionBinding } from "./sessions";
 import { nativeStudyCourseSchema,nativeStudyStepsSchema } from "./studyCoursesContract";
+import { nativeStudyLessonSchema,nativeStudyLessonAnnotationList,nativeStudyLessonAnnotationResult,nativeStudyLessonMutation } from "./studyLessonContract";
+import { getPublishedStudyLesson } from "@/lib/studyContent/revisions";
+import { parseStudyDocument } from "@/lib/studyContent/schema";
+import { mutateAnnotation,readerAnnotations } from "@/lib/annotations/service";
+import { validatePassageSelector } from "@/lib/annotations/contract";
+import { commitAccountMutation } from "@/lib/account/mutation";
 
 async function studyContext(binding:NativeSessionBinding,courseId:string) {
  const value=await context(binding);
@@ -54,4 +60,44 @@ export async function nativeStudySteps(binding:NativeSessionBinding,courseId:str
  if(!steps || steps.revisionId!==edition.publishedRevisionId)throw new NativeAuthError("content_context_changed",409);
  await finalCheck(binding,input,[{id:editionId,revisionId:steps.revisionId}]);
  return nativeStudyStepsSchema.parse({...envelope(input.value),courseId,editionId,...steps});
+}
+
+/** Architectuurproef rijke studielessen: het gepubliceerde lesdocument, zoals de webreader het via `getPublishedStudyLesson` leest.
+ * Dezelfde rechtencontrole als de stappen (cursus, editie, publicatie, sessie); alleen lezen en geen eigen tekstcopie. */
+export async function nativeStudyLesson(binding:NativeSessionBinding,courseId:string,editionId:string) {
+ const input=await studyContext(binding,courseId);
+ const edition=await prisma.studyLessonEdition.findFirst({where:{...editionsWhere(input),id:editionId},select:{lessonId:true,collectionId:true}});
+ if(!edition)throw new NativeAuthError("content_unavailable",404);
+ const lesson=await getPublishedStudyLesson(input.value.user,edition.lessonId,edition.collectionId);
+ if(!lesson||lesson.editionId!==editionId)throw new NativeAuthError("content_unavailable",404);
+ const bindings=await prisma.studyRevisionMedia.findMany({where:{revisionId:lesson.revisionId},select:{mediaKey:true,media:{select:{id:true,status:true}}}});
+ await finalCheck(binding,input,[{id:editionId,revisionId:lesson.revisionId}]);
+ return nativeStudyLessonSchema.parse({...envelope(input.value),courseId,editionId,lessonId:lesson.lessonId,collectionId:lesson.collectionId,revisionId:lesson.revisionId,title:lesson.title,
+  body:parseStudyDocument(lesson.body),media:bindings.map(b=>({mediaKey:b.mediaKey,mediaId:b.media.status==="READY"?b.media.id:null}))});
+}
+function lessonScope(l:{version:1;userId:string;activeCollectionId:string|null;selectionVersion:number;language:string;courseId:string;editionId:string;revisionId:string}){const {version,userId,activeCollectionId,selectionVersion,language,courseId,editionId,revisionId}=l;return {version,userId,activeCollectionId,selectionVersion,language,courseId,editionId,revisionId};}
+/** Eigen annotaties van de les (inclusief de door de server bepaalde plaats in de huidige revisie); geen writes. */
+export async function nativeStudyLessonAnnotations(binding:NativeSessionBinding,courseId:string,editionId:string) {
+ const lesson=await nativeStudyLesson(binding,courseId,editionId),input=await studyContext(binding,courseId);
+ const list=await readerAnnotations(input.value.user,{lessonEditionId:editionId,revisionId:lesson.revisionId});
+ // Een gewiste annotatie blijft als tombstone met een versie bestaan; zonder die versie kan de client dezelfde selectie niet opnieuw zetten
+ // (het bestaande contract eist de verwachte versie). Alleen kind, versie en selector; geen tekst van gewiste notities.
+ const where={userId:input.value.user.id,lessonEditionId:editionId,deletedAt:{not:null}},pick={mutationVersion:true,selector:true} as const;
+ const [bookmarks,highlights,notes]=await Promise.all([prisma.bookmark.findMany({where,take:200,select:pick}),prisma.highlight.findMany({where,take:200,select:pick}),prisma.note.findMany({where,take:200,select:pick})]);
+ const tombstones=[...bookmarks.map(r=>({kind:"bookmark" as const,...r})),...highlights.map(r=>({kind:"highlight" as const,...r})),...notes.map(r=>({kind:"note" as const,...r}))];
+ await finalCheck(binding,input,[{id:editionId,revisionId:lesson.revisionId}]);
+ return nativeStudyLessonAnnotationList.parse({...lessonScope(lesson),annotations:list.annotations,tombstones,complete:list.complete});
+}
+/** Schrijven loopt via dezelfde `mutateAnnotation` als de webreader; hier alleen de native sessie- en contextgrens eromheen. */
+export async function mutateNativeStudyLessonAnnotation(binding:NativeSessionBinding,courseId:string,editionId:string,raw:unknown) {
+ const input=nativeStudyLessonMutation.parse(raw);
+ if(input.action.target.type!=="lesson"||input.action.target.lessonEditionId!==editionId)throw new NativeAuthError("invalid_input",400);
+ const lesson=await nativeStudyLesson(binding,courseId,editionId);
+ if(input.action.target.revisionId!==lesson.revisionId)throw new NativeAuthError("content_context_changed",409);
+ // De selector wordt tegen het gepubliceerde document gecontroleerd voordat er iets wordt opgeslagen.
+ try{validatePassageSelector(lesson.body,input.action.target.selector);}catch{throw new NativeAuthError("invalid_input",400);}
+ const authorized=await context(binding);
+ const result=await mutateAnnotation(authorized.user,input.action,input.operation==="delete",prisma,run=>
+  commitAccountMutation({userId:binding.userId,nativeSession:binding},[],async tx=>{await recheck(binding,authorized,tx);return run(tx);}));
+ return nativeStudyLessonAnnotationResult.parse({...lessonScope(lesson),actionId:input.action.actionId,...result});
 }

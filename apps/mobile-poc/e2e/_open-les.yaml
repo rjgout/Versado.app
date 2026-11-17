@@ -1,0 +1,17 @@
+appId: app.versado.poc
+---
+# Opent de Les-tab en wacht op de lestekst. Mislukt het laden ("Laden mislukt. Tik om opnieuw te proberen.", bijvoorbeeld door een
+# trage backend), dan tikt de gebruiker erop om opnieuw te proberen; daarom doet de flow dat ook.
+- tapOn: "Les"
+- retry:
+    maxRetries: 4
+    commands:
+      - runFlow:
+          when:
+            visible: "Laden mislukt.*"
+          commands:
+            - tapOn: "Laden mislukt.*"
+      - extendedWaitUntil:
+          visible:
+            id: run-b-title1
+          timeout: 40000

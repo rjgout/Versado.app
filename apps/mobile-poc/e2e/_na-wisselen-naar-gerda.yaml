@@ -1,0 +1,21 @@
+appId: app.versado.poc
+---
+# Uitloggen en inloggen als Gerda (account in de synthetische studiecollectie); de eerdere flows draaiden als Alice.
+- tapOn: "Vandaag"
+- tapOn:
+    id: logout-button
+- extendedWaitUntil:
+    visible:
+      id: login-submit
+    timeout: 30000
+- tapOn:
+    id: login-id
+- inputText: gerda@example.invalid
+- tapOn:
+    id: login-password
+- inputText: PocPassw0rd!2026
+- hideKeyboard:
+    optional: true
+- tapOn:
+    id: login-submit
+- runFlow: _na-inloggen.yaml

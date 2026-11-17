@@ -16,3 +16,6 @@ next-env.d.ts
 
 # Lokale gecontroleerde bronbestanden/modellen blijven buiten de runtime-image.
 .audio-v2-work
+
+# Geïsoleerde mobiele proef (eigen afhankelijkheden, niet in de app-image).
+apps

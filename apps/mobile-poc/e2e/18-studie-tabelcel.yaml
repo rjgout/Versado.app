@@ -1,0 +1,17 @@
+appId: app.versado.poc
+---
+# Een tabelcel is eigen selecteerbare tekst
+- launchApp
+- extendedWaitUntil:
+    visible: "Les"
+    timeout: 120000
+- runFlow: _open-les.yaml
+- swipe:
+    start: "50%,30%"
+    end: "50%,8%"
+- tapOn:
+    id: debug-select-cell
+- extendedWaitUntil:
+    visible: "Selectie: «Cel B1 m» · 1 blok"
+    timeout: 15000
+- takeScreenshot: 43-les-tabelcel

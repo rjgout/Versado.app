@@ -1,0 +1,237 @@
+name: Mobiele proef (Expo)
+# Geïsoleerd: raakt alleen apps/mobile-poc en de gedeelde contractmodules. Geen signing, geen distributie,
+# geen productie- of NAS-toegang; de backend draait tegen wegwerp-Postgres/Redis met synthetische accounts.
+on:
+  pull_request:
+    paths:
+      - 'apps/mobile-poc/**'
+      - 'src/lib/native/**'
+      - '.github/workflows/mobile-poc.yml'
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Welke runtime-job(s): all, android of ios'
+        default: all
+        type: choice
+        options: [all, android, ios]
+permissions:
+  contents: read
+concurrency:
+  group: mobile-poc-${{ github.event_name }}-${{ github.event_name == 'workflow_dispatch' && github.run_id || github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+jobs:
+  logic-and-flow:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env: { POSTGRES_PASSWORD: poc, POSTGRES_DB: versado_content_access_test }
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7
+        ports: ['6379:6379']
+    env:
+      DATABASE_URL: postgresql://postgres:poc@127.0.0.1:5432/versado_content_access_test
+      REDIS_URL: redis://127.0.0.1:6379
+      SESSION_SECRET: ci-session-secret-0123456789abcdef0123456789abcdef
+      NATIVE_SESSION_SECRET: ci-native-secret-0123456789abcdef0123456789abcdef
+      NATIVE_API_ENABLED: '1'
+      ALLOW_INSECURE_COOKIES: 'true'
+      APP_URL: http://127.0.0.1:3100
+      PORT: '3100'
+      POC_BASE_URL: http://127.0.0.1:3100
+      STUDY_PUBLICATION_PROFILE: synthetic-test
+      STUDY_MEDIA_DIR: ${{ github.workspace }}/.study-media-poc
+      STUDY_MEDIA_TEST_ROOT: ${{ github.workspace }}/.study-media-poc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: npm }
+      - run: npm ci
+      - run: npm run db:generate
+      - run: npx prisma migrate deploy
+      - run: apps/mobile-poc/scripts/study-media-init.sh
+      - run: npx tsx apps/mobile-poc/scripts/seed-synthetic.ts
+      - run: npx tsx apps/mobile-poc/scripts/seed-reader-content.ts
+      - run: npx tsx apps/mobile-poc/scripts/seed-study-lesson.ts
+      - name: Backend starten (echte server.ts)
+        run: |
+          nohup npx tsx server.ts > "$RUNNER_TEMP/server.log" 2>&1 &
+          for i in $(seq 1 90); do curl -s -o /dev/null -H "Origin: https://localhost" -H "X-Versado-Client: native-v1" -w "%{http_code}" http://127.0.0.1:3100/api/v1/native/capabilities | grep -q 200 && break; sleep 2; done
+      - name: App-afhankelijkheden
+        working-directory: apps/mobile-poc
+        run: npm ci
+      - name: Typecheck, componenttests
+        working-directory: apps/mobile-poc
+        run: |
+          npm run typecheck
+          npm test
+      - name: Volledige gebruikersstroom tegen de echte backend
+        working-directory: apps/mobile-poc
+        run: npm run test:flow
+      - name: Lezer-spike tegen de echte backend (hoofdstuk, markeren, notitie, herladen, versiecontrole)
+        working-directory: apps/mobile-poc
+        run: npm run test:reader
+      - name: Studielessen-spike tegen de echte backend (les, afbeelding, selector, annotaties, plaatsing, rechten)
+        working-directory: apps/mobile-poc
+        run: npm run test:study
+      - name: Metro-bundel iOS + Android (Hermes) en grootte
+        working-directory: apps/mobile-poc
+        run: |
+          CI=1 EXPO_NO_TELEMETRY=1 npx expo export --platform ios --platform android --output-dir dist
+          find dist/_expo/static/js -name '*.hbc' -exec ls -l {} \; | awk '{printf "%s bytes %s\n",$5,$9}' | tee "$GITHUB_STEP_SUMMARY"
+      - if: failure()
+        run: tail -100 "$RUNNER_TEMP/server.log"
+  # Runtime-bewijs op een echte simulator/emulator. Alleen handmatig (workflow_dispatch op de PR-branch); synthetische
+  # accounts en een wegwerpbackend, nooit productiegegevens. Een geslaagde build telt niet als runtime-bewijs: de flows
+  # (apps/mobile-poc/e2e) drijven de draaiende app aan en controleren het server-effect met een tweede client.
+  android-runtime:
+    if: github.event_name == 'workflow_dispatch' && inputs.platform != 'ios'
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    services:
+      postgres:
+        image: postgres:16
+        env: { POSTGRES_PASSWORD: poc, POSTGRES_DB: versado_content_access_test }
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7
+        ports: ['6379:6379']
+    env:
+      DATABASE_URL: postgresql://postgres:poc@127.0.0.1:5432/versado_content_access_test
+      REDIS_URL: redis://127.0.0.1:6379
+      SESSION_SECRET: ci-session-secret-0123456789abcdef0123456789abcdef
+      NATIVE_SESSION_SECRET: ci-native-secret-0123456789abcdef0123456789abcdef
+      NATIVE_API_ENABLED: '1'
+      ALLOW_INSECURE_COOKIES: 'true'
+      APP_URL: http://127.0.0.1:3100
+      PORT: '3100'
+      POC_BASE_URL: http://127.0.0.1:3100
+      STUDY_PUBLICATION_PROFILE: synthetic-test
+      STUDY_MEDIA_DIR: ${{ github.workspace }}/.study-media-poc
+      STUDY_MEDIA_TEST_ROOT: ${{ github.workspace }}/.study-media-poc
+      BACKEND_LOG: ${{ github.workspace }}/backend-android.log
+      POC_TEST_BUILD: '1'
+      EXPO_PUBLIC_VERSADO_API_URL: http://10.0.2.2:3100
+      EXPO_PUBLIC_POC_DEBUG: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: npm }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 21 }
+      - run: npm ci
+      - working-directory: apps/mobile-poc
+        run: npm ci
+      - run: apps/mobile-poc/scripts/ci-backend.sh
+      - name: Prebuild Android (tijdelijk, niet gecommit)
+        working-directory: apps/mobile-poc
+        run: npx expo prebuild --platform android --no-install
+      - name: Android debug-build (compilebewijs)
+        working-directory: apps/mobile-poc/android
+        run: ./gradlew assembleDebug --no-daemon
+      - name: Android release-build met ingebed JS (voor de emulator, debug-ondertekend)
+        working-directory: apps/mobile-poc/android
+        run: ./gradlew assembleRelease --no-daemon
+      - run: apps/mobile-poc/scripts/install-maestro.sh
+      - name: KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules && sudo udevadm trigger --name-match=kvm
+      - name: Emulator, installeren, flows
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          # AOSP-image zonder Google-launcher: op de software-gerenderde CI-emulator gaf de Pixel-launcher ANR-dialogen
+          # die de app aan het zicht onttrokken.
+          target: default
+          profile: pixel_6
+          disable-animations: true
+          working-directory: apps/mobile-poc
+          script: ./scripts/android-emulator-run.sh android/app/build/outputs/apk/release/app-release.apk
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-runtime
+          path: |
+            apps/mobile-poc/e2e-results/**
+            backend-android.log
+            apps/mobile-poc/android/app/build/outputs/apk/*/*.apk
+          if-no-files-found: warn
+  ios-runtime:
+    if: github.event_name == 'workflow_dispatch' && inputs.platform != 'android'
+    # Apple Silicon: op macos-26-intel liepen simulator, Xcode, Maestro-driver, Postgres en de Next-dev-server
+    # samen zo vast dat databaseverzoeken na 15 s verliepen (gemeten in run 36).
+    runs-on: macos-26
+    timeout-minutes: 150
+    env:
+      DATABASE_URL: postgresql://postgres@127.0.0.1:5432/versado_content_access_test
+      REDIS_URL: redis://127.0.0.1:6379
+      SESSION_SECRET: ci-session-secret-0123456789abcdef0123456789abcdef
+      NATIVE_SESSION_SECRET: ci-native-secret-0123456789abcdef0123456789abcdef
+      NATIVE_API_ENABLED: '1'
+      ALLOW_INSECURE_COOKIES: 'true'
+      APP_URL: http://127.0.0.1:3100
+      PORT: '3100'
+      POC_BASE_URL: http://127.0.0.1:3100
+      STUDY_PUBLICATION_PROFILE: synthetic-test
+      STUDY_MEDIA_DIR: ${{ github.workspace }}/.study-media-poc
+      STUDY_MEDIA_TEST_ROOT: ${{ github.workspace }}/.study-media-poc
+      BACKEND_LOG: ${{ github.workspace }}/backend-ios.log
+      POC_TEST_BUILD: '1'
+      EXPO_PUBLIC_VERSADO_API_URL: http://127.0.0.1:3100
+      EXPO_PUBLIC_POC_DEBUG: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: npm }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 21 }
+      - name: Postgres en Redis (wegwerp, lokaal)
+        run: |
+          brew install postgresql@16 redis
+          PGBIN="$(brew --prefix postgresql@16)/bin"
+          export PATH="$PGBIN:$PATH"
+          initdb -D "$RUNNER_TEMP/pg" -U postgres --auth=trust >/dev/null
+          pg_ctl -D "$RUNNER_TEMP/pg" -l "$RUNNER_TEMP/pg.log" -o "-p 5432 -c fsync=off -c synchronous_commit=off -c max_connections=200" start
+          createdb -h 127.0.0.1 -U postgres versado_content_access_test
+          redis-server --port 6379 --daemonize yes
+      - run: xcodebuild -version; xcrun simctl list runtimes | head
+      - run: npm ci
+      - working-directory: apps/mobile-poc
+        run: npm ci
+      - name: Prebuild iOS (tijdelijk, niet gecommit; installeert pods)
+        working-directory: apps/mobile-poc
+        run: npx expo prebuild --platform ios --no-install && cd ios && pod install
+      - name: iOS-simulatorbuild (Release, JS ingebed, ad-hoc '-' ondertekend voor Keychain op de simulator; geen certificaat)
+        working-directory: apps/mobile-poc/ios
+        run: |
+          WS=$(ls -d *.xcworkspace | head -1); SCHEME="${WS%.xcworkspace}"
+          xcodebuild -workspace "$WS" -scheme "$SCHEME" -configuration Release -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath "$RUNNER_TEMP/dd" CODE_SIGN_IDENTITY="-" CODE_SIGNING_ALLOWED=YES CODE_SIGNING_REQUIRED=NO build | tail -40
+          ls "$RUNNER_TEMP/dd/Build/Products/Release-iphonesimulator/"
+      - run: apps/mobile-poc/scripts/install-maestro.sh
+      # De backend start pas nu, niet vóór de Xcode-build: op de trage Intel-runner liet hij anders de hele build
+      # (17 minuten) scheduler- en feedtaken draaien en gaf hij daarna antwoorden na meer dan 15 s (de
+      # clienttijdslimiet), waardoor de app en de tweede client "network_unavailable" kregen. De externe
+      # synchronisatiehosts (kerksite, podcastfeeds) worden alleen op deze wegwerprunner geblokkeerd, zodat de
+      # opstarttaken niet het netwerk op gaan; er verandert niets aan de backendcode of beveiliging.
+      - name: Backend starten (externe synchronisatiehosts geblokkeerd, alleen op de runner)
+        run: |
+          echo "127.0.0.1 www.churchofjesuschrist.org churchofjesuschrist.org rss.buzzsprout.com geloofjedatook.nl www.geloofjedatook.nl jehova.app www.jehova.app" | sudo tee -a /etc/hosts
+          apps/mobile-poc/scripts/ci-backend.sh
+      - name: Simulator, installeren, flows
+        working-directory: apps/mobile-poc
+        run: ./scripts/ios-simulator-run.sh "$(ls -d $RUNNER_TEMP/dd/Build/Products/Release-iphonesimulator/*.app | head -1)"
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-runtime
+          path: |
+            apps/mobile-poc/e2e-results/**
+            backend-ios.log
+          if-no-files-found: warn

@@ -1,0 +1,10 @@
+appId: app.versado.poc
+---
+# Dubbel tikken: de tweede tik mag niets stuk maken en geen foutmelding geven
+- doubleTapOn: "Verzoek van Bob accepteren"
+- extendedWaitUntil:
+    notVisible: "Verzoek van Bob accepteren"
+    timeout: 30000
+- assertNotVisible: "Accepteren mislukt.*"
+- assertVisible: "Vrienden \\(2\\)"
+- takeScreenshot: 05-geaccepteerd

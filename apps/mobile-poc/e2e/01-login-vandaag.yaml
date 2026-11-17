@@ -1,0 +1,22 @@
+appId: app.versado.poc
+---
+# De installatie is vers (geen oude sessie); clearState zou een nog opstartende app midden in het laden herstarten.
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: login-submit
+    timeout: 240000
+- takeScreenshot: 01-login-scherm
+- tapOn:
+    id: login-id
+- inputText: alice@example.invalid
+- tapOn:
+    id: login-password
+- inputText: PocPassw0rd!2026
+- hideKeyboard:
+    optional: true
+- tapOn:
+    id: login-submit
+- runFlow: _na-inloggen.yaml
+- assertVisible: "Vandaag"
+- takeScreenshot: 02-vandaag

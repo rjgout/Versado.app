@@ -22216,7 +22216,7 @@
     },
     {
       "file": "src/lib/native/api.ts",
-      "sha256": "5a30a9383fc5636d3f14759c2a494c2937f248e92fd8cc279313300dada58a5d",
+      "sha256": "591a3591816f268f119446e82fea806c37ff0b157e0acdb15275d175c8ef2de3",
       "boundary": "context-dependent",
       "imports": [
         "./annotations.server",
@@ -23641,12 +23641,16 @@
     },
     {
       "file": "src/lib/native/studyCourses.server.ts",
-      "sha256": "cd0b12cca2b99b7efccad59845e3475108d8747d7a6687ab7f89eca4573ca52b",
+      "sha256": "05b3c2a33b6513802fccf2307ffbf5e1519591474d0575b94cd9b756c0ae2983",
       "boundary": "context-dependent",
       "imports": [
         "./courses.server",
         "./sessions",
         "./studyCoursesContract",
+        "./studyLessonContract",
+        "@/lib/account/mutation",
+        "@/lib/annotations/contract",
+        "@/lib/annotations/service",
         "@/lib/contentAccess",
         "@/lib/courseContent",
         "@/lib/courseText",
@@ -23655,6 +23659,8 @@
         "@/lib/studyContent/catalogue",
         "@/lib/studyContent/cfmCourses",
         "@/lib/studyContent/cfmProgramme",
+        "@/lib/studyContent/revisions",
+        "@/lib/studyContent/schema",
         "@/lib/studyContent/stepProgress",
         "@/lib/studyContent/weekSelection",
         "@/lib/timeZone"
@@ -23663,7 +23669,10 @@
       "requests": [],
       "checks": [],
       "exports": [
+        "mutateNativeStudyLessonAnnotation",
         "nativeStudyCourse",
+        "nativeStudyLesson",
+        "nativeStudyLessonAnnotations",
         "nativeStudySteps"
       ]
     },
@@ -23681,6 +23690,29 @@
       "exports": [
         "nativeStudyCourseSchema",
         "nativeStudyStepsSchema"
+      ]
+    },
+    {
+      "file": "src/lib/native/studyLessonContract.ts",
+      "sha256": "ca8d6c69bf8fa6414e19a1675c35fa92c4820aeedb5f71d688aba126cd206788",
+      "boundary": "context-dependent",
+      "imports": [
+        "./coursesContract",
+        "@/lib/annotations/clientContract",
+        "@/lib/annotations/contract",
+        "@/lib/studyContent/schema",
+        "zod"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NATIVE_STUDY_LESSON_MAX_BYTES",
+        "nativeStudyLessonAnnotationList",
+        "nativeStudyLessonAnnotationResult",
+        "nativeStudyLessonAnnotationView",
+        "nativeStudyLessonMutation",
+        "nativeStudyLessonSchema"
       ]
     },
     {
@@ -54295,6 +54327,7 @@
         "src/lib/native/socketTickets.ts",
         "src/lib/native/studyCourses.server.ts",
         "src/lib/native/studyCoursesContract.ts",
+        "src/lib/native/studyLessonContract.ts",
         "src/lib/native/studyMedia.server.ts",
         "src/lib/native/studyMediaContract.ts",
         "src/lib/native/tabBar.ts",

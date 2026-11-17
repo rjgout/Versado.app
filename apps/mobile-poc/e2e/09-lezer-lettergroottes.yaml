@@ -1,0 +1,38 @@
+appId: app.versado.poc
+---
+# Selectie werkt bij elke lettergrootte: lang indrukken selecteert een woord, een bereik over verzen blijft exact
+- launchApp
+- extendedWaitUntil:
+    visible: "Lezen"
+    timeout: 120000
+- tapOn: "Lezen"
+- extendedWaitUntil:
+    visible:
+      id: chapter-text
+    timeout: 60000
+- assertVisible: "Lettergrootte 18"
+- runFlow: _selecteer-woord.yaml
+- tapOn:
+    id: font-larger
+- assertVisible: "Lettergrootte 24"
+- runFlow: _selecteer-woord.yaml
+- takeScreenshot: 16-lettergrootte-24
+- tapOn:
+    id: debug-select-5-7
+- extendedWaitUntil:
+    visible: "Selectie: .* · vers 5–7"
+    timeout: 15000
+- tapOn:
+    id: font-larger
+- assertVisible: "Lettergrootte 32"
+- runFlow: _selecteer-woord.yaml
+- takeScreenshot: 17-lettergrootte-32
+- tapOn:
+    id: font-smaller
+- tapOn:
+    id: font-smaller
+- tapOn:
+    id: font-smaller
+- assertVisible: "Lettergrootte 14"
+- runFlow: _selecteer-woord.yaml
+- takeScreenshot: 18-lettergrootte-14

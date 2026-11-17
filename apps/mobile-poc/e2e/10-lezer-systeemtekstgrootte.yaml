@@ -1,0 +1,29 @@
+appId: app.versado.poc
+---
+# Met een grotere systeemtekstgrootte (Dynamic Type / lettergrootte van Android) blijft de selectie werken
+- launchApp
+- extendedWaitUntil:
+    visible: "Lezen"
+    timeout: 120000
+- tapOn: "Lezen"
+- extendedWaitUntil:
+    visible: "Geen selectie"
+    timeout: 60000
+- takeScreenshot: 19-systeemtekst-groot
+- runFlow: _selecteer-woord.yaml
+- takeScreenshot: 20-systeemtekst-woord
+# De bediening (hoogstens 65% van het inhoudsgebied) scrolt zelf; schuif haar omhoog tot de testknop in beeld is.
+- swipe:
+    start: "50%,30%"
+    end: "50%,8%"
+- swipe:
+    start: "50%,30%"
+    end: "50%,8%"
+- swipe:
+    start: "50%,30%"
+    end: "50%,8%"
+- tapOn:
+    id: debug-select-5-7
+- extendedWaitUntil:
+    visible: "Selectie: .* · vers 5–7"
+    timeout: 15000

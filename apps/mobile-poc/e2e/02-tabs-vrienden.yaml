@@ -1,0 +1,18 @@
+appId: app.versado.poc
+---
+# Native tabs reageren: heen en terug, inhoud wisselt mee
+- extendedWaitUntil:
+    visible: "Vrienden"
+    timeout: 120000
+- tapOn: "Vrienden"
+- extendedWaitUntil:
+    visible: "Bob#02"
+    timeout: 30000
+- assertVisible: "Vrienden \\(1\\)"
+- assertVisible: "Verzoek van Bob accepteren"
+- takeScreenshot: 03-vrienden
+- tapOn: "Vandaag"
+- assertVisible:
+    id: vandaag-streak
+- tapOn: "Vrienden"
+- assertVisible: "Bob#02"

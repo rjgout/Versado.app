@@ -1,0 +1,29 @@
+appId: app.versado.poc
+---
+# Met een grote systeemtekstgrootte (Dynamic Type / lettergrootte van Android) blijft de les bruikbaar en selecteerbaar
+- launchApp
+- extendedWaitUntil:
+    visible: "Les"
+    timeout: 120000
+- tapOn: "Les"
+- extendedWaitUntil:
+    visible: "Geen selectie"
+    timeout: 60000
+- takeScreenshot: 41-les-systeemtekst-groot
+- runFlow: _selecteer-woord-les.yaml
+- takeScreenshot: 42-les-systeemtekst-woord
+# De bediening (hoogstens 65% van het inhoudsgebied) scrolt zelf; schuif haar omhoog tot de testknop in beeld is.
+- swipe:
+    start: "50%,30%"
+    end: "50%,8%"
+- swipe:
+    start: "50%,30%"
+    end: "50%,8%"
+- swipe:
+    start: "50%,30%"
+    end: "50%,8%"
+- tapOn:
+    id: debug-select-blocks
+- extendedWaitUntil:
+    visible: "Selectie: .* · 2 blokken"
+    timeout: 15000

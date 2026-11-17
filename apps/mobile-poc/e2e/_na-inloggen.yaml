@@ -1,0 +1,29 @@
+appId: app.versado.poc
+---
+# Na het tikken op Inloggen: wacht op Vandaag. Mislukt het inloggen door een trage backend ("Inloggen mislukt"), tik dan opnieuw,
+# zoals een gebruiker zou doen. iOS toont daarna soms het systeemvenster "Save Password?"; dat bedekt de app voor de UI-test.
+- retry:
+    maxRetries: 3
+    commands:
+      - runFlow:
+          when:
+            visible: "Inloggen mislukt.*"
+          commands:
+            - tapOn:
+                id: login-submit
+      - runFlow:
+          when:
+            visible: "Laden mislukt.*"
+          commands:
+            - tapOn: "Laden mislukt.*"
+      - extendedWaitUntil:
+          visible: "Not Now"
+          timeout: 25000
+          optional: true
+      - tapOn:
+          text: "Not Now"
+          optional: true
+      - extendedWaitUntil:
+          visible:
+            id: vandaag-streak
+          timeout: 50000

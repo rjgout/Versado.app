@@ -1,0 +1,23 @@
+appId: app.versado.poc
+---
+# Markering wissen via de bestaande annotatieservice (de server bevestigt dit in de peer-controle)
+- launchApp
+- extendedWaitUntil:
+    visible: "Les"
+    timeout: 120000
+- runFlow: _open-les.yaml
+- swipe:
+    start: "50%,30%"
+    end: "50%,8%"
+- tapOn:
+    id: debug-select-blocks
+- extendedWaitUntil:
+    visible: "Selectie: .* · 2 blokken"
+    timeout: 15000
+- runFlow:
+    file: _opslaan.yaml
+    env:
+      TAP_ID: unmark-button
+      EXPECT: "Markering gewist: 1"
+- assertVisible: "Markeringen: geen"
+- takeScreenshot: 44-les-gewist

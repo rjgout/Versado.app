@@ -1,0 +1,20 @@
+appId: app.versado.poc
+---
+# Wat de les aan schermlezers aanbiedt (VoiceOver/TalkBack lezen deze toegankelijkheidsboom): knoppen, afbeelding en verwijzingen met naam
+- launchApp
+- extendedWaitUntil:
+    visible: "Les"
+    timeout: 120000
+- runFlow: _open-les.yaml
+- assertVisible: "Markeren"
+- assertVisible: "Kleinere letters"
+- assertVisible: "Grotere letters"
+- scrollUntilVisible:
+    element: "Verwijzing 1 Nephi 3:7"
+    direction: DOWN
+    timeout: 30000
+- scrollUntilVisible:
+    element: "Synthetisch schilderij"
+    direction: UP
+    timeout: 30000
+- takeScreenshot: 45-les-toegankelijkheid

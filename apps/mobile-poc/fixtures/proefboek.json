@@ -1,0 +1,26 @@
+[
+ {
+  "slug": "proefboek",
+  "key": "poc/proefboek",
+  "name": "Proefboek",
+  "chapters": [
+   {
+    "number": 1,
+    "verses": [
+     "Dit is het eerste vers van het proefhoofdstuk en het bevat voldoende woorden om over meerdere regels te lopen op een smal scherm.",
+     "Het tweede vers is korter.",
+     "In het derde vers staat het woord proefwoord precies één keer, naast een paar gewone woorden zoals beginnen, bladeren en terugkeren.",
+     "Vers vier bevat accenten: één, geïnspireerd, coöperatie en een gedachtestreep – daarna gewoon verder.",
+     "Het vijfde vers vormt samen met het zesde en zevende een reeks waarover een selectie zich kan uitstrekken zonder dat de lezer de tekst verlaat.",
+     "Het zesde vers: kort en bondig, met een dubbele spatie  en een tab\tmidden in de zin.",
+     "Het zevende vers sluit de reeks af met een langere zin die opnieuw over meerdere regels loopt, zodat ook de regelovergang binnen een vers getest wordt.",
+     "Vers acht staat apart en wordt in de tests gebruikt voor een notitie.",
+     "Het negende vers begint met een aanhaling: “deze woorden staan tussen typografische aanhalingstekens”, en eindigt gewoon.",
+     "Het tiende vers is bedoeld om te controleren dat markeringen na herladen op de juiste verzen terugkomen.",
+     "Het elfde vers is er voor de lettergroottetests, met een redelijk lange zin die bij grote letters meerdere regels beslaat.",
+     "Het twaalfde en laatste vers sluit het proefhoofdstuk af."
+    ]
+   }
+  ]
+ }
+]
