@@ -92,7 +92,9 @@ final class NativeAudioTransport implements AutoCloseable {
                 if (response.code() != 206 || type == null || !"audio/mpeg".equalsIgnoreCase(type.split(";", 2)[0].trim()) ||
                     !origin.equals(response.header("Access-Control-Allow-Origin")) || encoding != null && !"identity".equalsIgnoreCase(encoding) ||
                     !("bytes " + position + "-" + (position + length - 1) + "/" + total).equals(response.header("Content-Range")) ||
-                    response.body() == null || response.body().contentLength() != length) throw unavailable();
+                    response.body() == null || response.body().contentLength() != length && response.body().contentLength() != -1) throw unavailable();
+                // Next.js 16.4.5+ stuurt geen Content-Length meer (chunked, lengte -1). Een opgegeven lengte moet nog exact
+                // kloppen; de exacte Content-Range en de leeslus hieronder (precies `length` bytes, daarna EOF) blijven de grens.
                 try (InputStream input = response.body().byteStream()) {
                     int received = 0;
                     while (received < length) {

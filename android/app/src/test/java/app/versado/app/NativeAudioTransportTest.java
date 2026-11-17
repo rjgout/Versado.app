@@ -27,7 +27,7 @@ public class NativeAudioTransportTest {
         final byte[] bytes;
         int status = 206, count;
         String type = "audio/mpeg", origin = "https://localhost", encoding;
-        boolean wrongRange, shortBody, oversizedBody;
+        boolean wrongRange, shortBody, oversizedBody, chunked, wrongLength;
         Runnable beforeReply;
         Request captured;
         final OkHttpClient client = NativeAccessTransport.client().newBuilder().addInterceptor(this).build();
@@ -41,7 +41,7 @@ public class NativeAudioTransportTest {
             ResponseBody body = new ResponseBody() {
                 final Buffer data = new Buffer().write(payload);
                 @Override public MediaType contentType() { return MediaType.get(type); }
-                @Override public long contentLength() { return length; }
+                @Override public long contentLength() { return chunked ? -1 : length + (wrongLength ? 1 : 0); }
                 @Override public BufferedSource source() { return data; }
             };
             Response.Builder response = new Response.Builder().request(captured).protocol(Protocol.HTTP_1_1).code(status).message("Synthetic")
@@ -117,7 +117,7 @@ public class NativeAudioTransportTest {
         assertEquals(4,source.readAt(0,target,0,4));transport.close();assertThrows(IOException.class,()->source.readAt(4,target,0,4));source.close();
     }
     @Test public void hostileResponsesNeverReturnBytes() throws Exception {
-        for (int scenario = 0; scenario < 10; scenario++) {
+        for (int scenario = 0; scenario < 13; scenario++) {
             Edge edge = new Edge();
             switch (scenario) {
                 case 0: edge.status = 200; break;
@@ -129,12 +129,23 @@ public class NativeAudioTransportTest {
                 case 6: edge.origin = "https://evil.invalid"; break;
                 case 7: edge.wrongRange = true; break;
                 case 8: edge.shortBody = true; break;
-                default: edge.oversizedBody = true;
+                case 9: edge.oversizedBody = true; break;
+                case 10: edge.chunked = true; edge.shortBody = true; break;
+                case 11: edge.chunked = true; edge.oversizedBody = true; break;
+                default: edge.wrongLength = true;
             }
             try (NativeAudioTransport transport = transport(edge, life(120000))) {
                 byte[] target = new byte[100]; assertThrows(IOException.class, () -> transport.read(0, target, 0, 100));
                 assertArrayEquals(new byte[100], target); assertEquals(1, edge.count);
             }
+        }
+    }
+    @Test public void responseWithoutContentLengthStillRequiresExactRangeAndBytes() throws Exception {
+        // Next.js 16.4.5+ stuurt geen Content-Length meer (chunked): de exacte Content-Range en bytes bepalen de acceptatie.
+        Edge edge = new Edge(); edge.chunked = true;
+        try (NativeAudioTransport transport = transport(edge, life(120000))) {
+            byte[] target = new byte[100]; assertEquals(100, transport.read(0, target, 0, 100));
+            assertArrayEquals(Arrays.copyOf(edge.bytes, 100), target);
         }
     }
     @Test public void lateResponseAfterNativeInvalidationIsDiscarded() throws Exception {

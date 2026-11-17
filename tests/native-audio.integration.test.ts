@@ -94,7 +94,11 @@ test("legacy zonder bewezen stap-eindgrens en gewijzigde tekst worden niet aange
 });
 test("exacte Range/HEAD/416-contracten, geen onbegrensde download of MP3 in JSON",async()=>{
  const {f,pair}=await fixture();await recording(f.chapters[1].id);const p=route(f),c=await catalogue(pair.accessToken,p),source=c.sources[0],stream=p+`/audio/${source.id}/stream`;
- const head=await request(pair.accessToken,stream,"HEAD");assert.equal(head.status,200);assert.equal(head.headers.get("content-length"),String(bytes.length));assert.equal((await head.arrayBuffer()).byteLength,0);
+ const head=await request(pair.accessToken,stream,"HEAD");assert.equal(head.status,200);assert.equal(head.headers.get("accept-ranges"),"bytes");assert.equal(head.headers.get("content-type"),"audio/mpeg");assert.equal((await head.arrayBuffer()).byteLength,0);
+ // Next.js 16.4.5+ verwijdert Content-Length uit routeantwoorden (zie docs/NATIVE-AUDIO.md): bij HEAD is die er niet meer, maar een
+ // aanwezige waarde moet exact kloppen en de totale grootte blijft exact beschikbaar via Content-Range van een 1-byte Range-GET.
+ const declared=head.headers.get("content-length");assert.ok(declared===null||declared===String(bytes.length));
+ const probe=await request(pair.accessToken,stream,"GET",{Range:"bytes=0-0"});assert.equal(probe.status,206);assert.equal(probe.headers.get("content-range"),`bytes 0-0/${bytes.length}`);assert.deepEqual(Buffer.from(await probe.arrayBuffer()),bytes.subarray(0,1));
  const tail=await request(pair.accessToken,stream,"GET",{Range:`bytes=${bytes.length-3}-${bytes.length+5}`});assert.equal(tail.status,206);assert.deepEqual(Buffer.from(await tail.arrayBuffer()),bytes.subarray(-3));
  for(const value of [undefined,"bytes=0-","bytes=-9","bytes=0-1,4-8",`bytes=0-${NATIVE_AUDIO_CHUNK_BYTES}`,`bytes=${bytes.length}-`]){const r=await request(pair.accessToken,stream,"GET",value?{Range:value}:{});assert.equal(r.status,416,String(value));assert.equal(r.headers.get("content-range"),`bytes */${bytes.length}`);assert.equal((await r.arrayBuffer()).byteLength,0);}
  for(const suffix of ["?url=https://evil.invalid","/other"]){const r=await request(pair.accessToken,stream+suffix);assert.ok([400,404].includes(r.status));}
