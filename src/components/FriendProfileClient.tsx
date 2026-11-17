@@ -1,8 +1,7 @@
 "use client";
 
 import { AppLink as Link } from "@/components/navigation/AppNavigation";
-import { nativeApplicationInstalled } from "@/lib/data/applicationRuntime";
-import FriendVillagePreview from "@/components/dorp/FriendVillagePreview";
+import type { ReactNode } from "react";
 import type { LeagueTier } from "@/generated/prisma/client";
 import { Gamepad2, Sparkles, Users } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
@@ -58,7 +57,8 @@ function FeaturedAchievement({ achievement }: { achievement: NonNullable<FriendP
   );
 }
 
-export default function FriendProfileClient({ userId, viewerId }: { userId: string; viewerId: string }) {
+/** `villagePreview` is een slot: het dorp (Next-afbeeldingen/-links) hoort alleen op de website en mag niet in de lokale appbundel komen. */
+export default function FriendProfileClient({ userId, viewerId, villagePreview }: { userId: string; viewerId: string; villagePreview?: ReactNode }) {
   const t = useT();
   const query = useLiveQuery<FriendProfile>(["friend-profile", viewerId, userId], () => fetchJson<FriendProfile>(`/api/friends/profiles/${encodeURIComponent(userId)}`), {
     scopes: ["friends", "xp", "streak", "competition"],
@@ -83,8 +83,7 @@ export default function FriendProfileClient({ userId, viewerId }: { userId: stri
         </div>
       </section>
 
-      {/* Het dorp heeft nog geen native route of contract. */}
-      {!nativeApplicationInstalled() && <FriendVillagePreview userId={userId} viewerId={viewerId} />}
+      {villagePreview}
       {stats ? (
         <>
           <ProfileCard title={t("friends.sharedProgress")}>

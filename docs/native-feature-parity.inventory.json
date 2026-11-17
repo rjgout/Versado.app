@@ -6550,10 +6550,11 @@
     },
     {
       "file": "src/app/friends/[userId]/page.tsx",
-      "sha256": "907e7ef91abc9c7c66c7aff31a6fb9a4103fbc3da33459b5b7a44fcec70b0b02",
+      "sha256": "acf87eec0ca742b71dfb56fe190b508d5c533036e1dca334bcffaa4f88ea1172",
       "boundary": "context-dependent",
       "imports": [
         "@/components/FriendProfileClient",
+        "@/components/dorp/FriendVillagePreview",
         "@/lib/session",
         "next/navigation"
       ],
@@ -9711,13 +9712,12 @@
     },
     {
       "file": "src/components/FriendProfileClient.tsx",
-      "sha256": "35f4f04e94f3576a1302960c10d46642fd79f568a99aac4ced293ba72813005d",
+      "sha256": "b0b93644b03bff2d6e98f61ffd15861dc04a817b84755b57f80c28746f8affc5",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
         "@/components/ProfileCharacterHero",
         "@/components/UserTag",
-        "@/components/dorp/FriendVillagePreview",
         "@/components/navigation/AppNavigation",
         "@/components/profile/settings",
         "@/components/puzzle/RecordCard",
@@ -9725,12 +9725,12 @@
         "@/components/versado/DivisionEmblem",
         "@/components/versado/SystemIcon",
         "@/generated/prisma/client",
-        "@/lib/data/applicationRuntime",
         "@/lib/data/fetchJson",
         "@/lib/data/hooks",
         "@/lib/i18n/core",
         "@/lib/puzzle/records",
-        "lucide-react"
+        "lucide-react",
+        "react"
       ],
       "methods": [],
       "requests": [
@@ -15212,13 +15212,13 @@
     },
     {
       "file": "src/components/social/GroupsEntryCard.tsx",
-      "sha256": "c84cf50158963194fad159fb6d8cae8c08e68306d9961b34a83c20be7f23736a",
+      "sha256": "9ade5ddea107609ed4dac35615e5e80b1273d4a1fbada726293294e535ae4f4c",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
         "@/components/versado/styles",
         "lucide-react",
-        "next/link",
         "react"
       ],
       "methods": [],
@@ -59521,10 +59521,11 @@
     },
     {
       "file": "src/app/friends/[userId]/page.tsx",
-      "sha256": "907e7ef91abc9c7c66c7aff31a6fb9a4103fbc3da33459b5b7a44fcec70b0b02",
+      "sha256": "acf87eec0ca742b71dfb56fe190b508d5c533036e1dca334bcffaa4f88ea1172",
       "boundary": "context-dependent",
       "imports": [
         "@/components/FriendProfileClient",
+        "@/components/dorp/FriendVillagePreview",
         "@/lib/session",
         "next/navigation"
       ],
@@ -59692,6 +59693,7 @@
       ],
       "directModules": [
         "src/components/FriendProfileClient.tsx",
+        "src/components/dorp/FriendVillagePreview.tsx",
         "src/lib/session.ts"
       ],
       "clientBoundaries": [
@@ -75857,10 +75859,11 @@
     },
     {
       "file": "src/app/friends/[userId]/page.tsx",
-      "sha256": "907e7ef91abc9c7c66c7aff31a6fb9a4103fbc3da33459b5b7a44fcec70b0b02",
+      "sha256": "acf87eec0ca742b71dfb56fe190b508d5c533036e1dca334bcffaa4f88ea1172",
       "boundary": "context-dependent",
       "imports": [
         "@/components/FriendProfileClient",
+        "@/components/dorp/FriendVillagePreview",
         "@/lib/session",
         "next/navigation"
       ],
@@ -78990,13 +78993,12 @@
     },
     {
       "file": "src/components/FriendProfileClient.tsx",
-      "sha256": "35f4f04e94f3576a1302960c10d46642fd79f568a99aac4ced293ba72813005d",
+      "sha256": "b0b93644b03bff2d6e98f61ffd15861dc04a817b84755b57f80c28746f8affc5",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
         "@/components/ProfileCharacterHero",
         "@/components/UserTag",
-        "@/components/dorp/FriendVillagePreview",
         "@/components/navigation/AppNavigation",
         "@/components/profile/settings",
         "@/components/puzzle/RecordCard",
@@ -79004,12 +79006,12 @@
         "@/components/versado/DivisionEmblem",
         "@/components/versado/SystemIcon",
         "@/generated/prisma/client",
-        "@/lib/data/applicationRuntime",
         "@/lib/data/fetchJson",
         "@/lib/data/hooks",
         "@/lib/i18n/core",
         "@/lib/puzzle/records",
-        "lucide-react"
+        "lucide-react",
+        "react"
       ],
       "methods": [],
       "requests": [
@@ -84249,13 +84251,13 @@
     },
     {
       "file": "src/components/social/GroupsEntryCard.tsx",
-      "sha256": "c84cf50158963194fad159fb6d8cae8c08e68306d9961b34a83c20be7f23736a",
+      "sha256": "9ade5ddea107609ed4dac35615e5e80b1273d4a1fbada726293294e535ae4f4c",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
         "@/components/versado/styles",
         "lucide-react",
-        "next/link",
         "react"
       ],
       "methods": [],

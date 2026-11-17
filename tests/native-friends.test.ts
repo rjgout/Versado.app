@@ -75,3 +75,11 @@ test("elke interne link van de vriendenschermen is een lokale native route, beha
   }
   assert.equal(nativeRoute("/acties"), "/acties");
 });
+
+test("de lokale appbundel bevat geen Next.js-modules (de vriendenschermen trekken geen next/link, next/image of dorp binnen)", async () => {
+  const { build } = await import("esbuild");
+  const result = await build({ entryPoints: ["src/components/native/entry.tsx"], bundle: true, write: false, platform: "browser", metafile: true, define: { "process.env.NODE_ENV": '"production"' }, loader: { ".css": "empty", ".woff2": "empty", ".png": "empty", ".webp": "empty", ".svg": "empty" }, logLevel: "silent" });
+  const inputs = Object.keys(result.metafile.inputs);
+  assert.deepEqual(inputs.filter(file => /(^|\/)node_modules\/next\//.test(file)), []);
+  assert.deepEqual(inputs.filter(file => /src\/components\/dorp\//.test(file)), []);
+});
