@@ -26,8 +26,16 @@ function pack(active: SavedSession | null, pending: Retirement[]): SavedSession 
   const [first, ...rest] = unique;
   return first ? { ...first, logoutPending: true, ...(rest.length ? { pendingRevocations: rest } : {}) } : null;
 }
+/** Levensduur van het toegangstoken (`expiresIn` 300 in het contract), met 60 s marge. */
+const ACCESS_LIFETIME_MS = 300_000;
+const ACCESS_REFRESH_AFTER_MS = 240_000;
 export class NativeSessionClient {
   private access: string | null = null;
+  /** Wanneer het toegangstoken is ontvangen, op twee klokken: de muurklok kan
+   * terugspringen en de monotone klok loopt niet door tijdens app-slaap. De
+   * oudste van beide telt, zodat een slapende app niet met een verlopen token
+   * een schrijfactie verstuurt (die bewust nooit opnieuw wordt verzonden). */
+  private accessIssued: { wall: number; mono: number } | null = null;
   private refreshQueue: { generation: number; promise: Promise<void> } | null = null;
   private revocationQueue: Promise<void> | null = null;
   private storageQueue: Promise<unknown> = Promise.resolve();
@@ -39,7 +47,7 @@ export class NativeSessionClient {
   private advanceSession(authenticating: boolean) {
     const generation = ++this.generation;
     this.sessionStamp = crypto.randomUUID();
-    this.access = null; this.securitySetup = null; this.authenticating = authenticating ? generation : null;
+    this.access = null; this.accessIssued = null; this.securitySetup = null; this.authenticating = authenticating ? generation : null;
     for (const listener of this.sessionListeners) { try { listener(this.sessionStamp); } catch {} }
     return generation;
   }
@@ -174,6 +182,7 @@ export class NativeSessionClient {
     }
     this.assertGeneration(generation);
     this.access = pair.accessToken;
+    this.accessIssued = { wall: Date.now(), mono: typeof performance !== "undefined" ? performance.now() : Date.now() };
     // Eerdere offline intenties staan al duurzaam in dezelfde beveiligde
     // staat. Hun transport blokkeert de nieuwe accountweergave niet.
     void this.flushRevocations().catch(() => {});
@@ -212,7 +221,7 @@ export class NativeSessionClient {
         if (error instanceof NativeClientError && (error.status === 401 || error.status === 400)) {
           await this.edit(current => {
             if (generation !== this.generation || current?.refreshToken !== saved.refreshToken) return current;
-            this.access = null;
+            this.access = null; this.accessIssued = null;
             return pack(null, retirements(current));
           });
         }
@@ -222,6 +231,14 @@ export class NativeSessionClient {
     this.refreshQueue = slot;
     return slot.promise;
   }
+  private elapsedMs() {
+    if (!this.accessIssued) return Infinity;
+    const wall = Date.now() - this.accessIssued.wall;
+    const mono = (typeof performance !== "undefined" ? performance.now() : Date.now()) - this.accessIssued.mono;
+    return Math.max(wall, mono);
+  }
+  private accessNearExpiry() { return this.elapsedMs() >= ACCESS_REFRESH_AFTER_MS; }
+  private accessExpired() { return this.elapsedMs() >= ACCESS_LIFETIME_MS; }
   /** B2b writes are sent once. A 401 never refreshes/resends this write:
    * the user must explicitly restore the session and inspect server state. */
   async actionOnce<T>(path: string, body: unknown): Promise<T> {
@@ -231,6 +248,15 @@ export class NativeSessionClient {
     const generation = this.generation;
     if (this.authenticating !== null) throw new NativeClientError("authentication_in_progress", 409);
     if (!this.access) await this.refresh();
+    else if (this.accessNearExpiry()) {
+      // Het token (300 s) verloopt bijna of is verlopen. Ververs vóór het
+      // verzenden: een schrijfactie wordt na een 401 nooit herhaald, dus zonder
+      // dit faalt een actie na een paar minuten stilte onterecht. Alleen een
+      // netwerkfout laat het nog geldige token gebruiken; een afgewezen sessie
+      // (401/400) blijft een echte fout.
+      try { await this.refresh(); }
+      catch (error) { if (!(error instanceof NativeClientError) || error.status === 401 || error.status === 400 || this.accessExpired()) throw error; }
+    }
     this.assertGeneration(generation);
     const token = this.access;
     try {

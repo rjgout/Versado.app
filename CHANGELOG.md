@@ -4,6 +4,8 @@ Alle belangrijke gebruikersgerichte wijzigingen en releases worden hieronder bij
 
 ## Nog niet uitgebracht
 
+- Nieuw (iOS/Android-app): Vrienden is de vierde bestemming in de app. Vriendenlijst, zoeken, verzoeken sturen en annuleren, vrienden verwijderen, seintjes, vriendenreeksen, bevriezers schenken en het vriendenprofiel werken lokaal in de app, met dezelfde privacyregels als op de website (een profiel is alleen voor geaccepteerde vrienden en toont alleen wat de vriend deelt). Uitnodigingslinks, groepen en het dorp volgen later. Verbeterd: een actie (bijvoorbeeld een vriendverzoek accepteren) na enkele minuten stilte faalt niet meer met een onterechte aanmeldmelding, omdat de app de sessie vóór het verzenden ververst.
+
 - Nieuw (iOS 26+): de onderbalk van de iOS-app is de echte systeemtabbalk met Liquid Glass-materiaal, met dezelfde bestemmingen, vertalingen en navigatie als voorheen. Op oudere iOS-versies en op Android en web verandert niets.
 
 - Nieuw (iOS): gedeelde Liquid Glass-materialen voor navigatie, zwevende tabbar, kaarten en bevestigingen, met UIKit-voorkeuren voor transparantie, beweging, contrast en Dynamic Type. Geen wijziging aan voortgang, rechten of distributie.

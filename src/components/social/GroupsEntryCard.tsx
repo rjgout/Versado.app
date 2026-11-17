@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { AppLink as Link } from "@/components/navigation/AppNavigation";
 import { useEffect, useState } from "react";
 import { ChevronRight, UsersRound } from "lucide-react";
 import { useT } from "@/components/I18nProvider";

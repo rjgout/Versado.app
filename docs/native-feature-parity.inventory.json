@@ -6555,10 +6555,11 @@
     },
     {
       "file": "src/app/friends/[userId]/page.tsx",
-      "sha256": "907e7ef91abc9c7c66c7aff31a6fb9a4103fbc3da33459b5b7a44fcec70b0b02",
+      "sha256": "acf87eec0ca742b71dfb56fe190b508d5c533036e1dca334bcffaa4f88ea1172",
       "boundary": "context-dependent",
       "imports": [
         "@/components/FriendProfileClient",
+        "@/components/dorp/FriendVillagePreview",
         "@/lib/session",
         "next/navigation"
       ],
@@ -9716,13 +9717,13 @@
     },
     {
       "file": "src/components/FriendProfileClient.tsx",
-      "sha256": "f2904f6705df6c63d405bc5b907e80af4eb9a756aded6e994fe91982222c75b0",
+      "sha256": "b0b93644b03bff2d6e98f61ffd15861dc04a817b84755b57f80c28746f8affc5",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
         "@/components/ProfileCharacterHero",
         "@/components/UserTag",
-        "@/components/dorp/FriendVillagePreview",
+        "@/components/navigation/AppNavigation",
         "@/components/profile/settings",
         "@/components/puzzle/RecordCard",
         "@/components/versado/AchievementIcon",
@@ -9734,7 +9735,7 @@
         "@/lib/i18n/core",
         "@/lib/puzzle/records",
         "lucide-react",
-        "next/link"
+        "react"
       ],
       "methods": [],
       "requests": [
@@ -9747,7 +9748,7 @@
     },
     {
       "file": "src/components/FriendsClient.tsx",
-      "sha256": "08f7cc6de2bfccfa04c2d5c1f69b6053dcb3d0dd4f3dd0e5d0c89b424f9a6be3",
+      "sha256": "c6918dedf9feb8f99ac1e4267b13cbedecd29b146de17ff51fd2f7e62be1d302",
       "boundary": "client",
       "imports": [
         "@/components/ConfirmProvider",
@@ -9755,11 +9756,13 @@
         "@/components/I18nProvider",
         "@/components/UserAvatar",
         "@/components/UserTag",
+        "@/components/navigation/AppNavigation",
         "@/components/social/FriendStreaksSection",
         "@/components/social/GroupsEntryCard",
         "@/components/social/shared",
         "@/components/versado/SystemIcon",
         "@/components/versado/styles",
+        "@/lib/data/applicationRuntime",
         "@/lib/data/client",
         "@/lib/data/fetchJson",
         "@/lib/data/hooks",
@@ -9769,7 +9772,6 @@
         "@/lib/i18n/serverTexts",
         "@/lib/socketClient",
         "lucide-react",
-        "next/link",
         "react"
       ],
       "methods": [],
@@ -13312,11 +13314,12 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "586281ca579e5173a3d1e85a6ae33e3823f99ea0404874bef79a98e0090778eb",
+      "sha256": "20a4e562cdc7bdd26629a09078da68ee2e65a3525d42a3f6bd643e2f0834806c",
       "boundary": "client",
       "imports": [
         "./NativeContentPicker",
         "./NativeEmailConfirmation",
+        "./NativeFriendsView",
         "./NativeGamesView",
         "./NativeKompasProvider",
         "./NativeLearningView",
@@ -13375,6 +13378,27 @@
       "checks": [],
       "exports": [
         "NativeFoundation"
+      ]
+    },
+    {
+      "file": "src/components/native/NativeFriendsView.tsx",
+      "sha256": "acac2c59e3e1975eeb5a1db1391b6fb2c066e445453d9ab69a00fd5d63e904a7",
+      "boundary": "client",
+      "imports": [
+        "@/components/ConfirmProvider",
+        "@/components/FriendProfileClient",
+        "@/components/FriendsClient",
+        "@/components/I18nProvider",
+        "@/lib/brand",
+        "@/lib/data/queryHooks",
+        "@/lib/native/contract",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NativeFriendsView"
       ]
     },
     {
@@ -15193,13 +15217,13 @@
     },
     {
       "file": "src/components/social/GroupsEntryCard.tsx",
-      "sha256": "c84cf50158963194fad159fb6d8cae8c08e68306d9961b34a83c20be7f23736a",
+      "sha256": "9ade5ddea107609ed4dac35615e5e80b1273d4a1fbada726293294e535ae4f4c",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
         "@/components/versado/styles",
         "lucide-react",
-        "next/link",
         "react"
       ],
       "methods": [],
@@ -22216,7 +22240,7 @@
     },
     {
       "file": "src/lib/native/api.ts",
-      "sha256": "5a30a9383fc5636d3f14759c2a494c2937f248e92fd8cc279313300dada58a5d",
+      "sha256": "cac00a4bce4f4545b4618b992c4d7471355aae234a5f1fb83a9df4ab994f2dab",
       "boundary": "context-dependent",
       "imports": [
         "./annotations.server",
@@ -22513,7 +22537,7 @@
     },
     {
       "file": "src/lib/native/client.ts",
-      "sha256": "0232e3dca6dc01df6b5b10353c6cd2a3e1750f6380ce17ee2137670815bfbc62",
+      "sha256": "fc64aed0a716a91554e19cedaa01c1d0c22546271be9ace2dacca15520a3f2c0",
       "boundary": "context-dependent",
       "imports": [
         "./contract",
@@ -22783,7 +22807,7 @@
     },
     {
       "file": "src/lib/native/gamesHandlers.server.ts",
-      "sha256": "ada29419129a837ba05350760c4cc212fc6006994d6aa3d37eeb0da3c84a75d9",
+      "sha256": "6adea798e73cfcd130679da6cb2737cf3d3e43c738f49c88acd4ccb9dfc54716",
       "boundary": "context-dependent",
       "imports": [
         "./gamesRoutes",
@@ -22811,9 +22835,15 @@
         "@/app/api/exercises/[exerciseId]/check/route",
         "@/app/api/exercises/[exerciseId]/hint/route",
         "@/app/api/feedback/exercise/route",
+        "@/app/api/freezes/gift/route",
+        "@/app/api/friend-streaks/[streakId]/route",
+        "@/app/api/friend-streaks/route",
         "@/app/api/friends/[friendshipId]/accept/route",
         "@/app/api/friends/[friendshipId]/decline/route",
+        "@/app/api/friends/[friendshipId]/route",
+        "@/app/api/friends/profiles/[userId]/route",
         "@/app/api/friends/recent/route",
+        "@/app/api/friends/request/route",
         "@/app/api/friends/route",
         "@/app/api/group-invites/[inviteId]/route",
         "@/app/api/hints/route",
@@ -23038,7 +23068,7 @@
     },
     {
       "file": "src/lib/native/gamesRoutes.ts",
-      "sha256": "9695b500828035c558d7a218767a038eaa9154ad4186af31e07c54f0fa1e97c5",
+      "sha256": "b0d7fb99923d185031058c3bf4725144b31fb9e96856975e3d6a93195db7bc85",
       "boundary": "context-dependent",
       "imports": [],
       "methods": [],
@@ -23164,7 +23194,7 @@
     },
     {
       "file": "src/lib/native/navigation.ts",
-      "sha256": "d09a576296aac12a8cbd6d62139a6aa476eed40211f4ad0da9dd37b742849fc0",
+      "sha256": "8a013e46aade9c72345ffc0dfb3efaa6ae76d0c041e2060a6b74c6041589111c",
       "boundary": "context-dependent",
       "imports": [
         "./gamesPagesRoutes",
@@ -23521,7 +23551,7 @@
     },
     {
       "file": "src/lib/native/shell.ts",
-      "sha256": "fc426863e3c5e3bb8d5848bd5b5f46b203f393aee6e58f900d193cb69859356f",
+      "sha256": "3c841f1041b27a45641307bfed89b64df2d386d619a8f857357e0ce77be78a5e",
       "boundary": "context-dependent",
       "imports": [
         "./navigation",
@@ -23533,6 +23563,7 @@
       "exports": [
         "NATIVE_PRIMARY_NAV",
         "nativeAppleLoginUIAvailable",
+        "nativeFriendsAvailable",
         "nativePrimaryNav"
       ]
     },
@@ -53794,9 +53825,15 @@
         "src/app/api/exercises/[exerciseId]/check/route.ts",
         "src/app/api/exercises/[exerciseId]/hint/route.ts",
         "src/app/api/feedback/exercise/route.ts",
+        "src/app/api/freezes/gift/route.ts",
+        "src/app/api/friend-streaks/[streakId]/route.ts",
+        "src/app/api/friend-streaks/route.ts",
         "src/app/api/friends/[friendshipId]/accept/route.ts",
         "src/app/api/friends/[friendshipId]/decline/route.ts",
+        "src/app/api/friends/[friendshipId]/route.ts",
+        "src/app/api/friends/profiles/[userId]/route.ts",
         "src/app/api/friends/recent/route.ts",
+        "src/app/api/friends/request/route.ts",
         "src/app/api/friends/route.ts",
         "src/app/api/group-invites/[inviteId]/route.ts",
         "src/app/api/hints/route.ts",
@@ -54147,6 +54184,7 @@
         "src/lib/feedback.ts",
         "src/lib/focusMode.ts",
         "src/lib/friendInvite.ts",
+        "src/lib/friendProfiles.ts",
         "src/lib/gameAvailability.ts",
         "src/lib/gameAvailabilityPolicy.ts",
         "src/lib/gameCatalog.ts",
@@ -59541,17 +59579,18 @@
         "getCurrentUser"
       ],
       "iosCoverage": {
-        "status": "ontbreekt",
-        "native": null,
-        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+        "status": "gedeeltelijk",
+        "native": "/friends",
+        "reason": "Gedeelde vriendenlijst, zoeken, verzoek sturen/annuleren, verwijderen, seintjes, vriendenreeksen en bevriezers lokaal via de spelbrug (friends-v1); uitnodigingslink en groepen (fase C), tabbalk-/toestelacceptatie nog open (NATIVE-VRIENDEN.md)"
       }
     },
     {
       "file": "src/app/friends/[userId]/page.tsx",
-      "sha256": "907e7ef91abc9c7c66c7aff31a6fb9a4103fbc3da33459b5b7a44fcec70b0b02",
+      "sha256": "acf87eec0ca742b71dfb56fe190b508d5c533036e1dca334bcffaa4f88ea1172",
       "boundary": "context-dependent",
       "imports": [
         "@/components/FriendProfileClient",
+        "@/components/dorp/FriendVillagePreview",
         "@/lib/session",
         "next/navigation"
       ],
@@ -59719,6 +59758,7 @@
       ],
       "directModules": [
         "src/components/FriendProfileClient.tsx",
+        "src/components/dorp/FriendVillagePreview.tsx",
         "src/lib/session.ts"
       ],
       "clientBoundaries": [
@@ -59750,9 +59790,9 @@
         "getCurrentUser"
       ],
       "iosCoverage": {
-        "status": "ontbreekt",
-        "native": null,
-        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+        "status": "gedeeltelijk",
+        "native": "/friends/[userId]",
+        "reason": "Gedeeld vriendenprofiel (privacy server-side); dorpvoorbeeld en groepslinks nog niet lokaal, toestelacceptatie open (NATIVE-VRIENDEN.md)"
       }
     },
     {
@@ -75885,10 +75925,11 @@
     },
     {
       "file": "src/app/friends/[userId]/page.tsx",
-      "sha256": "907e7ef91abc9c7c66c7aff31a6fb9a4103fbc3da33459b5b7a44fcec70b0b02",
+      "sha256": "acf87eec0ca742b71dfb56fe190b508d5c533036e1dca334bcffaa4f88ea1172",
       "boundary": "context-dependent",
       "imports": [
         "@/components/FriendProfileClient",
+        "@/components/dorp/FriendVillagePreview",
         "@/lib/session",
         "next/navigation"
       ],
@@ -79018,13 +79059,13 @@
     },
     {
       "file": "src/components/FriendProfileClient.tsx",
-      "sha256": "f2904f6705df6c63d405bc5b907e80af4eb9a756aded6e994fe91982222c75b0",
+      "sha256": "b0b93644b03bff2d6e98f61ffd15861dc04a817b84755b57f80c28746f8affc5",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
         "@/components/ProfileCharacterHero",
         "@/components/UserTag",
-        "@/components/dorp/FriendVillagePreview",
+        "@/components/navigation/AppNavigation",
         "@/components/profile/settings",
         "@/components/puzzle/RecordCard",
         "@/components/versado/AchievementIcon",
@@ -79036,7 +79077,7 @@
         "@/lib/i18n/core",
         "@/lib/puzzle/records",
         "lucide-react",
-        "next/link"
+        "react"
       ],
       "methods": [],
       "requests": [
@@ -79049,7 +79090,7 @@
     },
     {
       "file": "src/components/FriendsClient.tsx",
-      "sha256": "08f7cc6de2bfccfa04c2d5c1f69b6053dcb3d0dd4f3dd0e5d0c89b424f9a6be3",
+      "sha256": "c6918dedf9feb8f99ac1e4267b13cbedecd29b146de17ff51fd2f7e62be1d302",
       "boundary": "client",
       "imports": [
         "@/components/ConfirmProvider",
@@ -79057,11 +79098,13 @@
         "@/components/I18nProvider",
         "@/components/UserAvatar",
         "@/components/UserTag",
+        "@/components/navigation/AppNavigation",
         "@/components/social/FriendStreaksSection",
         "@/components/social/GroupsEntryCard",
         "@/components/social/shared",
         "@/components/versado/SystemIcon",
         "@/components/versado/styles",
+        "@/lib/data/applicationRuntime",
         "@/lib/data/client",
         "@/lib/data/fetchJson",
         "@/lib/data/hooks",
@@ -79071,7 +79114,6 @@
         "@/lib/i18n/serverTexts",
         "@/lib/socketClient",
         "lucide-react",
-        "next/link",
         "react"
       ],
       "methods": [],
@@ -82463,11 +82505,12 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "586281ca579e5173a3d1e85a6ae33e3823f99ea0404874bef79a98e0090778eb",
+      "sha256": "20a4e562cdc7bdd26629a09078da68ee2e65a3525d42a3f6bd643e2f0834806c",
       "boundary": "client",
       "imports": [
         "./NativeContentPicker",
         "./NativeEmailConfirmation",
+        "./NativeFriendsView",
         "./NativeGamesView",
         "./NativeKompasProvider",
         "./NativeLearningView",
@@ -82526,6 +82569,27 @@
       "checks": [],
       "exports": [
         "NativeFoundation"
+      ]
+    },
+    {
+      "file": "src/components/native/NativeFriendsView.tsx",
+      "sha256": "acac2c59e3e1975eeb5a1db1391b6fb2c066e445453d9ab69a00fd5d63e904a7",
+      "boundary": "client",
+      "imports": [
+        "@/components/ConfirmProvider",
+        "@/components/FriendProfileClient",
+        "@/components/FriendsClient",
+        "@/components/I18nProvider",
+        "@/lib/brand",
+        "@/lib/data/queryHooks",
+        "@/lib/native/contract",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NativeFriendsView"
       ]
     },
     {
@@ -84253,13 +84317,13 @@
     },
     {
       "file": "src/components/social/GroupsEntryCard.tsx",
-      "sha256": "c84cf50158963194fad159fb6d8cae8c08e68306d9961b34a83c20be7f23736a",
+      "sha256": "9ade5ddea107609ed4dac35615e5e80b1273d4a1fbada726293294e535ae4f4c",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
         "@/components/versado/styles",
         "lucide-react",
-        "next/link",
         "react"
       ],
       "methods": [],
@@ -85991,6 +86055,8 @@
     "tests/native-foundation.browser.mjs",
     "tests/native-foundation.integration.test.ts",
     "tests/native-foundation.test.ts",
+    "tests/native-friends.integration.test.mjs",
+    "tests/native-friends.test.ts",
     "tests/native-game-annotations.test.mjs",
     "tests/native-game-audio.test.mjs",
     "tests/native-game-client.test.mjs",
@@ -86039,6 +86105,7 @@
     "tests/native-today.browser.mjs",
     "tests/native-today.integration.test.ts",
     "tests/native-today.test.ts",
+    "tests/native-token-lifetime.test.ts",
     "tests/navigation-departure.test.ts",
     "tests/navigation.test.ts",
     "tests/nl-terminology.test.ts",
