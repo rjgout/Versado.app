@@ -85985,6 +85985,7 @@
     "tests/native-foundation.browser.mjs",
     "tests/native-foundation.integration.test.ts",
     "tests/native-foundation.test.ts",
+    "tests/native-friends.integration.test.mjs",
     "tests/native-friends.test.ts",
     "tests/native-game-annotations.test.mjs",
     "tests/native-game-audio.test.mjs",

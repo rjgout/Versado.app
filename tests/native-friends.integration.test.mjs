@@ -38,9 +38,9 @@ test('verzoek → accepteren → profiel → verwijderen, alles onder de native 
  // Een derde is geen vriend: 404 zonder lek of de id bestaat.
  assert.equal((await call(`games/friends/profiles/${b.user.id}`,{user:c})).data.status,404);
  // Een niet-deelnemer kan de vriendschap niet verwijderen.
- assert.equal((await call(`games/friends/${friendshipId}`,{user:c,method:'DELETE'})).data.status,404);
+ assert.equal((await call(`games/friends/${friendshipId}`,{user:c,method:'DELETE',body:{}})).data.status,404);
  assert.equal(await prisma.friendship.count({where:{id:friendshipId}}),1);
- const removed=await call(`games/friends/${friendshipId}`,{method:'DELETE'});assert.equal(removed.data.status,200);
+ const removed=await call(`games/friends/${friendshipId}`,{method:'DELETE',body:{}});assert.equal(removed.data.status,200);
  assert.equal(await prisma.friendship.count({where:{id:friendshipId}}),0);
  assert.equal((await call(`games/friends/profiles/${b.user.id}`)).data.status,404);
 });
