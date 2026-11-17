@@ -1,6 +1,6 @@
 # Vrienden als vierde bestemming (Capacitor)
 
-Eerste app-first oplevering ([besluit](ARCHITECTUURBESLUIT-APP-FIRST.md), [plan](APP-FIRST-IMPLEMENTATIEPLAN.md)).
+Eerste app-first oplevering (besluit en plan: `docs/ARCHITECTUURBESLUIT-APP-FIRST.md` en `docs/APP-FIRST-IMPLEMENTATIEPLAN.md`, PR #289; deze bestanden staan pas op `develop` na de merge van #289).
 De gedeelde React-interface (`FriendsClient`, `FriendProfileClient`) draait lokaal in de app; er is geen tweede
 vriendensysteem, geen nieuwe backendlaag en geen verruiming van autorisatie.
 
@@ -23,7 +23,7 @@ vriendensysteem, geen nieuwe backendlaag en geen verruiming van autorisatie.
   database), inclusief niet-deelnemer, derde partij, dubbele/omgekeerde verzoeken, vreemde cookie/origin.
 - **Bewust nog niet lokaal** (verborgen of niet-klikbaar in de app): uitnodigingslink (`FriendInviteCard`), groepen
   (`GroupsEntryCard`, groepslinks in het vriendenprofiel), dorpvoorbeeld. Dit zijn fase C-onderdelen
-  ([audit](NATIVE-VRIENDEN-AUDIT.md)); `/competition` en `/activity` volgen in fase B. Vriendverzoeken accepteren/afwijzen
+  (audit: `docs/NATIVE-VRIENDEN-AUDIT.md`, PR #289); `/competition` en `/activity` volgen in fase B. Vriendverzoeken accepteren/afwijzen
   loopt via Vandaag en `/acties`, zoals voorheen.
 
 ## De 401 bij accepteren (diagnose)
