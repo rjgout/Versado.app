@@ -61,6 +61,10 @@ async function pinnedResponse(source) {
 }
 await fs.mkdir(root, { recursive: true });
 let next = 0;
+// Alle afwijkingen worden verzameld en met bestand, bron en hashes gemeld: de
+// integriteitscontrole blijft streng, maar een bronwijziging is zo in één run
+// volledig te beoordelen in plaats van bij de eerste afwijking te stoppen.
+const failures = [];
 async function worker() {
   while (next < entries.length) {
     const e = entries[next++],
@@ -68,6 +72,14 @@ async function worker() {
     try {
       if (valid(await fs.readFile(p), e)) continue;
     } catch {}
+    try {
+      await download(e, p);
+    } catch (error) {
+      failures.push({ file: e.file, url: e.url, expected: e.sha, error: error.message, ...(error.actual ? { actual: error.actual } : {}) });
+    }
+  }
+}
+async function download(e, p) {
     const u = new URL(e.url);
     if (
       u.protocol !== "https:" ||
@@ -88,12 +100,19 @@ async function worker() {
       chunks.push(chunk);
     }
     const bytes = Buffer.concat(chunks);
-    if (!valid(bytes, e)) throw Error("CFM_ASSET_HASH");
+    if (!valid(bytes, e)) {
+      const mismatch = Error("CFM_ASSET_HASH");
+      mismatch.actual = createHash(e.git ? "sha1" : "sha256").update(e.git ? Buffer.concat([Buffer.from(`blob ${bytes.length}\0`), bytes]) : bytes).digest("hex");
+      throw mismatch;
+    }
     await fs.mkdir(path.dirname(p), { recursive: true });
     await fs.writeFile(p, bytes, { mode: 0o600 });
-  }
 }
 await Promise.all(Array.from({ length: 4 }, worker));
+if (failures.length) {
+  console.error(JSON.stringify({ failures }, null, 2));
+  throw Error(`CFM_ASSETS_FAILED:${failures.length}`);
+}
 console.log(
   JSON.stringify({
     pinnedMedia: media.length,
