@@ -1,6 +1,7 @@
 "use client";
 
-import Link from "next/link";
+import { AppLink as Link } from "@/components/navigation/AppNavigation";
+import { nativeApplicationInstalled } from "@/lib/data/applicationRuntime";
 import FriendVillagePreview from "@/components/dorp/FriendVillagePreview";
 import type { LeagueTier } from "@/generated/prisma/client";
 import { Gamepad2, Sparkles, Users } from "lucide-react";
@@ -82,7 +83,8 @@ export default function FriendProfileClient({ userId, viewerId }: { userId: stri
         </div>
       </section>
 
-      <FriendVillagePreview userId={userId} viewerId={viewerId} />
+      {/* Het dorp heeft nog geen native route of contract. */}
+      {!nativeApplicationInstalled() && <FriendVillagePreview userId={userId} viewerId={viewerId} />}
       {stats ? (
         <>
           <ProfileCard title={t("friends.sharedProgress")}>
