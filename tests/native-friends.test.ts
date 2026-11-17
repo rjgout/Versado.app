@@ -59,3 +59,19 @@ test("de gedeelde vriendenclients roepen alleen toegestane routes aan en gebruik
     }
   }
 });
+
+test("elke interne link van de vriendenschermen is een lokale native route, behalve de bewust uitgestelde (groepen)", () => {
+  // /acties is de bestaande verzoekafhandeling (spelbrug-pagina); groepen volgen in fase C en renderen
+  // in de app als uitgeschakelde link (NativeLink zonder lokale route).
+  const deferred = [/^\/groups\//, /^\/dorp\//];
+  for (const file of ["src/components/FriendsClient.tsx", "src/components/FriendProfileClient.tsx"]) {
+    const source = readFileSync(file, "utf8");
+    const hrefs = [...source.matchAll(/href=(?:"(\/[^"]*)"|\{`(\/[^`]*)`\})/g)].map(match => (match[1] ?? match[2]).replace(/\$\{[^}]*\}/g, "x1"));
+    assert.ok(hrefs.length > 0, `${file}: geen links gevonden`);
+    for (const href of hrefs) {
+      if (deferred.some(pattern => pattern.test(href))) continue;
+      assert.notEqual(nativeRoute(href), null, `${file}: ${href} is geen lokale native route`);
+    }
+  }
+  assert.equal(nativeRoute("/acties"), "/acties");
+});

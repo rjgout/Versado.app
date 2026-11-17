@@ -60,8 +60,8 @@ test("de echte bronboom, alle API-methoden en profielsubschermen zijn in de actu
 test("alle webpagina's hebben expliciete iOS-dekking; een route of legacy-melding is geen pariteit", () => {
   const inventory=collectParity();
   for(const row of inventory.routes.filter(row=>row.kind==='page'))assert.ok(['volledig','gedeeltelijk','ontbreekt'].includes(row.iosCoverage.status),row.route);
-  for(const route of ['/friends','/study-folder','/dev/lofzangen','/adminbackend'])assert.equal(iosCoverageFor(route).status,'ontbreekt');
-  for(const route of ['/dashboard','/profile','/courses','/courses/[courseId]/pad','/live','/lesson/[chapterId]','/acties','/kompas/[topicId]'])assert.equal(iosCoverageFor(route).status,'gedeeltelijk');
+  for(const route of ['/study-folder','/dev/lofzangen','/adminbackend'])assert.equal(iosCoverageFor(route).status,'ontbreekt');
+  for(const route of ['/dashboard','/friends','/friends/[userId]','/profile','/courses','/courses/[courseId]/pad','/live','/lesson/[chapterId]','/acties','/kompas/[topicId]'])assert.equal(iosCoverageFor(route).status,'gedeeltelijk');
   assert.equal(iosCoverageFor('/privacy').status,'volledig');
   assert.equal(iosCoverageFor('/new-route').status,'ontbreekt');
   assert.equal(inventory.iosProfileViews.length,inventory.profileViews.length);
