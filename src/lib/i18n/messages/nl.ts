@@ -4357,6 +4357,7 @@ export const nl = {
   player: {
     nativeOutput: "Voorleesbron",
     nativeRecording: "Opgenomen audio",
+    nativeNoRecording: "Voor dit hoofdstuk is op de server geen opgenomen audio beschikbaar. Je hoort de stem van je toestel.",
     nativeDeviceVoice: "Stem op dit toestel",
     nativeUnavailable: "Voorlezen is nu niet beschikbaar. Controleer je verbinding en de beschikbare stemmen.",
 

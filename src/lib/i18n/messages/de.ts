@@ -3855,6 +3855,7 @@ export const de: PartialMessages = {
   player: {
     nativeOutput: "Vorlesequelle",
     nativeRecording: "Audioaufnahme",
+    nativeNoRecording: "Für dieses Kapitel ist auf dem Server keine Audioaufnahme verfügbar. Du hörst die Stimme deines Geräts.",
     nativeDeviceVoice: "Stimme auf diesem Gerät",
     nativeUnavailable: "Vorlesen ist derzeit nicht verfügbar. Prüfe deine Verbindung und die verfügbaren Stimmen.",
 

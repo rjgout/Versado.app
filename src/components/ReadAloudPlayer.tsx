@@ -147,6 +147,7 @@ function WebReadAloudPlayer({ sourceId, title, verses, audio, startVerse = 0, su
 
   return (
     <div className="space-y-2" data-read-aloud-controls onPointerDown={()=>{if(adapter)window.dispatchEvent(new Event("versado:read-aloud-interaction"));}} onKeyDownCapture={()=>{if(adapter)window.dispatchEvent(new Event("versado:read-aloud-interaction"));}}>
+      {adapter&&adapter.status==="ready"&&!recording&&!!voice&&<p role="status" className="text-sm text-vs-fg-2">{t("player.nativeNoRecording")}</p>}
       {adapter&&(recording||voice)&&<><label className="flex flex-wrap gap-2 text-sm font-semibold">{t("player.nativeOutput")}<AppSelect value={useTts?"tts":"recording"} onChange={value=>{stop();setMode(value);}} ariaLabel={t("player.nativeOutput")} options={[...(recording?[{value:"recording",label:t("player.nativeRecording")}]:[]),...(voice?[{value:"tts",label:t("player.nativeDeviceVoice")}]:[])]}/></label>{useTts&&voice&&<label className="flex flex-wrap gap-2 text-sm">{t("player.nativeDeviceVoice")}<AppSelect value={voice.id} onChange={value=>{stop();setVoiceId(value);try{localStorage.setItem(`jehovaapp-read-aloud-device-voice-${textLanguage}`,value);}catch{}}} ariaLabel={t("player.nativeDeviceVoice")} options={deviceVoices.map(item=>({value:item.id,label:item.name}))}/></label>}</>}
       <label className="flex flex-wrap items-center gap-2 text-sm font-semibold">
         {t("player.audioLanguage")}

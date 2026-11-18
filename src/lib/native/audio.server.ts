@@ -21,6 +21,11 @@ import { nativeAudioFileIdentity, verifyNativeAudioFile } from "./audioFile.serv
 import type { NativeReader, NativeReaderKind } from "./readerContract";
 const digest=(value:unknown)=>objectHash(JSON.parse(JSON.stringify(value)));
 function unavailable():never{throw new NativeAuthError("audio_unavailable",404);}
+/** Een bron die bewust wordt weggelaten krijgt een vaste, privacyvrije reden (alleen ids, nooit paden of
+ * bytes), zodat de beheerder in het serverlog ziet waarom een opname niet selecteerbaar is. */
+class AudioSkip extends NativeAuthError{constructor(public reason:string){super("audio_unavailable",404);}}
+function skip(reason:string):never{throw new AudioSkip(reason);}
+const skipReason=(error:unknown)=>error instanceof AudioSkip?error.reason:error instanceof ZodError?"ongeldige_gegevens":error instanceof Error&&error.message==="STORAGE_UNAVAILABLE"?"opslag_niet_beschikbaar":error instanceof Error&&["ENOENT","ELOOP"].includes((error as NodeJS.ErrnoException).code??"")?"bestand_ontbreekt_op_server":error instanceof Error&&["UNSAFE_DIRECTORY","UNSAFE_PATH"].includes(error.message)?"onveilig_pad":"bestand_komt_niet_overeen";
 type Actor=Awaited<ReturnType<typeof context>>["user"];
 async function authority(actor:Actor,chapterId:string) {
   const chapter=await prisma.chapter.findFirst({where:{id:chapterId,book:{contentCollection:readingAccessWhere(actor)}},include:{book:{include:{contentCollection:true}},audioCheck:true,verses:{orderBy:{number:"asc"}}}});
@@ -62,29 +67,32 @@ async function prepareAudio(binding:NativeSessionBinding,resolve:Resolver){
         const recordingId=/^\/api\/audio\/recordings\/([A-Za-z0-9_-]{1,128})$/.exec(url)?.[1];
         if(recordingId){
           const recording=await accessibleRecording(value.user,recordingId);
-          if(!recording||recording.chapterId!==authorityChapterId||current.publication?.recordingId!==recordingId)unavailable();
+          if(!recording||recording.chapterId!==authorityChapterId||current.publication?.recordingId!==recordingId)skip(!recording?"opname_niet_toegankelijk":recording.chapterId!==authorityChapterId?"opname_hoort_bij_ander_hoofdstuk":"opname_niet_gepubliceerd");
           file=path.join(await safeDirectory(await audioRoot(),"objects"),recording.sha256+".mp3");sourceKind="recording";expected={sha256:recording.sha256,byteSize:recording.byteSize};
           const rows=segmentsSchema.shape.segments.parse(recording.segments);
           segments=clip?[{number:1,start:clip.start,end:clip.end}]:current.chapter.verses.filter(v=>v.number>=reader.startVerse&&v.number<=reader.endVerse).map(v=>{const s=rows.find(s=>s.id===v.id);if(!s)unavailable();return {number:v.number,start:s.start,end:s.end};});
         }else{
           const name=/^\/api\/audio\/([^/]+)$/.exec(url)?.[1];
-          if(!name||!isAudioFileName(name)||current.chapter.audioCheck?.status==="NEEDS_REVIEW"||!fallbackFor&&mirrorFileName(current.chapter.audioUrl??"")!==name)unavailable();
-          if(!fallbackFor&&(!current.chapter.audioCheck||current.chapter.audioCheck.status!=="CURRENT"||current.chapter.audioCheck.textHash!==chapterTextHash(current.chapter.verses.map(v=>v.text))))unavailable();
+          if(!name||!isAudioFileName(name))skip("oude_audio_niet_gespiegeld_naar_server");
+          if(current.chapter.audioCheck?.status==="NEEDS_REVIEW")skip("tekst_gewijzigd_audio_ter_controle");
+          if(!fallbackFor&&mirrorFileName(current.chapter.audioUrl??"")!==name)skip("gespiegeld_bestand_komt_niet_overeen");
+          if(!fallbackFor&&!current.chapter.audioCheck)skip("geen_audiocontrole_vastgelegd");
+          if(!fallbackFor&&(current.chapter.audioCheck!.status!=="CURRENT"||current.chapter.audioCheck!.textHash!==chapterTextHash(current.chapter.verses.map(v=>v.text))))skip("tekst_wijkt_af_van_audiocontrole");
           file=path.join(await audioRoot(),name);sourceKind="legacy";
           segments=clip?[{number:1,start:clip.start,end:clip.end}]:starts.filter(v=>v.number>=reader.startVerse&&v.number<=reader.endVerse).map(v=>{
             const next=starts.find(s=>s.number===v.number+1),last=current.chapter.verses.at(-1)?.number;
-            if(v.audioStart===null||next?.audioStart===null||!next&&v.number!==last)unavailable();
+            if(v.audioStart===null||next?.audioStart===null||!next&&v.number!==last)skip("versmarkeringen_ontbreken");
             return {number:v.number,start:v.audioStart,end:next?.audioStart??null};
           });
         }
-        if(segments.length!==reader.endVerse-reader.startVerse+1)unavailable();
+        if(segments.length!==reader.endVerse-reader.startVerse+1)skip("versmarkeringen_onvolledig");
         const identity=await nativeAudioFileIdentity(file,expected);
         const base={kind:sourceKind,language:edition.language,audioChapterId:resolved.intro?reader.chapterId:authorityChapterId,collectionId:current.chapter.book.contentCollectionId,...identity,start:segments[0].start,end:segments.at(-1)!.end,verses:segments,...(fallbackFor?{fallbackFor}:{})};
         const id=digest({scope:mediaScope(reader),readerHash:readerStamp(reader),binding,stamp:current.stamp,base});
         const source=nativeAudioSource.parse({...base,id});
         const snapshot={source,file,authorityChapterId,stamp:current.stamp,scope:mediaScope(reader),readerHash:readerStamp(reader),binding,until:performance.now()+60000};remember(snapshot);snapshots.push(snapshot);sources.push(source);return source;
       }catch(error){
-        if(error instanceof NativeAuthError&&error.code==="audio_unavailable"||error instanceof ZodError||error instanceof Error&&(["AUDIO_UNAVAILABLE","STORAGE_UNAVAILABLE","UNSAFE_DIRECTORY","UNSAFE_PATH"].includes(error.message)||["ENOENT","ELOOP"].includes((error as NodeJS.ErrnoException).code??"")))return;
+        if(error instanceof NativeAuthError&&error.code==="audio_unavailable"||error instanceof ZodError||error instanceof Error&&(["AUDIO_UNAVAILABLE","STORAGE_UNAVAILABLE","UNSAFE_DIRECTORY","UNSAFE_PATH"].includes(error.message)||["ENOENT","ELOOP"].includes((error as NodeJS.ErrnoException).code??""))){console.info("[native-audio] bron weggelaten",{hoofdstuk:authorityChapterId,taal:edition.language,reden:skipReason(error)});return;}
         throw error;
       }
     };

@@ -3855,6 +3855,7 @@ export const en: PartialMessages = {
   player: {
     nativeOutput: "Read-aloud source",
     nativeRecording: "Recorded audio",
+    nativeNoRecording: "No recorded audio is available on the server for this chapter. You hear your device voice.",
     nativeDeviceVoice: "Voice on this device",
     nativeUnavailable: "Read aloud is currently unavailable. Check your connection and available voices.",
 

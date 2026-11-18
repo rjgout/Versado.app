@@ -3864,6 +3864,7 @@ export const es: PartialMessages = {
   "player": {
     "nativeOutput": "Fuente de lectura",
     "nativeRecording": "Audio grabado",
+    "nativeNoRecording": "No hay audio grabado en el servidor para este capítulo. Oyes la voz de tu dispositivo.",
     "nativeDeviceVoice": "Voz de este dispositivo",
     "nativeUnavailable": "La lectura no está disponible. Comprueba tu conexión y las voces disponibles.",
     "audioLanguage": "Idioma de audio",
