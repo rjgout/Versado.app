@@ -21,7 +21,7 @@ test("Vrienden is pas een bestemming met friends-v1, games-v1 én realtime", () 
 test("alleen /friends en /friends/<id> zijn lokale routes; geen query, extra segmenten of andere sociale pagina's", () => {
   assert.equal(nativeRoute("/friends"), "/friends");
   assert.equal(nativeRoute("/friends/abc_123-X"), "/friends/abc_123-X");
-  for (const bad of ["/friends/", "/friends/a/b", "/friends?x=1", "/friends/a%20b", "//friends", "/groups", "/competition", "/activity", "/friends/" + "a".repeat(129)]) assert.equal(nativeRoute(bad), null, bad);
+  for (const bad of ["/friends/", "/friends/a/b", "/friends?x=1", "/friends/a%20b", "//friends", "/groups", "/activity", "/friends/" + "a".repeat(129)]) assert.equal(nativeRoute(bad), null, bad);
   assert.equal(activeDestination("/friends/abc"), "friends");
 });
 

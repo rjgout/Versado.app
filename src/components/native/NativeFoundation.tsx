@@ -4,6 +4,7 @@ import {CompanionProvider} from "@/components/versado/PersonalMascot";
 import {useBackTargetOverride} from "@/lib/backTarget";
 import NativeGamesView from "./NativeGamesView";
 import NativeFriendsView from "./NativeFriendsView";
+import NativeProgressView,{nativeProgressRoute} from "./NativeProgressView";
 import {nativeGameOwnsRoute} from "@/lib/native/gamesPagesRoutes";
 import ProfilePageView from "@/components/profile/ProfilePageView";
 import { parseProfileView,PROFILE_VIEWS } from "@/lib/profileViews";
@@ -34,6 +35,8 @@ import { NativeClientError,type NativeSessionClient,type NativeSignInOutcome } f
 import { nativeCapabilitiesSchema,type NativeAccount,type NativeContentState,type NativeSecuritySetup } from "@/lib/native/contract";
 import { nativeDeepLink,nativeEmailConfirmationLink,nativePasswordResetLink } from "@/lib/native/navigation";
 import { nativeReaderRoute } from "@/lib/native/readerNavigation";
+import { nativeBackFallback } from "@/lib/native/backTarget";
+import { dismissTopmostModal } from "@/lib/native/modalBack";
 import { focusNativeRouteHeading } from "@/lib/native/routeFocus";
 import { nativeAppleLoginUIAvailable,nativeFriendsAvailable,nativePrimaryNav } from "@/lib/native/shell";
 import { NativeSocketConnection } from "@/lib/native/socketClient";
@@ -103,8 +106,8 @@ function NativeFoundationContent({ audioOutput, client, termsUrl = null, onLangu
   const [identifier, setIdentifier] = useState(""), [password, setPassword] = useState(""), [code, setCode] = useState(""), [handle, setHandle] = useState("");
   const [error, setError] = useState(""), [notice, setNotice] = useState(false), [busy, setBusy] = useState(false), [offline, setOffline] = useState(false), [apple, setApple] = useState(false);
   const launchHandled = useRef(false), fullTodayBackend = useRef(false);
-  const sequence = useRef(0), current = useRef({ busy, navigation, setup, recoveryCodes });
-  useEffect(() => { current.current = { busy, navigation, setup, recoveryCodes }; }, [busy, navigation, setup, recoveryCodes]);
+  const sequence = useRef(0), current = useRef({ busy, navigation, setup, recoveryCodes, features: [] as readonly string[] });
+  useEffect(() => { current.current = { busy, navigation, setup, recoveryCodes, features }; }, [busy, navigation, setup, recoveryCodes, features]);
   const accountLanguage = navigation.pathname === "/dashboard" ? overview?.language ?? user?.uiLanguage : user?.uiLanguage;
   useEffect(() => { if (accountLanguage) onLanguage?.(accountLanguage); }, [accountLanguage, onLanguage]);
   useEffect(() => focusNativeRouteHeading(), [chapterId, navigation.pathname, user?.id, setup?.step, recoveryCodes, pickerAvailable, overviewReady]);
@@ -165,17 +168,12 @@ function NativeFoundationContent({ audioOutput, client, termsUrl = null, onLangu
     const invalidate = () => { sequence.current++; };
     let disposed = false, cleanup: (() => void) | undefined;
     void startNativeFoundationRuntime({ onResume: online, onBack: () => {
-      const dialog = document.querySelector<HTMLDialogElement>("dialog[open]");
-      if (dialog) {
-        const event = new Event("cancel", { cancelable: true }); dialog.dispatchEvent(event);
-        if (!event.defaultPrevented) dialog.close();
-        return true;
-      }
+      if (dismissTopmostModal(document)) return true;
       const nav = current.current.navigation;
       if (current.current.setup && !["/privacy", "/cookies", "/disclaimer", "/contact"].includes(nav.pathname)) {
         void client.logout(() => { setSetup(null); setCode(""); nav.replace("/login"); }).catch(report); return true;
       }
-      if (nav.canGoBack() || (nav.pathname !== "/dashboard" && nav.pathname !== "/login")) { nav.back(); return true; }
+      if (nav.canGoBack() || (nav.pathname !== "/dashboard" && nav.pathname !== "/login")) { nav.back(nativeBackFallback(nav.pathname, current.current.features)); return true; }
       return false;
     }, onUrl: (raw, source) => {
       if (disposed) return;
@@ -274,14 +272,15 @@ function NativeFoundationContent({ audioOutput, client, termsUrl = null, onLangu
   const gamesEnabled=features.includes("games-v1")&&realtime&&gameSocketOwner===`${user?.id}:${client.getSessionStamp()}`;
   const learningPage = /^\/courses(?:\/|$)/.test(navigation.pathname);
   const friendsPage = /^\/friends(?:\/|$)/.test(navigation.pathname);
+  const progressRoute = nativeProgressRoute(navigation.pathname);
   const friendsEnabled = gamesEnabled && nativeFriendsAvailable(features);
   const destinations = nativePrimaryNav(features);
-  const detail = (gamesPage&&navigation.pathname!=="/live") || !!readerRoute || (learningPage && navigation.pathname !== "/courses") || (friendsPage && navigation.pathname !== "/friends") || diagnostics || pickerPage || legal || profile || passwordPage || deletionPage || resetPage || confirmationPage || !!chapterId;
+  const detail = (gamesPage&&navigation.pathname!=="/live") || !!readerRoute || (learningPage && navigation.pathname !== "/courses") || (friendsPage && navigation.pathname !== "/friends") || !!progressRoute || diagnostics || pickerPage || legal || profile || passwordPage || deletionPage || resetPage || confirmationPage || !!chapterId;
   const shellAccount = user && !setup && !recoveryCodes ? user : null;
   return <CompanionProvider character={user?.companion??"novi"}><AccountActionsProvider actions={accountActions}><NativeKompasProvider><AppShellFrame
-    header={<NativeShellHeader account={shellAccount} onError={report} content={content} buildIndicator={buildIndicator} destinations={destinations} />}
+    header={<NativeShellHeader account={shellAccount} onError={report} content={content} buildIndicator={buildIndicator} destinations={destinations} progressLinks={gamesEnabled} />}
     headerExtras={<>
-      {detail && <SubpageBackBarView title={diagnostics ? t("nativeDiagnostics.title") : pickerPage ? t("contentSwitcher.picker.title") : passwordPage ? t("profile.changePassword") : deletionPage ? t("accountDeletion.title") : profile ? t(navigation.pathname==="/profile/avatar" ? "profile.avatarEditorTitle" : profileView ? PROFILE_VIEWS[profileView].title : "nav.profile") : readerRoute ? t("pages.lesson") : learningPage ? t("pages.course") : friendsPage ? t("nav.friends") : chapterId ? t("pages.lesson") : t("common.back")} onBack={gamesPage&&gameBack ? gameBack.onBack??(()=>gameBack.soft?navigation.back(gameBack.href):navigation.push(gameBack.href)) : () => navigation.back(gamesPage ? "/live" : passwordPage || deletionPage || profile && (profileView || navigation.pathname==="/profile/avatar") ? "/profile" : readerRoute ? `/courses/${readerRoute.courseId}/pad` : friendsPage ? "/friends" : learningPage ? navigation.pathname.endsWith("/archief") ? navigation.pathname.replace(/archief$/, "pad") : "/courses" : "/dashboard")} />}
+      {detail && <SubpageBackBarView title={diagnostics ? t("nativeDiagnostics.title") : pickerPage ? t("contentSwitcher.picker.title") : passwordPage ? t("profile.changePassword") : deletionPage ? t("accountDeletion.title") : profile ? t(navigation.pathname==="/profile/avatar" ? "profile.avatarEditorTitle" : profileView ? PROFILE_VIEWS[profileView].title : "nav.profile") : readerRoute ? t("pages.lesson") : learningPage ? t("pages.course") : friendsPage ? t("nav.friends") : progressRoute ? t(progressRoute === "/streak" ? "header.streak" : progressRoute === "/xp" ? "header.xp" : "nav.competition") : chapterId ? t("pages.lesson") : t("common.back")} onBack={gamesPage&&gameBack ? gameBack.onBack??(()=>gameBack.soft?navigation.back(gameBack.href):navigation.push(gameBack.href)) : () => navigation.back(nativeBackFallback(navigation.pathname, features))} />}
       {/* De terugbalk reserveert in Focus de veilige bovenrand, ook voor de speler eronder. */}
       <ReadAloudMiniPlayer />
     </>}
@@ -339,7 +338,7 @@ function NativeFoundationContent({ audioOutput, client, termsUrl = null, onLangu
       <div className="flex flex-wrap gap-3">{(["login", "register", "forgot"] as const).filter(v => v !== mode).map(value => <button className={button} disabled={busy} key={value} onClick={() => { navigation.push(value === "forgot" ? "/forgot-password" : `/${value}`); setError(""); setNotice(false); }}>{t(`nativeFoundation.${value}`)}</button>)}</div>
       {appleLoginAvailable && <p className="text-sm">{t("nativeFoundation.appleResetHelp")}</p>}
       {!termsUrl && <p className="text-sm">{t("nativeFoundation.termsUnavailable")}</p>}
-    </> : friendsPage ? <NativeFriendsView key={`${user.id}:${dataRuntime.getSnapshot()}:${contentStamp}`} userId={user.id} pathname={navigation.pathname} language={user.uiLanguage} content={content} enabled={friendsEnabled}/> : gamesPage ? <NativeGamesView key={`${user.id}:${dataRuntime.getSnapshot()}:${contentStamp}`} userId={user.id} language={user.uiLanguage} content={content} enabled={gamesEnabled} onError={err=>{if(err instanceof NativeClientError&&err.code==="content_context_changed")void refreshContent();else report(err);}}/> : learningPage ? <NativeLearningView key={`${user.id}:${dataRuntime.getSnapshot()}:${contentStamp}`} userId={user.id} language={user.uiLanguage} content={content} enabled={features.includes("courses-overview-v1")} learningEnabled={features.includes("scripture-learning-v1")} readerEnabled={features.includes("scripture-reader-v1")} positionEnabled={features.includes("scripture-reading-position-v1")} audioEnabled={!!audioOutput?.enabled&&features.includes("scripture-audio-v1")} annotationsEnabled={features.includes("scripture-annotations-v1")} studyEnabled={features.includes("study-course-overview-v1")} mediaEnabled={features.includes("study-media-v1")} onError={error => { if (error instanceof NativeClientError && error.code === "content_context_changed") { void refreshContent(); } else report(error); }}/> : overviewEnabled && navigation.pathname === "/dashboard" ? overview ? <>
+    </> : progressRoute ? <NativeProgressView key={`${user.id}:${dataRuntime.getSnapshot()}:${contentStamp}`} userId={user.id} route={progressRoute} language={user.uiLanguage} content={content} enabled={gamesEnabled}/> : friendsPage ? <NativeFriendsView key={`${user.id}:${dataRuntime.getSnapshot()}:${contentStamp}`} userId={user.id} pathname={navigation.pathname} language={user.uiLanguage} content={content} enabled={friendsEnabled}/> : gamesPage ? <NativeGamesView key={`${user.id}:${dataRuntime.getSnapshot()}:${contentStamp}`} userId={user.id} language={user.uiLanguage} content={content} enabled={gamesEnabled} onError={err=>{if(err instanceof NativeClientError&&err.code==="content_context_changed")void refreshContent();else report(err);}}/> : learningPage ? <NativeLearningView key={`${user.id}:${dataRuntime.getSnapshot()}:${contentStamp}`} userId={user.id} language={user.uiLanguage} content={content} enabled={features.includes("courses-overview-v1")} learningEnabled={features.includes("scripture-learning-v1")} readerEnabled={features.includes("scripture-reader-v1")} positionEnabled={features.includes("scripture-reading-position-v1")} audioEnabled={!!audioOutput?.enabled&&features.includes("scripture-audio-v1")} annotationsEnabled={features.includes("scripture-annotations-v1")} studyEnabled={features.includes("study-course-overview-v1")} mediaEnabled={features.includes("study-media-v1")} manageEnabled={gamesEnabled} onError={error => { if (error instanceof NativeClientError && error.code === "content_context_changed") { void refreshContent(); } else report(error); }}/> : overviewEnabled && navigation.pathname === "/dashboard" ? overview ? <>
       {!!overviewQuery.error && <section role="alert" className="rounded-2xl border border-vs-line p-4"><p>{t("nativeFoundation.error")}</p><button type="button" className={button} onClick={() => { void overviewQuery.refetch(); }}>{t("nativeFoundation.retry")}</button></section>}
       {user.onboardingRequired && <p>{t("nativeFoundation.onboardingNote")}</p>}
       <NativeTodayView key={`${user.id}:${dataRuntime.getSnapshot()}:${contentStamp}`} state={overview} gamesEnabled={gamesEnabled} coursesEnabled={features.includes("courses-overview-v1")} mediaEnabled={features.includes("study-media-v1")} actions={features.includes("today-actions-v1") ? (() => {

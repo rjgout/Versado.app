@@ -1,9 +1,11 @@
 "use client";
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { focusNativeRouteHeading } from "@/lib/native/routeFocus";
 import NativeCfmCourseView from "./NativeCfmCourseView";
 import { isStudyCourseType } from "@/lib/readingCourses";
-import CoursesView from "@/components/CoursesView";
+import CoursesView, { type CatalogCourseView, type CourseView } from "@/components/CoursesView";
+import { useCourseManagement } from "@/components/courses/useCourseManagement";
+import type { NativeCoursePath, NativeCourses } from "@/lib/native/coursesContract";
 import ReadingCourseView from "@/components/ReadingCourseView";
 import ChapterListCourseView from "@/components/ChapterListCourseView";
 import { ConfirmProvider, useConfirm } from "@/components/ConfirmProvider";
@@ -20,10 +22,10 @@ import { NativeClientError } from "@/lib/native/client";
 import NativeStudyImage, { NativeStudyMediaProvider } from "./NativeStudyImage";
 import { studyMediaIdFromSource } from "@/lib/native/studyMediaContract";
 
-export default function NativeLearningView(props: { userId: string; language: string; content?: NativeContentState; enabled: boolean; learningEnabled?: boolean; studyEnabled?: boolean; readerEnabled?: boolean; positionEnabled?: boolean; annotationsEnabled?: boolean; audioEnabled?: boolean; mediaEnabled: boolean; onError: (error: unknown) => void }) {
+export default function NativeLearningView(props: { userId: string; language: string; content?: NativeContentState; enabled: boolean; learningEnabled?: boolean; studyEnabled?: boolean; readerEnabled?: boolean; positionEnabled?: boolean; annotationsEnabled?: boolean; audioEnabled?: boolean; mediaEnabled: boolean; manageEnabled?: boolean; onError: (error: unknown) => void }) {
  return <ConfirmProvider><Learning {...props}/></ConfirmProvider>;
 }
-function Learning({ userId, language, content, enabled, learningEnabled = false, studyEnabled = false, readerEnabled = false, positionEnabled = false, annotationsEnabled = false, audioEnabled = false, mediaEnabled, onError }: Parameters<typeof NativeLearningView>[0]) {
+function Learning({ userId, language, content, enabled, learningEnabled = false, studyEnabled = false, readerEnabled = false, positionEnabled = false, annotationsEnabled = false, audioEnabled = false, mediaEnabled, manageEnabled = false, onError }: Parameters<typeof NativeLearningView>[0]) {
  const navigation=useAppNavigationAdapter(),runtime=useNativeData(),t=useT(),confirm=useConfirm();
  const readerRoute=nativeReaderRoute(navigation.pathname);
  const readerPage=readerRoute!==null;
@@ -67,7 +69,25 @@ function Learning({ userId, language, content, enabled, learningEnabled = false,
  if(!readerRoute && isStudy && content && (!catalogQuery.error || nativeLearningTransientError(catalogQuery.error)))return <AppNavigationProvider adapter={adapter}><NativeCfmCourseView userId={userId} language={language} content={content} courseId={courseId!} onError={onError}/></AppNavigationProvider>;
  if(!readerRoute&&((archiveRoute&&!isStudy) || resolving || (catalogQuery.error && !nativeLearningTransientError(catalogQuery.error)) || !enabled || !content || !data || (query.error && !transientFailure) || ("chapters" in data && data.chapters.length===0)))return <section aria-busy={query.isFetching}><h1 tabIndex={-1} className="text-2xl font-extrabold">{t("pages.courses")}</h1><p role="status">{t(!enabled?"nativeLearning.unsupported":archiveRoute&&!isStudy?"nativeLearning.pathUnavailable":failure instanceof NativeClientError && failure.status === 404 ? "nativeLearning.pathUnavailable" : data && "chapters" in data && data.chapters.length===0 ? "nativeLearning.pathUnavailable" : failure?"nativeFoundation.error":"nativeFoundation.loading")}</p>{enabled&&(!archiveRoute||resolving)&&<button className="btn-secondary" onClick={()=>{void (resolving||catalogQuery.error?catalogQuery.refetch():query.refetch());}}>{t("nativeFoundation.retry")}</button>}<button className="btn-secondary" onClick={()=>navigation.back("/dashboard")}>{t("common.back")}</button></section>;
  return <NativeStudyMediaProvider state={data??{userId,activeCollectionId:content?.picker.activeCollectionId??null,selectionVersion:content?.picker.selectionVersion??0}}><AppNavigationProvider adapter={adapter}><div hidden={!!readerRoute}>
- {data && ("courses" in data ? <><p role="note" className="mx-auto w-full max-w-5xl text-sm text-vs-fg-2">{t("nativeLearning.readOnly")}</p><CoursesView courses={data.courses} catalog={data.catalog}/></> : data.kind==="steps" ? <ReadingCourseView key={`${userId}:${data.courseId}:${data.selectionVersion}`} courseName={data.courseName} unitPlural={data.unitPlural} today={data.todayId?{id:data.todayId}:null} chapters={data.chapters}/> : <ChapterListCourseView key={`${userId}:${data.courseId}:${data.selectionVersion}`} {...data}/>)}
+ {data && ("courses" in data ? manageEnabled ? <NativeCourseManager data={data} setData={query.setData} refetch={query.refetch}/> : <><p role="note" className="mx-auto w-full max-w-5xl text-sm text-vs-fg-2">{t("nativeLearning.readOnly")}</p><CoursesView courses={data.courses} catalog={data.catalog}/></> : data.kind==="steps" ? <ReadingCourseView key={`${userId}:${data.courseId}:${data.selectionVersion}`} courseName={data.courseName} unitPlural={data.unitPlural} today={data.todayId?{id:data.todayId}:null} chapters={data.chapters}/> : <ChapterListCourseView key={`${userId}:${data.courseId}:${data.selectionVersion}`} {...data}/>)}
  {!!query.error && transientFailure && <section role="status" className="mx-auto flex w-full max-w-5xl flex-col items-start gap-3 rounded-xl border border-vs-line bg-vs-surface p-3"><p className="w-full text-sm">{t("nativeLearning.refreshFailed")}</p><button type="button" className="btn-secondary" disabled={query.isFetching} onClick={()=>{void query.refetch();}}>{t("nativeFoundation.retry")}</button></section>}
  </div>{reader}</AppNavigationProvider></NativeStudyMediaProvider>;
+}
+
+/** Cursusbeheer in de app: dezelfde kaartmenu's (Eerder, Later, Verbergen, Cursus toevoegen) en dezelfde
+ * beheerlogica als op het web. De server levert lijst en catalogus al in de eigen volgorde; schrijven
+ * loopt via de toegestane spelbrug, en verbergen laat voortgang en inhoud ongemoeid. */
+function NativeCourseManager({ data, setData, refetch }: { data: NativeCourses; setData: (update: (previous: NativeCourses | NativeCoursePath | undefined) => NativeCourses | NativeCoursePath | undefined) => void; refetch: () => Promise<unknown> | void }) {
+ const setCourses=useCallback((update:CourseView[]|((previous:CourseView[]|undefined)=>CourseView[]|undefined))=>setData(previous=>{
+  if(!previous||!("courses" in previous))return previous;
+  const courses=typeof update==="function"?update(previous.courses):update;
+  return courses?{...previous,courses}:previous;
+ }),[setData]);
+ const setCatalog=useCallback((update:CatalogCourseView[]|((previous:CatalogCourseView[]|undefined)=>CatalogCourseView[]|undefined))=>setData(previous=>{
+  if(!previous||!("courses" in previous))return previous;
+  const catalog=typeof update==="function"?update(previous.catalog):update;
+  return catalog?{...previous,catalog}:previous;
+ }),[setData]);
+ const { cardSave, addingId, hide, move, add } = useCourseManagement({ courses: data.courses, setCourses, setCatalog, refetch });
+ return <CoursesView courses={data.courses} catalog={data.catalog} failed={cardSave.failed} busy={cardSave.busy} addingId={addingId} hide={hide} move={move} add={add}/>;
 }
