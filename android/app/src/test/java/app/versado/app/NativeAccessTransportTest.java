@@ -298,6 +298,9 @@ public class NativeAccessTransportTest {
         assertEquals(true, NativeAccessTransport.routeAllowed("games/snelle-zendeling/runs/synthetic", "GET"));
         assertEquals(true, NativeAccessTransport.routeAllowed("games/snelle-zendeling/runs", "POST"));
         assertEquals(true, NativeAccessTransport.routeAllowed("games/snelle-zendeling/together", "POST"));
+        assertEquals(true, NativeAccessTransport.routeAllowed("games/streak", "GET"));
+        assertEquals(true, NativeAccessTransport.routeAllowed("games/xp-history", "GET"));
+        assertEquals(true, NativeAccessTransport.routeAllowed("games/leaderboard", "GET"));
         assertEquals(true, NativeAccessTransport.routeAllowed("games/streak/celebration", "POST"));
         assertEquals(true, NativeAccessTransport.routeAllowed("games/streak/celebration", "GET"));
         assertEquals(true, NativeAccessTransport.routeAllowed("games/streak/continuation", "GET"));

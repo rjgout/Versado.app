@@ -14,7 +14,7 @@ import type { NativeAccount, NativeContentState } from "@/lib/native/contract";
 import { NATIVE_PRIMARY_NAV } from "@/lib/native/shell";
 
 /** Alleen de native data-/assetadapter; alle zichtbare shell-JSX is gedeeld. */
-export default function NativeShellHeader({ account, onError, content, buildIndicator, destinations = NATIVE_PRIMARY_NAV }: { destinations?: typeof NATIVE_PRIMARY_NAV; account: NativeAccount | null; onError: (error: unknown) => void; content?: NativeContentState; buildIndicator?: ReactNode }) {
+export default function NativeShellHeader({ account, onError, content, buildIndicator, destinations = NATIVE_PRIMARY_NAV, progressLinks = false }: { progressLinks?: boolean; destinations?: typeof NATIVE_PRIMARY_NAV; account: NativeAccount | null; onError: (error: unknown) => void; content?: NativeContentState; buildIndicator?: ReactNode }) {
   const runtime = useNativeData();
   const query = useNativeLiveQuery<NativeAccount>(["shell-account", account?.id ?? null], async () => {
     const value = await runtime.account();
@@ -34,7 +34,7 @@ export default function NativeShellHeader({ account, onError, content, buildIndi
     brand={<><img src="/icons/native/versado-flame.png" width="44" height="44" alt="" /><span>Versado</span></>}
     contextLabel={buildIndicator}
     leading={active && <ContentSwitcherView active={active} enabled={content!.switcherEnabled} showLanguage onNavigate={() => {}} />}
-    status={header && <UserBadgesView streak={header.streak} xp={header.xp} studiedToday={header.studiedToday} tier={header.tier} interactive={false} />}
+    status={header && <UserBadgesView streak={header.streak} xp={header.xp} studiedToday={header.studiedToday} tier={header.tier} interactive={progressLinks} />}
     profile={current && <HeaderAvatarView avatar={<UserAvatarView id={current.id} handle={current.handle} appearance={header?.avatar ?? EMPTY_AVATAR_APPEARANCE} size="sm" />} />}
   />;
 }

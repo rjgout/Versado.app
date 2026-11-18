@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useT, useUiLanguage } from "@/components/I18nProvider";
 import { getLanguage } from "@/lib/languages";
-import Link from "next/link";
+import { AppLink } from "@/components/navigation/AppNavigation";
 import SystemIcon from "@/components/versado/SystemIcon";
 import { StreakContinuationCard, useStreakContinuation } from "@/components/StreakContinuation";
 import StreakDayIndicator from "@/components/versado/StreakDayIndicator";
@@ -54,9 +54,9 @@ export default function StreakClient() {
     return (
       <div className="max-w-md mx-auto card text-center flex flex-col gap-3">
         <p className="text-red-600 dark:text-red-400 font-semibold">{error}</p>
-        <Link href="/dashboard" className="btn-secondary self-center">
+        <AppLink href="/dashboard" className="btn-secondary self-center">
           {t("wordOfTheDay.back")}
-        </Link>
+        </AppLink>
       </div>
     );
   }
