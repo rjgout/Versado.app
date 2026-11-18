@@ -1,0 +1,308 @@
+{
+  "date": "2026-11-17",
+  "developBase": "612fe530acb49163320eb13f30bd1050dcd89d0e",
+  "locksTouched": false,
+  "images": [
+    {
+      "fileId": "0b0f0137adc3514c8e1696056cc7c17d3185ae154973397428e3b0c97c2d7813",
+      "short": "0b0f0137adc3",
+      "lesson-url": "https://www.churchofjesuschrist.org/imgs/2d8f8523bfcf11eea28beeeeac1e6a57fbca23b3/full/%21320%2C/0/default",
+      "expectedSha256": "792794c9efbda9e4a7276eeac8a90310b719d0b5f2a85c6b097bf9eef4fe2032",
+      "currentSha256": "c48c453396081e34818e0c56afebb9f002002106c2c027aa996507cda230fc2a",
+      "pinnedBytes": 18879,
+      "currentBytes": 19101,
+      "lockDimensions": "320x427",
+      "oldBytesAvailable": true,
+      "oldOrigin": "archief pinned-assets.json.gz",
+      "metrics": {
+        "pixelIdentical": false,
+        "maxAbsDelta": 80,
+        "meanAbsDelta": 2.0921,
+        "psnrDb": 37.37,
+        "strongDeltaFraction": 0.000307,
+        "maxBlockMeanDiff": 10.362,
+        "worstBlock": {
+          "x": 192,
+          "y": 256,
+          "size": 16
+        }
+      },
+      "automaticVerdict": "niet vast te stellen",
+      "reviewerVisual": "zelfde afbeelding; verschil geconcentreerd op randen (ringing), geen inhoudsverschil",
+      "finalVerdict": "inhoudelijk gelijk (alleen JPEG-herencodering)",
+      "sameStructure": true
+    },
+    {
+      "fileId": "17321b600c83036016f1f91fb9bbbdc3411219573e3048109bac3d065c7a790f",
+      "short": "17321b600c83",
+      "lesson-url": "https://www.churchofjesuschrist.org/imgs/79fdf07801ad11efa291eeeeac1ea149373bfba2/full/%21320%2C/0/default",
+      "expectedSha256": "5d2f8c0c8bc85d7383981875c558e1def4707e38b95028017fe5fdade2c821e3",
+      "currentSha256": "247fc4d82bcd693664417b1c740a7213714296b7bd82b209f8eb26e208266220",
+      "pinnedBytes": 24633,
+      "currentBytes": 24654,
+      "lockDimensions": "320x427",
+      "oldBytesAvailable": false,
+      "automaticVerdict": "niet vast te stellen",
+      "finalVerdict": "niet vast te stellen (oude bytes niet beschikbaar)",
+      "dimensionsMatchLock": true
+    },
+    {
+      "fileId": "5dc933a6b34012644f3ab158d74bb625e1d08549d9b0b71f2452257fb82c5b36",
+      "short": "5dc933a6b340",
+      "lesson-url": "https://www.churchofjesuschrist.org/imgs/a86753a2c9ed11eebfd7eeeeac1ecb47a51b9fa6/full/%21500%2C/0/default",
+      "expectedSha256": "baa84c199de94e8e39c90a1f3c15d9b1c6eaf5f6015a2db0ad41d2b8144c8d25",
+      "currentSha256": "321273745c0dbdde875ab26dd643ce55d0a160ea58d12e3ebc8c404c85cd985e",
+      "pinnedBytes": 20190,
+      "currentBytes": 20191,
+      "lockDimensions": "500x281",
+      "oldBytesAvailable": false,
+      "automaticVerdict": "niet vast te stellen",
+      "finalVerdict": "niet vast te stellen (oude bytes niet beschikbaar)",
+      "dimensionsMatchLock": true
+    },
+    {
+      "fileId": "6b4f476973c11d0be68ac7cb34251a09bdf5e021c04adbcf00715df3421bc80b",
+      "short": "6b4f476973c1",
+      "lesson-url": "https://www.churchofjesuschrist.org/imgs/e802e04801ac11ef93d4eeeeac1e060835c31f4f/full/%21500%2C/0/default",
+      "expectedSha256": "1d50ed7c30b535391918498401edb9e12a8ec7ccb828db7bf39dc001d3aa41ca",
+      "currentSha256": "8c2a42c4770eaf39b616ef9ccfba20cd461cf8180fde81ce1c355f6b7e93ee8f",
+      "pinnedBytes": 17209,
+      "currentBytes": 17189,
+      "lockDimensions": "500x281",
+      "oldBytesAvailable": false,
+      "automaticVerdict": "niet vast te stellen",
+      "finalVerdict": "niet vast te stellen (oude bytes niet beschikbaar)",
+      "dimensionsMatchLock": true
+    },
+    {
+      "fileId": "776f6e71e7d8610a8a0d54fb046a01980bca19e8b9a4ab765584e444d82141f9",
+      "short": "776f6e71e7d8",
+      "lesson-url": "https://www.churchofjesuschrist.org/imgs/549318e1dda611eea9dfeeeeac1e4f1b7e0ace5b/full/%21320%2C/0/default",
+      "expectedSha256": "15e0d0b08e4d4db4d01eda6bf78ecb05858cd4d3ab158f3a12bfa313845a3527",
+      "currentSha256": "7cd7bd01f9fbbacdf4558e68fb5c2170d3fd78c729fb1d045a291e1ac415efff",
+      "pinnedBytes": 35240,
+      "currentBytes": 35195,
+      "lockDimensions": "320x427",
+      "oldBytesAvailable": true,
+      "oldOrigin": "archief pinned-assets.json.gz",
+      "metrics": {
+        "pixelIdentical": false,
+        "maxAbsDelta": 32,
+        "meanAbsDelta": 2.0981,
+        "psnrDb": 38.28,
+        "strongDeltaFraction": 0,
+        "maxBlockMeanDiff": 6.275,
+        "worstBlock": {
+          "x": 128,
+          "y": 416,
+          "size": 16
+        }
+      },
+      "automaticVerdict": "niet vast te stellen",
+      "reviewerVisual": "zelfde afbeelding; gelijkmatig 8×8-blokpatroon (herkwantisering)",
+      "finalVerdict": "inhoudelijk gelijk (alleen JPEG-herencodering)",
+      "sameStructure": true
+    },
+    {
+      "fileId": "79cca9b0d880c23738f4bd244b5be37278dbb3ee288155f687588847a27cb601",
+      "short": "79cca9b0d880",
+      "lesson-url": "https://www.churchofjesuschrist.org/imgs/057d8be9c9ed11eeb5f9eeeeac1e3dabd1077383/full/%21500%2C/0/default",
+      "expectedSha256": "11d51c56dfa014f273d5cd7b65312f962efb58cac78a5d862e8dcc4ea418f292",
+      "currentSha256": "f9343bd46b453efced6047ad3e980d264e703fc372d51f1b9349f04772444756",
+      "pinnedBytes": 31660,
+      "currentBytes": 31606,
+      "lockDimensions": "500x281",
+      "oldBytesAvailable": true,
+      "oldOrigin": "archief pinned-assets.json.gz",
+      "metrics": {
+        "pixelIdentical": false,
+        "maxAbsDelta": 24,
+        "meanAbsDelta": 1.5759,
+        "psnrDb": 40.73,
+        "strongDeltaFraction": 0,
+        "maxBlockMeanDiff": 4.318,
+        "worstBlock": {
+          "x": 464,
+          "y": 256,
+          "size": 16
+        }
+      },
+      "automaticVerdict": "niet vast te stellen",
+      "reviewerVisual": "zelfde afbeelding; blokruis",
+      "finalVerdict": "inhoudelijk gelijk (alleen JPEG-herencodering)",
+      "sameStructure": true
+    },
+    {
+      "fileId": "83a6a0f34cc4c8d84151e715f909c65e8c43ce838b4ac007e98bd3e10563fd82",
+      "short": "83a6a0f34cc4",
+      "lesson-url": "https://www.churchofjesuschrist.org/imgs/5cb7e9b9b0b511eeb3a5eeeeac1e14203b6cf1a1/full/%21500%2C/0/default",
+      "expectedSha256": "898dfd72b78f66e50eafb85c4172e01fbbda4a3ea16f025b8d6995ecf7ea70d1",
+      "currentSha256": "8d84ca44a9f749188b96efa55bd5361c8f92400f7bbc71dd2f6503294e3557fa",
+      "pinnedBytes": 30665,
+      "currentBytes": 30682,
+      "lockDimensions": "500x281",
+      "oldBytesAvailable": true,
+      "oldOrigin": "archief pinned-assets.json.gz",
+      "metrics": {
+        "pixelIdentical": false,
+        "maxAbsDelta": 21,
+        "meanAbsDelta": 1.4081,
+        "psnrDb": 41.7,
+        "strongDeltaFraction": 0,
+        "maxBlockMeanDiff": 4.357,
+        "worstBlock": {
+          "x": 304,
+          "y": 80,
+          "size": 16
+        }
+      },
+      "automaticVerdict": "niet vast te stellen",
+      "reviewerVisual": "zelfde afbeelding; blokruis",
+      "finalVerdict": "inhoudelijk gelijk (alleen JPEG-herencodering)",
+      "sameStructure": true
+    },
+    {
+      "fileId": "930d33407d990d4d1fe5d0ac559e91dc16665d789e4bc59bfa6b382c24909952",
+      "short": "930d33407d99",
+      "lesson-url": "https://www.churchofjesuschrist.org/imgs/52f0264301a011ef8782eeeeac1ea8d2a7fad334/full/%21500%2C/0/default",
+      "expectedSha256": "8ae97680cc6972cc7887055fcd52930b02f7cb2b9300a4ffd89006e44d18d722",
+      "currentSha256": "7a5fb47c286795ae453db402c2877d75c328fcb92e719c6ee5a8d93817d7ff9b",
+      "pinnedBytes": 17694,
+      "currentBytes": 17696,
+      "lockDimensions": "500x281",
+      "oldBytesAvailable": false,
+      "automaticVerdict": "niet vast te stellen",
+      "finalVerdict": "niet vast te stellen (oude bytes niet beschikbaar)",
+      "dimensionsMatchLock": true
+    },
+    {
+      "fileId": "ab6f54bafbe47a1d9ca9dd0e88f3cb0e114afc8814444af3507dc55357c079a2",
+      "short": "ab6f54bafbe4",
+      "lesson-url": "https://www.churchofjesuschrist.org/imgs/044eaeb2130e11ef81efeeeeac1e2125ea3e9300/full/%21320%2C/0/default",
+      "expectedSha256": "8575c2d783424d221125d41acc47b703fade9655941b81aa48ea4ae0d3734835",
+      "currentSha256": "d47619861cd9b38e4266fc9291761a425536e7e729eeef2f5d7ccd59a709e947",
+      "pinnedBytes": 25682,
+      "currentBytes": 25747,
+      "lockDimensions": "320x427",
+      "oldBytesAvailable": true,
+      "oldOrigin": "archief pinned-assets.json.gz",
+      "metrics": {
+        "pixelIdentical": false,
+        "maxAbsDelta": 26,
+        "meanAbsDelta": 1.6434,
+        "psnrDb": 40.23,
+        "strongDeltaFraction": 0,
+        "maxBlockMeanDiff": 4.467,
+        "worstBlock": {
+          "x": 112,
+          "y": 112,
+          "size": 16
+        }
+      },
+      "automaticVerdict": "niet vast te stellen",
+      "reviewerVisual": "zelfde afbeelding; randen en blokruis",
+      "finalVerdict": "inhoudelijk gelijk (alleen JPEG-herencodering)",
+      "sameStructure": true
+    },
+    {
+      "fileId": "ba2eef6c090e240b412a372194f28bcc8b2121efb59ec8c3e15f02b5d349acf1",
+      "short": "ba2eef6c090e",
+      "lesson-url": "https://www.churchofjesuschrist.org/imgs/52b6edd501a011ef9567eeeeac1ef5a1500c2ff9/full/%21500%2C/0/default",
+      "expectedSha256": "b64027880fb015dde0c35c4d5861b5ca110b643cf3d7503fcd16739daada23f0",
+      "currentSha256": "7b45f4e9d09c44fec721285f4b8a0ce431bf89c10ed8361be9b06dba69e45bac",
+      "pinnedBytes": 30070,
+      "currentBytes": 30087,
+      "lockDimensions": "500x281",
+      "oldBytesAvailable": true,
+      "oldOrigin": "archief pinned-assets.json.gz",
+      "metrics": {
+        "pixelIdentical": false,
+        "maxAbsDelta": 20,
+        "meanAbsDelta": 1.5235,
+        "psnrDb": 41.23,
+        "strongDeltaFraction": 0,
+        "maxBlockMeanDiff": 3.454,
+        "worstBlock": {
+          "x": 128,
+          "y": 0,
+          "size": 16
+        }
+      },
+      "automaticVerdict": "inhoudelijk gelijk",
+      "reviewerVisual": "zelfde afbeelding; blokruis",
+      "finalVerdict": "inhoudelijk gelijk (alleen JPEG-herencodering)",
+      "sameStructure": true
+    },
+    {
+      "fileId": "d33c6782e0131cc21714a034514659306edf07d11c8205623353fc20ce79d155",
+      "short": "d33c6782e013",
+      "lesson-url": "https://www.churchofjesuschrist.org/imgs/ed50a062f56a04d4cf20ad4e6b2ce9177ba79de6/full/%21320%2C/0/default",
+      "expectedSha256": "2a31fa3037295fa829442e1a6bc67b023ee5d965ebfc61c8d6802897c44fa64f",
+      "currentSha256": "d859b0da9566e234d11a1bbf2fe84b719abe6e7f469f53426eb1589aa7839947",
+      "pinnedBytes": 28640,
+      "currentBytes": 28948,
+      "lockDimensions": "320x240",
+      "oldBytesAvailable": false,
+      "automaticVerdict": "niet vast te stellen",
+      "finalVerdict": "niet vast te stellen (oude bytes niet beschikbaar)",
+      "dimensionsMatchLock": true
+    },
+    {
+      "fileId": "ebaf728974261116ba5427d1a99fb8f365de7382d82aab253cb6bde826a888e3",
+      "short": "ebaf72897426",
+      "lesson-url": "https://www.churchofjesuschrist.org/imgs/687a7dba13ae11efbf2feeeeac1e59432305a0b9/full/%21500%2C/0/default",
+      "expectedSha256": "06e6bd7953aa53af8cb8829f1b13eb805bb46fafcf20a371c04a4a57c1abd693",
+      "currentSha256": "c263ded7488cbfebb5ef2fc760b87d4ca692c78c52d9725087d5a28ff3e47faa",
+      "pinnedBytes": 28267,
+      "currentBytes": 28254,
+      "lockDimensions": "500x281",
+      "oldBytesAvailable": false,
+      "automaticVerdict": "niet vast te stellen",
+      "finalVerdict": "niet vast te stellen (oude bytes niet beschikbaar)",
+      "dimensionsMatchLock": true
+    },
+    {
+      "fileId": "f284d2736a7539506d68c6b83053182b4d729f2e7a942eb60275424f1ef57770",
+      "short": "f284d2736a75",
+      "lesson-url": "https://www.churchofjesuschrist.org/imgs/6ada7cb501a511efa291eeeeac1ea14986400eb6/full/%21320%2C/0/default",
+      "expectedSha256": "4dc8e2c042e86432b2a4f099206a2d179f55091bae6f5954bb3b0b8661870b76",
+      "currentSha256": "a07ba529b5f172870fa2004babe1a9f5ecd5595d446dc6c270733ea270b7f15f",
+      "pinnedBytes": 20421,
+      "currentBytes": 20428,
+      "lockDimensions": "320x427",
+      "oldBytesAvailable": true,
+      "oldOrigin": "archief pinned-assets.json.gz",
+      "metrics": {
+        "pixelIdentical": false,
+        "maxAbsDelta": 19,
+        "meanAbsDelta": 1.0242,
+        "psnrDb": 43.86,
+        "strongDeltaFraction": 0,
+        "maxBlockMeanDiff": 3.496,
+        "worstBlock": {
+          "x": 208,
+          "y": 352,
+          "size": 16
+        }
+      },
+      "automaticVerdict": "inhoudelijk gelijk",
+      "reviewerVisual": "zelfde afbeelding; blokruis",
+      "finalVerdict": "inhoudelijk gelijk (alleen JPEG-herencodering)",
+      "sameStructure": true
+    },
+    {
+      "fileId": "fa1ee428b903e47e5f5fb9032f03e516d78e54dea86a30cb790149431b75e99a",
+      "short": "fa1ee428b903",
+      "lesson-url": "https://www.churchofjesuschrist.org/imgs/fcd5df16dd9e11ee8184eeeeac1e5eb3cd52bef3/full/%21500%2C/0/default",
+      "expectedSha256": "ddad42f912e9b6326b91a9d1472436f3a600d9bcc2f9d9e58550eeba971a8699",
+      "currentSha256": "f0f3296057b7207185eaa22b421e24ce58833662aafd3f5961e78282b73afcec",
+      "pinnedBytes": 23960,
+      "currentBytes": 23959,
+      "lockDimensions": "500x281",
+      "oldBytesAvailable": false,
+      "automaticVerdict": "niet vast te stellen",
+      "finalVerdict": "niet vast te stellen (oude bytes niet beschikbaar)",
+      "dimensionsMatchLock": true
+    }
+  ]
+}
