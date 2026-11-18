@@ -239,6 +239,8 @@ final class NativeGamesPolicy {
         new Rule("snelle-zendeling/runs/[A-Za-z0-9_-]{1,128}", "GET", "", false),
         new Rule("snelle-zendeling/runs", "POST", "", false),
         new Rule("snelle-zendeling/together", "POST", "", false),
+        new Rule("courses/[A-Za-z0-9_-]{1,128}/subscribe", "POST", "", false),
+        new Rule("courses/[A-Za-z0-9_-]{1,128}/unsubscribe", "POST", "", false),
         new Rule("streak", "GET", "year,month", false),
         new Rule("xp-history", "GET", "skip", false),
         new Rule("leaderboard", "GET", "scope", false),

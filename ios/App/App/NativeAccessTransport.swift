@@ -205,6 +205,8 @@ enum NativeGamesPolicy {
         Rule("snelle-zendeling/runs/[A-Za-z0-9_-]{1,128}", "GET", "", false),
         Rule("snelle-zendeling/runs", "POST", "", false),
         Rule("snelle-zendeling/together", "POST", "", false),
+        Rule("courses/[A-Za-z0-9_-]{1,128}/subscribe", "POST", "", false),
+        Rule("courses/[A-Za-z0-9_-]{1,128}/unsubscribe", "POST", "", false),
         Rule("streak", "GET", "year,month", false),
         Rule("xp-history", "GET", "skip", false),
         Rule("leaderboard", "GET", "scope", false),

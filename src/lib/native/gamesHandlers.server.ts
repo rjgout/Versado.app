@@ -42,6 +42,8 @@ export const GAME_HANDLERS: Record<GameApiId, Partial<Record<string, Handler>>> 
 "friend-streaks/[streakId]": { POST: async (req, p) => (await import("@/app/api/friend-streaks/[streakId]/route")).POST(req, { params: Promise.resolve({ streakId: p.streakId }) }) },
 "friend-streaks": { GET: async () => (await import("@/app/api/friend-streaks/route")).GET(), POST: async (req) => (await import("@/app/api/friend-streaks/route")).POST(req) },
 "freezes/gift": { POST: async (req) => (await import("@/app/api/freezes/gift/route")).POST(req) },
+"courses/[courseId]/subscribe": { POST: async (req, p) => (await import("@/app/api/courses/[courseId]/subscribe/route")).POST(req, { params: Promise.resolve({ courseId: p.courseId }) }) },
+"courses/[courseId]/unsubscribe": { POST: async (req, p) => (await import("@/app/api/courses/[courseId]/unsubscribe/route")).POST(req, { params: Promise.resolve({ courseId: p.courseId }) }) },
 "streak": { GET: async (req) => (await import("@/app/api/streak/route")).GET(req) },
 "xp-history": { GET: async (req) => (await import("@/app/api/xp-history/route")).GET(req) },
 "leaderboard": { GET: async (req) => (await import("@/app/api/leaderboard/route")).GET(req) },

@@ -82,6 +82,8 @@ export const GAME_API_ROUTES = [
   {"path":"snelle-zendeling/runs/[runId]","segments":["snelle-zendeling","runs","[runId]"],"methods":["GET"],"query":[]},
   {"path":"snelle-zendeling/runs","segments":["snelle-zendeling","runs"],"methods":["POST"],"query":[]},
   {"path":"snelle-zendeling/together","segments":["snelle-zendeling","together"],"methods":["POST"],"query":[]},
+  {"path":"courses/[courseId]/subscribe","segments":["courses","[courseId]","subscribe"],"methods":["POST"],"query":[]},
+  {"path":"courses/[courseId]/unsubscribe","segments":["courses","[courseId]","unsubscribe"],"methods":["POST"],"query":[]},
   {"path":"streak","segments":["streak"],"methods":["GET"],"query":["year","month"]},
   {"path":"xp-history","segments":["xp-history"],"methods":["GET"],"query":["skip"]},
   {"path":"leaderboard","segments":["leaderboard"],"methods":["GET"],"query":["scope"]},
