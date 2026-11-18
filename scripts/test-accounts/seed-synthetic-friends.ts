@@ -1,56 +1,71 @@
-// Drie synthetische vriendenaccounts voor handmatig testen van Vrienden, uitnodigingen, Activiteit en Competitie in de afgeschermde
-// dev-/testomgeving. NOOIT voor productie en nooit automatisch (geen seed, migratie of app-start roept dit aan).
-//   npx tsx scripts/test-accounts/seed-synthetic-friends.ts --voor=<handle#nummer>                  # dry-run (standaard)
-//   npx tsx scripts/test-accounts/seed-synthetic-friends.ts --voor=<handle#nummer> --apply --verwacht-database=<host>:<poort>/<database>
-//   npx tsx scripts/test-accounts/seed-synthetic-friends.ts --voor=<handle#nummer> --verwijder --apply --verwacht-database=...
-// Voorwaarden voor --apply: VERSADO_TEST_OMGEVING=dev-test in de omgeving van dit proces (de eigenaar zet die bewust, alleen in de
-// afgeschermde stack) én de letterlijke databasebevestiging. Accounts ontstaan via `createAccount` en de bestaande uitnodigingsroute
-// (`becomeFriendsViaInvite` via inviteCode), dus met dezelfde privacy- en vriendschapsregels als echte gebruikers. Het e-mailadres
-// eindigt altijd op @example.invalid (onbereikbaar, nooit versturen), er is geen gedeelde of vaste wachtwoordwaarde: het wachtwoord is
-// willekeurig, wordt niet bewaard en niet getoond; inloggen als testvriend is dus niet nodig en niet mogelijk.
+// Reproduceerbare, volledig losstaande testset voor de Vrienden-flow in de afgeschermde dev-/testomgeving. NOOIT voor productie en nooit
+// automatisch (geen seed, migratie, deployment of app-start). Raakt nooit een bestaand account: alleen de vaste @example.invalid-accounts
+// hieronder worden gemaakt of verwijderd.
+//
+//   npx tsx scripts/test-accounts/seed-synthetic-friends.ts                       # dry-run (standaard): toont feiten en plan
+//   npx tsx scripts/test-accounts/seed-synthetic-friends.ts --apply --verwacht-database=<host>:<poort>/<database>
+//   npx tsx scripts/test-accounts/seed-synthetic-friends.ts --verwijder --apply --verwacht-database=...   # ruimt de set op
+//
+// Twee onafhankelijke testidentiteiten MET inlog (voor twee toestellen), elk met een eenmalig getoond willekeurig wachtwoord:
+//   Test A  → vriendenlijst met een bestaande vriend, een INKOMEND verzoek (van Verzoek-in) en een UITGAAND verzoek (naar Verzoek-uit)
+//   Test B  → lege vriendenlijst, geen relatie met Test A (om zelf een verzoek te sturen en te accepteren)
+// Drie tegenpartijen zonder inlog (willekeurig, niet bewaard wachtwoord): Vriend, Verzoek-in, Verzoek-uit.
+// Wachtwoorden verschijnen alleen op stdout bij het aanmaken; opnieuw tonen kan niet (verwijderen en opnieuw aanmaken).
 import { randomBytes } from "node:crypto";
 import { confirmsDatabaseIdentity, formatDatabaseIdentity, resolveDatabase } from "../courses/target";
+import { refusalReason } from "./guard";
 
 const apply = process.argv.includes("--apply");
 const remove = process.argv.includes("--verwijder");
-const owner = process.argv.find(arg => arg.startsWith("--voor="))?.slice("--voor=".length);
 const confirmation = process.argv.find(arg => arg.startsWith("--verwacht-database="))?.slice("--verwacht-database=".length);
-const SYNTHETIC_FRIENDS = [
-  { email: "testvriend-1@example.invalid", handle: "Testvriend1" },
-  { email: "testvriend-2@example.invalid", handle: "Testvriend2" },
-  { email: "testvriend-3@example.invalid", handle: "Testvriend3" },
+const SET = [
+  { key: "a", email: "test-a@example.invalid", handle: "TestA", login: true },
+  { key: "b", email: "test-b@example.invalid", handle: "TestB", login: true },
+  { key: "friend", email: "test-vriend@example.invalid", handle: "TestVriend", login: false },
+  { key: "in", email: "test-verzoek-in@example.invalid", handle: "TestVerzoekIn", login: false },
+  { key: "out", email: "test-verzoek-uit@example.invalid", handle: "TestVerzoekUit", login: false },
 ] as const;
 
 function stop(message: string): never { console.error(`Weigering: ${message}`); process.exit(2); }
-if (!owner || !/^[^#\s]{1,40}#\d{1,2}$/.test(owner)) stop("geef het account op waarvoor de testvrienden gelden, bv. --voor=Raphael#42");
 const database = resolveDatabase();
 console.error(`Doeldatabase: ${formatDatabaseIdentity(database.label)}${apply ? " (WIJZIGT GEGEVENS)" : " (dry-run)"}`);
-if (apply && process.env.VERSADO_TEST_OMGEVING !== "dev-test") stop("--apply werkt alleen in de afgeschermde dev-/testomgeving (VERSADO_TEST_OMGEVING=dev-test).");
-if (apply && !confirmsDatabaseIdentity(database.label, confirmation)) stop(`--apply vereist --verwacht-database=${formatDatabaseIdentity(database.label)}.`);
 process.env.DATABASE_URL = database.url;
-
-const [{ prisma }, { createAccount }, { hashPassword }, { getOrCreateInviteCode, becomeFriendsViaInvite }, { parseTag }] = await Promise.all([
-  import("../../src/lib/db"), import("../../src/lib/registration"), import("../../src/lib/auth"), import("../../src/lib/friendInvite"), import("../../src/lib/handle"),
-]);
+const { prisma } = await import("../../src/lib/db");
 try {
-  const tag = parseTag(owner);
-  if (!tag) stop("ongeldige accountaanduiding.");
-  const { handle, discriminator } = tag;
-  const user = await prisma.user.findFirst({ where: { handle, discriminator } });
-  if (!user) stop("het opgegeven account bestaat niet in deze database.");
-  const existing = await prisma.user.findMany({ where: { email: { in: SYNTHETIC_FRIENDS.map(friend => friend.email) } }, select: { id: true, email: true } });
+  const [{ comment }] = await prisma.$queryRaw<{ comment: string | null }[]>`SELECT shobj_description(oid, 'pg_database') AS comment FROM pg_database WHERE datname = current_database()`;
+  const userCount = await prisma.user.count();
+  const reason = refusalReason({ database: database.label.database, databaseComment: comment, appUrl: process.env.APP_URL, userCount });
+  if (reason) stop(reason);
+  if (apply && !confirmsDatabaseIdentity(database.label, confirmation)) stop(`--apply vereist --verwacht-database=${formatDatabaseIdentity(database.label)}.`);
+
+  const existing = await prisma.user.findMany({ where: { email: { in: SET.map(item => item.email) } }, select: { id: true, email: true } });
   if (remove) {
-    console.error(`${apply ? "Verwijdert" : "Zou verwijderen"}: ${existing.length} synthetische account(s) (alleen exacte @example.invalid-testadressen).`);
+    console.error(`${apply ? "Verwijdert" : "Zou verwijderen"}: ${existing.length} van ${SET.length} synthetische accounts (exacte @example.invalid-adressen; relaties verdwijnen mee).`);
     if (apply) for (const row of existing) await prisma.user.delete({ where: { id: row.id } });
+  } else if (existing.length > 0) {
+    stop(`${existing.length} van de testaccounts bestaan al (wachtwoorden zijn niet opnieuw te tonen). Verwijder de set eerst met --verwijder --apply.`);
   } else {
-    const missing = SYNTHETIC_FRIENDS.filter(friend => !existing.some(row => row.email === friend.email));
-    console.error(`Bestaat al: ${existing.length}; ${apply ? "maakt aan" : "zou aanmaken"}: ${missing.length}; ${apply ? "koppelt" : "zou koppelen"} aan het opgegeven account via de uitnodigingsroute.`);
+    console.error(`${apply ? "Maakt" : "Zou maken"}: ${SET.length} accounts, 1 bestaande vriendschap, 1 inkomend en 1 uitgaand verzoek.`);
     if (apply) {
-      const code = await getOrCreateInviteCode(user.id);
-      for (const friend of missing) {
-        await createAccount({ email: friend.email, handle: friend.handle, passwordHash: await hashPassword(randomBytes(24).toString("base64url")), uiLanguage: user.uiLanguage, contentLanguage: user.contentLanguage, inviteCode: code, emailVerifiedAt: new Date() });
+      const [{ createAccount }, { hashPassword }, { getOrCreateInviteCode, becomeFriendsViaInvite }, { createFriendRequestOnce }] = await Promise.all([
+        import("../../src/lib/registration"), import("../../src/lib/auth"), import("../../src/lib/friendInvite"), import("../../src/lib/social/friendshipPair"),
+      ]);
+      const ids: Record<string, string> = {};
+      for (const item of SET) {
+        const password = randomBytes(18).toString("base64url");
+        const created = await createAccount({ email: item.email, handle: item.handle, passwordHash: await hashPassword(password), uiLanguage: "nl", contentLanguage: "nl", emailVerifiedAt: new Date() });
+        ids[item.key] = created.id;
+        // @example.invalid is onbereikbaar: geen mail proberen te versturen (ook niet via meldingen bij vriendschapsgebeurtenissen).
+        await prisma.user.update({ where: { id: created.id }, data: { emailNotificationsEnabled: false } });
+        if (item.login) console.log(`${item.handle}\t${item.email}\t${password}`);
       }
-      for (const row of existing) await becomeFriendsViaInvite(code, row.id, { isNewAccount: false });
+      // Bestaande vriendschap via de bestaande uitnodigingsroute; verzoeken via de dienst achter /api/friends/request.
+      await becomeFriendsViaInvite(await getOrCreateInviteCode(ids.friend), ids.a, { isNewAccount: false });
+      await prisma.$transaction(tx => createFriendRequestOnce(tx, ids.in, ids.a));
+      await prisma.$transaction(tx => createFriendRequestOnce(tx, ids.a, ids.out));
+      // De bestaande diensten sturen meldingen fire-and-forget; even laten afronden voordat de verbinding sluit.
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      console.error("Klaar. Wachtwoorden staan alleen hierboven (stdout); bewaar ze buiten de repository.");
     }
   }
 } finally {

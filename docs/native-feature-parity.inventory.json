@@ -13333,7 +13333,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "aeb9b0df32989eef53f0ea20e92694309b800279b8ca30517a977866483a1231",
+      "sha256": "c15ef713b6f6e43853dea6b55d41f36204691f88e6b9bb30bbc9690981d93b95",
       "boundary": "client",
       "imports": [
         "./NativeContentPicker",
@@ -13373,9 +13373,11 @@
         "@/lib/handle",
         "@/lib/native/account",
         "@/lib/native/audioOutput",
+        "@/lib/native/backTarget",
         "@/lib/native/client",
         "@/lib/native/contract",
         "@/lib/native/gamesPagesRoutes",
+        "@/lib/native/modalBack",
         "@/lib/native/navigation",
         "@/lib/native/readerNavigation",
         "@/lib/native/routeFocus",
@@ -22560,6 +22562,21 @@
       "exports": []
     },
     {
+      "file": "src/lib/native/backTarget.ts",
+      "sha256": "c6baea09ede195018d5f3a574ccae56cde1d80c8814ac9be7fa593f284695e90",
+      "boundary": "context-dependent",
+      "imports": [
+        "./gamesPagesRoutes",
+        "./readerNavigation"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "nativeBackFallback"
+      ]
+    },
+    {
       "file": "src/lib/native/bridge.ts",
       "sha256": "348ba0688664fd194e268544cec669e04413b7f4e2d7183a748f7d26b70594df",
       "boundary": "context-dependent",
@@ -23227,6 +23244,18 @@
       "checks": [],
       "exports": [
         "learningReceipt"
+      ]
+    },
+    {
+      "file": "src/lib/native/modalBack.ts",
+      "sha256": "d20a3343f6c734ea94ca6abdbaf45f18a793ed2af29b9974c0f38d261ba5e164",
+      "boundary": "context-dependent",
+      "imports": [],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "dismissTopmostModal"
       ]
     },
     {
@@ -82561,7 +82590,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "aeb9b0df32989eef53f0ea20e92694309b800279b8ca30517a977866483a1231",
+      "sha256": "c15ef713b6f6e43853dea6b55d41f36204691f88e6b9bb30bbc9690981d93b95",
       "boundary": "client",
       "imports": [
         "./NativeContentPicker",
@@ -82601,9 +82630,11 @@
         "@/lib/handle",
         "@/lib/native/account",
         "@/lib/native/audioOutput",
+        "@/lib/native/backTarget",
         "@/lib/native/client",
         "@/lib/native/contract",
         "@/lib/native/gamesPagesRoutes",
+        "@/lib/native/modalBack",
         "@/lib/native/navigation",
         "@/lib/native/readerNavigation",
         "@/lib/native/routeFocus",
@@ -86125,6 +86156,7 @@
     "tests/native-audio-shell.browser.mjs",
     "tests/native-audio.integration.test.ts",
     "tests/native-audio.test.ts",
+    "tests/native-back-navigation.test.ts",
     "tests/native-content.browser.mjs",
     "tests/native-content.integration.test.ts",
     "tests/native-course-management.test.ts",

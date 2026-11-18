@@ -35,6 +35,8 @@ import { NativeClientError,type NativeSessionClient,type NativeSignInOutcome } f
 import { nativeCapabilitiesSchema,type NativeAccount,type NativeContentState,type NativeSecuritySetup } from "@/lib/native/contract";
 import { nativeDeepLink,nativeEmailConfirmationLink,nativePasswordResetLink } from "@/lib/native/navigation";
 import { nativeReaderRoute } from "@/lib/native/readerNavigation";
+import { nativeBackFallback } from "@/lib/native/backTarget";
+import { dismissTopmostModal } from "@/lib/native/modalBack";
 import { focusNativeRouteHeading } from "@/lib/native/routeFocus";
 import { nativeAppleLoginUIAvailable,nativeFriendsAvailable,nativePrimaryNav } from "@/lib/native/shell";
 import { NativeSocketConnection } from "@/lib/native/socketClient";
@@ -104,8 +106,8 @@ function NativeFoundationContent({ audioOutput, client, termsUrl = null, onLangu
   const [identifier, setIdentifier] = useState(""), [password, setPassword] = useState(""), [code, setCode] = useState(""), [handle, setHandle] = useState("");
   const [error, setError] = useState(""), [notice, setNotice] = useState(false), [busy, setBusy] = useState(false), [offline, setOffline] = useState(false), [apple, setApple] = useState(false);
   const launchHandled = useRef(false), fullTodayBackend = useRef(false);
-  const sequence = useRef(0), current = useRef({ busy, navigation, setup, recoveryCodes });
-  useEffect(() => { current.current = { busy, navigation, setup, recoveryCodes }; }, [busy, navigation, setup, recoveryCodes]);
+  const sequence = useRef(0), current = useRef({ busy, navigation, setup, recoveryCodes, features: [] as readonly string[] });
+  useEffect(() => { current.current = { busy, navigation, setup, recoveryCodes, features }; }, [busy, navigation, setup, recoveryCodes, features]);
   const accountLanguage = navigation.pathname === "/dashboard" ? overview?.language ?? user?.uiLanguage : user?.uiLanguage;
   useEffect(() => { if (accountLanguage) onLanguage?.(accountLanguage); }, [accountLanguage, onLanguage]);
   useEffect(() => focusNativeRouteHeading(), [chapterId, navigation.pathname, user?.id, setup?.step, recoveryCodes, pickerAvailable, overviewReady]);
@@ -166,17 +168,12 @@ function NativeFoundationContent({ audioOutput, client, termsUrl = null, onLangu
     const invalidate = () => { sequence.current++; };
     let disposed = false, cleanup: (() => void) | undefined;
     void startNativeFoundationRuntime({ onResume: online, onBack: () => {
-      const dialog = document.querySelector<HTMLDialogElement>("dialog[open]");
-      if (dialog) {
-        const event = new Event("cancel", { cancelable: true }); dialog.dispatchEvent(event);
-        if (!event.defaultPrevented) dialog.close();
-        return true;
-      }
+      if (dismissTopmostModal(document)) return true;
       const nav = current.current.navigation;
       if (current.current.setup && !["/privacy", "/cookies", "/disclaimer", "/contact"].includes(nav.pathname)) {
         void client.logout(() => { setSetup(null); setCode(""); nav.replace("/login"); }).catch(report); return true;
       }
-      if (nav.canGoBack() || (nav.pathname !== "/dashboard" && nav.pathname !== "/login")) { nav.back(); return true; }
+      if (nav.canGoBack() || (nav.pathname !== "/dashboard" && nav.pathname !== "/login")) { nav.back(nativeBackFallback(nav.pathname, current.current.features)); return true; }
       return false;
     }, onUrl: (raw, source) => {
       if (disposed) return;
@@ -283,7 +280,7 @@ function NativeFoundationContent({ audioOutput, client, termsUrl = null, onLangu
   return <CompanionProvider character={user?.companion??"novi"}><AccountActionsProvider actions={accountActions}><NativeKompasProvider><AppShellFrame
     header={<NativeShellHeader account={shellAccount} onError={report} content={content} buildIndicator={buildIndicator} destinations={destinations} progressLinks={gamesEnabled} />}
     headerExtras={<>
-      {detail && <SubpageBackBarView title={diagnostics ? t("nativeDiagnostics.title") : pickerPage ? t("contentSwitcher.picker.title") : passwordPage ? t("profile.changePassword") : deletionPage ? t("accountDeletion.title") : profile ? t(navigation.pathname==="/profile/avatar" ? "profile.avatarEditorTitle" : profileView ? PROFILE_VIEWS[profileView].title : "nav.profile") : readerRoute ? t("pages.lesson") : learningPage ? t("pages.course") : friendsPage ? t("nav.friends") : progressRoute ? t(progressRoute === "/streak" ? "header.streak" : progressRoute === "/xp" ? "header.xp" : "nav.competition") : chapterId ? t("pages.lesson") : t("common.back")} onBack={gamesPage&&gameBack ? gameBack.onBack??(()=>gameBack.soft?navigation.back(gameBack.href):navigation.push(gameBack.href)) : () => navigation.back(gamesPage ? "/live" : passwordPage || deletionPage || profile && (profileView || navigation.pathname==="/profile/avatar") ? "/profile" : readerRoute ? `/courses/${readerRoute.courseId}/pad` : friendsPage ? "/friends" : learningPage ? navigation.pathname.endsWith("/archief") ? navigation.pathname.replace(/archief$/, "pad") : "/courses" : "/dashboard")} />}
+      {detail && <SubpageBackBarView title={diagnostics ? t("nativeDiagnostics.title") : pickerPage ? t("contentSwitcher.picker.title") : passwordPage ? t("profile.changePassword") : deletionPage ? t("accountDeletion.title") : profile ? t(navigation.pathname==="/profile/avatar" ? "profile.avatarEditorTitle" : profileView ? PROFILE_VIEWS[profileView].title : "nav.profile") : readerRoute ? t("pages.lesson") : learningPage ? t("pages.course") : friendsPage ? t("nav.friends") : progressRoute ? t(progressRoute === "/streak" ? "header.streak" : progressRoute === "/xp" ? "header.xp" : "nav.competition") : chapterId ? t("pages.lesson") : t("common.back")} onBack={gamesPage&&gameBack ? gameBack.onBack??(()=>gameBack.soft?navigation.back(gameBack.href):navigation.push(gameBack.href)) : () => navigation.back(nativeBackFallback(navigation.pathname, features))} />}
       {/* De terugbalk reserveert in Focus de veilige bovenrand, ook voor de speler eronder. */}
       <ReadAloudMiniPlayer />
     </>}
