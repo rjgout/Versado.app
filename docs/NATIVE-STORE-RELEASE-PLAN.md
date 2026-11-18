@@ -492,7 +492,8 @@ teststack, DNS en TLS zijn ingericht. Dat is een eigenaartaak (blokkade `distrib
 2. `scripts/native/android-release-guard.mjs before|after`: dezelfde regels vóór het bouwen, plus controle dat de
    metadata in dist en assets gelijk zijn en dat `sourceCommit` gelijk is aan `GITHUB_SHA`; achteraf `jarsigner`-verificatie,
    afkeuring van ongetekend of debug-getekend, en de sha256.
-3. `.github/workflows/native-android-release.yml`: uitsluitend `workflow_dispatch`, uitsluitend vanaf `main`, in de beschermde
+3. `.github/workflows/native-android-release.yml`: uitsluitend `workflow_dispatch`, uitsluitend vanaf `main` of `develop` (nooit een featurebranch; de
+   omgeving `android-play-test` moet `develop` als toegestane branch hebben, een eigenaarsinstelling), in de beschermde
    omgeving `android-play-test`. Controleert de aanwezigheid van secrets zonder waarden te tonen, schrijft de sleutel met
    `umask 077` naar de runner-temp en verwijdert hem altijd, bouwt `bundleRelease`, controleert de bundel en bewaart het
    artifact zeven dagen. **Er is geen Play-upload**: de eigenaar plaatst de bundel handmatig in de interne test.
