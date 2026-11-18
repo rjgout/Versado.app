@@ -9354,23 +9354,20 @@
     },
     {
       "file": "src/components/CoursesClient.tsx",
-      "sha256": "a3c44a7b84ab254b131c022bf55c8c8a987b689187aeb2c791cac170daeedc01",
+      "sha256": "1aa4e01e56be44db8497d24c45d69b0e074ec9321d3b5e924c293fff597ff98b",
       "boundary": "client",
       "imports": [
         "./CoursesView",
         "@/components/I18nProvider",
-        "@/components/versado/useCardListSave",
+        "@/components/courses/useCourseManagement",
         "@/lib/data/fetchJson",
         "@/lib/data/hooks",
-        "@/lib/data/mutation",
         "@/lib/listOrder",
         "react"
       ],
       "methods": [],
       "requests": [
         "/api/courses",
-        "/api/courses/${courseId}/subscribe",
-        "/api/courses/${courseId}/unsubscribe",
         "/api/courses/catalog"
       ],
       "checks": [],
@@ -10663,7 +10660,7 @@
     },
     {
       "file": "src/components/ReadAloudPlayer.tsx",
-      "sha256": "297d5cf3751887a05d643cd933a1cd3be497c180fbe6ce71f71a395e35683c4e",
+      "sha256": "68c72c2e185066ab1690c6b0070cd976b2e8979f42520f552987a6b3ede39477",
       "boundary": "client",
       "imports": [
         "@/components/AppSelect",
@@ -11007,18 +11004,18 @@
     },
     {
       "file": "src/components/StreakClient.tsx",
-      "sha256": "9b1f37cb4bd14ec39d570c718f81456202f58baeeabebe2df53a42fce17a50ad",
+      "sha256": "8178b8f2519807ec2437e78ede1d07e13bcae3b536c17ba8c462178078009c80",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
         "@/components/StreakContinuation",
+        "@/components/navigation/AppNavigation",
         "@/components/versado/StreakDayIndicator",
         "@/components/versado/SystemIcon",
         "@/lib/data/fetchJson",
         "@/lib/data/hooks",
         "@/lib/languages",
         "@/lib/streakCalendar",
-        "next/link",
         "react"
       ],
       "methods": [],
@@ -11348,16 +11345,16 @@
     },
     {
       "file": "src/components/XpHistoryClient.tsx",
-      "sha256": "9e98ad379375310c272a171901b849e01271f8b172d7cf9c1a3d4e7c6828e7c4",
+      "sha256": "95ef841dbb962feddf2649c1cebb209a95466b6f66757cefca5b97ff8efc5615",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
         "@/components/versado/SystemIcon",
         "@/lib/data/fetchJson",
         "@/lib/data/hooks",
         "@/lib/languages",
         "lucide-react",
-        "next/link",
         "react"
       ],
       "methods": [],
@@ -12139,6 +12136,28 @@
       "checks": [],
       "exports": [
         "FullscreenContentPicker"
+      ]
+    },
+    {
+      "file": "src/components/courses/useCourseManagement.ts",
+      "sha256": "7d1aee41fca9277a90a253d890df211ed1f6a1211e2122314bc4e35b41dae6d9",
+      "boundary": "client",
+      "imports": [
+        "@/components/CoursesView",
+        "@/components/versado/useCardListSave",
+        "@/lib/data/fetchJson",
+        "@/lib/data/mutation",
+        "@/lib/listOrder",
+        "react"
+      ],
+      "methods": [],
+      "requests": [
+        "/api/courses/${courseId}/subscribe",
+        "/api/courses/${courseId}/unsubscribe"
+      ],
+      "checks": [],
+      "exports": [
+        "useCourseManagement"
       ]
     },
     {
@@ -13314,7 +13333,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "20a4e562cdc7bdd26629a09078da68ee2e65a3525d42a3f6bd643e2f0834806c",
+      "sha256": "aeb9b0df32989eef53f0ea20e92694309b800279b8ca30517a977866483a1231",
       "boundary": "client",
       "imports": [
         "./NativeContentPicker",
@@ -13325,6 +13344,7 @@
         "./NativeLearningView",
         "./NativePasswordReset",
         "./NativeProfileView",
+        "./NativeProgressView",
         "./NativeShellHeader",
         "./NativeTabBarSync",
         "./NativeTodayView",
@@ -13526,7 +13546,7 @@
     },
     {
       "file": "src/components/native/NativeLearningView.tsx",
-      "sha256": "23dbc5c0e3ec18f41931da81d271b185de9dd8603076b191267d917deffb9102",
+      "sha256": "c6bce8ae3864c5fc5439ef452ec2494349144498f3b3ae97f970ef4cb542b739",
       "boundary": "client",
       "imports": [
         "./NativeCfmCourseView",
@@ -13537,11 +13557,13 @@
         "@/components/CoursesView",
         "@/components/I18nProvider",
         "@/components/ReadingCourseView",
+        "@/components/courses/useCourseManagement",
         "@/components/navigation/AppNavigation",
         "@/lib/data/native",
         "@/lib/data/nativeHooks",
         "@/lib/native/client",
         "@/lib/native/contract",
+        "@/lib/native/coursesContract",
         "@/lib/native/navigation",
         "@/lib/native/readerNavigation",
         "@/lib/native/routeFocus",
@@ -13645,6 +13667,28 @@
       ]
     },
     {
+      "file": "src/components/native/NativeProgressView.tsx",
+      "sha256": "12c6775a428f2d6ba937db9fdd4a362e93acb7922525ee0b425a329f78933ef4",
+      "boundary": "client",
+      "imports": [
+        "@/components/ConfirmProvider",
+        "@/components/I18nProvider",
+        "@/components/LeaderboardClient",
+        "@/components/StreakClient",
+        "@/components/XpHistoryClient",
+        "@/lib/data/queryHooks",
+        "@/lib/native/contract",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NativeProgressView",
+        "nativeProgressRoute"
+      ]
+    },
+    {
       "file": "src/components/native/NativeReadAloudPlayer.tsx",
       "sha256": "053cbb07bd72e93398dfdfbb05cc7b4bf15beed055b6663d8e42a684d379a676",
       "boundary": "client",
@@ -13704,7 +13748,7 @@
     },
     {
       "file": "src/components/native/NativeShellHeader.tsx",
-      "sha256": "c0e28f4f6804cce0922f50e9945db253baf4050e5b9601d5f0340612bcfed8ad",
+      "sha256": "1aa54e9ff30291995dbeaa362e780bf722f7eab6e56ff9ca41158d4d9f2e9818",
       "boundary": "client",
       "imports": [
         "@/components/content/ContentSwitcherView",
@@ -20610,7 +20654,7 @@
     },
     {
       "file": "src/lib/i18n/messages/de.ts",
-      "sha256": "c6c28b1983a00d05f7a302f69d05ba604a71ad0e992f0b2fb0291abbe0327347",
+      "sha256": "609ea86ff3a0184f698d67cc62b3fe4182d4b2c8b23718600bf1044996493d24",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -20625,7 +20669,7 @@
     },
     {
       "file": "src/lib/i18n/messages/en.ts",
-      "sha256": "3c015abc4959ec574f6128010dd7f3a62ec6e8f783a6055bdef6c05260821bf9",
+      "sha256": "9a232b507ada90b9ee95e192dbafd15b18715f50766970689a149c0822d13876",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -20640,7 +20684,7 @@
     },
     {
       "file": "src/lib/i18n/messages/es.ts",
-      "sha256": "e193a2f42fd31558b865ac66a0130ad2985c3497a8ce59e5c8886279a5e6b4ab",
+      "sha256": "f9f45d8fc71ae8bfbc2b4931b0f7237695b3288a6feeab1bdddcaed6ff17e541",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -20655,7 +20699,7 @@
     },
     {
       "file": "src/lib/i18n/messages/fr.ts",
-      "sha256": "6f2418ffe06d36e5ba871ad13babc9b9135dfd668f814bbda9de2fe272538e0f",
+      "sha256": "87f36fc9cc314a64cba7336ba9a4dd474d4c49137a119407950c5500c398b5e2",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -20738,7 +20782,7 @@
     },
     {
       "file": "src/lib/i18n/messages/nl.ts",
-      "sha256": "ab911be7206a4de7a4f06f2c4c7ffd2517e7868805201149bfd6748d19616b6c",
+      "sha256": "45174cc3542bd525ef4c18106c69d135b8c0549d081f2da4ae22c9845a65dbfb",
       "boundary": "context-dependent",
       "imports": [
         "./kompas/nl"
@@ -22365,7 +22409,7 @@
     },
     {
       "file": "src/lib/native/audio.server.ts",
-      "sha256": "4f8ac963dca3d7483c822591d727a45927480b531c50ff006d651b5e77a372d5",
+      "sha256": "e8bb701b57e77999aad26296256f2b030f49fa02ee720f7a4bb54f01a62b6fce",
       "boundary": "context-dependent",
       "imports": [
         "./audioContract",
@@ -22807,7 +22851,7 @@
     },
     {
       "file": "src/lib/native/gamesHandlers.server.ts",
-      "sha256": "6adea798e73cfcd130679da6cb2737cf3d3e43c738f49c88acd4ccb9dfc54716",
+      "sha256": "7c520d15684b1d42958eae94c2ca4b1820e019e77c675d64c454f0d18a0bd887",
       "boundary": "context-dependent",
       "imports": [
         "./gamesRoutes",
@@ -22831,6 +22875,8 @@
         "@/app/api/chapters/[chapterId]/read/route",
         "@/app/api/chapters/[chapterId]/submit/route",
         "@/app/api/chapters/route",
+        "@/app/api/courses/[courseId]/subscribe/route",
+        "@/app/api/courses/[courseId]/unsubscribe/route",
         "@/app/api/dictionary/[word]/route",
         "@/app/api/exercises/[exerciseId]/check/route",
         "@/app/api/exercises/[exerciseId]/hint/route",
@@ -22850,6 +22896,7 @@
         "@/app/api/jigsaw-v2/route",
         "@/app/api/jigsaw/route",
         "@/app/api/kompas/state/route",
+        "@/app/api/leaderboard/route",
         "@/app/api/list-order/route",
         "@/app/api/live/[code]/route",
         "@/app/api/live/create-alleskenner/route",
@@ -22892,6 +22939,7 @@
         "@/app/api/snelle-zendeling/together/route",
         "@/app/api/streak/celebration/route",
         "@/app/api/streak/continuation/route",
+        "@/app/api/streak/route",
         "@/app/api/study/[code]/units/route",
         "@/app/api/users/avatars/route",
         "@/app/api/users/search/route",
@@ -22903,6 +22951,7 @@
         "@/app/api/word-search/[gameId]/give-up/route",
         "@/app/api/word-search/[gameId]/route",
         "@/app/api/word-search/route",
+        "@/app/api/xp-history/route",
         "next/server"
       ],
       "methods": [],
@@ -23068,7 +23117,7 @@
     },
     {
       "file": "src/lib/native/gamesRoutes.ts",
-      "sha256": "b0d7fb99923d185031058c3bf4725144b31fb9e96856975e3d6a93195db7bc85",
+      "sha256": "3c71cff3fd4a0ae900b14ec4b65b697ba6874dfd080ef132b5d698e7ed7d3c42",
       "boundary": "context-dependent",
       "imports": [],
       "methods": [],
@@ -23194,7 +23243,7 @@
     },
     {
       "file": "src/lib/native/navigation.ts",
-      "sha256": "8a013e46aade9c72345ffc0dfb3efaa6ae76d0c041e2060a6b74c6041589111c",
+      "sha256": "61d2be7cfa9824c802231ad811202dd41d8b0243d8cabccb7cbbd0e2980c3249",
       "boundary": "context-dependent",
       "imports": [
         "./gamesPagesRoutes",
@@ -53821,6 +53870,8 @@
         "src/app/api/chapters/[chapterId]/read/route.ts",
         "src/app/api/chapters/[chapterId]/submit/route.ts",
         "src/app/api/chapters/route.ts",
+        "src/app/api/courses/[courseId]/subscribe/route.ts",
+        "src/app/api/courses/[courseId]/unsubscribe/route.ts",
         "src/app/api/dictionary/[word]/route.ts",
         "src/app/api/exercises/[exerciseId]/check/route.ts",
         "src/app/api/exercises/[exerciseId]/hint/route.ts",
@@ -53840,6 +53891,7 @@
         "src/app/api/jigsaw-v2/route.ts",
         "src/app/api/jigsaw/route.ts",
         "src/app/api/kompas/state/route.ts",
+        "src/app/api/leaderboard/route.ts",
         "src/app/api/list-order/route.ts",
         "src/app/api/live/[code]/route.ts",
         "src/app/api/live/create-alleskenner/route.ts",
@@ -53882,6 +53934,7 @@
         "src/app/api/snelle-zendeling/together/route.ts",
         "src/app/api/streak/celebration/route.ts",
         "src/app/api/streak/continuation/route.ts",
+        "src/app/api/streak/route.ts",
         "src/app/api/study/[code]/units/route.ts",
         "src/app/api/users/avatars/route.ts",
         "src/app/api/users/search/route.ts",
@@ -53894,6 +53947,7 @@
         "src/app/api/word-search/[gameId]/give-up/route.ts",
         "src/app/api/word-search/[gameId]/route.ts",
         "src/app/api/word-search/route.ts",
+        "src/app/api/xp-history/route.ts",
         "src/app/challenges/page.tsx",
         "src/app/chapter-guess/page.tsx",
         "src/app/chapter-guess/solo/[gameId]/page.tsx",
@@ -54462,6 +54516,7 @@
         "src/lib/speechAudioSession.ts",
         "src/lib/streak.ts",
         "src/lib/streakBanner.ts",
+        "src/lib/streakCalendar.ts",
         "src/lib/streakCelebration.ts",
         "src/lib/streakContinuation.ts",
         "src/lib/study/units.ts",
@@ -56841,9 +56896,9 @@
         "getCurrentUser"
       ],
       "iosCoverage": {
-        "status": "ontbreekt",
-        "native": null,
-        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+        "status": "gedeeltelijk",
+        "native": "/competition",
+        "reason": "Gedeelde competitie (divisie, ranglijst, landelijk/vrienden) via de spelbrug (games-v1); toestelacceptatie open"
       }
     },
     {
@@ -57101,6 +57156,7 @@
         "src/components/CoursesView.tsx",
         "src/components/I18nProvider.tsx",
         "src/components/LiveRefresh.tsx",
+        "src/components/courses/useCourseManagement.ts",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/study/CfmTodayCard.tsx",
         "src/components/study/PersonalStudyParts.tsx",
@@ -57231,6 +57287,7 @@
         "src/components/CoursesView.tsx",
         "src/components/I18nProvider.tsx",
         "src/components/LiveRefresh.tsx",
+        "src/components/courses/useCourseManagement.ts",
         "src/components/navigation/AppNavigation.tsx",
         "src/components/study/CfmTodayCard.tsx",
         "src/components/study/PersonalStudyParts.tsx",
@@ -57264,7 +57321,7 @@
       "iosCoverage": {
         "status": "gedeeltelijk",
         "native": "/courses",
-        "reason": "Gedeelde cursuscatalogus; toevoegen, inschrijven en alle cursustypen/acties nog niet gelijk"
+        "reason": "Gedeeld cursusoverzicht met beheer (volgen/toevoegen, verbergen, eigen volgorde) via de spelbrug; fysieke toestelacceptatie en alle cursustypen/acties nog niet gelijk"
       }
     },
     {
@@ -72082,9 +72139,9 @@
         "getCurrentUser"
       ],
       "iosCoverage": {
-        "status": "ontbreekt",
-        "native": null,
-        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+        "status": "gedeeltelijk",
+        "native": "/streak",
+        "reason": "Gedeelde reeksweergave (kalender, bevriezingen) via de spelbrug (games-v1); aanvullende viering/herstelpaden en toestelacceptatie nog open (NATIVE-MOBIEL-COMPLEET.md)"
       }
     },
     {
@@ -74943,6 +75000,7 @@
         "src/app/xp/page.tsx",
         "src/components/I18nProvider.tsx",
         "src/components/XpHistoryClient.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/versado/SystemIcon.tsx",
         "src/lib/alleskenner/content.ts",
         "src/lib/alleskenner/validate.ts",
@@ -75018,6 +75076,7 @@
       "clientBoundaries": [
         "src/components/I18nProvider.tsx",
         "src/components/XpHistoryClient.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/lib/data/client.ts",
         "src/lib/data/hooks.ts",
         "src/lib/data/queryHooks.ts",
@@ -75032,9 +75091,9 @@
         "getCurrentUser"
       ],
       "iosCoverage": {
-        "status": "ontbreekt",
-        "native": null,
-        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+        "status": "gedeeltelijk",
+        "native": "/xp",
+        "reason": "Gedeelde XP-geschiedenis via de spelbrug (games-v1); de XP-gids (Hulpmiddelen) is er in de app nog niet en wordt daar verborgen; toestelacceptatie open"
       }
     }
   ],
@@ -78696,23 +78755,20 @@
     },
     {
       "file": "src/components/CoursesClient.tsx",
-      "sha256": "a3c44a7b84ab254b131c022bf55c8c8a987b689187aeb2c791cac170daeedc01",
+      "sha256": "1aa4e01e56be44db8497d24c45d69b0e074ec9321d3b5e924c293fff597ff98b",
       "boundary": "client",
       "imports": [
         "./CoursesView",
         "@/components/I18nProvider",
-        "@/components/versado/useCardListSave",
+        "@/components/courses/useCourseManagement",
         "@/lib/data/fetchJson",
         "@/lib/data/hooks",
-        "@/lib/data/mutation",
         "@/lib/listOrder",
         "react"
       ],
       "methods": [],
       "requests": [
         "/api/courses",
-        "/api/courses/${courseId}/subscribe",
-        "/api/courses/${courseId}/unsubscribe",
         "/api/courses/catalog"
       ],
       "checks": [],
@@ -80005,7 +80061,7 @@
     },
     {
       "file": "src/components/ReadAloudPlayer.tsx",
-      "sha256": "297d5cf3751887a05d643cd933a1cd3be497c180fbe6ce71f71a395e35683c4e",
+      "sha256": "68c72c2e185066ab1690c6b0070cd976b2e8979f42520f552987a6b3ede39477",
       "boundary": "client",
       "imports": [
         "@/components/AppSelect",
@@ -80349,18 +80405,18 @@
     },
     {
       "file": "src/components/StreakClient.tsx",
-      "sha256": "9b1f37cb4bd14ec39d570c718f81456202f58baeeabebe2df53a42fce17a50ad",
+      "sha256": "8178b8f2519807ec2437e78ede1d07e13bcae3b536c17ba8c462178078009c80",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
         "@/components/StreakContinuation",
+        "@/components/navigation/AppNavigation",
         "@/components/versado/StreakDayIndicator",
         "@/components/versado/SystemIcon",
         "@/lib/data/fetchJson",
         "@/lib/data/hooks",
         "@/lib/languages",
         "@/lib/streakCalendar",
-        "next/link",
         "react"
       ],
       "methods": [],
@@ -80690,16 +80746,16 @@
     },
     {
       "file": "src/components/XpHistoryClient.tsx",
-      "sha256": "9e98ad379375310c272a171901b849e01271f8b172d7cf9c1a3d4e7c6828e7c4",
+      "sha256": "95ef841dbb962feddf2649c1cebb209a95466b6f66757cefca5b97ff8efc5615",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
         "@/components/versado/SystemIcon",
         "@/lib/data/fetchJson",
         "@/lib/data/hooks",
         "@/lib/languages",
         "lucide-react",
-        "next/link",
         "react"
       ],
       "methods": [],
@@ -82505,7 +82561,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "20a4e562cdc7bdd26629a09078da68ee2e65a3525d42a3f6bd643e2f0834806c",
+      "sha256": "aeb9b0df32989eef53f0ea20e92694309b800279b8ca30517a977866483a1231",
       "boundary": "client",
       "imports": [
         "./NativeContentPicker",
@@ -82516,6 +82572,7 @@
         "./NativeLearningView",
         "./NativePasswordReset",
         "./NativeProfileView",
+        "./NativeProgressView",
         "./NativeShellHeader",
         "./NativeTabBarSync",
         "./NativeTodayView",
@@ -82717,7 +82774,7 @@
     },
     {
       "file": "src/components/native/NativeLearningView.tsx",
-      "sha256": "23dbc5c0e3ec18f41931da81d271b185de9dd8603076b191267d917deffb9102",
+      "sha256": "c6bce8ae3864c5fc5439ef452ec2494349144498f3b3ae97f970ef4cb542b739",
       "boundary": "client",
       "imports": [
         "./NativeCfmCourseView",
@@ -82728,11 +82785,13 @@
         "@/components/CoursesView",
         "@/components/I18nProvider",
         "@/components/ReadingCourseView",
+        "@/components/courses/useCourseManagement",
         "@/components/navigation/AppNavigation",
         "@/lib/data/native",
         "@/lib/data/nativeHooks",
         "@/lib/native/client",
         "@/lib/native/contract",
+        "@/lib/native/coursesContract",
         "@/lib/native/navigation",
         "@/lib/native/readerNavigation",
         "@/lib/native/routeFocus",
@@ -82836,6 +82895,28 @@
       ]
     },
     {
+      "file": "src/components/native/NativeProgressView.tsx",
+      "sha256": "12c6775a428f2d6ba937db9fdd4a362e93acb7922525ee0b425a329f78933ef4",
+      "boundary": "client",
+      "imports": [
+        "@/components/ConfirmProvider",
+        "@/components/I18nProvider",
+        "@/components/LeaderboardClient",
+        "@/components/StreakClient",
+        "@/components/XpHistoryClient",
+        "@/lib/data/queryHooks",
+        "@/lib/native/contract",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NativeProgressView",
+        "nativeProgressRoute"
+      ]
+    },
+    {
       "file": "src/components/native/NativeReadAloudPlayer.tsx",
       "sha256": "053cbb07bd72e93398dfdfbb05cc7b4bf15beed055b6663d8e42a684d379a676",
       "boundary": "client",
@@ -82895,7 +82976,7 @@
     },
     {
       "file": "src/components/native/NativeShellHeader.tsx",
-      "sha256": "c0e28f4f6804cce0922f50e9945db253baf4050e5b9601d5f0340612bcfed8ad",
+      "sha256": "1aa54e9ff30291995dbeaa362e780bf722f7eab6e56ff9ca41158d4d9f2e9818",
       "boundary": "client",
       "imports": [
         "@/components/content/ContentSwitcherView",
@@ -86038,6 +86119,7 @@
     "tests/native-annotations.integration.test.ts",
     "tests/native-annotations.test.ts",
     "tests/native-appearance.test.ts",
+    "tests/native-audio-diagnostics.test.ts",
     "tests/native-audio-player.browser.mjs",
     "tests/native-audio-player.test.ts",
     "tests/native-audio-shell.browser.mjs",
@@ -86045,6 +86127,7 @@
     "tests/native-audio.test.ts",
     "tests/native-content.browser.mjs",
     "tests/native-content.integration.test.ts",
+    "tests/native-course-management.test.ts",
     "tests/native-courses.browser.mjs",
     "tests/native-courses.integration.test.ts",
     "tests/native-courses.test.tsx",
@@ -86078,6 +86161,7 @@
     "tests/native-profile.browser.mjs",
     "tests/native-profile.integration.test.ts",
     "tests/native-profile.test.tsx",
+    "tests/native-progress.test.ts",
     "tests/native-reader.browser.mjs",
     "tests/native-reader.integration.test.ts",
     "tests/native-reader.test.ts",
@@ -86216,6 +86300,7 @@
     "tests/study-reading-phase.test.ts",
     "tests/study-scoring.test.ts",
     "tests/study-steps.integration.test.ts",
+    "tests/synthetic-test-accounts.test.ts",
     "tests/timeZone.test.ts",
     "tests/today-continue-cards.test.ts",
     "tests/unsubscribe.integration.test.ts",

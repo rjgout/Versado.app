@@ -5,7 +5,7 @@ import { execSync } from "node:child_process";
 
 const script = "scripts/test-accounts/seed-synthetic-friends.ts";
 const run = (args: string[], env: Record<string, string> = {}) => spawnSync("npx", ["tsx", script, ...args], {
-  encoding: "utf8", env: { PATH: process.env.PATH ?? "", HOME: process.env.HOME ?? "", DATABASE_URL: "postgresql://x:y@127.0.0.1:1/ongebruikt", ...env },
+  encoding: "utf8", env: { PATH: process.env.PATH ?? "", HOME: process.env.HOME ?? "", DATABASE_URL: "postgresql://x:y@127.0.0.1:1/ongebruikt", ...env } as unknown as NodeJS.ProcessEnv,
 });
 
 test("de testvriendenvoorziening weigert zonder doelaccount, zonder testomgeving en zonder databasebevestiging", () => {
