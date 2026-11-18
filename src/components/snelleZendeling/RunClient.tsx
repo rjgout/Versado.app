@@ -1,8 +1,10 @@
 "use client";
+import {applicationFetch} from "@/lib/data/applicationRuntime";
+
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import {AppLink as Link} from "@/components/navigation/AppNavigation";
+import {useGameRouter as useRouter} from "@/components/games/GameNavigation";
 import ImmersiveLayout from "@/components/versado/ImmersiveLayout";
 import { useT } from "@/components/I18nProvider";
 import { useConfirm } from "@/components/ConfirmProvider";
@@ -65,7 +67,7 @@ export default function QuickMissionaryRunClient({ runId, character }: { runId: 
   const setCurrentPhase = useCallback((next: Phase) => { phaseRef.current = next; setPhase(next); }, []);
 
   useEffect(() => {
-    fetch(`/api/snelle-zendeling/runs/${runId}`, { cache: "no-store" })
+    applicationFetch(`/api/snelle-zendeling/runs/${runId}`, { cache: "no-store" })
       .then((response) => (response.ok ? response.json() : Promise.reject()))
       .then((data: RunView) => {
         setView(data);
@@ -86,7 +88,7 @@ export default function QuickMissionaryRunClient({ runId, character }: { runId: 
     const abandon = () => {
       if (phaseRef.current === "finished" || abandonSentRef.current) return;
       abandonSentRef.current = true;
-      void fetch(`/api/snelle-zendeling/runs/${runId}/finish`, {
+      void applicationFetch(`/api/snelle-zendeling/runs/${runId}/finish`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ score: scoreRef.current }),
@@ -156,9 +158,9 @@ export default function QuickMissionaryRunClient({ runId, character }: { runId: 
   }, [character]);
 
   const finishFromDeath = useCallback(async () => {
-    const response = await fetch(`/api/snelle-zendeling/runs/${runId}/finish`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ score: scoreRef.current }) });
+    const response = await applicationFetch(`/api/snelle-zendeling/runs/${runId}/finish`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ score: scoreRef.current }) });
     if (!response.ok) setError(true);
-    const viewResponse = await fetch(`/api/snelle-zendeling/runs/${runId}`, { cache: "no-store" });
+    const viewResponse = await applicationFetch(`/api/snelle-zendeling/runs/${runId}`, { cache: "no-store" });
     if (viewResponse.ok) setView(await viewResponse.json());
     abandonSentRef.current = true;
     setCurrentPhase("finished");
@@ -169,9 +171,9 @@ export default function QuickMissionaryRunClient({ runId, character }: { runId: 
     // De weergave van vóór de dood zegt niets over Genees; wacht op de nieuwe.
     setView(null);
     setCurrentPhase("dead");
-    const response = await fetch(`/api/snelle-zendeling/runs/${runId}/death`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ score: scoreRef.current }) });
+    const response = await applicationFetch(`/api/snelle-zendeling/runs/${runId}/death`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ score: scoreRef.current }) });
     if (!response.ok) { setError(true); return; }
-    const viewResponse = await fetch(`/api/snelle-zendeling/runs/${runId}`, { cache: "no-store" });
+    const viewResponse = await applicationFetch(`/api/snelle-zendeling/runs/${runId}`, { cache: "no-store" });
     if (viewResponse.ok) setView(await viewResponse.json());
   }, [runId, setCurrentPhase]);
 
@@ -240,7 +242,7 @@ export default function QuickMissionaryRunClient({ runId, character }: { runId: 
       return;
     }
     if (phaseRef.current === "revive-ready") {
-      const response = await fetch(`/api/snelle-zendeling/runs/${runId}/resume`, { method: "POST" });
+      const response = await applicationFetch(`/api/snelle-zendeling/runs/${runId}/resume`, { method: "POST" });
       if (response.ok) { safeUntilRef.current = performance.now() + 3000; setCurrentPhase("running"); boostUntilRef.current = performance.now() + 180; velocityRef.current = BOOST_VELOCITY; }
     }
   }, [resetLocalRun, runId, setCurrentPhase]);
@@ -255,14 +257,14 @@ export default function QuickMissionaryRunClient({ runId, character }: { runId: 
     setGeneesBusy(true);
     setGeneesError(null);
     try {
-      const response = await fetch(`/api/snelle-zendeling/runs/${runId}/revive`, { method: "POST" });
+      const response = await applicationFetch(`/api/snelle-zendeling/runs/${runId}/revive`, { method: "POST" });
       if (response.ok) {
         setView(await response.json());
         setCurrentPhase("revive-question");
         // De voorraad kan hiermee verbruikt zijn: de winkel moet dat bij terugkomen weten.
         invalidateData("gamesChanged");
       } else if (response.status === 409) {
-        const fresh = await fetch(`/api/snelle-zendeling/runs/${runId}`, { cache: "no-store" });
+        const fresh = await applicationFetch(`/api/snelle-zendeling/runs/${runId}`, { cache: "no-store" });
         if (fresh.ok) { setView(await fresh.json()); setCurrentPhase("dead"); }
         else setError(true);
       }
@@ -277,11 +279,11 @@ export default function QuickMissionaryRunClient({ runId, character }: { runId: 
     setGeneesBusy(true);
     setGeneesError(null);
     try {
-      const response = await fetch(`/api/snelle-zendeling/runs/${runId}/genees`, { method: "POST" });
+      const response = await applicationFetch(`/api/snelle-zendeling/runs/${runId}/genees`, { method: "POST" });
       const body = await response.json().catch(() => ({}));
       if (!response.ok) {
         setGeneesError(typeof body.error === "string" ? body.error : t("quickMissionary.healBuyFailed"));
-        const fresh = await fetch(`/api/snelle-zendeling/runs/${runId}`, { cache: "no-store" });
+        const fresh = await applicationFetch(`/api/snelle-zendeling/runs/${runId}`, { cache: "no-store" });
         if (fresh.ok) setView(await fresh.json());
         return;
       }
@@ -305,8 +307,8 @@ export default function QuickMissionaryRunClient({ runId, character }: { runId: 
       purchaseConfirmationRef.current = false;
     }
   }
-  async function answer(optionId: string) { if (!view?.reviveQuestion) return; const response = await fetch(`/api/snelle-zendeling/runs/${runId}/revive/answer`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ exerciseId: view.reviveQuestion.exerciseId, optionId }) }); if (!response.ok) { const fresh = await fetch(`/api/snelle-zendeling/runs/${runId}`, { cache: "no-store" }); if (fresh.ok) { setView(await fresh.json()); setCurrentPhase("dead"); } else setError(true); return; } const result = await response.json() as { correct: boolean; view: RunView }; setView(result.view); if (result.correct) { repositionAfterRevive(); setCurrentPhase("revive-ready"); } else { abandonSentRef.current = true; setCurrentPhase("finished"); } }
-  async function playAgain() { const response = await fetch("/api/snelle-zendeling/runs", { method: "POST" }); const data = await response.json().catch(() => ({})); if (response.ok && data.runId) router.replace(`/snelle-zendeling/run/${data.runId}`); }
+  async function answer(optionId: string) { if (!view?.reviveQuestion) return; const response = await applicationFetch(`/api/snelle-zendeling/runs/${runId}/revive/answer`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ exerciseId: view.reviveQuestion.exerciseId, optionId }) }); if (!response.ok) { const fresh = await applicationFetch(`/api/snelle-zendeling/runs/${runId}`, { cache: "no-store" }); if (fresh.ok) { setView(await fresh.json()); setCurrentPhase("dead"); } else setError(true); return; } const result = await response.json() as { correct: boolean; view: RunView }; setView(result.view); if (result.correct) { repositionAfterRevive(); setCurrentPhase("revive-ready"); } else { abandonSentRef.current = true; setCurrentPhase("finished"); } }
+  async function playAgain() { const response = await applicationFetch("/api/snelle-zendeling/runs", { method: "POST" }); const data = await response.json().catch(() => ({})); if (response.ok && data.runId) router.replace(`/snelle-zendeling/run/${data.runId}`); }
   function openRanking() { router.replace(QUICK_MISSIONARY_RANKING_HREF); }
 
   const title = quickMissionaryTitle(t, character);

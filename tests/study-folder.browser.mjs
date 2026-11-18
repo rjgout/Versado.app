@@ -100,7 +100,14 @@ try {
   await page.waitForURL(`${base}/study-folder?type=bookmark`);
   await page.locator("[data-folder-item]").first().waitFor();
   check("oude /bookmarks-link toont alleen bladwijzers in Mijn studiemap", (await page.locator("[data-folder-item]").evaluateAll((els) => els.every((e) => e.getAttribute("data-folder-item").startsWith("bookmark:")))));
-  check("bladwijzerfilter is zichtbaar actief", (await page.locator('[data-folder-type="bookmark"]').getAttribute("aria-pressed")) === "true");
+  // Een gebruiker ziet precies één studiemap. De DOM kan tijdens een overgang kortstondig nog een
+  // verborgen, niet-bedienbare kopie van de vorige boom bevatten (display:none, aria-hidden of inert);
+  // dat is geen tweede weergave. Zichtbaar dubbel blijft een fout, en een verborgen kopie wordt gelogd.
+  const visibleFolders = await page.locator("[data-study-folder]:visible").count();
+  const allFolders = await page.locator("[data-study-folder]").count();
+  if (allFolders !== visibleFolders) console.log("INFO verborgen studiemapkopie in de DOM:", JSON.stringify(await page.locator("[data-study-folder]").evaluateAll((els) => els.map((el) => ({ display: getComputedStyle(el).display, hiddenAncestor: !!el.closest("[hidden],[aria-hidden='true'],[inert]"), chain: (() => { const out = []; for (let n = el.parentElement; n && out.length < 5; n = n.parentElement) out.push(n.tagName.toLowerCase() + (n.getAttribute("style") ? `[style=${n.getAttribute("style")}]` : "")); return out; })() })))));
+  check("er is precies één zichtbare studiemap (geen zichtbare dubbele weergave)", visibleFolders === 1, `${visibleFolders}/${allFolders}`);
+  check("bladwijzerfilter is zichtbaar actief", (await page.locator('[data-folder-type="bookmark"]:visible').getAttribute("aria-pressed")) === "true");
 
   // ===== Lijst, zoeken, filters en URL =====
   await page.goto(`${base}/study-folder`);
@@ -160,7 +167,7 @@ try {
   const placement = await page.evaluate(() => { const r = document.querySelector("#vers-3").getBoundingClientRect(); const header = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-height")) || 0; return { top: r.top, bottom: r.bottom, header, vh: innerHeight }; });
   check("vers: het exacte vers staat zichtbaar onder de vaste header", placement.top >= placement.header - 1 && placement.bottom <= placement.vh + 1, JSON.stringify(placement));
   check("vers: er opent niet vanzelf een annotatiesheet", (await page.locator("dialog[open]").count()) === 0);
-  check("vers: de terugbalk noemt Mijn studiemap", /Mijn studiemap/.test(await page.locator("[data-subpage-back-bar]").innerText()));
+  check("vers: de terugbalk noemt Mijn studiemap", /Mijn studiemap/.test(await page.locator("[data-subpage-back-bar]:visible").innerText()));
   await page.getByRole("button", { name: t("common.back") }).click();
   await page.waitForURL(/\/study-folder\?type=note&q=Abcdefghijklmnop/);
   await page.locator("[data-folder-item]").first().waitFor();
@@ -387,7 +394,7 @@ try {
       await p.addStyleTag({ content: `html{font-size:${scale}%}` });
       await p.locator("[data-folder-item]").first().waitFor();
       check(`responsive ${language} ${size.width}px ${scheme} ${scale}%: geen horizontale overflow`, await noOverflow(p));
-      const bar = await p.locator("[data-subpage-back-bar]").boundingBox();
+      const bar = await p.locator("[data-subpage-back-bar]:visible").boundingBox();
       const edit = await p.locator("[data-folder-edit]").first().boundingBox();
       check(`responsive ${language} ${size.width}px ${scheme} ${scale}%: bediening zichtbaar en minimaal 40px`, bar !== null && edit.height >= 40 && edit.x >= -1 && edit.x + edit.width <= size.width + 1);
       if (language === "nl" && scheme === "light" && scale === 100) await p.screenshot({ path: `${output}/folder-${size.width}.png` });

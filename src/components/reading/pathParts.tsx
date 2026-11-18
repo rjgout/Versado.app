@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
+import { AppImage as Image } from "@/components/navigation/AppNavigation";
+import { AppLink as Link } from "@/components/navigation/AppNavigation";
 import { BookOpen, Check, Lock } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
 import MediaArtwork from "@/components/versado/MediaArtwork";

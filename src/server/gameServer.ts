@@ -42,7 +42,7 @@ import {
   type FamilyCard,
   type FamilyDifficulty,
 } from "@/lib/familyGame";
-import { forgetAlleskennerRoom, registerAlleskennerHandlers } from "@/server/alleskenner";
+import { forgetAlleskennerRoom, registerAlleskennerListeningSource, registerAlleskennerHandlers } from "@/server/alleskenner";
 import { forgetStudyRoom, registerStudyHandlers } from "@/server/study";
 import { forgetQuickMissionaryRoom, registerQuickMissionaryHandlers } from "@/server/quickMissionary";
 import { registerPuzzleHandlers } from "@/server/puzzle";
@@ -581,6 +581,7 @@ function handleFamilyEventChoice(room: RoomState, socket: Socket, choiceIndex: n
 }
 
 export function initGameServer(httpServer: HttpServer) {
+  registerAlleskennerListeningSource();
   ioInstance = new SocketIOServer(httpServer, {
     path: "/socket.io",
     allowRequest: (req, callback) => callback(null, socketOriginAllowed(req.headers.origin, applicationOrigin())),

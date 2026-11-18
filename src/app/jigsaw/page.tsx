@@ -1,9 +1,12 @@
+import SharedGame10 from "@/components/JigsawV2Client";
+import GameScreen from "@/components/games/GameScreen";
+import WebGameBoundary from "@/components/games/WebGameBoundary";
 import { prisma } from "@/lib/db";
 import { canStartGame, canResumeGameContent } from "@/lib/gameAvailability";
-import { redirect } from "next/navigation";
+import { gameRedirect as redirect } from "@/lib/games/navigation.server";
 import { getCurrentUser } from "@/lib/session";
 import { jigsawCatalog } from "@/lib/jigsawGame";
-import JigsawV2Client from "@/components/JigsawV2Client";
+
 import { listCoopOverview } from "@/lib/puzzle/coop";
 import { listMatchOverview } from "@/lib/puzzle/match";
 
@@ -19,5 +22,5 @@ export default async function JigsawPage() {
     ]);
     if (!solo && !coop.sessions.length && !coop.invites.length && !matches.length) redirect("/live?availability=unavailable");
   }
-  return <JigsawV2Client images={jigsawCatalog} allowStarts={allowStarts} />;
+  return <WebGameBoundary><GameScreen component={SharedGame10} view="puzzleCatalogue" data={{ "images": jigsawCatalog, "allowStarts": allowStarts }}  /></WebGameBoundary>;
 }

@@ -37,9 +37,19 @@ importscript voor die content, of een featurebeschrijving die vandaag klopt)
 "Podcastafleveringen verwerken" hieronder voor hoe dat onderscheid in de
 praktijk toegepast wordt.
 
+## App-first (Capacitor)
+
+Versado is app-first: iOS/Android zijn primair, de website is aanvullend. Architectuur is
+Capacitor met één gedeelde, lokaal gebundelde React-client en de bestaande backend (geen
+Expo-migratie, geen tweede accountsysteem). Zie `docs/ARCHITECTUURBESLUIT-APP-FIRST.md`,
+`docs/APP-FIRST-IMPLEMENTATIEPLAN.md` en `docs/RINGTOOLS-REFERENTIE.md`.
+
 ## Werkwijze
 
 Volg de vaste taakverdeling in [AI-ontwikkelworkflow](docs/AI-DEVELOPMENT-WORKFLOW.md).
+Nieuwe featurebranches starten standaard vanaf `develop` en feature-PR's richten
+op `develop`. Het centrale [branch- en mergebeleid](docs/AI-DEVELOPMENT-WORKFLOW.md#branch--en-mergebeleid)
+regelt onafhankelijke review, toestemming, productiereleases, hotfixes en synchronisatie.
 Een aangeleverde, actuele ChatGPT-audit geldt als vooronderzoek: dupliceer die
 niet, maar inspecteer alleen de codepaden die nodig zijn voor implementatie en
 concrete afwijkingen. Bij ontbrekend of aantoonbaar verouderd vooronderzoek voer
@@ -423,9 +433,11 @@ Containernamen zijn puur infrastructuur, geen productbranding — de
 Postgres-gebruiker/database heten bewust nog "bom" (zie `.env.example`),
 dat is voor niemand zichtbaar en hoeft niet mee te veranderen.
 
-Build/deploy: GitHub Actions bouwt bij elke push naar `main` een image en
-publiceert 'm naar `ghcr.io` (`.github/workflows/docker-publish.yml`); een
-zelfgehoste instantie haalt 'm op via Portainer/Docker Compose. Zie
+Build/publicatie: pushes naar `develop` publiceren na geslaagde controles dev-images;
+pushes naar `main` gebruiken de bestaande productie-workflow
+(`.github/workflows/docker-publish.yml`). Zie [Development-pipeline](docs/DEVELOPMENT-PIPELINE.md).
+Alleen de eigenaar werkt de NAS-stack bij via Portainer/Docker Compose; een
+imagepublicatie is geen deploymentopdracht voor een ontwikkelagent. Zie
 `docs/DEPLOY-SYNOLOGY.md` voor de migratienotitie als je van een oudere
 `bom-game`-naamgeving komt.
 
@@ -971,7 +983,7 @@ leeroefeningen:
 - Werk **per aflevering** dit patroon af: transcript lezen → onderwerpen
   bepalen → BOM-tekst zoeken en verifiëren → TS-object toevoegen aan het
   array → `npx tsc --noEmit`. Commit per 1-3 afleveringen naar de
-  werkbranch (nooit rechtstreeks naar `main`).
+  featurebranch (nooit rechtstreeks naar `develop` of `main`).
 - **Afsluitende validatie** nadat alle afleveringen zijn toegevoegd:
   `npx tsc --noEmit`, een lokale import-test tegen een Postgres-instantie
   (roep `importPodcastEpisodes()` uit `prisma/importPodcast.ts` rechtstreeks

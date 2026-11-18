@@ -8,9 +8,8 @@ import type { WeekContext } from "@/lib/studyContent/weekContext";
 
 export type PersonalMode = "free" | "steps" | "full";
 
-export function lessonBase(lessonId: string, collectionId: string) {
-  return `/study-lesson/${encodeURIComponent(lessonId)}/${encodeURIComponent(collectionId)}`;
-}
+import { lessonBase } from "@/lib/studyContent/presentation";
+export { lessonBase } from "@/lib/studyContent/presentation";
 
 /** Compact menu voor secundaire acties (opnieuw bovenaan, volledige les). Geen eigen laag buiten de pagina. */
 export function HeaderMenu({ children }: { children: ReactNode }) {
@@ -69,18 +68,7 @@ export function WeekNav({ week, suffix = "" }: { week: WeekContext; suffix?: str
 }
 
 /** "2–8 maart" in de taal van de gebruiker, uit officiële kalenderdagen (eind exclusief); zonder tijdzonerekensom. */
-export function formatWeekPeriod(startsOn: string | null, endsOnExclusive: string | null, locale: string): string | null {
-  if (!startsOn || !endsOnExclusive) return null;
-  const start = new Date(`${startsOn}T00:00:00Z`);
-  const end = new Date(new Date(`${endsOnExclusive}T00:00:00Z`).getTime() - 86_400_000);
-  try {
-    // ICU/CLDR gebruikt per runtime andere dunne/vaste spaties; dezelfde tekst
-    // op server en browser voorkomt hydratatiefouten bij maand-/jaargrenzen.
-    return new Intl.DateTimeFormat(locale, { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).formatRange(start, end).replace(/[\u00a0\u2009\u202f]/g, " ");
-  } catch {
-    return `${startsOn} – ${end.toISOString().slice(0, 10)}`;
-  }
-}
+export { formatWeekPeriod } from "@/lib/studyContent/presentation";
 
 /** Zeven blokjes met de status per stap; de status staat ook als tekst (aria-label), nooit alleen als kleur. */
 export function StepDots({ statuses, current }: { statuses: ReadonlyArray<"NOT_STARTED" | "IN_PROGRESS" | "COMPLETED">; current: number }) {

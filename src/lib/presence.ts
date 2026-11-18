@@ -1,9 +1,10 @@
-import type { Server as SocketIOServer } from "socket.io";
-import { prisma } from "@/lib/db";
 import { formatElapsedDutch } from "@/lib/dates";
+import { prisma } from "@/lib/db";
+import type { Server as SocketIOServer } from "socket.io";
 
-export const INCOGNITO_DURATIONS_HOURS = [1, 4, 12, 24] as const;
-export type IncognitoDurationHours = (typeof INCOGNITO_DURATIONS_HOURS)[number];
+import type { Prisma } from "@/generated/prisma/client";
+import { type IncognitoDurationHours } from "./presenceRules";
+export { INCOGNITO_DURATIONS_HOURS,type IncognitoDurationHours } from "./presenceRules";
 
 const MAX_ACTIVITY_LABEL_LENGTH = 60;
 
@@ -193,7 +194,7 @@ export async function sendFriendStatusesToUser(io: SocketIOServer | null, userId
 }
 
 /** Zet incognito aan (met vervaltijd) of uit (hours = null). */
-export async function setIncognito(userId: string, hours: IncognitoDurationHours | null): Promise<void> {
+export async function setIncognito(userId: string, hours: IncognitoDurationHours | null, db: Pick<Prisma.TransactionClient, "user"> = prisma): Promise<void> {
   const invisibleUntil = hours === null ? null : new Date(Date.now() + hours * 60 * 60 * 1000);
-  await prisma.user.update({ where: { id: userId }, data: { invisibleUntil } });
+  await db.user.update({ where: { id: userId }, data: { invisibleUntil } });
 }

@@ -1,8 +1,10 @@
 "use client";
+import {applicationFetch} from "@/lib/data/applicationRuntime";
+
 
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import {AppLink as Link} from "@/components/navigation/AppNavigation";
+import {useGameRouter as useRouter} from "@/components/games/GameNavigation";
 import { SEASON_STATUS_KEY } from "@/components/alleskenner/SeasonListClient";
 import UserAvatar from "@/components/UserAvatar";
 import FriendPicker from "@/components/FriendPicker";
@@ -85,7 +87,7 @@ export default function SeasonClient({ id }: { id: string }) {
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    const res = await fetch(`/api/alleskenner/seasons/${id}?absent=${absent.join(",")}`);
+    const res = await applicationFetch(`/api/alleskenner/seasons/${id}?absent=${absent.join(",")}`);
     if (!res.ok) {
       setNotFound(true);
       return;
@@ -100,7 +102,7 @@ export default function SeasonClient({ id }: { id: string }) {
   async function call(url: string, method: string, body?: unknown): Promise<Record<string, unknown> | null> {
     setBusy(true);
     setError(null);
-    const res = await fetch(url, {
+    const res = await applicationFetch(url, {
       method,
       headers: { "content-type": "application/json" },
       body: body === undefined ? undefined : JSON.stringify(body),

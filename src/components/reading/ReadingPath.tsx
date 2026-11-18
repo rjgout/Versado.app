@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
+import { AppLink as Link } from "@/components/navigation/AppNavigation";
 import { Check, ChevronDown, Lock } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
 import MyStepNav from "@/components/reading/MyStepNav";

@@ -49,7 +49,7 @@ test("het voorbeeldbestand bevat uitsluitend lege plaatsaanduidingen, zonder dom
 });
 
 const ok = {
-  capabilities: { status: 200, redirected: false, body: { apiVersion: 1, features: ["security-setup-v1", "account-password-v1", "password-reset-v1", "email-confirmation-v1", "account-deletion-v1"] } },
+  capabilities: { status: 200, redirected: false, body: { apiVersion: 1, features: ["security-setup-v1", "account-password-v1", "password-reset-v1", "email-confirmation-v1", "account-deletion-v1", "games-v1", "realtime-ticket-v1"] } },
   native: { allowOrigin: "capacitor://localhost" }, cross: { allowOrigin: null },
   root: { status: 200, permissionsPolicy: "camera=(), microphone=(self), geolocation=()", hsts: "max-age=31536000" },
 };
@@ -79,18 +79,34 @@ test("check(): alleen leesverzoeken, nooit een redirect volgen, en alleen na exa
     requests.push({ url, method: init.method, redirect: init.redirect, origin: init.headers?.Origin });
     const cors = init.headers?.Origin === "capacitor://localhost" ? { "access-control-allow-origin": "capacitor://localhost" } : {};
     if (url.endsWith("/capabilities")) return new Response(JSON.stringify(ok.capabilities.body), { status: 200, headers: { "content-type": "application/json", ...cors } });
+    if (url.endsWith("/games/page?route=%2Flive")) return new Response(JSON.stringify({ error: "session_expired" }), { status: 401, headers: { "content-type": "application/json", ...cors } });
     return new Response("<html></html>", { status: 200, headers: { "content-type": "text/html", "permissions-policy": "microphone=(self)", "strict-transport-security": "max-age=1" } });
   };
   const result = await check("https://test.versado-test.com", { fetchImpl, allowlist: { internal: [], "store-test": [] }, env: {} });
   assert.equal(result.ok, true, result.problems.join("; "));
-  assert.ok(requests.length === 3 && requests.every((request) => request.method === "GET" && request.redirect === "manual"));
+  assert.ok(requests.length === 4 && requests.every((request) => request.method === "GET" && request.redirect === "manual"));
+  const gamesProbe = requests.filter((request) => request.url.includes("/games/page"));
+  assert.deepEqual(gamesProbe.map((request) => request.url), ["https://test.versado-test.com/api/v1/native/games/page?route=%2Flive"], "één vaste, alleen lezende games/page-controle");
+  assert.equal(requests.some((request) => request.authorization), false);
   await assert.rejects(check("http://test.versado-test.com", { fetchImpl }), /HTTPS/);
   await assert.rejects(check("https://test.versado-test.com/pad", { fetchImpl }), /pad|origin/i);
-  assert.equal(requests.length, 3, "geen verzoek bij een ongeldige origin");
+  assert.equal(requests.length, 4, "geen verzoek bij een ongeldige origin");
   const production = await check("https://test.versado-test.com", { fetchImpl, allowlist: { internal: [], "store-test": [] }, env: { VERSADO_PRODUCTION_ORIGIN: "https://test.versado-test.com" } });
   assert.equal(production.ok, false);
 });
 
+
+test("games/page-controle: een kale 404 van de rand wordt afgekeurd, ook als capabilities games-v1 meldt; 401 met JSON voldoet", () => {
+  const good = { status: 401, body: { error: "session_expired" }, allowOrigin: "capacitor://localhost" };
+  assert.equal(evaluate({ ...base, gamesPage: good }).ok, true);
+  assert.equal(evaluate({ ...base }).ok, true, "zonder gamesPage-invoer (oude aanroepers) verandert niets");
+  const failing = (gamesPage, pattern) => { const result = evaluate({ ...base, gamesPage }); assert.equal(result.ok, false); assert.match(result.problems.join(" | "), pattern); };
+  failing({ status: 404, body: null, allowOrigin: null }, /404 zonder JSON.*blokkeert/);
+  failing({ status: 403, body: null, allowOrigin: null }, /403 zonder JSON/);
+  failing({ status: 200, body: { error: "x" }, allowOrigin: "capacitor://localhost" }, /gaf 200/);
+  failing({ status: 401, body: { error: "session_expired" }, allowOrigin: null }, /CORS-toegang/);
+  failing({ status: 502, body: null, allowOrigin: null }, /502/);
+});
 
 test("alleen app en proxy hebben uitgaand netwerk; database en Redis blijven intern", () => {
   const app = code.split("\n  versado-test-app:")[1].split("\n  versado-test-db:")[0];
@@ -99,4 +115,13 @@ test("alleen app en proxy hebben uitgaand netwerk; database en Redis blijven int
   const redis = code.split("\n  versado-test-redis:")[1].split("\nnetworks:")[0];
   assert.doesNotMatch(db + redis, /versado-test-edge/);
   assert.equal(evaluate({ ...base, capabilities: { ...ok.capabilities, body: { apiVersion: 1, features: ok.capabilities.body.features.filter(x => x !== "account-deletion-v1") } } }).ok, false);
+});
+
+
+test("nieuwe Spelen-builds vereisen de volledige native spelpoort en ticketverbinding vóór signing",()=>{
+ for(const name of ["games-v1","realtime-ticket-v1"]){
+  const input=structuredClone(base);
+  input.capabilities.body.features=input.capabilities.body.features.filter(feature=>feature!==name);
+  assert.ok(evaluate(input).problems.some(problem=>problem.includes(name)));
+ }
 });

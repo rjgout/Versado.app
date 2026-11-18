@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { AppLink as Link } from "@/components/navigation/AppNavigation";
+import { applicationFetch, nativeApplicationInstalled } from "@/lib/data/applicationRuntime";
 import { Clock3, MoreHorizontal } from "lucide-react";
 import { formatTag } from "@/lib/handle";
 import { getSocket } from "@/lib/socketClient";
@@ -128,6 +129,7 @@ function serverMessage(error: unknown): string | null {
 
 export default function FriendsClient({ appName }: { appName: string }) {
   const t = useT();
+  const native = nativeApplicationInstalled();
   const confirm = useConfirm();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[] | null>(null);
@@ -199,9 +201,10 @@ export default function FriendsClient({ appName }: { appName: string }) {
       return;
     }
     const timeout = setTimeout(() => {
-      fetch(`/api/users/search?q=${encodeURIComponent(query)}`)
+      applicationFetch(`/api/users/search?q=${encodeURIComponent(query)}`)
         .then((r) => r.json())
-        .then((d) => setResults(d.results));
+        .then((d) => setResults(d.results))
+        .catch(() => setResults([]));
     }, 250);
     return () => clearTimeout(timeout);
   }, [query]);
@@ -319,7 +322,8 @@ export default function FriendsClient({ appName }: { appName: string }) {
         </div>
       )}
 
-      <GroupsEntryCard />
+      {/* Groepen en uitnodigingslinks krijgen pas een native route met hun eigen contract (zie docs/NATIVE-VRIENDEN-AUDIT.md, fase C). */}
+      {!native && <GroupsEntryCard />}
 
       <div className="card flex flex-col gap-2.5 sm:gap-3">
         <p className="font-bold text-sm dark:text-slate-100 flex items-center gap-2">
@@ -374,7 +378,7 @@ export default function FriendsClient({ appName }: { appName: string }) {
       </div>
       {message && <p className="text-sm font-semibold text-brand-600">{message}</p>}
 
-      <FriendInviteCard appName={appName} />
+      {!native && <FriendInviteCard appName={appName} />}
 
       {data.incoming.length > 0 && (
         <section className="flex flex-col gap-2">

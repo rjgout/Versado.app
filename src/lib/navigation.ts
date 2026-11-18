@@ -45,6 +45,7 @@ export const PRIMARY_NAV: PrimaryNavItem[] = [
 
 export function activeDestination(pathname: string | null): PrimaryDestination | null {
   if (!pathname) return null;
+  pathname=pathname.split("?")[0];
   const hit = PRIMARY_NAV.find((item) => item.match.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)));
   return hit?.id ?? null;
 }

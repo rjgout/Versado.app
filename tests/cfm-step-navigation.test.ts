@@ -33,7 +33,7 @@ test("Stap voor stap heeft geen tussenpagina en geen driepuntjesmenu meer", () =
   assert.match(reader, /pageMode !== "step" && \(\s*<div className="flex items-center justify-end gap-2">\s*<HeaderMenu>/);
   assert.doesNotMatch(reader, /cfmStudy\.backToOverview/);
   assert.doesNotMatch(reader, /\$\{base\}\/stappen`\}/, "geen link meer naar het stappenoverzicht in de lezer");
-  const week = read("src/components/study/CfmWeekPath.tsx");
+  const week = read("src/components/study/CfmWeekPath.tsx") + read("src/components/study/CfmWeekStepsView.tsx");
   assert.doesNotMatch(week, /\$\{base\}\/stappen`/, "de weekkaart linkt rechtstreeks naar de stappen, niet naar een overzicht");
   assert.match(week, /href=\{`\$\{base\}\/stappen\/\$\{step\.index\}`\}/);
 });

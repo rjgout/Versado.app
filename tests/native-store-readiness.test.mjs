@@ -27,13 +27,15 @@ const completeFiles = () => ({
   "ios/App/App/Info.plist": "<key>UISupportedInterfaceOrientations</key>\n<array><string>UIInterfaceOrientationPortrait</string></array>\n<key>ITSAppUsesNonExemptEncryption</key><false/>",
   "ios/App/App/PrivacyInfo.xcprivacy": "<plist/>",
   ".github/workflows/native.yml": "xcodebuild -scheme App archive\n./gradlew :app:bundleRelease",
-  ".github/workflows/native-ios-release.yml": "on:\n  workflow_dispatch:\njobs:\n  x:\n    if: github.ref == 'refs/heads/main'\n    environment: ios-testflight\n    steps: xcodebuild -exportArchive <key>destination</key><string>export</string>",
+  ".github/workflows/native-ios-release.yml": "on:\n  workflow_dispatch:\njobs:\n  x:\n    if: github.ref == 'refs/heads/develop'\n    environment: testflight\n    default: false\n    run: if [ \"$UPLOAD\" = true ]; then\n    steps: node scripts/native/ios-release-guard.mjs ipa; xcodebuild -exportArchive <key>destination</key><string>export</string>",
   "scripts/native/ios-release-guard.mjs": "metadata.compileProbe !== false local-store-test testflight",
   "public/.well-known/apple-app-site-association": "{}",
   "public/.well-known/assetlinks.json": "[]",
   "src/lib/native/api.ts": 'req.method === "DELETE" && path === "account"; minimumNativeVersion',
-  "src/app/account-verwijderen/page.tsx": "",
+  "src/app/account-verwijderen/page.tsx": "export default function Page() { return null; }",
+  "src/components/native/NativeFoundation.tsx": "<AccountDeletionForm />",
   "src/app/voorwaarden/page.tsx": "",
+  "src/lib/legal/terms.ts": "export const TERMS = { title: 'x', updated: '2026-01-01', sections: [] };",
   "src/lib/appleRevoke.ts": "https://appleid.apple.com/auth/revoke",
   "package.json": '{"dependencies":{"@capacitor/push-notifications":"8"}}',
   "docs/NATIVE-DEVICE-TEST-REPORT.md": "",
@@ -110,12 +112,12 @@ test("de signingpoort-guard faalt zodra Gradle compileproeven doorlaat of de wor
   assert.equal(guard({ ".github/workflows/native-android-release.yml": files[".github/workflows/native-android-release.yml"].replace("on:\n", "on:\n  pull_request:\n") }), false);
 });
 
-test("de iOS-poort-guard faalt zodra de poort compileproeven doorlaat of de workflow uploadt of op een PR draait", () => {
+test("de iOS-poort-guard faalt zodra de poort compileproeven doorlaat of de workflow ongecontroleerd uploadt of op een PR draait", () => {
   const files = completeFiles();
   const guard = (patch) => evaluate(memoryFs({ ...files, ...patch })).guards.find((item) => item.id === "ios-signing-refuses-probe").ok;
   assert.equal(guard({}), true);
   assert.equal(guard({ "scripts/native/ios-release-guard.mjs": "" }), false);
-  assert.equal(guard({ ".github/workflows/native-ios-release.yml": files[".github/workflows/native-ios-release.yml"] + "\n xcrun altool --upload-app" }), false);
+  assert.equal(guard({ ".github/workflows/native-ios-release.yml": files[".github/workflows/native-ios-release.yml"].replace("default: false", "default: true") }), false);
   assert.equal(guard({ ".github/workflows/native-ios-release.yml": files[".github/workflows/native-ios-release.yml"].replace("on:\n", "on:\n  pull_request:\n") }), false);
 });
 
@@ -124,4 +126,32 @@ test("het privacy manifest telt pas als opgelost als het ook in het app-target i
   const manifest = (patch) => evaluate(memoryFs({ ...files, ...patch })).blockers.find((item) => item.id === "ios-privacy-manifest").ok;
   assert.equal(manifest({ "ios/App/App/PrivacyInfo.xcprivacy": "<plist/>" }), true);
   assert.equal(manifest({ "ios/App/App.xcodeproj/project.pbxproj": "PRODUCT_BUNDLE_IDENTIFIER = app.versado.app;" }), false);
+});
+
+test("accountverwijdering telt pas als opgelost met een native scherm en een openbare webpagina (niet de ingelogde variant)", () => {
+  const files = completeFiles();
+  const blocker = (id, patch) => evaluate(memoryFs({ ...files, ...patch })).blockers.find((item) => item.id === id).ok;
+  assert.equal(blocker("native-account-deletion", {}), true);
+  assert.equal(blocker("native-account-deletion", { "src/components/native/NativeFoundation.tsx": "" }), false, "alleen een API-contract is geen scherm");
+  assert.equal(blocker("web-account-deletion", {}), true);
+  assert.equal(blocker("web-account-deletion", { "src/app/account-verwijderen/page.tsx": 'if (!user) redirect("/login");' }), false, "een ingelogde pagina is niet publiek");
+});
+
+test("voorwaarden tellen pas als opgelost met een door de eigenaar aangeleverde tekst, niet met een lege pagina", () => {
+  const files = completeFiles();
+  const terms = (patch) => evaluate(memoryFs({ ...files, ...patch })).blockers.find((item) => item.id === "terms-of-use").ok;
+  assert.equal(terms({}), true);
+  assert.equal(terms({ "src/lib/legal/terms.ts": "export const TERMS: LegalDocument | null = null;" }), false);
+  assert.equal(terms({ "src/lib/legal/terms.ts": "" }), false, "een leeg bestand telt niet");
+});
+
+test("de iOS-readinessguard volgt expliciete ExportOptions en weigert ontbrekende of uploadende helpers", () => {
+  const files = completeFiles();
+  files[".github/workflows/native-ios-release.yml"] = readFileSync(".github/workflows/native-ios-release.yml", "utf8");
+  files["scripts/native/ios-signing-assets.mjs"] = readFileSync("scripts/native/ios-signing-assets.mjs", "utf8");
+  const guard = patch => evaluate(memoryFs({ ...files, ...patch })).guards.find(g => g.id === "ios-signing-refuses-probe").ok;
+  assert.equal(guard({}), true);
+  assert.equal(guard({ "scripts/native/ios-signing-assets.mjs": "" }), false);
+  assert.equal(guard({ "scripts/native/ios-signing-assets.mjs": files["scripts/native/ios-signing-assets.mjs"].replace("<key>destination</key><string>export</string>", "<key>destination</key><string>upload</string>") }), false);
+  assert.equal(guard({ "scripts/native/ios-signing-assets.mjs": files["scripts/native/ios-signing-assets.mjs"].replace("<key>signingStyle</key><string>manual</string>", "<key>signingStyle</key><string>automatic</string>") }), false);
 });

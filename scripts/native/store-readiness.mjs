@@ -104,13 +104,21 @@ export const GUARDS = [
   },
   {
     id: "ios-signing-refuses-probe",
-    title: "iOS-archivering voor distributie weigert compileproef-, intern- en niet-testflight-bundels, en er is geen automatische App Store Connect-upload",
+    title: "iOS-archivering voor distributie weigert compileproef-, intern- en niet-testflight-bundels, en upload vereist een expliciete keuze vanaf develop",
     check: (fs) => {
       const guard = fs.read("scripts/native/ios-release-guard.mjs");
       const release = fs.read(".github/workflows/native-ios-release.yml");
       const guardOk = /compileProbe !== false/.test(guard) && /local-store-test/.test(guard) && /testflight/.test(guard);
-      const noUpload = /<string>export<\/string>/.test(release) && !/(altool|iTMSTransporter|upload-testflight|testflight-upload|app-store-connect-upload|destination<\/key><string>upload)/i.test(release) && /workflow_dispatch/.test(release) && !/\n\s+(push|pull_request|schedule):/.test(release);
-      return { ok: guardOk && noUpload, evidence: "scripts/native/ios-release-guard.mjs, .github/workflows/native-ios-release.yml" };
+      const assets = fs.read("scripts/native/ios-signing-assets.mjs");
+      const explicitExport = /ios-signing-assets.mjs prepare/.test(release)
+        && /-exportOptionsPlist "\$signing\/ExportOptions.plist"/.test(release)
+        && /<key>destination<\/key><string>export<\/string>/.test(assets)
+        && /<key>signingStyle<\/key><string>manual<\/string>/.test(assets);
+      const exportOnly = /<string>export<\/string>/.test(release) || explicitExport;
+      const controlledUpload = exportOnly && /workflow_dispatch/.test(release) && !/\n\s+(push|pull_request|schedule):/.test(release)
+        && /default: false/.test(release) && /if \[ "\$UPLOAD" = true \]/.test(release) && /refs\/heads\/develop/.test(release)
+        && /ios-release-guard.mjs ipa/.test(release);
+      return { ok: guardOk && controlledUpload, evidence: "scripts/native/ios-release-guard.mjs, ios-signing-assets.mjs, .github/workflows/native-ios-release.yml" };
     },
   },
   {
@@ -141,8 +149,8 @@ export const BLOCKERS = [
     check: (fs) => ({ ok: /CODE_SIGN_ENTITLEMENTS/.test(fs.read("ios/App/App.xcodeproj/project.pbxproj")), evidence: "project.pbxproj" }) },
   { id: "ios-export-compliance", area: "iOS", wp: "WP2", title: "ITSAppUsesNonExemptEncryption beantwoord in Info.plist (eigenaar bevestigt het antwoord)",
     check: (fs) => ({ ok: fs.read("ios/App/App/Info.plist").includes("ITSAppUsesNonExemptEncryption"), evidence: "ios/App/App/Info.plist" }) },
-  { id: "ios-testflight-workflow", area: "iOS", wp: "WP2", title: "Beschermde handmatige workflow die een ondertekende TestFlight-IPA exporteert (geen upload, alleen vanaf main, omgeving ios-testflight)",
-    check: (fs) => { const text = fs.read(".github/workflows/native-ios-release.yml"); return { ok: /workflow_dispatch/.test(text) && /environment:\s*ios-testflight/.test(text) && /refs\/heads\/main/.test(text) && /-exportArchive/.test(text), evidence: ".github/workflows/native-ios-release.yml" }; } },
+  { id: "ios-testflight-workflow", area: "iOS", wp: "WP2", title: "Beschermde handmatige workflow die een ondertekende TestFlight-IPA exporteert (upload opt-in, alleen vanaf develop, omgeving testflight)",
+    check: (fs) => { const text = fs.read(".github/workflows/native-ios-release.yml"); return { ok: /workflow_dispatch/.test(text) && /environment:\s*testflight/.test(text) && /refs\/heads\/develop/.test(text) && /-exportArchive/.test(text), evidence: ".github/workflows/native-ios-release.yml" }; } },
   { id: "ios-ci-archive", area: "iOS", wp: "WP0", title: "CI bewijst een iOS-archive voor echte apparaten (zonder signing)",
     check: (fs) => ({ ok: workflows(fs).some((text) => /xcodebuild[^\n]*\barchive\b/.test(text)), evidence: ".github/workflows/*.yml" }) },
   { id: "android-version-injectable", area: "Android", wp: "WP0", title: "versionCode en versionName worden per build geïnjecteerd, niet hard gecodeerd",
@@ -160,12 +168,14 @@ export const BLOCKERS = [
       const files = [...fs.tree("public/.well-known"), ...fs.tree("src/app/.well-known")].join("\n");
       return { ok: /apple-app-site-association/.test(files) && /assetlinks\.json/.test(files), evidence: "public/.well-known, src/app/.well-known" };
     } },
-  { id: "native-account-deletion", area: "beide", wp: "WP4", title: "Accountverwijdering is vanuit de native app te starten (Apple 5.1.1(v), Google Play)",
-    check: (fs) => ({ ok: /method === "DELETE" && path === "account"/.test(fs.read("src/lib/native/api.ts")), evidence: "src/lib/native/api.ts" }) },
+  { id: "native-account-deletion", area: "beide", wp: "WP4", title: "Accountverwijdering is vanuit de native app te starten: beveiligd API-contract én een scherm in de app (Apple 5.1.1(v), Google Play)",
+    check: (fs) => ({ ok: /method === "DELETE" && path === "account"/.test(fs.read("src/lib/native/api.ts")) && /AccountDeletionForm/.test(fs.read("src/components/native/NativeFoundation.tsx")), evidence: "src/lib/native/api.ts, src/components/native/NativeFoundation.tsx" }) },
   { id: "web-account-deletion", area: "beide", wp: "WP4", title: "Publieke webpagina voor het aanvragen van accountverwijdering zonder de app (Google Play Data safety)",
-    check: (fs) => ({ ok: ["account-verwijderen", "delete-account", "verwijder-account"].some((name) => fs.exists(`src/app/${name}/page.tsx`)), evidence: "src/app/account-verwijderen/page.tsx" }) },
+    // De pagina moet zonder login bereikbaar zijn: een pagina die naar /login doorverwijst is nog de ingelogde variant.
+    check: (fs) => ({ ok: ["account-verwijderen", "delete-account", "verwijder-account"].some((name) => fs.exists(`src/app/${name}/page.tsx`) && !/redirect\(\s*["']\/login/.test(fs.read(`src/app/${name}/page.tsx`))), evidence: "src/app/account-verwijderen/page.tsx (zonder login-redirect)" }) },
   { id: "terms-of-use", area: "beide", wp: "WP4", title: "Voorwaarden als publieke pagina (de privacyverklaring bestaat al op /privacy)",
-    check: (fs) => ({ ok: fs.exists("src/app/voorwaarden/page.tsx"), evidence: "src/app/voorwaarden/page.tsx" }) },
+    // Pas opgelost als de eigenaar een echte tekst heeft aangeleverd: zolang TERMS null is, bestaat de pagina niet (404).
+    check: (fs) => ({ ok: fs.exists("src/app/voorwaarden/page.tsx") && fs.exists("src/lib/legal/terms.ts") && /export const TERMS\b/.test(fs.read("src/lib/legal/terms.ts")) && !/TERMS\s*:\s*[^=]+=\s*null\s*;/.test(fs.read("src/lib/legal/terms.ts")), evidence: "src/app/voorwaarden/page.tsx, src/lib/legal/terms.ts (TERMS niet null)" }) },
   { id: "apple-token-revocation", area: "iOS", wp: "WP4", conditional: "apple-signin", title: "Sign in with Apple: tokenintrekking via de Apple REST API en server-to-server-notificaties (alleen vereist als Sign in with Apple in 1.0 zit)",
     check: (fs) => ({ ok: fs.tree("src/lib").some((path) => /apple/i.test(path) && /auth\/revoke/.test(fs.read(path))), evidence: "src/lib/**" }) },
   { id: "min-version-policy", area: "beide", wp: "WP5", title: "Backend meldt een minimaal ondersteunde native versie zodat een te oude app netjes om een update vraagt",

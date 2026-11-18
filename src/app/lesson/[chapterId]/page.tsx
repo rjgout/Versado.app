@@ -1,4 +1,6 @@
-import { redirect } from "next/navigation";
+import {gameRedirect as redirect} from "@/lib/games/navigation.server";
+import GameScreen from "@/components/games/GameScreen";
+import WebGameBoundary from "@/components/games/WebGameBoundary";
 import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/db";
 import { readingAccessWhere } from "@/lib/contentAccess";
@@ -95,15 +97,14 @@ export default async function LessonPage({
       : null;
 
   return (
-    <>
+    <WebGameBoundary><>
     {readerReturn ? <ReaderBackTarget href={readerReturn} parent={folderReturn ? getT(user.uiLanguage)("studyFolder.title") : "Het Mysterie"} soft={Boolean(folderReturn)} /> : course && <CourseBackTarget href={route ? `/courses/${course.id}/pad` : `/courses/${course.id}`} parent={course.name} />}
-    <LessonFlow
-      chapterId={chapter.id}
-      bookName={chapter.book.name}
-      chapterNumber={chapter.number}
-      previousChapterId={previousChapterId}
-      nextChapterId={nextChapterId}
-      verses={chapter.verses.map((v) => ({
+    <GameScreen view="chapterLesson" component={LessonFlow} data={{"chapterId": (chapter.id),
+"bookName": (chapter.book.name),
+"chapterNumber": (chapter.number),
+"previousChapterId": (previousChapterId),
+"nextChapterId": (nextChapterId),
+"verses": (chapter.verses.map((v) => ({
         id: v.id,
         number: v.number,
         text: v.text,
@@ -111,21 +112,20 @@ export default async function LessonPage({
         highlighted: highlightedVerseIds.has(v.id),
         note: notesByVerseId[v.id] ?? "",
         audioStart: v.audioStart,
-      }))}
-      audio={chapter.audioUrl ? { url: playableAudioUrl(chapter.audioUrl), end: null } : null}
-      term={localizeTerm(chapterTerm(chapter.book.slug), getT(user.uiLanguage))}
-      exercises={issued.exercises}
-      sessionId={issued.sessionId}
-      content={{ read: content.read, exercisesAnswered: content.exercisesAnswered, exercisesTotal: content.exercisesTotal, exercisesComplete: content.exercisesComplete }}
-      route={route}
-      readingMinutes={minutes}
-      stepsHref={stepCourse ? `/courses/${stepCourse.id}/chapter/${chapter.id}` : null}
-      challengeId={challengeId}
-      courseId={course?.id}
-      contentKey={content.contentKey}
-      focusVerse={vers ? Number(vers) || undefined : undefined}
-      language={chapter.book.contentCollection.language}
-    />
-    </>
+      }))),
+"audio": (chapter.audioUrl ? { url: playableAudioUrl(chapter.audioUrl), end: null } : null),
+"term": (localizeTerm(chapterTerm(chapter.book.slug), getT(user.uiLanguage))),
+"exercises": (issued.exercises),
+"sessionId": (issued.sessionId),
+"content": ({ read: content.read, exercisesAnswered: content.exercisesAnswered, exercisesTotal: content.exercisesTotal, exercisesComplete: content.exercisesComplete }),
+"route": (route),
+"readingMinutes": (minutes),
+"stepsHref": (stepCourse ? `/courses/${stepCourse.id}/chapter/${chapter.id}` : null),
+"challengeId": (challengeId),
+"courseId": (course?.id),
+"contentKey": (content.contentKey),
+"focusVerse": (vers ? Number(vers) || undefined : undefined),
+"language": (chapter.book.contentCollection.language)}} />
+    </></WebGameBoundary>
   );
 }

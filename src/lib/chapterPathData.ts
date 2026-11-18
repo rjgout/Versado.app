@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@/generated/prisma/client";
+import type { Prisma, PrismaClient } from "@/generated/prisma/client";
 import { advanceCourseProgress } from "@/lib/courses";
 import { getChapterStates } from "@/lib/learning/contentProgress";
 import { countWords, estimateReadingMinutes } from "@/lib/learning/readingTime";
@@ -23,7 +23,10 @@ export interface ChapterPathData {
  * Alleen lezen voor Vrije keuze: de positie in Stap voor stap wordt hier met getStepOverview bepaald zonder die cursus te
  * synchroniseren, te starten of de voortgangscursor weg te schrijven (dat doet alleen het leerpad van Stap voor stap zelf).
  */
-export async function loadChapterPath(db: PrismaClient, userId: string, course: { id: string; type: string; contentCollectionId: string }): Promise<ChapterPathData> {
+export async function loadChapterPath(db: PrismaClient | Prisma.TransactionClient, userId: string, course: { id: string; type: string; contentCollectionId: string }, options: { readOnly?: boolean } = {}): Promise<ChapterPathData> {
+  // Alleen de normale webclient mag de bestaande initialisatie uitvoeren.
+  const writableDb = "$transaction" in db ? db as PrismaClient : null;
+  if (!options.readOnly && !writableDb) throw new Error("Transactie vereist readOnly-hoofdstukpad");
   const sequential = course.type !== "FREE_CHOICE";
   const rows = await db.courseChapter.findMany({
     where: { courseId: course.id },
@@ -68,8 +71,8 @@ export async function loadChapterPath(db: PrismaClient, userId: string, course: 
 
   // Hoofdstuk voor hoofdstuk: de bestaande voortgangscursor (zoals voorheen aangemaakt bij het eerste bezoek).
   let progress = await db.userCourseProgress.findUnique({ where: { userId_courseId: { userId, courseId: course.id } }, select: { currentChapterId: true } });
-  if (!progress) {
-    await advanceCourseProgress(db, userId, course.id);
+  if (!progress && !options.readOnly && writableDb) {
+    await advanceCourseProgress(writableDb, userId, course.id);
     progress = await db.userCourseProgress.findUnique({ where: { userId_courseId: { userId, courseId: course.id } }, select: { currentChapterId: true } });
   }
   const todayId = todayChapterId(chapters, progress?.currentChapterId ?? null, chapterLocks(chapters, true));

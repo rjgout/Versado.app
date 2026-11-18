@@ -102,26 +102,37 @@ async function write(db: Db, actor: Actor, action: AnnotationAction, remove: boo
   return { changed: true, annotation: view(action.kind, row) };
 }
 /** Alle nieuwe PUT/DELETE en oude verse-adapters lopen langs dezelfde write- en lockregels. */
-export async function mutateAnnotation(actor: Actor, input: unknown, remove = false, client: PrismaClient = prisma) {
+export type AnnotationTransaction = <T>(run: (db: Db) => Promise<T>) => Promise<T>;
+// Eén lockvolgorde voor web, legacy en native: User vóór collectie/target.
+async function lockActor(db: Db, actor: Actor) {
+  const rows = await db.$queryRaw<{ id: string }[]>`SELECT "id" FROM "User" WHERE "id"=${actor.id} FOR UPDATE`;
+  if (!rows.length) throw new AnnotationError("UNAVAILABLE");
+}
+export async function mutateAnnotation(actor: Actor, input: unknown, remove = false, client: PrismaClient = prisma,
+  transaction: AnnotationTransaction = run => client.$transaction(run, { timeout: 15_000 })) {
   const parsed = (remove ? annotationDeleteSchema : annotationPutSchema).safeParse(input);
   if (!parsed.success) throw new AnnotationError("INVALID");
   const action: AnnotationAction = parsed.data;
   // Technische rollbackstand: versadapters, eigen readback en DELETE blijven veilig.
   if (!remove && action.target.type === "lesson" && process.env.STUDY_ANNOTATION_WRITES === "0") throw new AnnotationError("UNAVAILABLE");
-  const result = await client.$transaction(async db => {
+  // Deze niet-lockende observatie moet vóór User-lockwachten blijven staan:
+  // een in-flight privébewerking mag een intussen verwijderde notitie nooit
+  // als nieuwe, expliciete heractivatie behandelen (ook niet met gegiste versie).
+  const known = await find(client, actor.id, action.kind, action.target);
+  const privateEdit = !remove && action.kind === "note" && known && !known.deletedAt;
+  const result = await transaction(async db => {
     await db.$executeRaw`SET LOCAL lock_timeout='5s'`;
+    await lockActor(db, actor);
     await db.$executeRaw`SET LOCAL statement_timeout='5s'`;
     // Alleen bestaande actieve privénotities mogen zonder nieuwe broninzage worden bewerkt.
     // Nieuwe targets en heractivaties houden de lockvolgorde collectie → target.
-    const known = await find(db, actor.id, action.kind, action.target);
-    const privateEdit = !remove && action.kind === "note" && known && !known.deletedAt;
     if ((!remove && !privateEdit) || !known) await authorize(db, actor, action.target, known);
     await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${JSON.stringify([actor.id, action.kind, annotationTargetKey(action.target)])},0))`;
     const existing = await find(db, actor.id, action.kind, action.target);
     // Een DELETE tijdens het wachten mag niet veranderen in een ongeautoriseerde heractivatie.
     if (privateEdit && (!existing || existing.deletedAt)) throw new AnnotationError("CONFLICT", existing ? view(action.kind, existing) : undefined);
     return write(db, actor, action, remove, existing);
-  }, { timeout: 15_000 });
+  });
   if (result.changed) notify(actor.id);
   return result;
 }
@@ -143,6 +154,7 @@ export async function resolveAnnotation(actor: Actor, input: unknown, client: Pr
   if (process.env.STUDY_ANNOTATION_WRITES === "0") throw new AnnotationError("UNAVAILABLE");
   const result = await client.$transaction(async db => {
     await db.$executeRaw`SET LOCAL lock_timeout='5s'`;
+    await lockActor(db, actor);
     await db.$executeRaw`SET LOCAL statement_timeout='5s'`;
     const known = await findById(db, actor.id, action.kind, action.id);
     if (!known?.lessonEditionId || !known.targetKey) throw new AnnotationError("UNAVAILABLE");
@@ -204,6 +216,7 @@ export async function legacyVerseAnnotation(actor: Actor, kind: AnnotationKind, 
   const target: AnnotationTarget = { type: "verse", verseId };
   const result = await client.$transaction(async db => {
     await db.$executeRaw`SET LOCAL lock_timeout='5s'`;
+    await lockActor(db, actor);
     await authorize(db, actor, target);
     await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${JSON.stringify([actor.id, kind, annotationTargetKey(target)])},0))`;
     const existing = await find(db, actor.id, kind, target);
@@ -234,7 +247,7 @@ export async function listAnnotations(actor: Actor, target: { verseId: string } 
 }
 
 /** Begrensde readerread: één hoofdstuk/revisie of exact target inclusief tombstones. */
-export async function readerAnnotations(actor: Actor, filter: { chapterId: string } | { lessonEditionId: string; revisionId: string } | { targetKey: string }, client: PrismaClient = prisma) {
+export async function readerAnnotations(actor: Actor, filter: { chapterId: string } | { lessonEditionId: string; revisionId: string } | { targetKey: string } | { verseIds: readonly string[] }, client: PrismaClient = prisma) {
   if ('revisionId' in filter) {
     // Fase 4D: is dit de nu gepubliceerde revisie die de gebruiker mag lezen, dan krijgt elke eigen annotatie van deze editie
     // haar effectieve plaats (ook vanuit eerdere revisies). Anders (oud/onbekend) blijft de strikte revisiefilter gelden.
@@ -250,9 +263,9 @@ export async function readerAnnotations(actor: Actor, filter: { chapterId: strin
       return { annotations: groups.flatMap((rows, index) => rows.slice(0, 200).map(row => view((['bookmark', 'highlight', 'note'] as const)[index], row, placeAnnotation(published, row)))), complete: groups.every(rows => rows.length <= 200) };
     }
   }
-  const target = 'targetKey' in filter ? { OR: [{ targetKey: filter.targetKey }, ...(filter.targetKey.startsWith('verse:') ? [{ verseId: filter.targetKey.slice(6) }] : [])] }
+  const target = 'verseIds' in filter ? { verseId: { in: [...filter.verseIds] } } : 'targetKey' in filter ? { OR: [{ targetKey: filter.targetKey }, ...(filter.targetKey.startsWith('verse:') ? [{ verseId: filter.targetKey.slice(6) }] : [])] }
     : 'chapterId' in filter ? { verse: { chapterId: filter.chapterId } } : filter;
-  const where = { userId: actor.id, ...target, ...('targetKey' in filter ? {} : { deletedAt: null }) };
+  const where = { userId: actor.id, ...target, ...('targetKey' in filter || 'verseIds' in filter ? {} : { deletedAt: null }) };
   const groups = await Promise.all([
     client.bookmark.findMany({ where, take: 201, orderBy: { id: 'asc' } }),
     client.highlight.findMany({ where, take: 201, orderBy: { id: 'asc' } }),

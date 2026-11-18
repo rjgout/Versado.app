@@ -1,8 +1,10 @@
 "use client";
+import {applicationFetch} from "@/lib/data/applicationRuntime";
+
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import {AppLink as Link} from "@/components/navigation/AppNavigation";
+import {useGameRouter as useRouter} from "@/components/games/GameNavigation";
 import { Crown, LogOut, Play, Users } from "lucide-react";
 import { getSocket } from "@/lib/socketClient";
 import { useT } from "@/components/I18nProvider";
@@ -59,7 +61,7 @@ export default function TogetherRoom({ code, myUserId, character }: { code: stri
   }, [code, socket]);
 
   useEffect(() => {
-    fetch("/api/friends")
+    applicationFetch("/api/friends")
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => setFriends((d?.friends ?? []).map((entry: { user: { id: string; handle: string } }) => entry.user)))
       .catch(() => {});

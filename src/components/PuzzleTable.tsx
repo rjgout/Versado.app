@@ -1,7 +1,7 @@
 "use client";
 
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
-import NextImage from "next/image";
+import {AppImage as NextImage} from "@/components/navigation/AppNavigation";
 import RotateButton from "@/components/puzzle/RotateButton";
 import { useT } from "@/components/I18nProvider";
 import { createPuzzleGeometry } from "@/lib/puzzle/geometry";

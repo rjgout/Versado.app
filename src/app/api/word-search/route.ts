@@ -1,3 +1,4 @@
+import { nativeGameOriginAllowed } from "@/lib/games/requestIdentity.server";
 import { inventoryOriginAllowed } from "@/lib/content-inventory/origin";
 import { gameStartGuard } from "@/lib/gameStartGuard";
 import { NextRequest, NextResponse } from "next/server";
@@ -20,7 +21,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return await apiError("apiErrors.notLoggedIn", 401);
-  if (!inventoryOriginAllowed(req.headers, req.url, process.env.APP_URL)) return apiError("apiErrors.forbidden", 403);
+  if ((!inventoryOriginAllowed(req.headers, req.url, process.env.APP_URL) && !await nativeGameOriginAllowed(req.headers))) return apiError("apiErrors.forbidden", 403);
   const parsed = schema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return await apiError("apiErrors.invalidInput", 400);
   const active = await getActiveWordSearch(user.id);

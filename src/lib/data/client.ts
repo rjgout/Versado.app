@@ -4,6 +4,7 @@
 // zichtbaarheid, netwerk, app hervat, Socket.io). Alle dynamische data in de
 // app loopt hierdoor; zie docs/DATA-REFRESH.md. Componenten gebruiken de
 // hooks (useLiveQuery, LiveRefresh) en liveMutation, niet dit bestand direct.
+import { applicationRuntime } from "./applicationRuntime";
 import { notifyDataPause } from "./pause";
 import { getSocket } from "@/lib/socketClient";
 import { LiveDataStore, type LiveEnvironment } from "./store";
@@ -29,7 +30,7 @@ const TICK_MS = 15_000;
 
 /** Maakt datasets ongeldig na een eigen actie of een signaal; zie DATA_EVENTS in scopes.ts. */
 export function invalidateData(target: DataEvent | readonly DataScope[]): void {
-  liveData.invalidate(target);
+  (applicationRuntime()?.store ?? liveData).invalidate(target);
 }
 
 /**

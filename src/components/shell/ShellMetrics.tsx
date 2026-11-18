@@ -38,7 +38,7 @@ export default function ShellMetrics() {
       // Een kleinere viewport zonder toetsenbord (draaien, adresbalk) moet de referentie niet blijven vasthouden.
       if (!isEditableElement(document.activeElement as HTMLElement | null)) maxHeight = Math.max(window.innerHeight, visibleHeight());
       else maxHeight = Math.max(maxHeight, window.innerHeight);
-      const tall = isHeaderTall(headerPx, maxHeight);
+      const tall = isHeaderTall(headerPx, maxHeight, !!header?.querySelector("[data-shell-persistent-controls]"));
       root.style.setProperty("--header-height", `${headerPx}px`);
       root.style.setProperty("--header-offset", tall ? "0px" : `${headerPx}px`);
       root.style.setProperty("--nav-height", `${navPx}px`);
@@ -55,6 +55,8 @@ export default function ShellMetrics() {
       });
       if (keyboard) root.setAttribute("data-keyboard", "");
       else root.removeAttribute("data-keyboard");
+      // Eén signaal voor wie de gemeten onderbalk spiegelt (de native iOS-tabbalk); geen eigen meting elders.
+      window.dispatchEvent(new Event("vs-shell-metrics"));
     };
     const schedule = () => {
       cancelAnimationFrame(frame);

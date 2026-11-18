@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import {AppLink as Link} from "@/components/navigation/AppNavigation";
 import { useT, useUiLanguage } from "@/components/I18nProvider";
 import { getLanguage } from "@/lib/languages";
 import type { HistoryItem } from "@/lib/puzzle/history";

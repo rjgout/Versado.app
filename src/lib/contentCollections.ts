@@ -256,7 +256,7 @@ export async function setActiveContentCollection(
 }
 
 /** De publieke kiezer gebruikt echte catalogusgegevens en expliciete normale rechten. */
-export async function getContentPickerContext(userId: string, db = prisma): Promise<ContentPickerContext> {
+export async function getContentPickerContext(userId: string, db: Pick<Prisma.TransactionClient, "user" | "contentCollection" | "contentSwitcherSettings"> = prisma): Promise<ContentPickerContext> {
   const user = await db.user.findUniqueOrThrow({ where: { id: userId }, select: { isAdmin: true, activeContentCollectionId: true, contentLanguage: true, contentSelectionVersion: true } });
   const collections = presentProgramme(await db.contentCollection.findMany({
     where: collectionAccessWhere(user, "catalog"), orderBy: [{ order: "asc" }, { id: "asc" }],

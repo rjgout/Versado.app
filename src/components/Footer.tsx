@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useT } from "@/components/I18nProvider";
+import { AppLink as Link } from "@/components/navigation/AppNavigation";
 
 /**
  * Juridische informatie en contactlinks. `page` staat los onder

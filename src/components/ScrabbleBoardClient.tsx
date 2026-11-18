@@ -1,9 +1,11 @@
 "use client";
+import {applicationFetch} from "@/lib/data/applicationRuntime";
+
 
 import { useHintInventory } from "@/lib/data/hints";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import {AppLink as Link} from "@/components/navigation/AppNavigation";
 import UserAvatar from "@/components/UserAvatar";
 import { getSocket } from "@/lib/socketClient";
 import { useT } from "@/components/I18nProvider";
@@ -135,7 +137,7 @@ export default function ScrabbleBoardClient({ gameId }: { gameId: string }) {
   // net neergelegd (nog niet verzonden) woord om de 8 seconden weer van het
   // bord geveegd, ruim voordat je 'm kon afronden of indienen.
   const load = useCallback(async (resetLocalState = true) => {
-    const res = await fetch(`/api/scrabble/${gameId}`);
+    const res = await applicationFetch(`/api/scrabble/${gameId}`);
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
       setLoadError(body.error ?? t("scrabble.loadFailed"));
@@ -250,7 +252,7 @@ export default function ScrabbleBoardClient({ gameId }: { gameId: string }) {
     if (pending.length === 0) return;
     setBusy(true);
     setMessage(null);
-    const res = await fetch(`/api/scrabble/${gameId}/move`, {
+    const res = await applicationFetch(`/api/scrabble/${gameId}/move`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -273,7 +275,7 @@ export default function ScrabbleBoardClient({ gameId }: { gameId: string }) {
     setBusy(true);
     setMessage(null);
     const letters = exchangeIndices.map((i) => game.myRack[i]);
-    const res = await fetch(`/api/scrabble/${gameId}/exchange`, {
+    const res = await applicationFetch(`/api/scrabble/${gameId}/exchange`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ letters }),
@@ -292,7 +294,7 @@ export default function ScrabbleBoardClient({ gameId }: { gameId: string }) {
   async function submitPass() {
     setBusy(true);
     setMessage(null);
-    const res = await fetch(`/api/scrabble/${gameId}/pass`, { method: "POST" });
+    const res = await applicationFetch(`/api/scrabble/${gameId}/pass`, { method: "POST" });
     setBusy(false);
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
@@ -307,7 +309,7 @@ export default function ScrabbleBoardClient({ gameId }: { gameId: string }) {
     if (busy || hintSecondsLeft > 0) return;
     setBusy(true);
     setMessage(null);
-    const res = await fetch(`/api/scrabble/${gameId}/hint`, { method: "POST" });
+    const res = await applicationFetch(`/api/scrabble/${gameId}/hint`, { method: "POST" });
     const body = await res.json().catch(() => ({}));
     setBusy(false);
     if (!res.ok) {
@@ -328,7 +330,7 @@ export default function ScrabbleBoardClient({ gameId }: { gameId: string }) {
     if (!(await confirm(t("challenges.confirmForfeit")))) return;
     setBusy(true);
     setMessage(null);
-    const res = await fetch(`/api/scrabble/${gameId}/forfeit`, { method: "POST" });
+    const res = await applicationFetch(`/api/scrabble/${gameId}/forfeit`, { method: "POST" });
     setBusy(false);
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));

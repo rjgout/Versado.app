@@ -1,4 +1,6 @@
 "use client";
+import {applicationFetch} from "@/lib/data/applicationRuntime";
+
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { chapterIndexAt, type PodcastChapter } from "@/lib/podcastChapters";
@@ -77,10 +79,10 @@ export function PodcastPlayerProvider({ children }: { children: React.ReactNode 
 
   const savePosition = useCallback((ep: PodcastEpisodeInfo, position: number, dur: number, keepalive = false) => {
     if (dur > 0 && dur - position <= FINISHED_REMAINING_SECONDS) {
-      fetch(`/api/podcast-playback?episodeId=${ep.id}`, { method: "DELETE", keepalive }).catch(() => {});
+      applicationFetch(`/api/podcast-playback?episodeId=${ep.id}`, { method: "DELETE", keepalive }).catch(() => {});
       return;
     }
-    fetch("/api/podcast-playback", {
+    applicationFetch("/api/podcast-playback", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ episodeId: ep.id, positionSeconds: position }),
@@ -136,7 +138,7 @@ export function PodcastPlayerProvider({ children }: { children: React.ReactNode 
     }
     function onEnded() {
       setIsPlaying(false);
-      if (episode) fetch(`/api/podcast-playback?episodeId=${episode.id}`, { method: "DELETE" }).catch(() => {});
+      if (episode) applicationFetch(`/api/podcast-playback?episodeId=${episode.id}`, { method: "DELETE" }).catch(() => {});
     }
 
     audio.addEventListener("loadedmetadata", onLoadedMetadata);
@@ -216,7 +218,7 @@ export function PodcastPlayerProvider({ children }: { children: React.ReactNode 
     // Zonder bekende positie (bv. vanaf een andere pagina) alsnog ophalen;
     // dan springt de speler er heen zodra het antwoord er is.
     if (newEpisode.startAt === undefined) {
-      fetch(`/api/podcast-playback?episodeId=${newEpisode.id}`)
+      applicationFetch(`/api/podcast-playback?episodeId=${newEpisode.id}`)
         .then((r) => r.json())
         .then((data) => {
           const position = Number(data.positionSeconds) || 0;

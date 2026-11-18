@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useT } from "@/components/I18nProvider";
+import CfmRecoveryControl from "@/components/admin/CfmRecoveryControl";
 import AdminSection from "@/components/admin/AdminSection";
 import { useConfirm } from "@/components/ConfirmProvider";
 import { dangerButton } from "@/components/versado/styles";
@@ -189,6 +190,8 @@ export default function ReseedClient() {
       >
         {running ? t("adminCommon.busy") : t("adminReseed.title")}
       </button>
+
+      <CfmRecoveryControl disabled={running || starting} onStarted={async () => { const status = await fetchStatus(); if (status?.status === "running") startPolling(); }} />
 
       {running && (
         <div className="flex flex-col gap-2">

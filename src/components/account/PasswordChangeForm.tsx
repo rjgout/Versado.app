@@ -4,6 +4,7 @@ import { useId, useState, FormEvent } from "react";
 import { useT } from "@/components/I18nProvider";
 import { useAccountActions } from "./AccountActionsProvider";
 import { AccountActionError } from "@/lib/account/contracts";
+import { ACCOUNT_ERROR_KEYS } from "./accountErrorKeys";
 import { ApiRequestError } from "@/lib/data/fetchJson";
 import { ProfileCard, SettingsActions, SettingsButton, SettingsField, SettingsStatus, settingsFieldClass } from "@/components/profile/settings";
 
@@ -30,8 +31,7 @@ export default function PasswordChangeForm({ forced, currentPasswordRequired = t
       await onChanged?.();
     } catch (error) {
       if (error instanceof AccountActionError) {
-        const keys = { wrong_password: "apiErrors.currentPasswordWrong", two_factor_required: "nativeFoundation.twoFactorRequired", session_expired: "nativeFoundation.sessionExpired", network_unavailable: "nativeFoundation.offline", request_failed: "nativeFoundation.error" } as const;
-        setError(t(keys[error.code]));
+        setError(t(ACCOUNT_ERROR_KEYS[error.code]));
       } else setError(error instanceof ApiRequestError && !error.message.startsWith("HTTP ") ? error.message : t("wordOfTheDay.somethingWrong"));
     } finally { setLoading(false); }
   }

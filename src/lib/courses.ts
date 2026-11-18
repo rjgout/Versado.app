@@ -421,7 +421,7 @@ async function warnOnDuplicateReadingCourses(db: PrismaClient): Promise<void> {
  * "volgende" hoofdstuk vastgelegd — dat blijft altijd de eigen keuze.
  */
 export async function advanceCourseProgress(
-  db: PrismaClient,
+  db: PrismaClient | Prisma.TransactionClient,
   userId: string,
   courseId: string,
   completedChapterId?: string

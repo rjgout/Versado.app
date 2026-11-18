@@ -41,7 +41,7 @@ export function ProfileCard({
 }) {
   const id = useId();
   return (
-    <section aria-labelledby={title ? id : undefined} className={`rounded-2xl border border-vs-line bg-vs-surface p-4 sm:p-5 ${className}`}>
+    <section aria-labelledby={title ? id : undefined} data-vs-surface="card" className={`rounded-2xl border border-vs-line bg-vs-surface p-4 sm:p-5 ${className}`}>
       {title && (
         <h2 id={id} className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-vs-fg-2">
           {title}
@@ -105,23 +105,23 @@ export function SettingsRow({
   const hasValue = value !== undefined && value !== null;
   const content = (
     <>
-      {icon && <span className="shrink-0">{icon}</span>}
+      {icon && <span data-vs-settings-icon className="shrink-0">{icon}</span>}
       <RowText label={label} description={description} hasValue={hasValue} />
       {/* Het label gaat voor: de waarde begint op nul breedte, vult wat er
           overblijft en kort zichzelf in, nooit andersom. */}
-      {hasValue && <span className="min-w-0 flex-1 truncate text-right text-sm text-vs-fg-2">{value}</span>}
-      <ChevronRight className="h-5 w-5 shrink-0 text-vs-fg-3" aria-hidden />
+      {hasValue && <span data-vs-settings-value className="min-w-0 flex-1 truncate text-right text-sm text-vs-fg-2">{value}</span>}
+      <ChevronRight data-vs-settings-icon className="h-5 w-5 shrink-0 text-vs-fg-3" aria-hidden />
     </>
   );
   if (href) {
     return (
-      <Link href={href} className={`${ROW_CLASS} ${INTERACTIVE_ROW}`}>
+      <Link data-vs-settings-row href={href} className={`${ROW_CLASS} ${INTERACTIVE_ROW}`}>
         {content}
       </Link>
     );
   }
   return (
-    <button type="button" onClick={onClick} className={`${ROW_CLASS} ${INTERACTIVE_ROW}`}>
+    <button type="button" data-vs-settings-row onClick={onClick} className={`${ROW_CLASS} ${INTERACTIVE_ROW}`}>
       {content}
     </button>
   );
@@ -130,10 +130,10 @@ export function SettingsRow({
 /** Rij die alleen iets laat zien (status, tijdzone): geen pijl, niet klikbaar. */
 export function SettingsInfoRow({ icon, label, description, value }: { icon?: ReactNode; label: ReactNode; description?: ReactNode; value?: ReactNode }) {
   return (
-    <div className={ROW_CLASS}>
-      {icon && <span className="shrink-0">{icon}</span>}
+    <div data-vs-settings-row className={ROW_CLASS}>
+      {icon && <span data-vs-settings-icon className="shrink-0">{icon}</span>}
       <RowText label={label} description={description} />
-      {value !== undefined && value !== null && <span className="shrink-0 text-sm font-bold text-vs-fg-2">{value}</span>}
+      {value !== undefined && value !== null && <span data-vs-settings-value className="shrink-0 text-sm font-bold text-vs-fg-2">{value}</span>}
     </div>
   );
 }
@@ -165,8 +165,8 @@ export function SettingsToggleRow({
 }) {
   const descriptionId = useId();
   return (
-    <label className={`${ROW_CLASS} ${disabled ? "cursor-not-allowed" : "cursor-pointer transition hover:bg-vs-subtle"}`}>
-      {icon && <span className={`shrink-0 ${disabled ? "opacity-50" : ""}`}>{icon}</span>}
+    <label data-vs-settings-row className={`${ROW_CLASS} ${disabled ? "cursor-not-allowed" : "cursor-pointer transition hover:bg-vs-subtle"}`}>
+      {icon && <span data-vs-settings-icon className={`shrink-0 ${disabled ? "opacity-50" : ""}`}>{icon}</span>}
       <span className={`min-w-0 flex-auto ${disabled ? "opacity-60" : ""}`}>
         <RowText label={label} description={description} descriptionId={description ? descriptionId : undefined} />
       </span>

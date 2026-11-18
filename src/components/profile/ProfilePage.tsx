@@ -1,9 +1,9 @@
 "use client";
 
+import { isProfileOverview,parseProfileView } from "@/lib/profileViews";
+import { usePathname,useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
-import Footer from "@/components/Footer";
-import { isProfileOverview, parseProfileView } from "@/lib/profileViews";
+import ProfilePageView from "./ProfilePageView";
 
 /**
  * De shell van elke profielpagina: het overzicht (/profile), de onderdelen
@@ -28,17 +28,5 @@ export default function ProfilePage({ title, children }: { title?: string; child
   const pathname = usePathname();
   const view = parseProfileView(useSearchParams().get("view"));
   const showFooter = isProfileOverview(pathname, view);
-  return (
-    <div className="page-fill mx-auto flex w-full max-w-3xl flex-col gap-10">
-      <div className="flex flex-col gap-4 sm:gap-5">
-        {title && <h1 className="sr-only">{title}</h1>}
-        {children}
-      </div>
-      {showFooter && (
-        <div className="mt-auto">
-          <Footer variant="inline" />
-        </div>
-      )}
-    </div>
-  );
+  return <ProfilePageView title={title} overview={showFooter}>{children}</ProfilePageView>;
 }

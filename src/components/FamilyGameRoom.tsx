@@ -1,7 +1,9 @@
 "use client";
+import {applicationFetch} from "@/lib/data/applicationRuntime";
+
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import {AppLink as Link} from "@/components/navigation/AppNavigation";
 import { getSocket } from "@/lib/socketClient";
 import { useLobbyExit } from "@/lib/useLobbyExit";
 import LobbyClosedNotice from "@/components/LobbyClosedNotice";
@@ -128,7 +130,7 @@ export default function FamilyGameRoom({ code, myUserId }: { code: string; myUse
   }, []);
 
   useEffect(() => {
-    socket.emit("join_game", { code });
+    const join=()=>socket.emit("join_game",{code});
 
     function onLobby(data: { hostId: string; status: string; diceMode: "DIGITAL" | "PHYSICAL" | null; players: FamilyPlayerView[] }) {
       setHostId(data.hostId);
@@ -193,7 +195,11 @@ export default function FamilyGameRoom({ code, myUserId }: { code: string; myUse
     socket.on("game_finished", onFinished);
     socket.on("error_message", onError);
 
+    socket.on("connect",join);
+    if(socket.connected)join();
+
     return () => {
+      socket.off("connect",join);
       socket.off("lobby_update", onLobby);
       socket.off("family_game_started", onStarted);
       socket.off("family_turn", onTurn);
@@ -208,7 +214,7 @@ export default function FamilyGameRoom({ code, myUserId }: { code: string; myUse
   }, [code]);
 
   useEffect(() => {
-    fetch("/api/friends")
+    applicationFetch("/api/friends")
       .then((r) => r.json())
       // /api/friends geeft per vriend { friendshipId, user } terug.
       .then((d) => setFriends((d.friends ?? []).map((entry: { user: Friend }) => entry.user)));

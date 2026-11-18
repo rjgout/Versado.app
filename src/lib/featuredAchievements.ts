@@ -1,3 +1,4 @@
+import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 
 /**
@@ -5,20 +6,17 @@ import { prisma } from "@/lib/db";
  * prestaties. De controle blijft server-side zodat een gemanipuleerde
  * profielclient nooit een ongekende badge kan etaleren.
  */
-export async function saveFeaturedAchievements(userId: string, achievementIds: string[]): Promise<void> {
+export async function saveFeaturedAchievements(userId: string, achievementIds: string[], tx?: Prisma.TransactionClient): Promise<void> {
   if (achievementIds.length > 5 || new Set(achievementIds).size !== achievementIds.length || achievementIds.some((id) => !id || id.length > 128)) {
     throw new Error("INVALID_FEATURED_ACHIEVEMENTS");
   }
 
+  if (!tx) { await prisma.$transaction(inner => saveFeaturedAchievements(userId, achievementIds, inner)); return; }
   const earned = achievementIds.length
-    ? await prisma.userAchievement.findMany({ where: { userId, achievementId: { in: achievementIds } }, select: { achievementId: true } })
+    ? await tx.userAchievement.findMany({ where: { userId, achievementId: { in: achievementIds } }, select: { achievementId: true } })
     : [];
   if (earned.length !== achievementIds.length) throw new Error("INVALID_FEATURED_ACHIEVEMENTS");
 
-  await prisma.$transaction([
-    prisma.featuredAchievement.deleteMany({ where: { userId } }),
-    ...(achievementIds.length
-      ? [prisma.featuredAchievement.createMany({ data: achievementIds.map((achievementId, position) => ({ userId, achievementId, position })) })]
-      : []),
-  ]);
+  await tx.featuredAchievement.deleteMany({ where: { userId } });
+  if (achievementIds.length) await tx.featuredAchievement.createMany({ data: achievementIds.map((achievementId, position) => ({ userId, achievementId, position })) });
 }

@@ -1,8 +1,10 @@
 "use client";
+import {applicationFetch} from "@/lib/data/applicationRuntime";
+
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import {AppLink as Link} from "@/components/navigation/AppNavigation";
+import {useGameRouter as useRouter} from "@/components/games/GameNavigation";
 import { getSocket } from "@/lib/socketClient";
 import { useLobbyExit } from "@/lib/useLobbyExit";
 import LobbyClosedNotice from "@/components/LobbyClosedNotice";
@@ -126,7 +128,7 @@ function Lobby({ state, onLeave }: { state: AkStateView; onLeave: () => void }) 
 
   useEffect(() => {
     if (!isHost) return;
-    fetch("/api/friends")
+    applicationFetch("/api/friends")
       .then((r) => r.json())
       .then((d) => setFriends((d.friends ?? []).map((entry: { user: Friend }) => entry.user)))
       .catch(() => {});
@@ -468,7 +470,7 @@ function SoloFinished({ state, solo }: { state: AkStateView; solo: NonNullable<A
   async function practice() {
     setBusy(true);
     setError(null);
-    const res = await fetch("/api/alleskenner/solo", {
+    const res = await applicationFetch("/api/alleskenner/solo", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ mode: "PRACTICE" }),
