@@ -25,9 +25,10 @@ Voor alles wat nog niet in een fase is opgepakt, geldt:
 
 ## Stand van de uitvoering
 
-**Fase 1 (app-shell en Vandaag) is gebouwd.** Leren, Spelen, Vrienden,
-Competitie, Activiteit en Profiel zijn nog niet herontworpen; daar geldt de
-lijst hierboven nog volledig.
+**Fase 1 (app-shell en Vandaag) is gebouwd.** In Leren en Spelen bestaat
+inmiddels ook een gedeelde kaartstandaard (`ContentCard`/`MediaArtwork`), maar
+de overige schermen zijn niet als volledig Figma-redesign afgenomen. Voor
+niet-goedgekeurde ontwerpwijzigingen geldt de lijst hierboven nog steeds.
 
 - **Semantische tokens**: CSS-variabelen `--vs-*` in `src/app/globals.css`
   (licht op `:root`, donker op `.dark`, gelaagd en niet puur zwart), in
@@ -170,6 +171,53 @@ lege staten). Bestaande emoji blijven staan tot het redesign ze vervangt; ze
 worden niet vooraf omgebouwd. Emoji die inhoud zijn (reacties in de feed,
 een door de gebruiker gekozen avatar-emoji, tekst in content) vallen hier
 niet onder.
+
+## Figma-ready doorbouwen zonder redesign (besluit 2 november 2026)
+
+De ontwikkeling van Versado gaat door. **Een toekomstige volledige wijziging
+van de vormgeving is geen reden om nu functies of de app-shell te herbouwen.**
+Nieuwe features, waaronder Native B3b-2 (leespositie, annotaties en audio),
+worden functioneel afgemaakt met de **bestaande** schermvorm en ontwerpen.
+De eigenaar keurt een later Figma-redesign per component/flow afzonderlijk goed.
+
+Architectuurgrenzen voor ieder nieuw of aangepast onderdeel:
+
+1. **Gedrag en vorm scheiden.** Serverservices en getypeerde contracten blijven
+   verantwoordelijk voor auth, cursussloten, leespositie, annotaties, audio,
+   oefenvalidatie, XP en reeks. De presentatie krijgt expliciete props en
+   callbacks; CSS, vorm, animatiestatus of DOM-selectors bepalen nooit
+   voortgang, autorisatie, beloning of een schrijfactie.
+2. **Gedeelde presentatie eerst.** Bouw op bestaande componenten, hooks,
+   navigatie- en platformadapters (web/PWA, lokaal iOS/Android). Geen tweede
+   visuele lezer, kaartstelsel of voortgangssysteem; browser- en native
+   authenticatie blijven platformeigen en veilig.
+3. **Semantische vormgeving.** Gebruik bestaande `--vs-*`-tokens en
+   `src/components/versado/styles.ts` bij *nieuwe* UI. Introduceer geen
+   nieuwe hardcoded paletten of ad-hoc stijlvarianten. Migreer historische
+   `brand`/`slate`-klassen alleen in een goedgekeurde, beperkte
+   ontwerpwijziging; geen brede cosmetische refactor tijdens featurebouw.
+4. **Figma is de ontwerpspecificatie, niet de runtime.** Een goedgekeurd
+   ontwerp legt interacties, componentvarianten, lege/laad-/foutstatus,
+   accessibility, licht/donker, 320px/200% en lange vertalingen vast. Codex
+   vertaalt dit gericht naar de bestaande gedeelde React-code; geen blinde
+   export of automatisch vervangen van API's, routes of bestaande logica.
+5. **Rive is een latere verwisselbare renderer.** Features vragen alleen
+   semantische mascot-/motionstates; `MascotSlot` beheert beeldkeuze,
+   toekomstige Rive-integratie en statische WebP-terugval, inclusief
+   `prefers-reduced-motion`. Geen Rive-dependency als bijproduct van een
+   gewone feature-PR.
+6. **Kleine PR's en tests.** Nieuwe functionaliteit krijgt tests voor
+   contracts, data, beveiliging, interactie en native parity. Een later
+   visueel redesign krijgt aparte Figma-referenties, responsive screenshots,
+   visuele regressiechecks en onafhankelijke review. Ontwerpvoorbereiding
+   blokkeert lopende feature-PR's niet.
+
+De bestaande designrichting, `docs/LAYOUT.md`, `docs/KAARTEN.md`,
+`docs/PLATFORMEN.md` en het gekoppelde `CLAUDE.md`/`AGENTS.md`
+blijven leidend. De **concept-PR #165** bevat extra Figma/Rive-voorstellen
+maar is nog niet gemerged en is geen automatisch geldende of goedgekeurde
+vervanging van deze regels. Werk die PR later afzonderlijk inhoudelijk af
+en voorkom twee concurrerende ontwerpcontracten.
 
 ## Informatiearchitectuur (richting)
 
@@ -508,9 +556,32 @@ kindercursus (`public/kids`, met toestemming gebruikt, zie CLAUDE.md; ook
 gebruikt door de legpuzzel) en de kaartbeelden van de gezinsavond
 (`public/gezinsavond`).
 
-## Huidige stand (inventaris)
+## Historische inventaris vóór de huidige gedeelde shell
 
-Gecontroleerd in de code; bestandsnamen om snel terug te vinden.
+De onderstaande opsomming documenteert de oorspronkelijke situatie **vóór** de
+uitvoering van fase 1. Dit is géén actuele implementatiestatus en mag niet
+als bron dienen voor nieuwe Figma-prototypes of Codex-opdrachten. Actuele
+implementaties staan in 'Stand van de uitvoering', in de broncode en in de
+specifieke componentdocumenten.
+
+**Actuele correcties, gecontroleerd op develop 309ea557 (2 november 2026):**
+- `BottomNav` heeft nu vier primaire bestemmingen: Vandaag, Leren, Spelen,
+  Vrienden; de profielingang zit in de headeravatar. Desktop gebruikt
+  `PrimaryNav`; Competitie en Activiteit zijn tabs binnen Vrienden.
+- `AppShellFrame`/`AppShellHeader` delen de shellpresentatie met de lokale
+  native app. Vandaag gebruikt een gedeelde `TodayView`; de drie schriftelijke
+  leerroutes gebruiken dezelfde `ScriptureReaderView` op web en native.
+- `src/app/globals.css` en `tailwind.config.ts` bieden zowel lichte als donkere
+  semantische `--vs-*`-tokens. **Legacy-onderdelen** gebruiken nog vaste
+  `brand`/`slate`-kleuren; met name `ScriptureReaderView` is visueel nog niet
+  token-only. Niet migreren tijdens een ongerelateerde feature-PR.
+- Leren en Spelen gebruiken gedeelde `ContentCard`-bouwstenen; assets lopen
+  via `MediaArtwork`/het centrale artworkregister. Mascottes lopen via
+  `MascotSlot`, met static WebP en een eventuele latere Rive-renderer.
+- Documentatie- en browser-/isolatietests zijn geen volledige pixel-/device-
+  acceptatie; nieuwe ontwerpen vereisen aparte mobiele en Android/iOS-QA.
+
+Historische stand, voor vergelijking en herkomst:
 
 **Navigatie en lay-out**
 - `BottomNav.tsx`: vaste onderbalk met zes bestemmingen, op elk
@@ -662,9 +733,10 @@ Gecontroleerd in de code; bestandsnamen om snel terug te vinden.
 
 Om te weten waar de impact zit. **Niet vooraf aanpassen voor het redesign.**
 
-- **Navigatie**: `BottomNav.tsx` (zes naar vier bestemmingen, actieve
-  markering, iconen), header in `layout.tsx` (avatar/profielingang), mogelijk
-  een eigen navigatie voor tablet/desktop.
+- **Navigatie**: de vier bestemmingen, actieve markering en de profielavatar
+  zijn inmiddels gerealiseerd in `BottomNav.tsx`, `PrimaryNav.tsx` en
+  `AppShellHeader.tsx`. Een toekomstig Figma-redesign raakt vooral het
+  *uiterlijk en de interactie*; behoud routes, toegangsregels en gedeelde shell.
 - **Vandaag**: `src/app/dashboard/page.tsx`, met de bestaande bronnen
   hierboven (`/api/activity-status`, meldingen, `UserCourseProgress`,
   podcastposities, dagelijkse content).
@@ -702,10 +774,12 @@ omgebouwd. Ze zijn bedoeld om bij het redesign de juiste keuze te maken.
    redesign één component of register per soort (icoon, illustratie,
    mascotte) dat een sleutel omzet in een asset. Dan is vervangen, of een
    statisch beeld inruilen voor een animatie, één wijziging.
-3. **Kleuren zijn niet centraal.** Ruim 1200 `dark:`-varianten met vaste
-   Tailwind-kleuren. Een nieuw palet uit Figma raakt dan elk component. Bij het
-   redesign kleuren als semantische variabelen (CSS custom properties, via
-   `tailwind.config.ts`) met een licht en een donker thema; niet vooraf.
+3. **Kleuren waren niet centraal in legacy-onderdelen.** De nieuwe shell,
+   Vandaag en gedeelde kaarten gebruiken inmiddels semantische `--vs-*`-tokens
+   met licht/donker in `globals.css` en `tailwind.config.ts`. Oudere
+   componenten bevatten nog vaste kleuren en `dark:`-varianten. Migreer die
+   uitsluitend per goedgekeurde Figma-implementatie, niet vooraf en niet
+   als onderdeel van functionele native werkpakketten.
 4. **Beweging.** `vs-motion` legt beweging stil onder
    `prefers-reduced-motion`. Animaties en Rive-mascottes moeten die voorkeur
    respecteren (de statische mascotte-WebP als terugval) en mogen informatie
