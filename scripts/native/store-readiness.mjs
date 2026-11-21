@@ -182,8 +182,15 @@ export const BLOCKERS = [
     check: (fs) => ({ ok: /minimumNativeVersion/.test(fs.read("src/lib/native/api.ts")), evidence: "src/lib/native/api.ts (capabilities)" }) },
   { id: "native-push", area: "beide", wp: "WP12", conditional: "push", title: "Native push (APNs/FCM) met eigen tokenmodel (alleen vereist als push in 1.0 zit)",
     check: (fs) => ({ ok: /@capacitor\/push-notifications/.test(fs.read("package.json")), evidence: "package.json" }) },
-  { id: "device-test-report", area: "beide", wp: "WP15", title: "Rapport met echte apparaattests (iPhone, iPad, Android-telefoon, Android-tablet) is vastgelegd",
-    check: (fs) => ({ ok: fs.exists("docs/NATIVE-DEVICE-TEST-REPORT.md"), evidence: "docs/NATIVE-DEVICE-TEST-REPORT.md" }) },
+  { id: "device-test-report", area: "beide", wp: "WP15", title: "Volledige fysieke apparaatmatrix met expliciet afgeronde en beoordeelde resultaten",
+    check: (fs) => {
+      const report = fs.read("docs/NATIVE-DEVICE-TEST-REPORT.md");
+      const required = ["iphone-small", "iphone-recent", "ipad", "android-phone-a", "android-phone-b", "android-tablet"];
+      // Een eerste iPhone-smoketest is bewijs, maar mag geen GO voor de volledige matrix geven.
+      const complete = /^<!-- device-matrix-status: complete -->$/m.test(report)
+        && required.every((key) => new RegExp(`^\\| ${key} \\| PASS \\|`, "m").test(report));
+      return { ok: complete, evidence: "docs/NATIVE-DEVICE-TEST-REPORT.md (expliciete volledige matrix; geen automatische toestelacceptatie)" };
+    } },
 ];
 
 export function evaluate(fs = realFs(), waived = []) {
