@@ -86232,6 +86232,7 @@
     "tests/otb.test.ts",
     "tests/personal-data-inventory.test.mjs",
     "tests/podcast-feed.test.ts",
+    "tests/prisma-effect-security.test.mjs",
     "tests/profile-footer.test.ts",
     "tests/profile-guide.browser.mjs",
     "tests/profile-settings.test.ts",
