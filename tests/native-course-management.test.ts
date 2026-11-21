@@ -15,8 +15,10 @@ test("cursus toevoegen en verbergen staan als expliciete POST-routes in de spelb
   for (const bad of ["/api/courses/c1/subscribe?x=1", "/api/courses/c%2F1/subscribe", "/api/courses/../x/subscribe", "/api/courses/c1/delete", "/api/courses/c1"]) assert.equal(gameApiRoute(bad, "POST"), null, bad);
 });
 
-test("de eigen volgorde loopt via de bestaande list-order-schrijfroute; alleen games mag via GET met query", () => {
+test("de eigen volgorde loopt via de bestaande list-order-schrijfroute; uitsluitend games en courses mogen via GET met query", () => {
   assert.ok(gameApiRoute("/api/list-order", "PUT"));
+  for(const listKey of ["games","courses"])assert.ok(gameApiRoute(`/api/list-order?listKey=${listKey}`,"GET"));
+  assert.equal(gameApiRoute("/api/list-order?listKey=today-continue","GET"),null);
   assert.equal(gameApiRoute("/api/list-order?listKey=courses", "PUT"), null);
 });
 

@@ -213,12 +213,12 @@ test('woordenboek behoudt gecontroleerde Unicode door de echte Next-catchall, zo
 });
 
 
-test('extra spelmethoden behouden de bestaande 405-grens en beperken voorkeuren tot de spellijst',async()=>{
+test('extra spelmethoden behouden de bestaande 405-grens en beperken voorkeuren tot de spel- en cursuslijst',async()=>{
  for(const method of ['PUT','PATCH'])assert.equal((await call('courses/course/read/chapters/chapter/annotations',{method,body:{}})).response.status,405);
  const saved=await call('games/list-order',{method:'PUT',body:{listKey:'games',itemKeys:GAME_CATALOG.map(game=>game.id)}});assert.equal(saved.response.status,200,JSON.stringify(saved.data));assert.equal(saved.data.status,200);
  const order=await call('games/list-order?listKey=games');assert.equal(order.data.data.order.length,10);
- assert.equal((await call('games/list-order?listKey=courses')).response.status,404);
- for(const listKey of ['courses','today-continue'])assert.equal((await call('games/list-order',{method:'PUT',body:{listKey,itemKeys:[]}})).response.status,400);
+ assert.equal((await call('games/list-order?listKey=courses')).response.status,200);
+ for(const listKey of ['unknown','today-continue'])assert.equal((await call('games/list-order',{method:'PUT',body:{listKey,itemKeys:[]}})).response.status,400);
  assert.equal(await prisma.userListOrder.count({where:{userId:a.user.id,listKey:'games'}}),10);
 });
 

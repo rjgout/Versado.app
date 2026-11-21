@@ -2903,6 +2903,7 @@ export const es: PartialMessages = {
     "title": "¡Racha",
     "daysInARow": "días de práctica seguidos!",
     "longest": "🏆 Racha más larga: {n} días",
+    "longestOne": "🏆 Racha más larga: {n} día",
     "explain": "Mantén tu {streak} completando al menos una actividad cada día, por corta que sea. Si pierdes un día, se usa automáticamente una congelación disponible; si ya no tienes, tu racha se rompe. Una segunda actividad el mismo día no cuenta como un día más.",
     "streakWord": "racha",
     "daysThisMonth": "Días de este mes",

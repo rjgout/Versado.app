@@ -330,7 +330,7 @@ enum NativeGamesPolicy {
             if method == "POST", String(raw).range(of: "\\Areading/[A-Za-z0-9_-]{1,128}/annotations\\z", options: .regularExpression) != nil { return true }
         }
         if raw == "list-order" {
-            guard method == "GET" && items.count == 1 && items[0].name == "listKey" && items[0].value == "games" || method == "PUT" && items.isEmpty else { return false }
+            guard method == "GET" && items.count == 1 && items[0].name == "listKey" && Set(["games","courses"]).contains(items[0].value ?? "") || method == "PUT" && items.isEmpty else { return false }
         }
         return api.contains { $0.matches(String(raw), method, keys) }
     }

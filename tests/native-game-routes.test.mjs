@@ -25,8 +25,8 @@ test('alleen het woordenboek accepteert gecontroleerde Unicode, nooit gecodeerde
 });
 
 test('spelvoorkeuren openen geen andere persoonlijke lijst via een gedeelde webhandler',()=>{
- assert.ok(gameApiRoute('/api/list-order?listKey=games','GET'));
+ for(const key of ['games','courses'])assert.ok(gameApiRoute('/api/list-order?listKey='+key,'GET'));
  assert.ok(gameApiRoute('/api/list-order','PUT'));
- for(const path of ['/api/list-order','/api/list-order?listKey=courses','/api/list-order?listKey=today-continue'])assert.equal(gameApiRoute(path,'GET'),null);
+ for(const path of ['/api/list-order','/api/list-order?listKey=unknown','/api/list-order?listKey=today-continue'])assert.equal(gameApiRoute(path,'GET'),null);
  assert.equal(gameApiRoute('/api/list-order?listKey=games','PUT'),null);
 });

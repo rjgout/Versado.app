@@ -2872,6 +2872,7 @@ export const fr: PartialMessages = {
     title: "Série",
     daysInARow: "jours d’entraînement d’affilée !",
     longest: "🏆 Plus longue série : {n} jours",
+    longestOne: "🏆 Plus longue série : {n} jour",
     explain: "Garde ta {streak} en terminant au moins une activité chaque jour, même courte. Si tu manques un jour, un gel disponible est utilisé automatiquement — si tu n’as plus de gel, ta série est interrompue. Une deuxième activité le même jour ne compte pas comme un jour de plus.",
     streakWord: "série",
     daysThisMonth: "Jours ce mois-ci",

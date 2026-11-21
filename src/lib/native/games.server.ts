@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import type { User } from "@/generated/prisma/client";
 import { withNativeGameIdentity } from "@/lib/games/requestIdentity.server";
 import { NativeAuthError } from "./sessions";
-import { gameApiRoute } from "./gamesRoutes";
+import { gameApiRoute, nativePersonalListKeyAllowed } from "./gamesRoutes";
 import { GAME_HANDLERS } from "./gamesHandlers.server";
 
 /** Dezelfde bestaande webhandelingen, uitsluitend via deze statische spelgrens.
@@ -24,8 +24,8 @@ export async function dispatchNativeGame(req: NextRequest, parts: string[], user
     body = Buffer.concat(chunks).toString("utf8");
     try {
       const input:unknown=JSON.parse(body);
-      // De gedeelde voorkeurservice blijft intact; deze poort betreft alleen Spelen.
-      if(match.id==="list-order"&&(!input||typeof input!=="object"||!("listKey" in input)||input.listKey!=="games"))throw new NativeAuthError("invalid_input",400);
+      // Dezelfde voorkeurservice; uitsluitend de bestaande spel- en cursuslijst.
+      if(match.id==="list-order"&&(!input||typeof input!=="object"||!("listKey" in input)||!nativePersonalListKeyAllowed(input.listKey)))throw new NativeAuthError("invalid_input",400);
     } catch { throw new NativeAuthError("invalid_input",400); }
   }
   const headers = new Headers(req.headers);

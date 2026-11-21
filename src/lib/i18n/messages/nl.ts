@@ -3373,6 +3373,7 @@ export const nl = {
     title: "Reeks",
     daysInARow: "dagen op rij geoefend!",
     longest: "🏆 Langste reeks: {n} dagen",
+    longestOne: "🏆 Langste reeks: {n} dag",
     explain: "Behoud je {streak} door elke dag minstens één activiteit af te ronden, hoe kort ook. Mis je een dag, dan wordt automatisch een beschikbare reeksbevriezing ingezet. Heb je er geen meer, dan is je reeks onderbroken. Een tweede activiteit op dezelfde dag geeft geen extra reeksdag.",
     streakWord: "reeks",
     daysThisMonth: "Dagen deze maand",
