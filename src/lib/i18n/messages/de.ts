@@ -2872,6 +2872,7 @@ export const de: PartialMessages = {
     title: "Serie",
     daysInARow: "Tage in Folge geübt!",
     longest: "🏆 Längste Serie: {n} Tage",
+    longestOne: "🏆 Längste Serie: {n} Tag",
     explain: "Behalte deine {streak}, indem du jeden Tag mindestens eine Aktivität abschließt, egal wie kurz. Verpasst du einen Tag, wird automatisch ein verfügbarer Freeze eingesetzt – hast du keinen mehr, reißt deine Serie. Eine zweite Aktivität am selben Tag zählt nicht als zusätzlicher Tag.",
     streakWord: "Serie",
     daysThisMonth: "Tage diesen Monat",

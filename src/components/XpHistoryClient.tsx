@@ -179,7 +179,7 @@ export default function XpHistoryClient({ showGuide = true }: { showGuide?: bool
   const groups = groupTransactions(transactions);
 
   return (
-    <div className="max-w-3xl mx-auto flex flex-col gap-4 sm:gap-5">
+    <div className="w-full min-w-0 max-w-3xl mx-auto flex flex-col gap-4 sm:gap-5">
       <h1 className="text-2xl font-extrabold text-brand-800 dark:text-brand-300">{t("xpHistory.title")}</h1>
 
       <div className="card bg-gradient-to-br from-brand-500 to-brand-700 dark:from-brand-600 dark:to-brand-900 text-white !border-brand-300/30 dark:!border-brand-400/20 !shadow-md dark:!shadow-none flex flex-col items-center gap-1 !py-8">

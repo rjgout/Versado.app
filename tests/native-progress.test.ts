@@ -38,3 +38,11 @@ test("de header-chips zijn alleen aantikbaar als de schermen beschikbaar zijn en
 test("de gedeelde schermen importeren geen Next-link (die hoort niet in de lokale bundel)", () => {
   for (const file of ["StreakClient", "XpHistoryClient", "LeaderboardClient"]) assert.doesNotMatch(readFileSync(`src/components/${file}.tsx`, "utf8"), /from "next\//, file);
 });
+
+
+test("langste reeks heeft enkelvoud en meervoud in alle vijf talen",async()=>{
+ const {getT}=await import("../src/lib/i18n");
+ for(const [language,one,many] of [["nl","1 dag","2 dagen"],["en","1 day","2 days"],["de","1 Tag","2 Tage"],["fr","1 jour","2 jours"],["es","1 día","2 días"]]){
+  const t=getT(language);assert.ok(t("streakPage.longestOne",{n:1}).endsWith(one),language);assert.ok(t("streakPage.longest",{n:2}).endsWith(many),language);
+ }
+});

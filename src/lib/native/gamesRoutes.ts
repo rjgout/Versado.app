@@ -1,3 +1,9 @@
+/** Alleen deze bestaande persoonlijke lijsten zijn via het native contract beschikbaar. */
+export const NATIVE_PERSONAL_LIST_KEYS = ["games", "courses"] as const;
+export function nativePersonalListKeyAllowed(value: unknown): value is typeof NATIVE_PERSONAL_LIST_KEYS[number] {
+  return NATIVE_PERSONAL_LIST_KEYS.some(key => key === value);
+}
+
 /** Expliciete spelhandelingen en benodigde ondersteunende endpoints. Geen URL-proxy.
  * Nieuwe webhandlers verschijnen hier nooit automatisch; uitbreiding vereist review en tests. */
 export const GAME_API_ROUTES = [
@@ -125,7 +131,7 @@ export function gameApiRoute(raw: string, method: string) {
       } else if (!/^[A-Za-z0-9_-]{1,128}$/.test(value)) return false;
       params[name] = value; return true;
     })) continue;
-    if(route.path==="list-order"&&(method==="GET"?(keys.length!==1||url.searchParams.get("listKey")!=="games"):keys.length!==0))return null;
+    if(route.path==="list-order"&&(method==="GET"?(keys.length!==1||!nativePersonalListKeyAllowed(url.searchParams.get("listKey"))):keys.length!==0))return null;
     return { id: route.path, params, path: route.segments.map(part => part.startsWith('[') ? encodeURIComponent(params[part.slice(1,-1)]) : part).join('/'), search: url.search };
   }
   return null;

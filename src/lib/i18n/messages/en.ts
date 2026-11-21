@@ -2872,6 +2872,7 @@ export const en: PartialMessages = {
     title: "Streak",
     daysInARow: "days of practice in a row!",
     longest: "🏆 Longest streak: {n} days",
+    longestOne: "🏆 Longest streak: {n} day",
     explain: "Keep your {streak} by completing at least one activity every day, however short. If you miss a day, an available freeze is used automatically — if you have no freezes left, your streak breaks. A second activity on the same day does not add an extra day.",
     streakWord: "streak",
     daysThisMonth: "Days this month",

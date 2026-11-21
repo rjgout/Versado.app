@@ -146,9 +146,13 @@ private final class FakeAccessProtocol: URLProtocol {
 private func verifyNativeGamesPolicy() {
     let cases: [(String, String, Bool)] = [
         ("games/list-order", "GET", false),
-        ("games/list-order?listKey=courses", "GET", false),
         ("games/list-order?listKey=today-continue", "GET", false),
+        ("games/list-order?listKey=games", "GET", true),
+        ("games/list-order?listKey=courses", "GET", true),
         ("games/list-order?listKey=games", "PUT", false),
+        ("games/list-order?listKey=courses", "PUT", false),
+        ("games/list-order?listKey=courses&listKey=games", "GET", false),
+        ("games/list-order?listKey=courses&userId=foreign", "GET", false),
         ("games/reading/chapter/annotations", "GET", true),
         ("games/reading/chapter/annotations/verse", "GET", true),
         ("games/reading/chapter/annotations", "POST", true),
