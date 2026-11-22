@@ -59,7 +59,7 @@ De gerichte suite gebruikt de echte productiehandlers en de bestaande importer o
 
 Aanvullend: de bestaande `syncCourses` kan Schriftcursussen voor andere collecties synchroniseren wanneer dat bestaande beheerpad bewust wordt uitgevoerd. Publicatie roept dit niet aan en verandert geen cursusplan of abonnement. Ontbrekende cursussen moeten dus via het bestaande cursusbeheer worden beoordeeld, niet stilzwijgend tijdens publiceren worden aangemaakt.
 
-### Uitgevoerde lokale controles
+### Oorspronkelijke lokale controles op `0c1029a4`
 
 Basis: `develop` op `a5eb9e16f210544ccc959a349bb680e9e55c7697`. Geen overlappende open PR voor deze publicatiebediening aangetroffen.
 
@@ -85,7 +85,7 @@ De gerichte publicatiesuite omvat de echte importer/routehandlers, bronbewijs vo
 
 Browserproeven: tien combinaties over alle vijf talen, 320/375/390/430 px, licht met normale tekst en donker met 200% tekst. Getest: geen horizontale paginaoverflow, semantische checkboxen/toetsenbordselectie, vijf uitgaven samen selecteren, bevestigingsdialoog/focus, Escape zonder mutatie, één echte bevestiging en blijvende status na herladen. Screenshots en JSON-resultaten staan in het CI-artifact `scripture-publication-browser`. Dit is browserbewijs, geen fysieke iPhone-/VoiceOver-acceptatie.
 
-**Bestaande losse testfout:** `npm run test:content-picker` heeft 47 geslaagde tests en één fout in `tests/navigation-departure.test.ts`: de synthetische `window` mist `history`, terwijl `currentEntryKey()` `history.state` leest. Dezelfde test faalt afzonderlijk met dezelfde stacktrace op een schone, ongewijzigde checkout van bovenstaande `develop`-commit met dezelfde Node/dependencies. Navigatiecode en deze test zijn in deze PR niet gewijzigd. Deze mislukking wordt niet als groen gerapporteerd.
+**Oorspronkelijke losse testfout, inmiddels hersteld:** op `0c1029a4` had `npm run test:content-picker` 47 geslaagde tests en één fout in `tests/navigation-departure.test.ts`. De synthetische `window` miste `history`, terwijl `currentEntryKey()` `history.state` leest. De fout is opnieuw bevestigd op de ongewijzigde develop-commit hierboven, met dezelfde Node/dependencies. Alleen de fixture is aangevuld met `history: { state: null }`, zoals een browser aanvankelijk aanbiedt. Productienavigatie en alle bestaande assertions zijn ongewijzigd. De suite slaagt nu met **48/48**; de bestaande Development-workflow voert de vertrektest voortaan expliciet uit.
 
 Herhalen op eigen testomgeving, na `npm ci`, generate en productiebuild:
 
@@ -99,4 +99,73 @@ De bestaande runner start en verwijdert zelf de lokale Postgres-container. De br
 
 De draft-PR vermeldt de uiteindelijke head en actuele CI-status. Onafhankelijke review, eigenaarstoestemming en een apart goedgekeurde backenduitrol blijven nodig. Deze PR publiceert geen collectie op de draaiende backend en breidt de native-lezer niet uit.
 
-Definitieve lokale ronde: **18/18 gerichte tests en 10/10 mobiele browsercombinaties geslaagd**, inclusief de extra hoofdstukkopcontrole, echte bevestiging/herladen en de volledige afsluitende fixture-inventaris en beschikbaarheidsbenchmark. De aanvraag voor één atomaire selectie van tien uitgaven duurde lokaal ongeveer **1,45 seconde**; de bestaande Prisma-transactielimiet is niet verhoogd.
+Oorspronkelijke lokale ronde op `0c1029a4`: **18/18 gerichte tests en 10/10 mobiele browsercombinaties geslaagd**, inclusief de extra hoofdstukkopcontrole, echte bevestiging/herladen en de volledige afsluitende fixture-inventaris en beschikbaarheidsbenchmark. De aanvraag voor één atomaire selectie van tien uitgaven duurde lokaal ongeveer **1,45 seconde**; de bestaande Prisma-transactielimiet is niet verhoogd.
+
+
+## Herstel na Native Foundation-run 45003946835
+
+### Bewezen oorzaak en gerichte correctie
+
+De productievolgorde was correct. `scripts/audio/test-isolated.mjs` stelt `20261127120000_content_beheer_v2` bewust uit om behoud van bestaande audio en latere toevoeging van Contentbeheer te toetsen. De nieuwe `20261209130000_scripture_release_audit` stond echter al in de eerste tijdelijke keten. Daardoor probeerde die `ContentUpdateKind` uit te breiden vóór de CREATE TYPE van Contentbeheer V2. De GitHub-job en een eigen lokale reproductie op de oorspronkelijke PR-head tonen dezelfde **P3018 / PostgreSQL 42704**.
+
+De audioproef stelt nu ook de afhankelijke enumuitbreiding uit en past haar pas na Contentbeheer V2 toe. De bestaande Audio V2- en Contentbeheer-behoudscontroles blijven staan; na de enumuitbreiding worden de audiogegevens nogmaals gecontroleerd. Nieuwe SQL-asserties bewijzen achtereenvolgens: geen enum vóór Contentbeheer (ook na Audio V2), vier bestaande enumwaarden na Contentbeheer, en pas daarna `SCRIPTURE_RELEASE`. De schema-uitbreiding maakt geen beheeractie aan.
+
+Daarnaast installeert dezelfde runner alle migraties zonder filtering op een tweede, lege database in de eigen container. Een tweede deploy moet een no-op zijn. De volledige en de gefaseerde installatie hebben exact dezelfde **172 migratienamen en checksums**. Geen historisch migratiebestand is aangepast, overgeslagen of verwijderd.
+
+Andere gefaseerde runners zijn gecontroleerd:
+
+- Contentarchitectuur: stelt ContentWork/studie-/native-/audiomigraties uit, maar houdt Contentbeheer V2 in de eerste keten; de enumafhankelijkheid is aanwezig. De volledige publicatie-/browserproef gebruikt deze runner opnieuw.
+- Native: de fasen stellen authfoundation, security-setup en quizacties uit; Contentbeheer V2 blijft vóór de enumuitbreiding aanwezig. De volledige Native Foundation-CI herhaalt deze fasen op de nieuwe head.
+- Dorp: stelt alleen `dorp_worlds` uit; Contentbeheer V2 is aanwezig. De afzonderlijke `--migration-only`-proef slaagt, inclusief bestaande rollback-, gegevens-, constraint- en indexverificaties.
+- De vastgepinde main-upgradeproef heeft een expliciet gereviewde migratie-allowlist. Die is niet verruimd om develop-migraties stilzwijgend toe te laten; zij maakt geen deel uit van de relevante develop-PR-workflows.
+- Overige geïsoleerde runners passen de volledige repositoryketen toe en stellen Contentbeheer V2 niet apart uit.
+
+### Publicatieveiligheid en efficiëntie opnieuw toetsen
+
+De productiepublicatielogica, bronbewijzen, toegangsregels en transactielimieten zijn in deze herstelronde niet gewijzigd. De gerichte suite herhaalt alle integriteits-, rollen-/sessie-, bulk-, concurrency-, idempotentie- en rollbackscenario’s en de behoudsfingerprints over 23 tabellen. Er is één extra alleen-lezen proef voor de volledige controle via de echte HTTP-routehandlers in de schone productiebuild, met alle tien echte uitgaven.
+
+Vijf verse lokale GET-metingen over **155.515 verzen** gaven 2.323 / 1.600 / 1.321 / 1.468 / 1.430 ms: mediaan **1,47 s**, maximum **2,32 s**. Dit gebeurde terwijl de aparte audioproeven eveneens draaiden. De telling van de grootste editie duurde in een eigen `EXPLAIN ANALYZE` circa **19 ms** en gebruikte bestaande indexen op boeken, hoofdstukken en verzen. De volledige atomaire publicatie van tien uitgaven duurde circa **1,26 s**. Alle tekst-/structuurhashes en actuele rechten worden daarbij opnieuw gecontroleerd; er is geen goedkeuringscache of lichtere controle toegevoegd.
+
+Dit zijn metingen van de werkelijke backendcode en volledige corpusgrootte op de geïsoleerde testmachine, **geen NAS-metingen**. Er is geen NAS-verbinding, productiequery of live publicatie uitgevoerd. De nieuwe route is nog niet door deze PR naar de NAS uitgerold. Conform het repositorybeleid voert de eigenaar de live controle uit; ontbrekende NAS-metingen zijn geen reden om een ontwikkel-PR te blokkeren of om controles te versoepelen.
+
+Na een afzonderlijk goedgekeurde uitrol kan de eigenaar op de bestaande ingelogde Adminbackend-pagina uitsluitend de GET controleren, zonder publicatie of andere mutatie:
+
+```js
+(async () => {
+  const started = performance.now();
+  const response = await fetch("/api/admin/content-switcher/publication", {
+    cache: "no-store", credentials: "same-origin"
+  });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const { editions } = await response.json();
+  console.table({
+    milliseconds: Math.round(performance.now() - started),
+    editions: editions.length,
+    verified: editions.filter(item => item.verified).length,
+    publishableDrafts: editions.filter(item => item.canPublish).length
+  });
+})();
+```
+
+Dit logt alleen tellingen en duur, geen cookies, tokens, inhoud of gebruikersidentiteiten. Het gebruikt geen POST. Een langzame of mislukte controle rechtvaardigt geen publicatie zonder verse verificatie.
+
+### Nieuwe verificatieronde
+
+De lokale herstelronde is afgerond:
+
+| Controle | Uitkomst |
+| --- | --- |
+| Volledige TypeScriptcontrole, schone productiebuild en gerichte lint | Geslaagd; geen nieuwe lintwaarschuwingen |
+| Contentpicker inclusief ongewijzigde navigatie-assertions | 48/48 geslaagd |
+| Navigatiefixture plus bestaande Development-pipelineguards | 13/13 geslaagd |
+| Gefaseerde Audio V2-migratie, enumcheckpoints, volledige schone installatie, herhaalde deploy en checksumvergelijking | Geslaagd; 172 identieke migraties |
+| Audio V2-library, officiële audio en legacy-integratie | 30 + 24 + 12 = 66 geslaagd; geen skips |
+| Alle drie bestaande audiobrowsersuites | Geslaagd; geen browserexceptions |
+| Dorp-migratieproef | Geslaagd, inclusief behoud en foutrollback |
+| Gerichte publicatie- en bron-/beveiligingstests | 19/19 geslaagd; geen skips |
+| Publicatiebeheer browsergevallen over vijf talen | 10/10 geslaagd, inclusief echte bevestiging en herladen |
+| Afsluitende bron-/fixture-integriteit en beschikbaarheidsbenchmark | Geslaagd |
+| Beveiligingsbeleid + Prisma/Effect; productie-audit | Geslaagd; 0 kwetsbaarheden |
+| Native broninventaris en diffcontrole | Geslaagd |
+
+De uiteindelijke nieuwe head en alle bijbehorende CI-resultaten worden in de bestaande draft-PR vastgelegd. Het eerdere resultaat op `0c1029a4` vervangt geen controle op de nieuwe commit. De PR blijft draft; onafhankelijk review-GO en eigenaarstoestemming blijven voorwaarden voor merge. Geen NAS-deployment, productiedatabasemigratie, Bijbelpublicatie of TestFlight-upload uitgevoerd. CFM en zijn integriteitscontroles zijn niet gewijzigd.

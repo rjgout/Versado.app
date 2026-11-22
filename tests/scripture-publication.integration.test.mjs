@@ -72,6 +72,22 @@ test("OTB-publicatie via echte handlers, gepinde tekst, bestaande web/nativecata
     await prisma.note.create({ data: { userId: ordinary.user.id, verseId: anchor.verses[0].id, text: "Privénotitie in geïsoleerde OTB-test" } });
     const baseline = await fingerprint();
     const userBefore = await prisma.user.findUniqueOrThrow({ where: { id: ordinary.user.id } });
+    await t.test("volledige broncontrole via echte backendhandlers: vijf verse, uitsluitend lezende metingen", async () => {
+      const samples = [];
+      for (let i = 0; i < 5; i++) {
+        const start = performance.now(), entries = await state();
+        samples.push(Math.round(performance.now() - start));
+        assert.equal(entries.length, 10); assert.ok(entries.every(item => item.verified && item.canPublish));
+      }
+      const sorted = [...samples].sort((a,b) => a-b);
+      const plan = (await db.query(`EXPLAIN (ANALYZE, FORMAT JSON) SELECT count(DISTINCT b.id)::int AS books, count(DISTINCT c.id)::int AS chapters, count(v.id)::int AS verses FROM "Book" b LEFT JOIN "Chapter" c ON c."bookId"=b.id LEFT JOIN "Verse" v ON v."chapterId"=c.id WHERE b."contentCollectionId"=$1`, [ids[0]])).rows[0]["QUERY PLAN"][0];
+      const indexes = [];
+      function inspect(node) { if (node["Index Name"]) indexes.push(node["Index Name"]); for (const child of node.Plans ?? []) inspect(child); }
+      inspect(plan.Plan);
+      console.log(JSON.stringify({publicationPreflight: {samplesMs:samples,medianMs:sorted[2],maxMs:sorted[4],editions:10,verses:155515,realHandlers:true,isolatedDatabase:true,productionMeasured:false,countQueryExecutionMs:plan["Execution Time"],indexes}}));
+      assert.deepEqual(await fingerprint(), baseline, "Volledige broncontrole schrijft geen inhoud of voortgang");
+      assert.equal(await published(), 0);
+    });
     await t.test("geen publicatie door zichtbaarheid; tien gecontroleerde concepten zijn niet leesbaar", async () => {
       const entries = await state(); assert.equal(entries.length, 10); assert.equal(entries.filter(e => ids.includes(e.id) && e.canPublish).length, 10);
       assert.equal(await published(), 0);

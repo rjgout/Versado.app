@@ -53,7 +53,7 @@ jobs:
       - name: Brontekst- en contractcontroles zonder database
         run: |
           npm run test:kompas
-          npx tsx --test tests/study-folder.test.ts tests/content-switch.test.ts
+          npx tsx --test tests/study-folder.test.ts tests/content-switch.test.ts tests/navigation-departure.test.ts
 
   pr-images:
     name: PR-image (${{ matrix.name }})
