@@ -2,27 +2,13 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { getCurrentUser } from "@/lib/session";
 import { getT } from "@/lib/i18n";
-import { annotationKind, annotationColor } from "@/lib/annotations/contract";
+import { annotationKind } from "@/lib/annotations/contract";
 import { annotationResponse as response } from "@/lib/annotations/http";
 import {
   getStudyFolderItem, listStudyFolder, listStudyFolderSources, StudyFolderError,
-  STUDY_FOLDER_MAX_CURSOR, STUDY_FOLDER_MAX_LIMIT, STUDY_FOLDER_MAX_QUERY,
 } from "@/lib/annotations/studyFolder";
+import { studyFolderQuery as query } from "@/lib/annotations/studyFolderQuery";
 export const runtime = "nodejs";
-
-const list = z.object({
-  q: z.string().max(STUDY_FOLDER_MAX_QUERY * 4).optional(),
-  type: annotationKind.optional(),
-  source: z.string().min(1).max(128).optional(),
-  color: annotationColor.optional(),
-  cursor: z.string().min(1).max(STUDY_FOLDER_MAX_CURSOR).optional(),
-  limit: z.coerce.number().int().min(1).max(STUDY_FOLDER_MAX_LIMIT).optional(),
-}).strict();
-const query = z.union([
-  z.object({ view: z.literal("sources") }).strict(),
-  z.object({ item: z.string().regex(/^(bookmark|highlight|note):[A-Za-z0-9_-]{1,128}$/) }).strict(),
-  list,
-]);
 
 // Alleen eigen annotaties van de ingelogde gebruiker; nooit een door de client opgegeven gebruikers-id.
 export async function GET(req: NextRequest) {

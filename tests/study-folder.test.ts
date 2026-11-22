@@ -73,9 +73,10 @@ test("de API gebruikt alleen de ingelogde gebruiker en geen client-userId", () =
 
 test("studiemap gebruikt de live-datalaag accountbreed, zonder contentScoped", () => {
   const client = read("src/components/study-folder/StudyFolderClient.tsx");
-  assert.match(client, /scopes: \["annotations"\]/);
+  assert.match(client, /scopes:\["annotations","content"\]/);
   assert.doesNotMatch(client, /contentScoped/);
-  assert.match(client, /AnnotationActions/);
+  assert.match(client, /renderEditor/);
+  assert.match(read("src/components/study-folder/WebStudyFolder.tsx"), /AnnotationActions/);
   assert.doesNotMatch(client, /setInterval|visibilitychange|window\.location\.reload/);
 });
 

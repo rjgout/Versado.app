@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
-import StudyFolderClient from "@/components/study-folder/StudyFolderClient";
+import StudyFolderClient from "@/components/study-folder/WebStudyFolder";
 
 // Accountbreed en privé: geen contentkeuze, geen cache; de gegevens komen uit /api/study-folder.
 export const dynamic = "force-dynamic";

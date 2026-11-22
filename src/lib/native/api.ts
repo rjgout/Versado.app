@@ -1,3 +1,6 @@
+import { StudyFolderError } from "@/lib/annotations/studyFolder";
+import { folderRoute } from "./studyFolderContract";
+import { queryNativeStudyFolder,nativeFolderAnnotations,mutateNativeFolderAnnotation,nativeFolderPassage } from "./studyFolder.server";
 import {gameAudioRoute} from "./gamesAudioContract";
 import {companionToMascot} from "@/lib/companion";
 import { accountDeletionSchema,passwordChangeSchema } from "@/lib/account/contracts";
@@ -97,7 +100,7 @@ export async function nativeApi(req: NextRequest, parts: string[]): Promise<Next
   const ip = hashSecret(clientIp(req)), failureKey = `native-auth:${ip}`;
   try {
     if (mutation && req.headers.get("content-type")?.split(";")[0] !== "application/json") throw new NativeAuthError("json_required", 415);
-    if (req.method === "GET" && path === "capabilities") return json({ apiVersion: 1, apple: !!appleConfiguration(), registration: true, features: ["scripture-learning-v1", "scripture-audio-v1", "scripture-annotations-v1", "scripture-reading-position-v1", "scripture-reader-v1", "study-course-overview-v1", "courses-overview-v1", "study-media-v1", "today-actions-v1", "today-overview-v1", "content-picker-v1", "security-setup-v1", "account-password-v1", "account-deletion-v1", "password-reset-v1", "email-confirmation-v1", "profile-settings-v1", "games-v1", "friends-v1", ...(nativeSocketEnabled() ? ["realtime-ticket-v1"] : [])] });
+    if (req.method === "GET" && path === "capabilities") return json({ apiVersion: 1, apple: !!appleConfiguration(), registration: true, features: ["study-folder-v1", "scripture-learning-v1", "scripture-audio-v1", "scripture-annotations-v1", "scripture-reading-position-v1", "scripture-reader-v1", "study-course-overview-v1", "courses-overview-v1", "study-media-v1", "today-actions-v1", "today-overview-v1", "content-picker-v1", "security-setup-v1", "account-password-v1", "account-deletion-v1", "password-reset-v1", "email-confirmation-v1", "profile-settings-v1", "games-v1", "friends-v1", ...(nativeSocketEnabled() ? ["realtime-ticket-v1"] : [])] });
     if (req.method === "POST" && path === "login") {
       if (failureLockSeconds(failureKey, 30)) throw new NativeAuthError("too_many_attempts", 429);
       const input = z.object({ identifier: z.string().trim().min(1).max(320), ...credentials, supportsSecuritySetup: z.boolean().optional() }).strict().parse(await body(req));
@@ -193,6 +196,19 @@ export async function nativeApi(req: NextRequest, parts: string[]): Promise<Next
       return json(await issueSocketTicket(header.slice(7)));
     }
     const user = await authenticated(req);
+    const studyFolder=folderRoute(path,req.method);
+    if(studyFolder){
+      if(req.nextUrl.search)throw new NativeAuthError("invalid_input",400);
+      const {binding}=await nativeSessionIdentity(req.headers.get("authorization")!.slice(7));
+      if(studyFolder.operation==="query")return json(await queryNativeStudyFolder(binding,await body(req)));
+      if(studyFolder.operation==="mutate"){
+        const limited=await authBudget(authBudgetKey("native-reader-annotations",user.id),120,60_000);
+        if(limited)throw new NativeAuthError(limited.status===503?"security_check_unavailable":"too_many_attempts",limited.status);
+        return json(await mutateNativeFolderAnnotation(binding,await body(req)));
+      }
+      return json(await (studyFolder.operation==="annotations"?nativeFolderAnnotations:nativeFolderPassage)(binding,studyFolder.ref));
+    }
+
     const gameAnnotations=gameAnnotationRoute(path,req.method);
     if(gameAnnotations){
       if(req.nextUrl.search)throw new NativeAuthError("invalid_input",400);
@@ -396,6 +412,7 @@ export async function nativeApi(req: NextRequest, parts: string[]): Promise<Next
     return json({ error: "endpoint_unavailable" }, 404);
   } catch (error) {
     if(error instanceof ExerciseSessionError)return json({error:error.code === "INCOMPLETE"?"learning_incomplete":error.code === "ALREADY_SUBMITTED"?"learning_result_unavailable":"content_unavailable"},error.code === "INCOMPLETE"?400:error.code === "ALREADY_SUBMITTED"?409:403);
+    if(error instanceof StudyFolderError)return json({error:error.code==="INVALID"?"invalid_input":"content_unavailable"},error.code==="INVALID"?400:404);
     if(error instanceof AnnotationError)return json({error:error.code==="CONFLICT"?"annotation_conflict":error.code==="INVALID"?"invalid_input":"content_unavailable"},error.code==="CONFLICT"?409:error.code==="INVALID"?400:404);
     if (error instanceof FriendRequestError) return json({ error: error.code }, error.status);
     if (error instanceof ContentSelectionConflict) return json({ error: "content_selection_conflict" }, 409);

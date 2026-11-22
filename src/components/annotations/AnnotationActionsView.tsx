@@ -108,7 +108,9 @@ export default function AnnotationActionsView({
   onClose,
   onChanged,
   audio,
+  confirmRemove,
 }: {
+  confirmRemove?: (kind:AnnotationKind)=>Promise<boolean>;
   target: AnnotationTarget;
   adapter: AnnotationActionsAdapter;
   returnFocus: HTMLElement | null;
@@ -251,6 +253,10 @@ export default function AnnotationActionsView({
   ) {
     if (lock.current || !rows || error === "conflict") return;
     lock.current = true;
+    if(remove&&confirmRemove){
+      const confirmed=await confirmRemove(kind);
+      if(!confirmed||!alive.current){lock.current=false;return;}
+    }
     setBusy(true);
     setError(null);
     setSaved(null);

@@ -9,7 +9,8 @@ import type { NativeContentState } from "@/lib/native/contract";
 import type { PickerEdition } from "@/lib/contentPickerContract";
 
 /** Alleen native transport/navigatie; kaarten, edities en talen zijn dezelfde React-view. */
-export default function NativeContentPicker({ userId, state, error, onRetry, onCommitted }: {
+export default function NativeContentPicker({ userId, state, error, onRetry, onCommitted, studyFolderEnabled=false }: {
+  studyFolderEnabled?:boolean;
   userId: string; state?: NativeContentState; error: boolean; onRetry: () => void;
   onCommitted: (state: NativeContentState) => void;
 }) {
@@ -35,6 +36,6 @@ export default function NativeContentPicker({ userId, state, error, onRetry, onC
       return false;
     } finally { if (alive.current) { locked.current = false;setBusy(false); } }
   }
-  return <ContentPickerView data={state?.picker} busy={busy || !state && !error} message={message ?? (error ? "error" : null)}
+  return <ContentPickerView links={studyFolderEnabled?{studyFolder:"/study-folder"}:undefined} data={state?.picker} busy={busy || !state && !error} message={message ?? (error ? "error" : null)}
     onSelect={select} onRetry={() => { setMessage(null);onRetry(); }} noDestination={noDestination} />;
 }

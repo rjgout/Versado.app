@@ -6,6 +6,8 @@ import { nativeReaderRoute } from "./readerNavigation";
  * geschiedenis gaat terug naar het scherm waar de gebruiker vandaan kwam; dit is alleen de terugval. */
 export function nativeBackFallback(pathname: string, features: readonly string[]): string {
   const path = pathname.split("?")[0];
+  if(path==="/study-folder")return "/content";
+  if(path.startsWith("/study-folder/"))return "/study-folder";
   // De hoofdschermen van de tabbladen vallen terug op Vandaag, nooit op zichzelf.
   if (/^\/profile\?view=/.test(pathname)) return "/profile";
   if (path === "/live" || path === "/courses" || path === "/friends" || path === "/profile") return "/dashboard";

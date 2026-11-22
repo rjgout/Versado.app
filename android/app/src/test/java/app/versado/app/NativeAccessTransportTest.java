@@ -38,6 +38,19 @@ public class NativeAccessTransportTest {
         assertNull(edge.captured.header("Cookie")); assertNull(edge.captured.url().query());
         assertEquals("Bearer synthetic.native",edge.captured.header("Authorization"));
     }
+    @Test public void studyFolderRoutesStayBounded() {
+        for (String kind : new String[]{"bookmark", "highlight", "note"}) {
+            assertTrue(NativeAccessTransport.routeAllowed("study-folder/" + kind + "/own_1/annotations", "GET"));
+            assertTrue(NativeAccessTransport.routeAllowed("study-folder/" + kind + "/own_1/passage", "GET"));
+            assertFalse(NativeAccessTransport.routeAllowed("study-folder/" + kind + "/own_1/annotations", "DELETE"));
+        }
+        assertTrue(NativeAccessTransport.routeAllowed("study-folder/query", "POST"));
+        assertTrue(NativeAccessTransport.routeAllowed("study-folder/annotations", "POST"));
+        for (String path : new String[]{"study-folder/query?q=private", "study-folder/note/x/passage\n", "study-folder/note/x%2Fy/passage", "study-folder/admin/x/passage"}) {
+            assertFalse(NativeAccessTransport.routeAllowed(path, "GET"));
+            assertFalse(NativeAccessTransport.routeAllowed(path, "POST"));
+        }
+    }
     @Test public void profileAndRoutesStayStrict() {
         assertTrue(NativeAccessTransport.profileAllowed(true, "local-internal", "internal", NativeAccessTransport.ORIGIN, false, false));
         assertFalse(NativeAccessTransport.profileAllowed(false, "local-internal", "internal", NativeAccessTransport.ORIGIN, false, false));
