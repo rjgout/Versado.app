@@ -113,11 +113,11 @@ function ZoneDivider({ zone, t }: { zone: "PROMOTION" | "RELEGATION"; t: TFuncti
         up ? "text-vs-success" : "text-red-600 dark:text-red-400"
       }`}
     >
-      <span className={`h-0.5 flex-1 rounded-full ${up ? "bg-vs-success" : "bg-red-500"}`} aria-hidden />
-      <Icon className="h-4 w-4" aria-hidden strokeWidth={2.75} />
+      <span className={`vs-decor h-0.5 flex-1 rounded-full ${up ? "bg-vs-success" : "bg-red-500"}`} aria-hidden />
+      <Icon className="vs-decor h-4 w-4 shrink-0" aria-hidden strokeWidth={2.75} />
       {up ? t("leaderboard.zonePromotion") : t("leaderboard.zoneRelegation")}
-      <Icon className="h-4 w-4" aria-hidden strokeWidth={2.75} />
-      <span className={`h-0.5 flex-1 rounded-full ${up ? "bg-vs-success" : "bg-red-500"}`} aria-hidden />
+      <Icon className="vs-decor h-4 w-4 shrink-0" aria-hidden strokeWidth={2.75} />
+      <span className={`vs-decor h-0.5 flex-1 rounded-full ${up ? "bg-vs-success" : "bg-red-500"}`} aria-hidden />
     </div>
   );
 }
@@ -169,7 +169,7 @@ export default function LeaderboardClient() {
   const nationalData = data && data.scope === "national" ? (data as NationalData) : null;
 
   return (
-    <div className="max-w-2xl mx-auto flex flex-col gap-4 sm:gap-5">
+    <div className="w-full min-w-0 max-w-2xl mx-auto flex flex-col gap-4 sm:gap-5">
       {scope === "league" ? (
         <div className="card bg-gradient-to-br from-brand-500 to-brand-700 dark:from-brand-600 dark:to-brand-900 text-white !border-0 !px-0 !py-4 min-h-48 sm:min-h-52 flex flex-col items-center justify-center gap-1 overflow-hidden">
           <h1 className="sr-only">
@@ -248,18 +248,18 @@ export default function LeaderboardClient() {
               <Fragment key={e.userId}>
                 {relegationStarts && <ZoneDivider zone="RELEGATION" t={t} />}
                 <div
-                  className={`flex items-center gap-2.5 px-2 py-2.5 rounded-xl min-w-0 ${
+                  className={`flex flex-wrap items-center gap-2.5 px-2 py-2.5 rounded-xl min-w-0 ${
                     e.isMe ? "bg-brand-50 dark:bg-slate-700 font-extrabold" : ""
                   }`}
                 >
-                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2 min-w-0 max-w-full flex-[1_1_10rem]">
                     <RankCell rank={e.rank} t={t} />
                     <UserAvatar id={e.userId} handle={e.handle} />
-                    <span className="min-w-0 truncate dark:text-slate-100" title={e.handle}>
+                    <span className="min-w-0 flex-[1_1_6rem] truncate dark:text-slate-100" title={e.handle}>
                       {e.handle} {e.isMe && <span className="text-brand-500 dark:text-brand-300">{t("lobby.you")}</span>}
                     </span>
                   </div>
-                  <span className="shrink-0 whitespace-nowrap text-gold-600 dark:text-gold-400 font-extrabold">
+                  <span className="ml-auto min-w-0 max-w-full shrink-0 text-right text-gold-600 dark:text-gold-400 font-extrabold">
                     {e.xp} XP
                   </span>
                 </div>
@@ -291,13 +291,13 @@ export default function LeaderboardClient() {
 function NationalRow({ e }: { e: NationalEntry }) {
   const t = useT();
   return (
-    <div className={`flex items-center gap-2.5 px-2 py-2.5 rounded-xl min-w-0 ${
+    <div className={`flex flex-wrap items-center gap-2.5 px-2 py-2.5 rounded-xl min-w-0 ${
       e.isMe ? "font-extrabold" : ""
     }`}>
-      <div className="flex items-center gap-2 min-w-0 flex-1">
+      <div className="flex flex-wrap items-center gap-2 min-w-0 max-w-full flex-[1_1_10rem]">
         <RankCell rank={e.rank} t={t} prefix="#" />
         <UserAvatar id={e.userId} handle={e.handle} />
-        <span className="min-w-0 truncate dark:text-slate-100" title={e.handle}>
+        <span className="min-w-0 flex-[1_1_6rem] truncate dark:text-slate-100" title={e.handle}>
           {e.handle} {e.isMe && <span className="text-brand-500 dark:text-brand-300">{t("lobby.you")}</span>}
         </span>
         {e.tier && (
@@ -306,7 +306,7 @@ function NationalRow({ e }: { e: NationalEntry }) {
           </span>
         )}
       </div>
-      <div className="flex shrink-0 items-center gap-1.5 text-xs whitespace-nowrap sm:gap-2 sm:text-sm">
+      <div className="ml-auto flex max-w-full flex-wrap items-center justify-end gap-1.5 text-xs sm:gap-2 sm:text-sm">
         <span className="inline-flex items-center gap-0.5 text-orange-500 font-bold"><SystemIcon kind="streak" className="h-4 w-4" fill="currentColor" aria-hidden />{e.currentStreak}</span>
         <span className="inline-flex items-center gap-0.5 text-gold-600 dark:text-gold-400 font-extrabold"><SystemIcon kind="xp" className="h-4 w-4" fill="currentColor" aria-hidden />{e.xpTotal}</span>
       </div>

@@ -130,7 +130,7 @@
     "test:daily-text": "tsx --test tests/daily-text.test.ts",
     "test:daily-text:integration": "node scripts/content-architecture/test-access-isolated.mjs --focused --daily-text --browser",
     "test:cfm-content:integration": "node scripts/content-architecture/test-access-isolated.mjs --focused --cfm-content --browser",
-    "test:native:focus": "tsx --test tests/native-responsive-css.test.ts && node tests/native-route-focus.browser.mjs"
+    "test:native:focus": "tsx --test tests/native-responsive-css.test.ts && node tests/native-route-focus.browser.mjs && node --import tsx tests/native-progress-layout.browser.mjs"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.2",

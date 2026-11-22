@@ -109,7 +109,7 @@ export default function StreakClient() {
   const displayedStatus = continuation?.status ?? overview.continuation.status;
 
   return (
-    <div className="max-w-3xl mx-auto flex flex-col gap-4 sm:gap-5">
+    <div className="w-full min-w-0 max-w-3xl mx-auto flex flex-col gap-4 sm:gap-5">
       <h1 className="text-2xl font-extrabold text-brand-800 dark:text-brand-300">{t("streakPage.title")}</h1>
 
       <div className="card bg-gradient-to-br from-orange-400 to-red-500 text-white !border-orange-300/40 dark:!border-orange-200/20 !shadow-md dark:!shadow-none flex flex-col items-center gap-1 !py-8">
@@ -119,7 +119,7 @@ export default function StreakClient() {
         {displayedStatus === "INTERRUPTED" && <p className="mt-1 text-sm text-white">{t("streakReturn.interrupted")}</p>}
         {displayedLongestStreak > 0 && (
           <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-black/15 px-3.5 py-1.5 text-xs font-bold text-white">
-            {t("streakPage.longest", { n: displayedLongestStreak })}
+            {t(displayedLongestStreak === 1 ? "streakPage.longestOne" : "streakPage.longest", { n: displayedLongestStreak })}
           </span>
         )}
       </div>

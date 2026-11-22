@@ -9428,7 +9428,7 @@
     },
     {
       "file": "src/components/DivisionScroller.tsx",
-      "sha256": "b3a49b35ce5b8f7497aa8a7aec97657a129e28c5f947065b588198637040b5f8",
+      "sha256": "bf02060ad6b1f09c45acd1e57a0cdb560236af0cdb766127d2913ed52093c905",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -10134,7 +10134,7 @@
     },
     {
       "file": "src/components/LeaderboardClient.tsx",
-      "sha256": "0517fcd392351548f8cdded735804767abc7c25f748623976fb2480be3e7c90d",
+      "sha256": "cfe08f5bfc8ea28a57a4bbfd7dafe37f41e177f37cc7c6f3e8e8c24cdd88a273",
       "boundary": "client",
       "imports": [
         "@/components/DivisionScroller",
@@ -11004,7 +11004,7 @@
     },
     {
       "file": "src/components/StreakClient.tsx",
-      "sha256": "8178b8f2519807ec2437e78ede1d07e13bcae3b536c17ba8c462178078009c80",
+      "sha256": "3e8e8711a78758779d092d706adc2e95f2961a229c52cab9449167c14dfe69df",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -11345,7 +11345,7 @@
     },
     {
       "file": "src/components/XpHistoryClient.tsx",
-      "sha256": "95ef841dbb962feddf2649c1cebb209a95466b6f66757cefca5b97ff8efc5615",
+      "sha256": "38566b10a20f422bb5a075f64b02488433256d12c271f3841e48b97883fe103a",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -20656,7 +20656,7 @@
     },
     {
       "file": "src/lib/i18n/messages/de.ts",
-      "sha256": "609ea86ff3a0184f698d67cc62b3fe4182d4b2c8b23718600bf1044996493d24",
+      "sha256": "c2f54c809c522aff5cc9d728a1c60b8b80a12865792e9c88b27ea54203816d89",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -20671,7 +20671,7 @@
     },
     {
       "file": "src/lib/i18n/messages/en.ts",
-      "sha256": "9a232b507ada90b9ee95e192dbafd15b18715f50766970689a149c0822d13876",
+      "sha256": "accf8581d16f679a7e18a71fb90f1116f9cd4590524499e4255c52de4b270ff0",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -20686,7 +20686,7 @@
     },
     {
       "file": "src/lib/i18n/messages/es.ts",
-      "sha256": "f9f45d8fc71ae8bfbc2b4931b0f7237695b3288a6feeab1bdddcaed6ff17e541",
+      "sha256": "4697fcea487f4f58dd1dafe706a7e8ad468da7df2a6490d0a7697094985b8339",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -20701,7 +20701,7 @@
     },
     {
       "file": "src/lib/i18n/messages/fr.ts",
-      "sha256": "87f36fc9cc314a64cba7336ba9a4dd474d4c49137a119407950c5500c398b5e2",
+      "sha256": "eb0adc3a40339306c1806798112030ce2bdc5e6cb0558a91310c1ca4303935e2",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -20784,7 +20784,7 @@
     },
     {
       "file": "src/lib/i18n/messages/nl.ts",
-      "sha256": "45174cc3542bd525ef4c18106c69d135b8c0549d081f2da4ae22c9845a65dbfb",
+      "sha256": "0755317c706f47dc6c896f6dfe5cbc28e45994c039dd083866e285e4b10f9ce2",
       "boundary": "context-dependent",
       "imports": [
         "./kompas/nl"
@@ -22730,7 +22730,7 @@
     },
     {
       "file": "src/lib/native/games.server.ts",
-      "sha256": "b49f22e1b951b7a15874872bf79e246bff61b3227f6ee97e7ba017223dd6ec96",
+      "sha256": "2f126ef94a60db5df137aab207f282f4fd771e197e667ff382076b20ad70388b",
       "boundary": "context-dependent",
       "imports": [
         "./gamesHandlers.server",
@@ -23134,7 +23134,7 @@
     },
     {
       "file": "src/lib/native/gamesRoutes.ts",
-      "sha256": "3c71cff3fd4a0ae900b14ec4b65b697ba6874dfd080ef132b5d698e7ed7d3c42",
+      "sha256": "b289d34d04023aef0953e7466303dcdc9919421d6ba3a77a039950d0c3fb8209",
       "boundary": "context-dependent",
       "imports": [],
       "methods": [],
@@ -23142,7 +23142,9 @@
       "checks": [],
       "exports": [
         "GAME_API_ROUTES",
-        "gameApiRoute"
+        "NATIVE_PERSONAL_LIST_KEYS",
+        "gameApiRoute",
+        "nativePersonalListKeyAllowed"
       ]
     },
     {
@@ -78858,7 +78860,7 @@
     },
     {
       "file": "src/components/DivisionScroller.tsx",
-      "sha256": "b3a49b35ce5b8f7497aa8a7aec97657a129e28c5f947065b588198637040b5f8",
+      "sha256": "bf02060ad6b1f09c45acd1e57a0cdb560236af0cdb766127d2913ed52093c905",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -79564,7 +79566,7 @@
     },
     {
       "file": "src/components/LeaderboardClient.tsx",
-      "sha256": "0517fcd392351548f8cdded735804767abc7c25f748623976fb2480be3e7c90d",
+      "sha256": "cfe08f5bfc8ea28a57a4bbfd7dafe37f41e177f37cc7c6f3e8e8c24cdd88a273",
       "boundary": "client",
       "imports": [
         "@/components/DivisionScroller",
@@ -80434,7 +80436,7 @@
     },
     {
       "file": "src/components/StreakClient.tsx",
-      "sha256": "8178b8f2519807ec2437e78ede1d07e13bcae3b536c17ba8c462178078009c80",
+      "sha256": "3e8e8711a78758779d092d706adc2e95f2961a229c52cab9449167c14dfe69df",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -80775,7 +80777,7 @@
     },
     {
       "file": "src/components/XpHistoryClient.tsx",
-      "sha256": "95ef841dbb962feddf2649c1cebb209a95466b6f66757cefca5b97ff8efc5615",
+      "sha256": "38566b10a20f422bb5a075f64b02488433256d12c271f3841e48b97883fe103a",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -86160,6 +86162,7 @@
     "tests/native-content.browser.mjs",
     "tests/native-content.integration.test.ts",
     "tests/native-course-management.test.ts",
+    "tests/native-course-order.integration.test.mjs",
     "tests/native-courses.browser.mjs",
     "tests/native-courses.integration.test.ts",
     "tests/native-courses.test.tsx",
@@ -86193,6 +86196,7 @@
     "tests/native-profile.browser.mjs",
     "tests/native-profile.integration.test.ts",
     "tests/native-profile.test.tsx",
+    "tests/native-progress-layout.browser.mjs",
     "tests/native-progress.test.ts",
     "tests/native-reader.browser.mjs",
     "tests/native-reader.integration.test.ts",

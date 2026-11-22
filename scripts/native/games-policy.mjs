@@ -1,7 +1,7 @@
 import {readFileSync,writeFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {resolve} from 'node:path';
-import {GAME_API_ROUTES} from '../../src/lib/native/gamesRoutes.ts';
+import {GAME_API_ROUTES,NATIVE_PERSONAL_LIST_KEYS} from '../../src/lib/native/gamesRoutes.ts';
 import {GAME_PAGE_ROUTES} from '../../src/lib/native/gamesPagesRoutes.ts';
 const begin='// BEGIN NATIVE GAMES POLICY',end='// END NATIVE GAMES POLICY';
 const escape=value=>value.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
@@ -57,7 +57,7 @@ export function swiftPolicy(){
             if method == "POST", String(raw).range(of: "\\\\Areading/[A-Za-z0-9_-]{1,128}/annotations\\\\z", options: .regularExpression) != nil { return true }
         }
         if raw == "list-order" {
-            guard method == "GET" && items.count == 1 && items[0].name == "listKey" && items[0].value == "games" || method == "PUT" && items.isEmpty else { return false }
+            guard method == "GET" && items.count == 1 && items[0].name == "listKey" && Set([${NATIVE_PERSONAL_LIST_KEYS.map(literal).join(",")}]).contains(items[0].value ?? "") || method == "PUT" && items.isEmpty else { return false }
         }
         return api.contains { $0.matches(String(raw), method, keys) }
     }
@@ -133,7 +133,7 @@ export function javaPolicy(){
             String raw = path.substring(6).split("\\\\?", 2)[0];
             if (raw.equals("page")) return method.equals("GET") && query.size() == 1 && query.containsKey("route") && page(query.get("route"));
             if (query.isEmpty() && (method.equals("GET") && raw.matches("reading/[A-Za-z0-9_-]{1,128}/annotations(?:/[A-Za-z0-9_-]{1,128})?") || method.equals("POST") && raw.matches("reading/[A-Za-z0-9_-]{1,128}/annotations"))) return true;
-            if (raw.equals("list-order") && !(method.equals("GET") && query.size() == 1 && "games".equals(query.get("listKey")) || method.equals("PUT") && query.isEmpty())) return false;
+            if (raw.equals("list-order") && !(method.equals("GET") && query.size() == 1 && java.util.Arrays.asList(${NATIVE_PERSONAL_LIST_KEYS.map(literal).join(",")}).contains(query.get("listKey")) || method.equals("PUT") && query.isEmpty())) return false;
             for (Rule rule : API) if (rule.matches(raw, method, query.keySet())) return true;
         } catch (Exception error) { return false; }
         return false;
@@ -161,8 +161,11 @@ export function javaPolicy(){
 }
 export function updatePolicy(original,generated){const start=original.indexOf(begin),finish=original.indexOf(end);if(start<0&&finish<0)return original.trimEnd()+'\n\n'+generated+'\n';if(start<0||finish<start)throw Error('Onvolledige policy-markers');return original.slice(0,start)+generated+original.slice(finish+end.length);}
 export const GAME_POLICY_CASES = [
-  ...['games/list-order','games/list-order?listKey=courses','games/list-order?listKey=today-continue'].map(path=>[path,'GET',false]),
-  ['games/list-order?listKey=games','PUT',false],
+  ...['games/list-order','games/list-order?listKey=today-continue'].map(path=>[path,'GET',false]),
+  ...NATIVE_PERSONAL_LIST_KEYS.map(key=>['games/list-order?listKey='+key,'GET',true]),
+  ...['games','courses'].map(key=>['games/list-order?listKey='+key,'PUT',false]),
+  ['games/list-order?listKey=courses&listKey=games','GET',false],
+  ['games/list-order?listKey=courses&userId=foreign','GET',false],
   ['games/reading/chapter/annotations','GET',true],['games/reading/chapter/annotations/verse','GET',true],['games/reading/chapter/annotations','POST',true],
   ...['games/annotations?view=reader&chapterId=chapter','games/reading/chapter/annotations?user=B','games/reading/chapter/annotations/verse/extra'].map(path=>[path,'GET',false]),
   ['games/reading/chapter/annotations/verse','POST',false],['games/reading/chapter/annotations','PUT',false],

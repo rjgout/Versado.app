@@ -369,7 +369,7 @@ final class NativeGamesPolicy {
             String raw = path.substring(6).split("\\?", 2)[0];
             if (raw.equals("page")) return method.equals("GET") && query.size() == 1 && query.containsKey("route") && page(query.get("route"));
             if (query.isEmpty() && (method.equals("GET") && raw.matches("reading/[A-Za-z0-9_-]{1,128}/annotations(?:/[A-Za-z0-9_-]{1,128})?") || method.equals("POST") && raw.matches("reading/[A-Za-z0-9_-]{1,128}/annotations"))) return true;
-            if (raw.equals("list-order") && !(method.equals("GET") && query.size() == 1 && "games".equals(query.get("listKey")) || method.equals("PUT") && query.isEmpty())) return false;
+            if (raw.equals("list-order") && !(method.equals("GET") && query.size() == 1 && java.util.Arrays.asList("games","courses").contains(query.get("listKey")) || method.equals("PUT") && query.isEmpty())) return false;
             for (Rule rule : API) if (rule.matches(raw, method, query.keySet())) return true;
         } catch (Exception error) { return false; }
         return false;

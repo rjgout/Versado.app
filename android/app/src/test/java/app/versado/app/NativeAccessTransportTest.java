@@ -183,9 +183,13 @@ public class NativeAccessTransportTest {
     // BEGIN GAME REQUEST CASES
     @Test public void explicitGamesPolicyMatchesTheSharedBoundary() {
         assertEquals(false, NativeAccessTransport.routeAllowed("games/list-order", "GET"));
-        assertEquals(false, NativeAccessTransport.routeAllowed("games/list-order?listKey=courses", "GET"));
         assertEquals(false, NativeAccessTransport.routeAllowed("games/list-order?listKey=today-continue", "GET"));
+        assertEquals(true, NativeAccessTransport.routeAllowed("games/list-order?listKey=games", "GET"));
+        assertEquals(true, NativeAccessTransport.routeAllowed("games/list-order?listKey=courses", "GET"));
         assertEquals(false, NativeAccessTransport.routeAllowed("games/list-order?listKey=games", "PUT"));
+        assertEquals(false, NativeAccessTransport.routeAllowed("games/list-order?listKey=courses", "PUT"));
+        assertEquals(false, NativeAccessTransport.routeAllowed("games/list-order?listKey=courses&listKey=games", "GET"));
+        assertEquals(false, NativeAccessTransport.routeAllowed("games/list-order?listKey=courses&userId=foreign", "GET"));
         assertEquals(true, NativeAccessTransport.routeAllowed("games/reading/chapter/annotations", "GET"));
         assertEquals(true, NativeAccessTransport.routeAllowed("games/reading/chapter/annotations/verse", "GET"));
         assertEquals(true, NativeAccessTransport.routeAllowed("games/reading/chapter/annotations", "POST"));
