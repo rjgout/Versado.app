@@ -108,7 +108,7 @@
     "test:native": "tsx --test tests/learning-rules.test.ts tests/native-learning.test.ts tests/native-learning-flow.test.ts tests/native-audio-player.test.ts tests/native-reader.test.ts tests/native-audio.test.ts tests/native-annotations.test.ts tests/native-foundation.test.ts tests/native-appearance.test.ts tests/native-tabbar.test.ts tests/native-test-api-games.test.ts tests/native-account-deletion.test.ts tests/native-shell.test.tsx tests/native-navigation.test.ts tests/native-socket.test.ts tests/native-distribution.test.ts tests/native-access.test.ts tests/native-token-lifetime.test.ts tests/native-friends.test.ts tests/native-progress.test.ts tests/native-course-management.test.ts tests/native-audio-diagnostics.test.ts tests/synthetic-test-accounts.test.ts tests/native-back-navigation.test.ts tests/native-today.test.ts tests/native-today-view.test.tsx tests/native-today-actions.test.ts tests/native-profile.test.tsx tests/native-study-media.test.ts tests/native-courses.test.tsx tests/native-study-courses.test.tsx tests/native-game-*.test.mjs && npm run test:native:data",
     "test:native:data": "tsx --test tests/native-data.test.ts tests/live-data.test.ts tests/live-data-architecture.test.ts tests/live-data-migration.test.ts tests/content-switch.test.ts",
     "test:native:integration": "node scripts/native/test-isolated.mjs",
-    "test:security": "tsx --test tests/security-policy.test.ts",
+    "test:security": "tsx --test tests/security-policy.test.ts && node --test tests/prisma-effect-security.test.mjs",
     "test:security:integration": "node scripts/security/test-isolated.mjs",
     "native:parity:update": "node scripts/native/parity.mjs --write",
     "native:parity:check": "node scripts/native/parity.mjs --check",
@@ -189,6 +189,9 @@
   "overrides": {
     "deepmerge-ts": "8.0.2",
     "mysql2": "3.24.5",
-    "source-map-js": "1.2.2"
+    "source-map-js": "1.2.2",
+    "@prisma/config@7.10.0": {
+      "effect": "3.22.1"
+    }
   }
 }
