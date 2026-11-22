@@ -1,4 +1,4 @@
-import { emitTopicEvent } from "@/lib/realtime";
+import { emitTopicEvent, notifyContentAvailabilityChanged } from "@/lib/realtime";
 import { dorpPrototypeEnabled } from "@/lib/dorp/access";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
@@ -45,6 +45,7 @@ export async function PUT(req: NextRequest) {
   const body = parsed.data;
   if ("enabled" in body) {
     await updateContentSwitcherSettings(body.enabled);
+    notifyContentAvailabilityChanged();
   } else if ("activity" in body) {
     await prisma.contentSwitcherSettings.upsert({
       where: { id: "singleton" },
@@ -55,6 +56,7 @@ export async function PUT(req: NextRequest) {
   } else {
     try {
       await setContentCollectionVisibility(body.contentCollectionId, body.visibleToUsers);
+      notifyContentAvailabilityChanged();
     } catch (error) {
       const message = error instanceof Error && error.message.startsWith("Er moet")
         ? error.message

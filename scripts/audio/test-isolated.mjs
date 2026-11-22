@@ -1,6 +1,8 @@
 // Alleen eigen wegwerpcontainers; leest geen productie-URL of Docker-context.
 import { spawn, spawnSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
+import assert from 'node:assert/strict';
+import pg from 'pg';
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync, readFileSync, cpSync, readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
@@ -15,6 +17,21 @@ async function port(){const s=createServer();await new Promise(r=>s.listen(0,'12
 const name='versado-audio-test-'+randomUUID().slice(0,8), redis=name+'-redis';
 const temp=mkdtempSync(join(tmpdir(),'versado-audio-test-'));
 let server; const volumes=[];
+const releaseMigration='20261209130000_scripture_release_audit';
+const beheerKinds=['CONTENT_UPDATE','SCRIPTURE_CHECK','SCRIPTURE_PREPARE','SCRIPTURE_PUBLISH'];
+async function assertPublicationStage(url,stage) {
+ const client=new pg.Client({connectionString:url});await client.connect();
+ try {
+  const labels=(await client.query(`SELECT e.enumlabel FROM pg_enum e JOIN pg_type t ON t.oid=e.enumtypid WHERE t.typname='ContentUpdateKind' ORDER BY e.enumsortorder`)).rows.map(row=>row.enumlabel);
+  assert.deepEqual(labels,stage==='before-beheer'?[]:stage==='beheer'?beheerKinds:[...beheerKinds,'SCRIPTURE_RELEASE']);
+  const ledger=(await client.query(`SELECT migration_name,checksum FROM "_prisma_migrations" WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL ORDER BY migration_name`)).rows;
+  assert.equal(ledger.some(row=>row.migration_name===releaseMigration),stage==='release');
+  if(stage!=='before-beheer')assert.equal((await client.query('SELECT count(*)::int AS n FROM "ContentUpdateRun"')).rows[0].n,0,'Een schema-uitbreiding publiceert niets en maakt geen beheeractie aan');
+  console.log(JSON.stringify({audioPublicationMigrationStage:stage,enumOrderVerified:true,productionMutation:false}));
+  return ledger;
+ }finally{await client.end();}
+}
+
 try {
  docker(['info','--format','{{.ServerVersion}}']);
  docker(['run','--rm','-d','--name',name,'-p','127.0.0.1::5432','-e','POSTGRES_USER=audio_test','-e','POSTGRES_PASSWORD=audio_test','-e','POSTGRES_DB=versado_audio_test','postgres:16-alpine']);
@@ -27,22 +44,40 @@ try {
  const audio=join(temp,'audio');mkdirSync(audio,{mode:0o700});
  const env={...process.env,NODE_ENV:'production',DATABASE_URL:url,AUDIO_TEST_DATABASE_URL:url,AUDIO_TEST_ROOT:audio,AUDIO_DIR:audio,APP_URL:base,AUDIO_TEST_BASE_URL:base,REDIS_URL:`redis://127.0.0.1:${redisPort}`,SESSION_SECRET:'isolated-audio-tests-only-secret',ALLOW_INSECURE_COOKIES:'true',NEXT_TELEMETRY_DISABLED:'1'};
  const require=createRequire(import.meta.url), migrations=join(temp,'migrations');mkdirSync(migrations);
- for(const entry of readdirSync('prisma/migrations')) if(!['20261204120000_audio_library_v2','20261127120000_content_beheer_v2','20261206120000_official_audio_tasks','20261207120000_legacy_audio_conversion'].includes(entry)) cpSync(join('prisma/migrations',entry),join(migrations,entry),{recursive:true});
+ for(const entry of readdirSync('prisma/migrations')) if(!['20261204120000_audio_library_v2','20261127120000_content_beheer_v2','20261206120000_official_audio_tasks','20261207120000_legacy_audio_conversion',releaseMigration].includes(entry)) cpSync(join('prisma/migrations',entry),join(migrations,entry),{recursive:true});
  const config=join(temp,'prisma.config.mjs');writeFileSync(config,`import {defineConfig} from ${JSON.stringify(require.resolve('prisma/config'))};export default defineConfig({schema:${JSON.stringify(resolve('prisma/schema.prisma'))},migrations:{path:${JSON.stringify(migrations)}},datasource:{url:process.env.DATABASE_URL}});`);
  await run('npx',['prisma','migrate','deploy','--config',config],env);
+ await assertPublicationStage(url,'before-beheer');
  await run('npx',['tsx','tests/audio-migration.ts','prepare'],env);
  cpSync('prisma/migrations/20261204120000_audio_library_v2',join(migrations,'20261204120000_audio_library_v2'),{recursive:true});
  await run('npx',['prisma','migrate','deploy','--config',config],env);
  await run('npx',['tsx','tests/audio-migration.ts','verify'],env);
+ await assertPublicationStage(url,'before-beheer');
  // PR #187 moet ook veilig kunnen volgen op een al toegepaste Audio V2-migratie (#194).
  if(readdirSync('prisma/migrations').includes('20261127120000_content_beheer_v2')) {
   cpSync('prisma/migrations/20261127120000_content_beheer_v2',join(migrations,'20261127120000_content_beheer_v2'),{recursive:true});
   await run('npx',['prisma','migrate','deploy','--config',config],env);
   await run('npx',['tsx','tests/audio-migration.ts','verify-contentchecks'],env);
+  await assertPublicationStage(url,'beheer');
  }
+ // Deze enumuitbreiding hangt af van Contentbeheer V2, niet van Audio V2.
+ cpSync(join('prisma/migrations',releaseMigration),join(migrations,releaseMigration),{recursive:true});
  cpSync('prisma/migrations/20261207120000_legacy_audio_conversion',join(migrations,'20261207120000_legacy_audio_conversion'),{recursive:true});
  cpSync('prisma/migrations/20261206120000_official_audio_tasks',join(migrations,'20261206120000_official_audio_tasks'),{recursive:true});
  await run('npx',['prisma','migrate','deploy','--config',config],env);
+ const phasedLedger=await assertPublicationStage(url,'release');
+ await run('npx',['tsx','tests/audio-migration.ts','verify-contentchecks'],env);
+ // Naast de historische fasering ook de volledige, ongewijzigde keten op een echt lege DB.
+ const owner=new pg.Client({connectionString:url});await owner.connect();
+ try{await owner.query('CREATE DATABASE versado_audio_fresh_test');}finally{await owner.end();}
+ const fresh=new URL(url);fresh.pathname='/versado_audio_fresh_test';
+ const freshEnv={...env,DATABASE_URL:fresh.href};
+ await run('npx',['prisma','migrate','deploy'],freshEnv);
+ await run('npx',['prisma','migrate','deploy'],freshEnv);
+ const freshLedger=await assertPublicationStage(fresh.href,'release');
+ assert.deepEqual(freshLedger,phasedLedger,'Schone en gefaseerde installatie passen exact dezelfde migraties en checksums toe');
+ assert.equal(freshLedger.length,readdirSync('prisma/migrations').filter(name=>/^\d+_/.test(name)).length);
+ console.log(JSON.stringify({audioFreshAndPhasedInstall:'passed',sameMigrationChecksums:true,migrations:freshLedger.length,repeatedDeploy:true,productionMutation:false}));
  if(process.argv.includes('--legacy-official')) {
   await run('npx',['tsx','tests/audio-legacy-real.ts'],env);
  } else {

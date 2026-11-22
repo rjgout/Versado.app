@@ -3,6 +3,42 @@ import { kompasDe } from "./kompas/de";
 
 // Ontbrekende teksten vallen terug volgens fallbackChain (src/lib/languages.ts).
 export const de: PartialMessages = {
+  scripturePublication: {
+  "title": "Schriftausgaben veröffentlichen",
+  "intro": "Text und Quelle vor der Veröffentlichung prüfen. Nur vollständig geprüfte OTB-Ausgaben sind zulässig. Eine Auswahl wird vollständig oder gar nicht veröffentlicht.",
+  "visibility": "Aktivierung und Sichtbarkeit bleiben erhalten. Eine aktivierte, sichtbare Ausgabe wird sofort verfügbar. Zum erneuten Ausblenden den vorhandenen Sichtbarkeitsschalter oben verwenden; Texte und Fortschritt bleiben erhalten.",
+  "confirm": "Nur diese geprüften Ausgaben veröffentlichen: {names}. Aktivierte, sichtbare Ausgaben werden sofort verfügbar. Ausgeblendete oder deaktivierte Ausgaben bleiben unverändert. Bei geänderter Prüfung wird nichts veröffentlicht.",
+  "publish": "Veröffentlichen",
+  "check": "Erneut prüfen",
+  "empty": "Keine Bibelausgaben gefunden.",
+  "selectGroup": "Geprüfte Entwürfe auswählen",
+  "status": "Veröffentlichungsstatus",
+  "draft": "Entwurf",
+  "published": "Veröffentlicht",
+  "source": "Quelle aktiviert",
+  "on": "Ja",
+  "off": "Nein",
+  "visible": "Für Nutzer sichtbar",
+  "yes": "Ja",
+  "no": "Nein",
+  "counts": "Bücher: {books} · Kapitel: {chapters} · Verse: {verses}",
+  "verified": "Text, Struktur und Quelle geprüft",
+  "blocked": "Veröffentlichung gesperrt",
+  "publishSelected": "Auswahl veröffentlichen ({count})",
+  "success": "Die ausgewählten Ausgaben wurden veröffentlicht. Aktivierung und Sichtbarkeit bleiben erhalten.",
+  "failed": "Nicht bestätigt. Vor einem erneuten Versuch den aktualisierten Status prüfen. Die Anfrage wurde möglicherweise bereits verarbeitet; keine automatische Wiederholung.",
+  "reasons": {
+    "unsupported": "Diese Ausgabe gehört nicht zum geprüften OTB-Verfahren.",
+    "identity": "Werk, Sprache oder Ausgabeidentität entspricht nicht der Quelle.",
+    "provenance": "Quellenangabe oder Lizenz entspricht nicht der festgelegten Quelle.",
+    "evidence": "Der Prüfnachweis passt nicht zur festgelegten Quellenversion. Untersuchung erforderlich.",
+    "incomplete": "Die erwarteten Bücher, Kapitel oder Verse fehlen oder die Anzahl weicht ab.",
+    "text": "Text oder Struktur weicht von der geprüften Quelle ab. Untersuchung erforderlich."
+  },
+  "old-testament": "Altes Testament",
+  "new-testament": "Neues Testament",
+  "other": "Weitere Schriftausgaben"
+},
   nativeLearningFlow: {
     "questions": "Fragen",
     "result": "Ergebnis",

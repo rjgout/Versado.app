@@ -7,6 +7,7 @@ test("contentkiezer bewaart vertrekpositie ondanks een late scrollmeting van de 
   const values = new Map<string, string>();
   const fake = {
     scrollY: 180, location: { pathname: "/live", search: "" },
+    history: { state: null },
     navigation: { currentEntry: { key: "departure-synthetic" } },
     sessionStorage: { getItem: (key: string) => values.get(key) ?? null, setItem: (key: string, value: string) => values.set(key, value), removeItem: (key: string) => values.delete(key) },
     setTimeout: () => 1, clearTimeout: () => {},

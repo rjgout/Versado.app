@@ -3,6 +3,42 @@ import { kompasEs } from "./kompas/es";
 
 // Spaanse app-teksten; ontbrekende teksten vallen terug volgens fallbackChain.
 export const es: PartialMessages = {
+  scripturePublication: {
+  "title": "Publicar ediciones de las Escrituras",
+  "intro": "Comprueba el texto y la fuente antes de publicar. Solo se permiten ediciones OTB verificadas por completo. La selección se publica completa o no se publica nada.",
+  "visibility": "La publicación conserva la activación y la visibilidad. Una edición activada y visible queda disponible inmediatamente. Usa el control de visibilidad existente de arriba para volver a ocultarla; se conservan los textos y el progreso.",
+  "confirm": "Publicar solo estas ediciones verificadas: {names}. Las ediciones activadas y visibles quedan disponibles inmediatamente. Las ocultas o desactivadas siguen igual. Si la verificación ha cambiado, no se publica nada.",
+  "publish": "Publicar",
+  "check": "Volver a comprobar",
+  "empty": "No se encontraron ediciones de la Biblia.",
+  "selectGroup": "Seleccionar borradores verificados",
+  "status": "Estado de publicación",
+  "draft": "Borrador",
+  "published": "Publicado",
+  "source": "Fuente activada",
+  "on": "Sí",
+  "off": "No",
+  "visible": "Visible para usuarios",
+  "yes": "Sí",
+  "no": "No",
+  "counts": "Libros: {books} · capítulos: {chapters} · versículos: {verses}",
+  "verified": "Texto, estructura y fuente verificados",
+  "blocked": "Publicación bloqueada",
+  "publishSelected": "Publicar selección ({count})",
+  "success": "Se publicaron las ediciones seleccionadas. Se conservan la activación y la visibilidad.",
+  "failed": "Sin confirmar. Comprueba el estado actualizado antes de volver a publicar. Puede que la solicitud ya se haya procesado; no se reenvía automáticamente.",
+  "reasons": {
+    "unsupported": "Esta edición no forma parte del procedimiento OTB verificado.",
+    "identity": "La obra, el idioma o la identidad de la edición no coincide con la fuente.",
+    "provenance": "La atribución o la licencia no coincide con la fuente fijada.",
+    "evidence": "La prueba de verificación no corresponde a la versión de la fuente fijada. Requiere investigación.",
+    "incomplete": "Faltan libros, capítulos o versículos esperados, o las cantidades difieren.",
+    "text": "El texto o la estructura difiere de la fuente verificada. Requiere investigación."
+  },
+  "old-testament": "Antiguo Testamento",
+  "new-testament": "Nuevo Testamento",
+  "other": "Otras ediciones de las Escrituras"
+},
   nativeLearningFlow: {
     "questions": "Preguntas",
     "result": "Resultado",

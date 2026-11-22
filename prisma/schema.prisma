@@ -4171,6 +4171,7 @@ model ChapterAudioCheck {
 }
 
 enum ContentUpdateKind {
+  SCRIPTURE_RELEASE
   CONTENT_UPDATE
   SCRIPTURE_CHECK
   SCRIPTURE_PREPARE

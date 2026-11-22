@@ -7,6 +7,7 @@ import AdminSection from "@/components/admin/AdminSection";
 import { useLiveQuery } from "@/lib/data/hooks";
 import { fetchJson } from "@/lib/data/fetchJson";
 import { jsonMutation } from "@/lib/data/mutation";
+import AdminScripturePublicationClient from "@/components/admin/AdminScripturePublicationClient";
 import { Music2 } from "lucide-react";
 
 interface Collection {
@@ -119,6 +120,7 @@ export default function AdminContentSwitcherClient() {
           {(error || query.error) && <p className="text-sm font-semibold text-vs-danger">{error ?? t("adminContent.saveFailed")}</p>}
         </>
       )}
+      <AdminScripturePublicationClient />
     </AdminSection>
   );
 }

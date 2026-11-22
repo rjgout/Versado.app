@@ -380,7 +380,7 @@ registratie of website-link telt niet als lokaal geïmplementeerde functie.
 <!-- BEGIN NATIVE PARITY INVENTORY -->
 ## Volledige broninventaris (gegenereerd)
 
-Gevonden: **145 pagina's**, **244 fysieke routehandlers**, **504 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
+Gevonden: **145 pagina's**, **245 fysieke routehandlers**, **505 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
 
 De JSON-bijlage bevat per route alle transitief bereikbare lokale modules, clientgrenzen en statische requestpaden. Dat is een afhankelijkheidsinventaris, geen autorisatiebewijs; voorwaarden per HTTP-methode blijven apart te controleren. Een Client Component kan via een gedeelde helper nog een serverafhankelijkheid hebben. Een module zonder eigen `use client` is contextafhankelijk, niet automatisch browsergeschikt.
 
@@ -561,6 +561,7 @@ Endpoint | Methoden | Bron | Domein / authenticatie | Native beschikbaarheid
 `/api/admin/content-inspection` | GET | [src/app/api/admin/content-inspection/route.ts](../src/app/api/admin/content-inspection/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/content-inventory` | GET, POST | [src/app/api/admin/content-inventory/route.ts](../src/app/api/admin/content-inventory/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/content-switcher` | GET, PUT | [src/app/api/admin/content-switcher/route.ts](../src/app/api/admin/content-switcher/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
+`/api/admin/content-switcher/publication` | GET, POST | [src/app/api/admin/content-switcher/publication/route.ts](../src/app/api/admin/content-switcher/publication/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/courses` | GET | [src/app/api/admin/courses/route.ts](../src/app/api/admin/courses/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/courses/[courseId]` | PATCH | [src/app/api/admin/courses/[courseId]/route.ts](../src/app/api/admin/courses/[courseId]/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/deploy/maintenance` | POST | [src/app/api/admin/deploy/maintenance/route.ts](../src/app/api/admin/deploy/maintenance/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
@@ -1071,6 +1072,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/admin/AdminContentInspectionClient.tsx](../src/components/admin/AdminContentInspectionClient.tsx) | use client | AdminContentInspectionClient
 [src/components/admin/AdminNotice.tsx](../src/components/admin/AdminNotice.tsx) | contextafhankelijk / server-entry waar page/layout | AdminNotice
 [src/components/admin/AdminPageHeader.tsx](../src/components/admin/AdminPageHeader.tsx) | contextafhankelijk / server-entry waar page/layout | AdminPageHeader
+[src/components/admin/AdminScripturePublicationClient.tsx](../src/components/admin/AdminScripturePublicationClient.tsx) | use client | AdminScripturePublicationClient
 [src/components/admin/AdminSection.tsx](../src/components/admin/AdminSection.tsx) | contextafhankelijk / server-entry waar page/layout | AdminSection
 [src/components/admin/AdminStudyPublicationsClient.tsx](../src/components/admin/AdminStudyPublicationsClient.tsx) | use client | AdminStudyPublicationsClient
 [src/components/admin/AdminTable.tsx](../src/components/admin/AdminTable.tsx) | contextafhankelijk / server-entry waar page/layout | AdminTable
