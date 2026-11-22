@@ -52,7 +52,7 @@ try {
   const base = `http://127.0.0.1:${await freePort()}`;
   const mediaRoot=join(temporary,"study-media");mkdirSync(mediaRoot,{mode:0o700});
   writeFileSync(join(mediaRoot,".versado-study-volume.json"),JSON.stringify({version:1,purpose:"versado-study-media",volumeId:randomUUID()}),{mode:0o600});
-  const env = { ...process.env, NODE_ENV: "production", ...(process.argv.includes("--cfm-import") ? { CFM_AUTO_PUBLISH: "off", CFM_IMPORT_YEARS: "2026" } : {}), DATABASE_URL: database, CONTENT_ACCESS_TEST_DATABASE_URL: database,
+  const env = { ...process.env, ...(process.argv.includes("--scripture-publication") ? { NATIVE_API_ENABLED: "1", NATIVE_SESSION_SECRET: "scripture-publication-isolated-only-secret" } : {}), NODE_ENV: "production", ...(process.argv.includes("--cfm-import") ? { CFM_AUTO_PUBLISH: "off", CFM_IMPORT_YEARS: "2026" } : {}), DATABASE_URL: database, CONTENT_ACCESS_TEST_DATABASE_URL: database,
     CONTENT_ACCESS_TEST_BASE_URL: base, LEARNING_TEST_DATABASE_URL: database, CONTENT_MIGRATION_TEST_STATE: join(temporary, "proof.json"), APP_URL: base, REDIS_URL: "", STUDY_MEDIA_DIR: mediaRoot, STUDY_MEDIA_TEST_ROOT: mediaRoot, STUDY_PUBLICATION_PROFILE: "synthetic-test", SESSION_SECRET: "content-access-isolated-secret-only", NEXT_TELEMETRY_DISABLED: "1" };
   async function assertNativeLearningStage(upgraded) {
     const client = new pg.Client({ connectionString: database }); await client.connect();
@@ -261,6 +261,10 @@ try {
   if(process.argv.includes("--study-read")) {
     await run("npx",["tsx","--test","tests/study-read-action.test.ts","tests/study-read.integration.test.ts"],env);
     if(process.argv.includes("--browser"))await run("npx",["tsx","tests/study-read.browser.mjs"],env);
+  }
+  if(process.argv.includes("--scripture-publication")) {
+    await run("npx",["tsx","--test","tests/scripture-publication.test.mjs","tests/scripture-publication.integration.test.mjs"],env);
+    if(process.argv.includes("--browser")) await run("npx",["tsx","tests/scripture-publication.browser.mjs"],env);
   }
   if(process.argv.includes("--study-publication")) {
     await run("npx",["tsx","--test","tests/study-publication.integration.test.ts"],env);

@@ -866,8 +866,33 @@
       ]
     },
     {
+      "file": "src/app/api/admin/content-switcher/publication/route.ts",
+      "sha256": "e1cbdc6a1e21746335b7694109e65d97509387238bbab5b8e1eb27b00816d345",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/lib/content-inventory/origin",
+        "@/lib/realtime",
+        "@/lib/requestBody",
+        "@/lib/scripturePublication",
+        "@/lib/session",
+        "next/server"
+      ],
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "requests": [],
+      "checks": [
+        "getCurrentUser"
+      ],
+      "exports": [
+        "GET",
+        "POST"
+      ]
+    },
+    {
       "file": "src/app/api/admin/content-switcher/route.ts",
-      "sha256": "eb2fbeea8b25ddd21cdd0ce4271a9659cce9da0004fc77ebd2604c566831c480",
+      "sha256": "3028747391b79451879a8ef996c596b7afa6a99124db0488982bff224503882f",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
@@ -8869,10 +8894,11 @@
     },
     {
       "file": "src/components/AdminContentSwitcherClient.tsx",
-      "sha256": "47395466d39cfe803eaa9e2d7a920bd41516f1473201c35f90a5a790b8b8ff66",
+      "sha256": "4ee6d810ce4c0558c72c62bc579291475b73b59bbe82d70684eab731f3b35480",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
+        "@/components/admin/AdminScripturePublicationClient",
         "@/components/admin/AdminSection",
         "@/components/versado/ToggleSwitch",
         "@/lib/data/fetchJson",
@@ -11598,6 +11624,27 @@
       "checks": [],
       "exports": [
         "AdminPageHeader"
+      ]
+    },
+    {
+      "file": "src/components/admin/AdminScripturePublicationClient.tsx",
+      "sha256": "33ccb071b0552de87b5412d496b25ee45a7e4a15946f3875cf33917fae12e54d",
+      "boundary": "client",
+      "imports": [
+        "@/components/ConfirmProvider",
+        "@/components/I18nProvider",
+        "@/lib/data/fetchJson",
+        "@/lib/data/hooks",
+        "@/lib/data/mutation",
+        "@/lib/languages",
+        "@/lib/scripturePublication",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "AdminScripturePublicationClient"
       ]
     },
     {
@@ -18354,7 +18401,7 @@
     },
     {
       "file": "src/lib/contentImportLock.ts",
-      "sha256": "021cfd548c18e0b47f815460a478e800d70fbbdbda9b39062e2c2526a3b86718",
+      "sha256": "99eaa9be2617b3ac11a66e6e272816f7b00d6dccb95d2ac6b54843202287ff3f",
       "boundary": "context-dependent",
       "imports": [
         "pg"
@@ -18363,6 +18410,7 @@
       "requests": [],
       "checks": [],
       "exports": [
+        "CONTENT_IMPORT_LOCK_KEY",
         "withContentImportLock"
       ]
     },
@@ -20656,7 +20704,7 @@
     },
     {
       "file": "src/lib/i18n/messages/de.ts",
-      "sha256": "c2f54c809c522aff5cc9d728a1c60b8b80a12865792e9c88b27ea54203816d89",
+      "sha256": "683c59a2f7a9879d67c688285894439624afac777812a7a2373dd685cb96a1fe",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -20671,7 +20719,7 @@
     },
     {
       "file": "src/lib/i18n/messages/en.ts",
-      "sha256": "accf8581d16f679a7e18a71fb90f1116f9cd4590524499e4255c52de4b270ff0",
+      "sha256": "431a3287cdc8783180a26b943bcc9967ecb7041606f7dbe4ae11900cb38626ea",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -20686,7 +20734,7 @@
     },
     {
       "file": "src/lib/i18n/messages/es.ts",
-      "sha256": "4697fcea487f4f58dd1dafe706a7e8ad468da7df2a6490d0a7697094985b8339",
+      "sha256": "d0e9f00608b677412e6ff6a3cfb0bca6e72137f793f88a316bd5a063aa90171d",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -20701,7 +20749,7 @@
     },
     {
       "file": "src/lib/i18n/messages/fr.ts",
-      "sha256": "eb0adc3a40339306c1806798112030ce2bdc5e6cb0558a91310c1ca4303935e2",
+      "sha256": "f1d1adad4fb8361b438e4edd3d2546f2e9f59a67e88e3ec16d7025a340eed761",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -20784,7 +20832,7 @@
     },
     {
       "file": "src/lib/i18n/messages/nl.ts",
-      "sha256": "0755317c706f47dc6c896f6dfe5cbc28e45994c039dd083866e285e4b10f9ce2",
+      "sha256": "95e54d2267c074914bfefc92041ef217abe12a77611ec736c3de906907a627a8",
       "boundary": "context-dependent",
       "imports": [
         "./kompas/nl"
@@ -25373,7 +25421,7 @@
     },
     {
       "file": "src/lib/realtime.ts",
-      "sha256": "36395a9af439b4ea91cbd17f30f080e86065be335c2ff27762f4fd3bfbc6f326",
+      "sha256": "59b7e7fddf2bf07ca3d9edcc253aeda7f5062d8407619c278966430d89cb1dcc",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/data/scopes",
@@ -25388,6 +25436,7 @@
         "emitToRoom",
         "emitToUser",
         "emitTopicEvent",
+        "notifyContentAvailabilityChanged",
         "notifyMatchChanged",
         "setMatchChangeListener",
         "setRealtimeServer"
@@ -25903,6 +25952,30 @@
         "passTurn",
         "placeMove",
         "scrabbleHint"
+      ]
+    },
+    {
+      "file": "src/lib/scripturePublication.ts",
+      "sha256": "b9874060914345bd364b0b6e1444f6d6db8f36055a11018a71ef7e0e439b0b7e",
+      "boundary": "context-dependent",
+      "imports": [
+        "../../scripts/otb/publication-evidence.json",
+        "../../scripts/otb/publicationEvidence",
+        "../../scripts/otb/source-lock.json",
+        "../../scripts/otb/trialConfig",
+        "@/generated/prisma/client",
+        "@/lib/contentImportLock",
+        "@/lib/db",
+        "zod"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "isScripturePublicationBusy",
+        "publishScriptureCollections",
+        "scripturePublicationSchema",
+        "scripturePublicationState"
       ]
     },
     {
@@ -30062,6 +30135,7 @@
         "src/components/I18nProvider.tsx",
         "src/components/admin/AdminNotice.tsx",
         "src/components/admin/AdminPageHeader.tsx",
+        "src/components/admin/AdminScripturePublicationClient.tsx",
         "src/components/admin/AdminSection.tsx",
         "src/components/admin/AdminTable.tsx",
         "src/components/versado/FocusLayout.tsx",
@@ -30078,6 +30152,7 @@
         "src/lib/contentAccess.ts",
         "src/lib/contentCollectionIds.ts",
         "src/lib/contentCollections.ts",
+        "src/lib/contentImportLock.ts",
         "src/lib/contentPickerContract.ts",
         "src/lib/contentRouting.ts",
         "src/lib/data/applicationRuntime.ts",
@@ -30159,6 +30234,7 @@
         "src/lib/platform.ts",
         "src/lib/profileViews.ts",
         "src/lib/realtime.ts",
+        "src/lib/scripturePublication.ts",
         "src/lib/session.ts",
         "src/lib/socketClient.ts",
         "src/lib/studyContent/cfmProgramme.ts",
@@ -30188,6 +30264,7 @@
         "src/components/ConfirmProvider.tsx",
         "src/components/FsyLessonView.tsx",
         "src/components/I18nProvider.tsx",
+        "src/components/admin/AdminScripturePublicationClient.tsx",
         "src/components/versado/ToggleSwitch.tsx",
         "src/lib/data/client.ts",
         "src/lib/data/hooks.ts",
@@ -33641,7 +33718,7 @@
     },
     {
       "file": "src/app/api/admin/content-switcher/route.ts",
-      "sha256": "eb2fbeea8b25ddd21cdd0ce4271a9659cce9da0004fc77ebd2604c566831c480",
+      "sha256": "3028747391b79451879a8ef996c596b7afa6a99124db0488982bff224503882f",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
@@ -33751,6 +33828,60 @@
         "src/lib/dorp/access.ts",
         "src/lib/hymnAvailability.ts",
         "src/lib/realtime.ts",
+        "src/lib/session.ts"
+      ],
+      "clientBoundaries": [],
+      "requestEvidence": [],
+      "authEvidence": [
+        "getCurrentUser"
+      ]
+    },
+    {
+      "file": "src/app/api/admin/content-switcher/publication/route.ts",
+      "sha256": "e1cbdc6a1e21746335b7694109e65d97509387238bbab5b8e1eb27b00816d345",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/lib/content-inventory/origin",
+        "@/lib/realtime",
+        "@/lib/requestBody",
+        "@/lib/scripturePublication",
+        "@/lib/session",
+        "next/server"
+      ],
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "requests": [],
+      "checks": [
+        "getCurrentUser"
+      ],
+      "exports": [
+        "GET",
+        "POST"
+      ],
+      "route": "/api/admin/content-switcher/publication",
+      "kind": "api",
+      "domain": "beheer",
+      "dependencies": [
+        "src/app/api/admin/content-switcher/publication/route.ts",
+        "src/lib/auth.ts",
+        "src/lib/content-inventory/origin.ts",
+        "src/lib/contentImportLock.ts",
+        "src/lib/data/scopes.ts",
+        "src/lib/db.ts",
+        "src/lib/games/requestIdentity.server.ts",
+        "src/lib/native/origin.ts",
+        "src/lib/realtime.ts",
+        "src/lib/requestBody.ts",
+        "src/lib/scripturePublication.ts",
+        "src/lib/session.ts"
+      ],
+      "directModules": [
+        "src/lib/content-inventory/origin.ts",
+        "src/lib/realtime.ts",
+        "src/lib/requestBody.ts",
+        "src/lib/scripturePublication.ts",
         "src/lib/session.ts"
       ],
       "clientBoundaries": [],
@@ -78301,10 +78432,11 @@
     },
     {
       "file": "src/components/AdminContentSwitcherClient.tsx",
-      "sha256": "47395466d39cfe803eaa9e2d7a920bd41516f1473201c35f90a5a790b8b8ff66",
+      "sha256": "4ee6d810ce4c0558c72c62bc579291475b73b59bbe82d70684eab731f3b35480",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
+        "@/components/admin/AdminScripturePublicationClient",
         "@/components/admin/AdminSection",
         "@/components/versado/ToggleSwitch",
         "@/lib/data/fetchJson",
@@ -81015,6 +81147,27 @@
       "checks": [],
       "exports": [
         "AdminPageHeader"
+      ]
+    },
+    {
+      "file": "src/components/admin/AdminScripturePublicationClient.tsx",
+      "sha256": "33ccb071b0552de87b5412d496b25ee45a7e4a15946f3875cf33917fae12e54d",
+      "boundary": "client",
+      "imports": [
+        "@/components/ConfirmProvider",
+        "@/components/I18nProvider",
+        "@/lib/data/fetchJson",
+        "@/lib/data/hooks",
+        "@/lib/data/mutation",
+        "@/lib/languages",
+        "@/lib/scripturePublication",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "AdminScripturePublicationClient"
       ]
     },
     {
@@ -86296,6 +86449,9 @@
     "tests/reference-resolver.integration.test.mjs",
     "tests/reference-resolver.test.ts",
     "tests/registration.integration.test.ts",
+    "tests/scripture-publication.browser.mjs",
+    "tests/scripture-publication.integration.test.mjs",
+    "tests/scripture-publication.test.mjs",
     "tests/security-hardening.integration.test.ts",
     "tests/security-policy.test.ts",
     "tests/shell-layout.test.ts",

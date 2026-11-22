@@ -3,6 +3,42 @@ import { kompasFr } from "./kompas/fr";
 
 // Ontbrekende teksten vallen terug volgens fallbackChain (src/lib/languages.ts).
 export const fr: PartialMessages = {
+  scripturePublication: {
+  "title": "Publier les éditions des Écritures",
+  "intro": "Vérifiez le texte et la source avant publication. Seules les éditions OTB entièrement vérifiées peuvent être publiées. La sélection est publiée entièrement ou pas du tout.",
+  "visibility": "La publication conserve les réglages d’activation et de visibilité. Une édition activée et visible devient immédiatement disponible. Utilisez le réglage de visibilité existant ci-dessus pour la masquer ; textes et progression sont conservés.",
+  "confirm": "Publier uniquement ces éditions vérifiées : {names}. Les éditions activées et visibles deviennent immédiatement disponibles. Les éditions masquées ou désactivées le restent. Si la vérification a changé, aucune publication n’a lieu.",
+  "publish": "Publier",
+  "check": "Vérifier à nouveau",
+  "empty": "Aucune édition de la Bible trouvée.",
+  "selectGroup": "Sélectionner les brouillons vérifiés",
+  "status": "État de publication",
+  "draft": "Brouillon",
+  "published": "Publié",
+  "source": "Source activée",
+  "on": "Oui",
+  "off": "Non",
+  "visible": "Visible pour les utilisateurs",
+  "yes": "Oui",
+  "no": "Non",
+  "counts": "Livres : {books} · chapitres : {chapters} · versets : {verses}",
+  "verified": "Texte, structure et source vérifiés",
+  "blocked": "Publication bloquée",
+  "publishSelected": "Publier la sélection ({count})",
+  "success": "Les éditions sélectionnées ont été publiées. Activation et visibilité sont conservées.",
+  "failed": "Non confirmé. Vérifiez l’état actualisé avant de réessayer. La demande a peut-être déjà été traitée ; aucun nouvel envoi automatique.",
+  "reasons": {
+    "unsupported": "Cette édition ne relève pas de la procédure OTB vérifiée.",
+    "identity": "L’œuvre, la langue ou l’identité de l’édition ne correspond pas à la source.",
+    "provenance": "La provenance ou la licence ne correspond pas à la source fixée.",
+    "evidence": "La preuve de vérification ne correspond pas à la version source fixée. Une analyse est nécessaire.",
+    "incomplete": "Les livres, chapitres ou versets attendus sont absents ou leur nombre diffère.",
+    "text": "Le texte ou la structure diffère de la source vérifiée. Une analyse est nécessaire."
+  },
+  "old-testament": "Ancien Testament",
+  "new-testament": "Nouveau Testament",
+  "other": "Autres éditions des Écritures"
+},
   nativeLearningFlow: {
     "questions": "Questions",
     "result": "Résultat",

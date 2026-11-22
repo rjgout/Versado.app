@@ -5,6 +5,42 @@
 import { kompasNl } from "./kompas/nl";
 
 export const nl = {
+  scripturePublication: {
+  "title": "Schriftuitgaven publiceren",
+  "intro": "Controleer de tekst en bron vóór publicatie. Alleen volledig geverifieerde OTB-uitgaven kunnen worden gepubliceerd. Een selectie wordt geheel gepubliceerd of helemaal niet.",
+  "visibility": "Publiceren verandert inschakeling en zichtbaarheid niet. Een ingeschakelde, zichtbare uitgave wordt daarna direct beschikbaar. Gebruik de bestaande zichtbaarheidsschakelaar hierboven om een uitgave weer te verbergen; teksten en voortgang blijven behouden.",
+  "confirm": "Publiceer uitsluitend deze gecontroleerde uitgaven: {names}. Zichtbare, ingeschakelde uitgaven worden meteen beschikbaar. Verborgen of uitgeschakelde uitgaven blijven dat. Bij een gewijzigde controle wordt niets gepubliceerd.",
+  "publish": "Publiceren",
+  "check": "Opnieuw controleren",
+  "empty": "Geen Bijbeluitgaven gevonden.",
+  "selectGroup": "Geverifieerde concepten selecteren",
+  "status": "Publicatiestatus",
+  "draft": "Concept",
+  "published": "Gepubliceerd",
+  "source": "Bron ingeschakeld",
+  "on": "Ja",
+  "off": "Nee",
+  "visible": "Zichtbaar voor gebruikers",
+  "yes": "Ja",
+  "no": "Nee",
+  "counts": "Boeken: {books} · hoofdstukken: {chapters} · verzen: {verses}",
+  "verified": "Tekst, structuur en bron geverifieerd",
+  "blocked": "Publicatie geblokkeerd",
+  "publishSelected": "Selectie publiceren ({count})",
+  "success": "De geselecteerde uitgaven zijn gepubliceerd. Inschakeling en zichtbaarheid zijn behouden.",
+  "failed": "Niet bevestigd. Controleer de vernieuwde status voordat je opnieuw publiceert. De aanvraag kan al verwerkt zijn; er wordt niets automatisch opnieuw ingestuurd.",
+  "reasons": {
+    "unsupported": "Deze uitgave valt niet onder de gecontroleerde OTB-publicatieprocedure.",
+    "identity": "Werk, taal of uitgave-identiteit komt niet overeen met de bron.",
+    "provenance": "Bronvermelding of licentie komt niet overeen met de vastgelegde bron.",
+    "evidence": "Het controlebewijs past niet bij de vastgepinde bronversie. Laat dit onderzoeken.",
+    "incomplete": "Het verwachte aantal boeken, hoofdstukken of verzen ontbreekt of wijkt af.",
+    "text": "Tekst of structuur wijkt af van de geverifieerde bron. Laat dit onderzoeken."
+  },
+  "old-testament": "Oude Testament",
+  "new-testament": "Nieuwe Testament",
+  "other": "Andere Schriftuitgaven"
+},
   nativeLearningFlow: {
     "questions": "Vragen",
     "result": "Resultaat",

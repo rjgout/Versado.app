@@ -3,7 +3,7 @@ import { Client } from "pg";
 // Eén contentimport tegelijk, ook tussen processen (de adminknop in de app en `npm run db:seed` in een terminal). Een sessie-advisory-lock
 // op een eigen databaseverbinding: hij vervalt vanzelf als het proces of de verbinding wegvalt, dus een gecrashte import laat nooit een
 // "bezet"-vlag achter, en hij houdt geen transactie of tabelvergrendeling open.
-const CONTENT_IMPORT_LOCK_KEY = 726_540_101;
+export const CONTENT_IMPORT_LOCK_KEY = 726_540_101;
 
 export class ContentImportBusyError extends Error {
   constructor() {

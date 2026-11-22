@@ -66,3 +66,8 @@ export function emitTopicEvent(topic: LiveTopic): void {
   // Een openstaande timer mag het afsluiten van het proces niet tegenhouden.
   timer.unref?.();
 }
+
+/** Alleen een invalidatie, geen inhoud: bestaande web- en nativeclients halen hun eigen catalogus opnieuw op. */
+export function notifyContentAvailabilityChanged(): void {
+  realtimeGlobal.__versadoRealtimeServer?.emit(DATA_EVENT_SOCKET_NAME, { event: "contentChanged" });
+}

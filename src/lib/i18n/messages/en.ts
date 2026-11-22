@@ -3,6 +3,42 @@ import { kompasEn } from "./kompas/en";
 
 // Ontbrekende teksten vallen terug volgens fallbackChain (src/lib/languages.ts).
 export const en: PartialMessages = {
+  scripturePublication: {
+  "title": "Publish scripture editions",
+  "intro": "Check the text and source before publishing. Only fully verified OTB editions can be published. A selection is published in full or not at all.",
+  "visibility": "Publishing preserves enabled and visibility settings. An enabled, visible edition then becomes available immediately. Use the existing visibility switch above to hide it again; text and progress are retained.",
+  "confirm": "Publish only these verified editions: {names}. Enabled, visible editions become available immediately. Hidden or disabled editions remain so. If verification has changed, nothing is published.",
+  "publish": "Publish",
+  "check": "Check again",
+  "empty": "No Bible editions found.",
+  "selectGroup": "Select verified drafts",
+  "status": "Publication status",
+  "draft": "Draft",
+  "published": "Published",
+  "source": "Source enabled",
+  "on": "Yes",
+  "off": "No",
+  "visible": "Visible to users",
+  "yes": "Yes",
+  "no": "No",
+  "counts": "Books: {books} · chapters: {chapters} · verses: {verses}",
+  "verified": "Text, structure and source verified",
+  "blocked": "Publication blocked",
+  "publishSelected": "Publish selection ({count})",
+  "success": "The selected editions have been published. Enabled and visibility settings are preserved.",
+  "failed": "Not confirmed. Check the refreshed status before publishing again. The request may already have been processed; nothing is retried automatically.",
+  "reasons": {
+    "unsupported": "This edition is outside the verified OTB publication procedure.",
+    "identity": "Work, language or edition identity does not match the source.",
+    "provenance": "Source attribution or licence does not match the pinned source.",
+    "evidence": "Verification evidence does not match the pinned source version. Investigation is required.",
+    "incomplete": "The expected books, chapters or verses are missing or counts differ.",
+    "text": "Text or structure differs from the verified source. Investigation is required."
+  },
+  "old-testament": "Old Testament",
+  "new-testament": "New Testament",
+  "other": "Other scripture editions"
+},
   nativeLearningFlow: {
     "questions": "Questions",
     "result": "Result",
