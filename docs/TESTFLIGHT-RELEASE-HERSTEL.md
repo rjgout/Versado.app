@@ -1,8 +1,24 @@
 # TestFlight-releaseherstel na ce2830aa
 
 Gerichte reparatie vanaf develop `ce2830aa6018dfc83da4c7993d6069d4779804b5`.
-Geen signing, upload, NAS-uitrol of merge uitgevoerd. Buildnummer 23 is niet toegekend.
+Geen signing, upload, NAS-uitrol of merge naar develop uitgevoerd. Buildnummer 23 is niet toegekend.
 CFM blijft gepauzeerd; publicatie-, audio- en CFM-hashvoorwaarden blijven ongewijzigd.
+
+## Bijwerking na beveiligingsmerge #298
+
+De bestaande featurebranch is met een gewone merge bijgewerkt naar develop
+`a1e3ef846df94407747fa250b85b5da081698aa7`. Mergecommit `399223f3` bevat zowel
+de oorspronkelijke PR-head `2983533b` als deze beveiligingsmerge als ouder.
+Er waren geen conflicten; package.json en de gegenereerde inventaris zijn automatisch
+samengevoegd. Geen rebase, cherry-pick of force-push.
+
+De lockfile en Effect-regressietest uit #298 zijn ongewijzigd behouden: Prisma
+7.10.0, uitsluitend Effect 3.22.1 onder de bestaande Prisma-config. De cursusketen
+heeft aanvullend een echte native login/logout/herlogin-proef, met ophalen en
+opnieuw wijzigen van de opgeslagen volgorde, intrekking van de oude sessie en
+ongewijzigde abonnementen, leesvoortgang, cursusdefinities, lessen, hoofdstukken en verzen.
+De definitieve head, nieuwe testresultaten en actuele CI staan in PR #297.
+Oude resultaten worden niet als verificatie van deze gecombineerde code gebruikt.
 
 ## Bewezen contractfout en herstel
 
