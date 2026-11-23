@@ -33,6 +33,17 @@ private final class FakeAccessProtocol: URLProtocol {
     }
     static func main() throws {
         verifyNativeGamesPolicy()
+        for kind in ["bookmark", "highlight", "note"] {
+            require(NativeAccessPolicy.routeAllowed("study-folder/\(kind)/own_1/annotations", "GET"), "folder read")
+            require(NativeAccessPolicy.routeAllowed("study-folder/\(kind)/own_1/passage", "GET"), "folder passage")
+            require(!NativeAccessPolicy.routeAllowed("study-folder/\(kind)/own_1/annotations", "DELETE"), "folder method")
+        }
+        require(NativeAccessPolicy.routeAllowed("study-folder/query", "POST"), "folder search")
+        require(NativeAccessPolicy.routeAllowed("study-folder/annotations", "POST"), "folder mutation")
+        for path in ["study-folder/query?q=private", "study-folder/note/x/passage\n", "study-folder/note/x%2Fy/passage", "study-folder/admin/x/passage"] {
+            require(!NativeAccessPolicy.routeAllowed(path, "GET"), "folder unsafe read")
+            require(!NativeAccessPolicy.routeAllowed(path, "POST"), "folder unsafe write")
+        }
         let directMetadata: [String: Any] = ["appId":"app.versado.app", "profile":"local-store-test", "channel":"testflight", "apiOrigin":NativeAccessPolicy.testOrigin, "distribution":true, "compileProbe":false, "releaseApproved":false]
         require(NativeAccessPolicy.directAllowed(directMetadata), "direct TestFlight profile")
         for (key, value) in [("apiOrigin", "https://versado.app" as Any), ("profile", "local-internal" as Any), ("channel", "play-test" as Any), ("compileProbe", true as Any), ("releaseApproved", true as Any), ("distribution", false as Any)] {

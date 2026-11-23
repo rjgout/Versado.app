@@ -230,7 +230,7 @@ export async function legacyVerseAnnotation(actor: Actor, kind: AnnotationKind, 
   return result.annotation;
 }
 /** Alleen eigen opgeslagen gegevens: geen joins met beschermde broninhoud. */
-export async function getAnnotation(actor: Actor, kind: AnnotationKind, id: string, client: PrismaClient = prisma) {
+export async function getAnnotation(actor: Actor, kind: AnnotationKind, id: string, client: PrismaClient | Prisma.TransactionClient = prisma) {
   const where = { id, userId: actor.id };
   const row = kind === "bookmark" ? await client.bookmark.findFirst({ where }) : kind === "highlight" ? await client.highlight.findFirst({ where }) : await client.note.findFirst({ where });
   if (!row) throw new AnnotationError("UNAVAILABLE");

@@ -1,3 +1,6 @@
+import {clientTargetKey} from "@/lib/annotations/clientContract";
+import {folderRefPath,folderRef,studyFolderQuery,folderQueryResult,folderAnnotations,folderMutation,folderMutationResult,folderPassage,type FolderRef} from "@/lib/native/studyFolderContract";
+import type {StudyFolderQuery} from "@/lib/annotations/studyFolderQuery";
 import {gameAudioPath,nativeGamePlaybackSchema,nativeGameAudioScope,type NativeGameAudioSelection} from "@/lib/native/gamesAudioContract";
 import {packagedGameManifest} from "@/lib/native/gamesAssets";
 import {nativeGameFetch,type GameActor} from "@/lib/native/gamesClient";
@@ -81,6 +84,46 @@ export class NativeDataRuntime {
       confirmed:()=>this.store.invalidate("activityCompleted"),
     });
     return this.activeLearning;
+  }
+  /** Accountbrede privéreads volgen de runtime-epoch, niet de actieve Schriftbron. */
+  private async folderRequest<T extends {userId:string}>(userId:string,read:()=>Promise<T>):Promise<T>{
+    const epoch=this.epoch,stamp=this.client.getSessionStamp();
+    let value:T;
+    try{value=await read();}catch(error){
+      if(epoch===this.epoch&&error instanceof NativeClientError&&error.status===401)this.reset();
+      throw error;
+    }
+    if(epoch!==this.epoch||stamp!==this.client.getSessionStamp()||value.userId!==userId)throw new NativeClientError("session_changed",409);
+    return value;
+  }
+  async studyFolder<T>(userId:string,input:StudyFolderQuery):Promise<T>{
+    const result=await this.folderRequest(userId,async()=>folderQueryResult.parse(await this.client.api("study-folder/query",studyFolderQuery.parse(input))));
+    // Server- en verzoekschema bepalen de variant; de UI gebruikt dezelfde web-DTO’s.
+    if(("view" in input)!==("sources" in result.data)||("item" in input)!==("item" in result.data))throw new NativeClientError("invalid_response");
+    return result.data as T;
+  }
+  async folderAnnotations(userId:string,ref:FolderRef){
+    const result=await this.folderRequest(userId,async()=>folderAnnotations.parse(await this.client.api(`study-folder/${folderRefPath(ref)}/annotations`)));
+    if(JSON.stringify(result.ref)!==JSON.stringify(folderRef.parse({kind:ref.kind,id:ref.id})))throw new NativeClientError("invalid_response");
+    return result;
+  }
+  async folderPassage(userId:string,ref:FolderRef){
+    const result=await this.folderRequest(userId,async()=>folderPassage.parse(await this.client.api(`study-folder/${folderRefPath(ref)}/passage`)));
+    if(result.ref.kind!==ref.kind||result.ref.id!==ref.id||result.item.kind!==ref.kind||result.item.id!==ref.id)throw new NativeClientError("invalid_response");
+    return result;
+  }
+  async mutateFolderAnnotation(userId:string,ref:FolderRef,action:AnnotationAction,method:"PUT"|"DELETE"){
+    const {target,...fields}=action;
+    const input=folderMutation.parse({ref:folderRef.parse({kind:ref.kind,id:ref.id}),targetKey:await clientTargetKey(target),operation:method==="DELETE"?"delete":"put",action:fields});
+    if(!this.environment.isOnline())throw new NativeClientError("network_unavailable");
+    const result=await this.folderRequest(userId,async()=>{
+      const account=await this.account();
+      if(account.id!==userId)throw new NativeClientError("session_changed",409);
+      return folderMutationResult.parse(await this.client.actionOnce("study-folder/annotations",input));
+    });
+    if(result.ref.kind!==ref.kind||result.ref.id!==ref.id||result.actionId!==action.actionId||result.annotation.kind!==action.kind||result.annotation.targetKey!==input.targetKey||await clientTargetKey(result.annotation.target)!==input.targetKey)throw new NativeClientError("invalid_response");
+    this.store.invalidate("annotationsChanged");
+    return result.annotation;
   }
   async account() {
     const epoch=this.epoch,stamp=this.client.getSessionStamp(),value=nativeAccountSchema.parse(await this.client.api("me"));

@@ -1,16 +1,14 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { AppLink as Link } from "@/components/navigation/AppNavigation";
+import type { ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Bookmark, Highlighter, LoaderCircle, Pencil, Search, StickyNote, X, type LucideIcon } from "lucide-react";
 import { useT, useUiLanguage } from "@/components/I18nProvider";
 import PageIntro from "@/components/versado/PageIntro";
-import AnnotationActions from "@/components/annotations/AnnotationActions";
 import MarkSwatch from "@/components/annotations/MarkSwatch";
 import { primaryButton, secondaryButton, surfaceCard, focusRing } from "@/components/versado/styles";
 import { useLiveQuery } from "@/lib/data/hooks";
-import { fetchJson, ApiRequestError } from "@/lib/data/fetchJson";
 import { getLanguage } from "@/lib/languages";
 import type { AnnotationKind } from "@/lib/annotations/contract";
 import { ANNOTATION_COLORS, type AnnotationColor, type AnnotationView } from "@/lib/annotations/clientContract";
@@ -24,8 +22,17 @@ const COLOR_KEY = {
 const DEBOUNCE_MS = 350;
 
 type Filters = { q: string; type: AnnotationKind | ""; source: string; color: AnnotationColor | "" };
-// Tijdelijk geheugen (alleen deze tab): na terug uit een leespassage staan de al geladen pagina's er direct weer.
-const loadedPages = new Map<string, { first: string | null; pages: StudyFolderPage[] }>();
+type RememberedPages = Record<string, number>;
+export interface StudyFolderPresentation {
+  pathname: string; search: URLSearchParams;
+  discardOnRevalidate?:boolean;
+  replace(href:string,options:{scroll:false}):void;
+  request<T>(query:string):Promise<T>;
+  itemHref?(item:StudyFolderItem):string;
+  onOpenItem?(item:StudyFolderItem):void;
+  onReady?():void;
+  renderEditor(item:StudyFolderItem,element:HTMLElement,onClose:()=>void,onChanged:(row:AnnotationView)=>void):ReactNode;
+}
 
 function apiQuery(filters: Filters, extra: Record<string, string> = {}) {
   const params = new URLSearchParams();
@@ -39,12 +46,9 @@ function apiQuery(filters: Filters, extra: Record<string, string> = {}) {
   return params.toString();
 }
 
-export default function StudyFolderClient() {
+export default function StudyFolderClient({pathname,search,replace,request,itemHref,onOpenItem,onReady,renderEditor,discardOnRevalidate=false}:StudyFolderPresentation) {
   const t = useT();
   const language = useUiLanguage();
-  const router = useRouter();
-  const pathname = usePathname();
-  const search = useSearchParams();
   const urlQ = search.get("q") ?? "";
   const rawType = search.get("type");
   const rawColor = search.get("color");
@@ -64,7 +68,7 @@ export default function StudyFolderClient() {
     const params = new URLSearchParams(apiQuery(merged));
     if (keepItem && itemParam) params.set("item", itemParam);
     const qs = params.toString();
-    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
   }
   // Zoeken wacht rustig tot de gebruiker even stopt met typen; één request per zoekterm.
   useEffect(() => {
@@ -73,69 +77,75 @@ export default function StudyFolderClient() {
     return () => clearTimeout(timer);
     // navigate leest alleen huidige URL-waarden; opnieuw plannen bij elke wijziging is gewenst.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [text, urlQ]);
+  }, [text, urlQ, type, source, color, itemParam]);
   useEffect(() => {
     if (urlQ !== pushed.current) { pushed.current = urlQ; setText(urlQ); }
   }, [urlQ]);
 
-  const first = useLiveQuery<StudyFolderPage>(["studyFolder", "list", filterKey], () => fetchJson(`/api/study-folder?${filterKey}`), { scopes: ["annotations"] });
-  const sources = useLiveQuery<StudyFolderSources>(["studyFolder", "sources"], () => fetchJson("/api/study-folder?view=sources"), { scopes: ["annotations"] });
-  const focus = useLiveQuery<{ item: StudyFolderItem }>(["studyFolder", "item", itemParam], () => fetchJson(`/api/study-folder?item=${encodeURIComponent(itemParam)}`), { scopes: ["annotations"], enabled: Boolean(itemParam) });
-
-  // Extra pagina's horen bij precies deze eerste pagina: verandert die (mutatie, verwijderen), dan vervalt het extra geheugen.
-  const [extra, setExtra] = useState<{ key: string; first: string | null; pages: StudyFolderPage[] } | null>(null);
-  const [more, setMore] = useState<"idle" | "loading" | "error">("idle");
-  const firstCursor = first.data?.nextCursor ?? null;
-  const firstSignature = first.data ? JSON.stringify(first.data.items.map((i) => [i.kind, i.id, i.mutationVersion])) : null;
-  const signature = `${filterKey}|${firstSignature}`;
-  const [seen, setSeen] = useState<string | null>(null);
-  // Een aanvullende pagina geldt alleen voor de lijst waarvoor hij is opgevraagd: een bevestigde mutatie of een andere
-  // zoekopdracht maakt een nog onderweg zijnde response ongeldig (generatie + laatste handtekening, nooit een oude closure).
-  const generation = useRef(0);
-  const latestSignature = useRef(signature);
-  useEffect(() => { latestSignature.current = signature; });
-  if (first.data && seen !== signature) {
-    setSeen(signature);
-    const remembered = loadedPages.get(filterKey);
-    setExtra(remembered && remembered.first === signature ? { key: filterKey, first: signature, pages: remembered.pages } : null);
-    setMore("idle");
-  }
-  const pages = extra && extra.key === filterKey && extra.first === signature ? extra.pages : [];
-  const items = [...(first.data?.items ?? []), ...pages.flatMap((page) => page.items)];
-  const nextCursor = pages.length ? pages.at(-1)!.nextCursor : firstCursor;
-
-  async function loadMore() {
-    if (!nextCursor || more === "loading") return;
-    const requested = signature, requestedGeneration = generation.current;
-    const stale = () => generation.current !== requestedGeneration || latestSignature.current !== requested;
+  // De bestaande accountgebonden store beheert alle geladen rijen. Bij vernieuwen
+  // passeert iedere geladen pagina opnieuw de actuele bronregels, niet alleen pagina één.
+  const loadedPages=useLiveQuery<RememberedPages>(["studyFolder","loadedPages"],async()=>({}),{scopes:["annotations"],enabled:false,initialData:{}});
+  const pageCount=loadedPages.data?.[filterKey]??1;
+  const pageOverride=useRef<{key:string;count:number}|null>(null);
+  const first=useLiveQuery<StudyFolderPage>(["studyFolder","list",filterKey],async()=>{
+    const wanted=()=>pageOverride.current?.key===filterKey?pageOverride.current.count:pageCount;
+    const pages:StudyFolderPage[]=[];
+    let cursor:string|null=null;
+    for(let n=0;n<wanted();n++){
+      const page:StudyFolderPage=await request<StudyFolderPage>(apiQuery(filters,cursor?{cursor}:{}));
+      pages.push(page);cursor=page.nextCursor;
+      if(!page.nextCursor)break;
+    }
+    // Een mutatie kan paginering herstellen terwijl deze read onderweg is. Een ouder
+    // paginavenster mag dat herstel niet terugdraaien, ook niet bij een vertraagd antwoord.
+    const current=pages.slice(0,wanted());
+    return {items:current.flatMap(page=>page.items),nextCursor:current.at(-1)?.nextCursor??null};
+  },{scopes:["annotations","content"],discardOnRevalidate});
+  useEffect(()=>{if(first.data)onReady?.();},[first.data,onReady]);
+  const sources=useLiveQuery<StudyFolderSources>(["studyFolder","sources"],()=>request("view=sources"),{scopes:["annotations","content"],discardOnRevalidate});
+  const focus=useLiveQuery<{item:StudyFolderItem}>(["studyFolder","item",itemParam],()=>request(`item=${encodeURIComponent(itemParam)}`),{scopes:["annotations","content"],discardOnRevalidate,enabled:Boolean(itemParam)});
+  const [moreState,setMoreState]=useState<{key:string;status:"idle"|"loading"|"error"}>({key:filterKey,status:"idle"});
+  const more=moreState.key===filterKey?moreState.status:"idle";
+  function setMore(status:"idle"|"loading"|"error"){setMoreState({key:filterKey,status});}
+  const items=first.data?.items??[],nextCursor=first.data?.nextCursor??null;
+  const moreLock=useRef(false);
+  const generation=useRef(0),latest=useRef({key:filterKey,data:first.data});
+  useLayoutEffect(()=>{latest.current={key:filterKey,data:first.data};},[filterKey,first.data]);
+  useLayoutEffect(()=>()=>{generation.current++;},[]);
+  async function loadMore(){
+    if(!nextCursor||moreLock.current)return;
+    moreLock.current=true;
+    const requested=first.data,version=generation.current;
+    const stale=()=>version!==generation.current||latest.current.key!==filterKey||latest.current.data!==requested;
     setMore("loading");
-    try {
-      const page = await fetchJson<StudyFolderPage>(`/api/study-folder?${apiQuery(filters, { cursor: nextCursor })}`);
-      // Een late response van een eerdere zoekopdracht of een inmiddels gewijzigde lijst wordt genegeerd.
-      if (stale()) return;
-      setExtra((old) => {
-        const current = old && old.key === filterKey && old.first === signature ? old.pages : [];
-        const next = [...current, page];
-        loadedPages.set(filterKey, { first: signature, pages: next });
-        return { key: filterKey, first: signature, pages: next };
-      });
+    try{
+      const page:StudyFolderPage=await request<StudyFolderPage>(apiQuery(filters,{cursor:nextCursor}));
+      if(stale())return;
+      pageOverride.current={key:filterKey,count:pageCount+1};
+      loadedPages.setData(old=>({...old,[filterKey]:pageCount+1}));
+      first.setData({items:[...items,...page.items],nextCursor:page.nextCursor});
       setMore("idle");
-    } catch { if (!stale()) setMore("error"); }
+    }catch{if(!stale())setMore("error");}
+    finally{moreLock.current=false;if(stale()&&version===generation.current&&latest.current.key===filterKey)setMore("idle");}
   }
 
   const returnTo = `${pathname}${search.toString() ? `?${search.toString()}` : ""}`;
   const dateFormat = (iso: string) => new Date(iso).toLocaleDateString(getLanguage(language).intlLocale, { dateStyle: "medium" });
   const filtered = Boolean(urlQ || type || source || color);
-  const focusGone = Boolean(itemParam) && focus.error instanceof ApiRequestError && focus.error.status === 404;
+  const focusGone = Boolean(itemParam) && typeof focus.error === "object" && focus.error !== null && "status" in focus.error && focus.error.status === 404;
   const sourceList = sources.data?.sources ?? [];
 
-  // De bevestigde mutatie komt uit de 4A-writer (annotationsChanged ververst de eerste pagina al centraal). Latere pagina's kunnen
-  // een gewijzigd of verwijderd item nog bevatten: die en de tijdelijke paginacache vervallen, de huidige filters blijven staan.
+  function closeEditor(){
+    const item=editing?.item;setEditing(null);
+    if(item)restoreFolderFocus(item);
+  }
+  // Een bevestigde mutatie behoudt filters en herstelt pagina één, zoals de webmap
+  // vóór deze extractie. Oudere, nog lopende paginavensters kunnen dat niet terugdraaien.
   function onChanged(row: AnnotationView) {
     void row;
     generation.current += 1;
-    loadedPages.clear();
-    setExtra(null);
+    pageOverride.current={key:filterKey,count:1};
+    loadedPages.setData({});
     setMore("idle");
     void first.refetch();
   }
@@ -205,7 +215,7 @@ export default function StudyFolderClient() {
       {itemParam && (
         <section aria-labelledby="folder-focus-title" data-folder-focus className="flex flex-col gap-2">
           <h2 id="folder-focus-title" className="text-sm font-extrabold text-vs-fg-2">{t("studyFolder.focusTitle")}</h2>
-          {!focusGone && focus.data?.item && <FolderCard item={focus.data.item} t={t} date={dateFormat} returnTo={returnTo} emphasized onEdit={(element) => setEditing({ item: focus.data!.item, element })} />}
+          {!focusGone && focus.data?.item && <FolderCard item={focus.data.item} t={t} date={dateFormat} returnTo={returnTo} itemHref={itemHref} onOpenItem={onOpenItem} emphasized onEdit={(element) => setEditing({ item: focus.data!.item, element })} />}
           {focusGone && <p role="status" className="rounded-2xl border border-vs-line bg-vs-elevated p-3 text-sm text-vs-fg">{t("studyFolder.itemGone")}</p>}
           {Boolean(focus.error) && !focusGone && <p role="alert" className="rounded-2xl border border-vs-line bg-vs-elevated p-3 text-sm text-vs-fg">{t("studyFolder.loadFailed")}</p>}
         </section>
@@ -228,7 +238,7 @@ export default function StudyFolderClient() {
         {items.length > 0 && <ul className="flex flex-col gap-3">
           {items.map((item) => (
             <li key={`${item.kind}:${item.id}`} data-folder-item={`${item.kind}:${item.id}`}>
-              <FolderCard item={item} t={t} date={dateFormat} returnTo={returnTo} onEdit={(element) => setEditing({ item, element })} />
+              <FolderCard item={item} t={t} date={dateFormat} returnTo={returnTo} itemHref={itemHref} onOpenItem={onOpenItem} onEdit={(element) => setEditing({ item, element })} />
             </li>
           ))}
         </ul>}
@@ -242,23 +252,25 @@ export default function StudyFolderClient() {
         )}
       </section>
 
-      {editing && <AnnotationActions key={`${editing.item.kind}:${editing.item.id}`} target={editing.item.target} returnFocus={editing.element} onClose={() => setEditing(null)} onChanged={onChanged} />}
+      {editing && <EditorSlot renderEditor={renderEditor} item={editing.item} element={editing.element} onClose={closeEditor} onChanged={onChanged}/>}
     </div>
   );
 }
 
-function FolderCard({ item, t, date, returnTo, emphasized = false, onEdit }: {
+function FolderCard({ item, t, date, returnTo, itemHref, onOpenItem, emphasized = false, onEdit }: {
   item: StudyFolderItem;
   t: ReturnType<typeof useT>;
   date: (iso: string) => string;
   returnTo: string;
+  itemHref?: (item:StudyFolderItem)=>string;
+  onOpenItem?: (item:StudyFolderItem)=>void;
   emphasized?: boolean;
   onEdit: (element: HTMLElement) => void;
 }) {
   const Icon = KIND_ICON[item.kind];
   const source = item.source;
   const available = source.status !== "unavailable";
-  const href = source.status === "unavailable" ? null : `${source.href}${source.href.includes("?") ? "&" : "?"}returnTo=${encodeURIComponent(returnTo)}`;
+  const href = source.status === "unavailable" ? null : itemHref ? itemHref(item) : `${source.href}${source.href.includes("?") ? "&" : "?"}returnTo=${encodeURIComponent(returnTo)}`;
   const title = available ? source.label : t("studyFolder.sourceUnavailable");
   const kindName = t(`studyFolder.kind.${item.kind}`);
   return (
@@ -297,11 +309,24 @@ function FolderCard({ item, t, date, returnTo, emphasized = false, onEdit }: {
       )}
       {source.status === "unavailable" && <p className="text-sm text-vs-fg-2">{t("studyFolder.sourceUnavailableHelp")}</p>}
       <footer className="mt-1 flex flex-wrap items-center gap-2">
-        {href && <Link href={href} data-folder-open className={primaryButton}>{t(item.recovery === "review" ? "studyFolder.recoveryCompare" : source.status === "revision-changed" ? "studyFolder.openLesson" : "studyFolder.open")}</Link>}
+        {href && <Link href={href} onClick={()=>onOpenItem?.(item)} data-folder-open className={primaryButton}>{t(item.recovery === "review" ? "studyFolder.recoveryCompare" : source.status === "revision-changed" ? "studyFolder.openLesson" : "studyFolder.open")}</Link>}
         <button type="button" data-folder-edit className={secondaryButton} aria-haspopup="dialog" aria-label={t("studyFolder.editAria", { label: title })} onClick={(event) => onEdit(event.currentTarget)}>
           <Pencil className="h-4 w-4" aria-hidden />{t("studyFolder.edit")}
         </button>
       </footer>
     </article>
   );
+}
+
+function EditorSlot({renderEditor,item,element,onClose,onChanged}:{renderEditor:StudyFolderPresentation["renderEditor"];item:StudyFolderItem;element:HTMLElement;onClose():void;onChanged(row:AnnotationView):void}){
+  return renderEditor(item,element,onClose,onChanged);
+}
+
+/** Een bevestigde verversing kan de oorspronkelijke DOM-rij vervangen; behoud dan logische focus. */
+export function restoreFolderFocus(item:Pick<StudyFolderItem,"kind"|"id">,passage=false){
+  requestAnimationFrame(()=>{
+    const row=Array.from(document.querySelectorAll<HTMLElement>("[data-folder-item]")).find(element=>element.dataset.folderItem===`${item.kind}:${item.id}`);
+    const target=passage?document.querySelector<HTMLElement>("[data-native-folder-passage] [data-folder-edit]"):row?.querySelector<HTMLElement>("[data-folder-edit]")??document.querySelector<HTMLElement>("[data-study-folder] [data-folder-type]");
+    target?.focus({preventScroll:true});
+  });
 }

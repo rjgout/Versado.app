@@ -5508,12 +5508,13 @@
     },
     {
       "file": "src/app/api/study-folder/route.ts",
-      "sha256": "2fe676daad4098a0f4fdc7457bdd39fc2b79b2f9f8719b2699c36ef97305bcc0",
+      "sha256": "5372017c5e1b73b78dbf2655ca1e25b4246329bb1a7bdc23fe688208acfc46b9",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/annotations/contract",
         "@/lib/annotations/http",
         "@/lib/annotations/studyFolder",
+        "@/lib/annotations/studyFolderQuery",
         "@/lib/i18n",
         "@/lib/session",
         "next/server",
@@ -8227,10 +8228,10 @@
     },
     {
       "file": "src/app/study-folder/page.tsx",
-      "sha256": "7d1a2406dca3c539b0e9589dc082855fa7f4382f0d65056a5a7797c99a21dcb8",
+      "sha256": "58ae9bfb647bff88dbc65c3519357cab621e33b89ee3b506174edffa8d4f9a58",
       "boundary": "context-dependent",
       "imports": [
-        "@/components/study-folder/StudyFolderClient",
+        "@/components/study-folder/WebStudyFolder",
         "@/lib/session",
         "next/navigation",
         "react"
@@ -11998,7 +11999,7 @@
     },
     {
       "file": "src/components/annotations/AnnotationActionsView.tsx",
-      "sha256": "e7f68b09318ccca697de43d9f2991867c4ad72de50d34e9aeb72686d7f23c07b",
+      "sha256": "c973aa9cedb621fc28b7d7a39591ed3a49069af07158c9eebd1809e58c25ae62",
       "boundary": "client",
       "imports": [
         "./MarkSwatch",
@@ -13339,7 +13340,7 @@
     },
     {
       "file": "src/components/native/NativeContentPicker.tsx",
-      "sha256": "215efceade348da0bb2fc6efcf216aa995d6b001701e75868f1dab76901f9e86",
+      "sha256": "26d8b97866171110ce114c4863cafa9ce9805f7452a16e9ef5c766b1ca9b9338",
       "boundary": "client",
       "imports": [
         "@/components/content/ContentPickerView",
@@ -13380,7 +13381,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "c15ef713b6f6e43853dea6b55d41f36204691f88e6b9bb30bbc9690981d93b95",
+      "sha256": "1761ac000f673df1ff056a129114bc38ffb3676511691b5159379399c027b771",
       "boundary": "client",
       "imports": [
         "./NativeContentPicker",
@@ -13393,6 +13394,7 @@
         "./NativeProfileView",
         "./NativeProgressView",
         "./NativeShellHeader",
+        "./NativeStudyFolder",
         "./NativeTabBarSync",
         "./NativeTodayView",
         "@/components/I18nProvider",
@@ -13817,6 +13819,34 @@
       "checks": [],
       "exports": [
         "NativeShellHeader"
+      ]
+    },
+    {
+      "file": "src/components/native/NativeStudyFolder.tsx",
+      "sha256": "ddb54d39612eb3ca986b828a76356af3f05733062eb757a0d5e327eed5b6fbba",
+      "boundary": "client",
+      "imports": [
+        "@/components/ConfirmProvider",
+        "@/components/I18nProvider",
+        "@/components/annotations/AnnotationActionsView",
+        "@/components/navigation/AppNavigation",
+        "@/components/reading/ScriptureReaderView",
+        "@/components/study-folder/StudyFolderClient",
+        "@/components/versado/styles",
+        "@/lib/annotations/clientContract",
+        "@/lib/annotations/studyFolder",
+        "@/lib/data/nativeHooks",
+        "@/lib/native/client",
+        "@/lib/native/studyFolderContract",
+        "@/lib/navigationEntry",
+        "@/lib/scrollRestore",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NativeStudyFolder"
       ]
     },
     {
@@ -15373,35 +15403,47 @@
     },
     {
       "file": "src/components/study-folder/StudyFolderClient.tsx",
-      "sha256": "8fd4c113f77fa6abca72fd20b12a38877fb84b9e628eebb6e590f14fd022d682",
+      "sha256": "6cfff698c1210a4de0e042b57c0bcb53a0ac52593e7fd1e6003690e69ea90744",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
-        "@/components/annotations/AnnotationActions",
         "@/components/annotations/MarkSwatch",
+        "@/components/navigation/AppNavigation",
         "@/components/versado/PageIntro",
         "@/components/versado/styles",
         "@/lib/annotations/clientContract",
         "@/lib/annotations/contract",
         "@/lib/annotations/studyFolder",
-        "@/lib/data/fetchJson",
         "@/lib/data/hooks",
         "@/lib/languages",
         "lucide-react",
-        "next/link",
-        "next/navigation",
         "react"
       ],
       "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "StudyFolderClient",
+        "restoreFolderFocus"
+      ]
+    },
+    {
+      "file": "src/components/study-folder/WebStudyFolder.tsx",
+      "sha256": "31a97f4fa0248ead1463234a0e80180530949d1e16ed2e8253954900bc0f586d",
+      "boundary": "client",
+      "imports": [
+        "./StudyFolderClient",
+        "@/components/annotations/AnnotationActions",
+        "@/lib/data/fetchJson",
+        "next/navigation"
+      ],
+      "methods": [],
       "requests": [
-        "/api/study-folder?${apiQuery(filters, { cursor: nextCursor })}",
-        "/api/study-folder?${filterKey}",
-        "/api/study-folder?item=${encodeURIComponent(itemParam)}",
-        "/api/study-folder?view=sources"
+        "/api/study-folder?${query}"
       ],
       "checks": [],
       "exports": [
-        "StudyFolderClient"
+        "WebStudyFolder"
       ]
     },
     {
@@ -17416,7 +17458,7 @@
     },
     {
       "file": "src/lib/annotations/service.ts",
-      "sha256": "efb159f7528e4af66cf27a1582cfbe82a15db7b46f3ba415c10459ec5f7d36dc",
+      "sha256": "b0dc7c6e7a6c3815a19614aae9e3219e956a3fb29eef3ea573c2f9fef0a408fa",
       "boundary": "context-dependent",
       "imports": [
         "./contract",
@@ -17492,6 +17534,21 @@
         "listStudyFolder",
         "listStudyFolderSources",
         "normalizeFolderQuery"
+      ]
+    },
+    {
+      "file": "src/lib/annotations/studyFolderQuery.ts",
+      "sha256": "d6143b5a356edd07370d2a3a22851b30dcd951f5ed1a5b7df2d697f8b9f7a47f",
+      "boundary": "context-dependent",
+      "imports": [
+        "./contract",
+        "zod"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "studyFolderQuery"
       ]
     },
     {
@@ -18884,14 +18941,16 @@
     },
     {
       "file": "src/lib/data/native.ts",
-      "sha256": "8daee0029052e171e8fc36764bbdeac49514dbfda4f8ddca937ac01b94bbaae5",
+      "sha256": "89f24402d9c98656887597fb6ecc597c05e2462447419f50d4027b670b7d2dfc",
       "boundary": "context-dependent",
       "imports": [
         "./applicationRuntime",
         "./scopes",
         "./store",
         "@/lib/account/twoFactorContract",
+        "@/lib/annotations/clientContract",
         "@/lib/annotations/contract",
+        "@/lib/annotations/studyFolderQuery",
         "@/lib/native/access",
         "@/lib/native/annotationsContract",
         "@/lib/native/audioPlaybackContract",
@@ -18908,6 +18967,7 @@
         "@/lib/native/readerContract",
         "@/lib/native/readerPositionContract",
         "@/lib/native/studyCoursesContract",
+        "@/lib/native/studyFolderContract",
         "@/lib/native/studyMediaContract",
         "@/lib/native/todayActionsContract",
         "@/lib/native/todayContract",
@@ -18924,6 +18984,9 @@
         "games/page?route=${encodeURIComponent(route)}",
         "me",
         "profile",
+        "study-folder/${folderRefPath(ref)}/annotations",
+        "study-folder/${folderRefPath(ref)}/passage",
+        "study-folder/query",
         "study-media/${id}",
         "today",
         "today-overview"
@@ -19681,7 +19744,7 @@
     },
     {
       "file": "src/lib/focusMode.ts",
-      "sha256": "97f5d68f9d847a289464e7af8618a485d6ad07eb10184763a4f4965acdc0cb9b",
+      "sha256": "9f9580bd772e63cef7d32268395f4e036c4d05e8416ab203cee5bc97337074a9",
       "boundary": "context-dependent",
       "imports": [],
       "methods": [],
@@ -20704,7 +20767,7 @@
     },
     {
       "file": "src/lib/i18n/messages/de.ts",
-      "sha256": "683c59a2f7a9879d67c688285894439624afac777812a7a2373dd685cb96a1fe",
+      "sha256": "a8483cf939c68cd9eabe86d7e1c439fa8b976ea9e1f7d4b0e1295dc5d201295b",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -20719,7 +20782,7 @@
     },
     {
       "file": "src/lib/i18n/messages/en.ts",
-      "sha256": "431a3287cdc8783180a26b943bcc9967ecb7041606f7dbe4ae11900cb38626ea",
+      "sha256": "62d08a09b042ab9a16d3cf6b86de433914fcd132418c1570c622aef3c8da52db",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -20734,7 +20797,7 @@
     },
     {
       "file": "src/lib/i18n/messages/es.ts",
-      "sha256": "d0e9f00608b677412e6ff6a3cfb0bca6e72137f793f88a316bd5a063aa90171d",
+      "sha256": "95a0be15d09c451a880ccf4381ff92710f5a1f569521eda3b088575aa7fb4a50",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -20749,7 +20812,7 @@
     },
     {
       "file": "src/lib/i18n/messages/fr.ts",
-      "sha256": "f1d1adad4fb8361b438e4edd3d2546f2e9f59a67e88e3ec16d7025a340eed761",
+      "sha256": "13a31b2a20f26138489ef39dadc20bdab184a7993f1bcd4fdf113914bb18c08e",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -20832,7 +20895,7 @@
     },
     {
       "file": "src/lib/i18n/messages/nl.ts",
-      "sha256": "95e54d2267c074914bfefc92041ef217abe12a77611ec736c3de906907a627a8",
+      "sha256": "e60203b3ef5ccfc87fdf49f2bae693296da95572e608d7d6c8dc404a60850be6",
       "boundary": "context-dependent",
       "imports": [
         "./kompas/nl"
@@ -22241,11 +22304,12 @@
     },
     {
       "file": "src/lib/native/access.ts",
-      "sha256": "13311b16a05397095dc2e758683e9a9c48c9765f7bae926a15d7d3fed7201d48",
+      "sha256": "2154b2f72590eba9f2b9d03b8fc90a620178dfd2e6c83a407db4b5661b1b2b7a",
       "boundary": "context-dependent",
       "imports": [
         "./client",
         "./gamesAccess",
+        "./studyFolderContract",
         "zod"
       ],
       "methods": [],
@@ -22334,7 +22398,7 @@
     },
     {
       "file": "src/lib/native/api.ts",
-      "sha256": "cac00a4bce4f4545b4618b992c4d7471355aae234a5f1fb83a9df4ab994f2dab",
+      "sha256": "b17d8dc94b16ed32a24615534340eec4369f0e380d90d9ee502a8b51234990c9",
       "boundary": "context-dependent",
       "imports": [
         "./annotations.server",
@@ -22364,6 +22428,8 @@
         "./socketAuth",
         "./socketTickets",
         "./studyCourses.server",
+        "./studyFolder.server",
+        "./studyFolderContract",
         "./studyMedia.server",
         "./studyMediaContract",
         "./today.server",
@@ -22378,6 +22444,7 @@
         "@/lib/account/twoFactor",
         "@/lib/account/twoFactorContract",
         "@/lib/annotations/service",
+        "@/lib/annotations/studyFolder",
         "@/lib/auth",
         "@/lib/authBudget",
         "@/lib/authTokens",
@@ -22611,7 +22678,7 @@
     },
     {
       "file": "src/lib/native/backTarget.ts",
-      "sha256": "c6baea09ede195018d5f3a574ccae56cde1d80c8814ac9be7fa593f284695e90",
+      "sha256": "7693cd449103d564a39b5df3798d9d78b3002ab4190a9d21c5f46b0143a780cd",
       "boundary": "context-dependent",
       "imports": [
         "./gamesPagesRoutes",
@@ -23322,7 +23389,7 @@
     },
     {
       "file": "src/lib/native/navigation.ts",
-      "sha256": "61d2be7cfa9824c802231ad811202dd41d8b0243d8cabccb7cbbd0e2980c3249",
+      "sha256": "96803feb59cfe0cb85eeedd0d0b581952af8622738b0c2828e84e6d4f4aa6bcb",
       "boundary": "context-dependent",
       "imports": [
         "./gamesPagesRoutes",
@@ -23840,6 +23907,58 @@
       "exports": [
         "nativeStudyCourseSchema",
         "nativeStudyStepsSchema"
+      ]
+    },
+    {
+      "file": "src/lib/native/studyFolder.server.ts",
+      "sha256": "b2545c3f51778e561d1e177749e90dd8882a3220f9c03487d67b9093e1996827",
+      "boundary": "context-dependent",
+      "imports": [
+        "./sessions",
+        "./studyFolderContract",
+        "@/lib/account/mutation",
+        "@/lib/annotations/service",
+        "@/lib/annotations/studyFolder",
+        "@/lib/contentAccess",
+        "@/lib/db"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "mutateNativeFolderAnnotation",
+        "nativeFolderAnnotations",
+        "nativeFolderPassage",
+        "queryNativeStudyFolder"
+      ]
+    },
+    {
+      "file": "src/lib/native/studyFolderContract.ts",
+      "sha256": "a6ec048fc356c5094e4126ce0f9c511aad300609bec7b7fac7248a43732dcc06",
+      "boundary": "context-dependent",
+      "imports": [
+        "./readerContract",
+        "@/lib/annotations/clientContract",
+        "@/lib/annotations/contract",
+        "@/lib/annotations/studyFolderQuery",
+        "zod"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "folderAnnotations",
+        "folderItem",
+        "folderMutation",
+        "folderMutationResult",
+        "folderPage",
+        "folderPassage",
+        "folderQueryResult",
+        "folderRef",
+        "folderRefPath",
+        "folderRoute",
+        "folderSources",
+        "studyFolderQuery"
       ]
     },
     {
@@ -30147,6 +30266,7 @@
         "src/lib/alleskenner/validate.ts",
         "src/lib/annotations/clientContract.ts",
         "src/lib/annotations/contract.ts",
+        "src/lib/annotations/studyFolderQuery.ts",
         "src/lib/auth.ts",
         "src/lib/content-inventory/core.ts",
         "src/lib/contentAccess.ts",
@@ -30229,6 +30349,7 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/studyFolderContract.ts",
         "src/lib/native/tabBar.ts",
         "src/lib/navigation.ts",
         "src/lib/platform.ts",
@@ -30364,6 +30485,7 @@
         "src/lib/alleskenner/validate.ts",
         "src/lib/annotations/clientContract.ts",
         "src/lib/annotations/contract.ts",
+        "src/lib/annotations/studyFolderQuery.ts",
         "src/lib/auth.ts",
         "src/lib/avatarAccessories.ts",
         "src/lib/avatarTypes.ts",
@@ -30470,6 +30592,7 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/studyFolderContract.ts",
         "src/lib/native/tabBar.ts",
         "src/lib/navigation.ts",
         "src/lib/notificationGroups.ts",
@@ -52931,12 +53054,13 @@
     },
     {
       "file": "src/app/api/study-folder/route.ts",
-      "sha256": "2fe676daad4098a0f4fdc7457bdd39fc2b79b2f9f8719b2699c36ef97305bcc0",
+      "sha256": "5372017c5e1b73b78dbf2655ca1e25b4246329bb1a7bdc23fe688208acfc46b9",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/annotations/contract",
         "@/lib/annotations/http",
         "@/lib/annotations/studyFolder",
+        "@/lib/annotations/studyFolderQuery",
         "@/lib/i18n",
         "@/lib/session",
         "next/server",
@@ -52964,6 +53088,7 @@
         "src/lib/annotations/revisionResolution.ts",
         "src/lib/annotations/service.ts",
         "src/lib/annotations/studyFolder.ts",
+        "src/lib/annotations/studyFolderQuery.ts",
         "src/lib/auth.ts",
         "src/lib/content-inventory/origin.ts",
         "src/lib/contentAccess.ts",
@@ -53002,6 +53127,7 @@
         "src/lib/annotations/contract.ts",
         "src/lib/annotations/http.ts",
         "src/lib/annotations/studyFolder.ts",
+        "src/lib/annotations/studyFolderQuery.ts",
         "src/lib/i18n/index.ts",
         "src/lib/session.ts"
       ],
@@ -54319,6 +54445,8 @@
         "src/lib/annotations/revisionResolution.ts",
         "src/lib/annotations/service.ts",
         "src/lib/annotations/studyFocus.ts",
+        "src/lib/annotations/studyFolder.ts",
+        "src/lib/annotations/studyFolderQuery.ts",
         "src/lib/apiError.ts",
         "src/lib/artwork.ts",
         "src/lib/audio/contract.ts",
@@ -54549,6 +54677,8 @@
         "src/lib/native/socketTickets.ts",
         "src/lib/native/studyCourses.server.ts",
         "src/lib/native/studyCoursesContract.ts",
+        "src/lib/native/studyFolder.server.ts",
+        "src/lib/native/studyFolderContract.ts",
         "src/lib/native/studyMedia.server.ts",
         "src/lib/native/studyMediaContract.ts",
         "src/lib/native/tabBar.ts",
@@ -56726,6 +56856,7 @@
         "src/lib/alleskenner/validate.ts",
         "src/lib/annotations/clientContract.ts",
         "src/lib/annotations/contract.ts",
+        "src/lib/annotations/studyFolderQuery.ts",
         "src/lib/auth.ts",
         "src/lib/avatarAccessories.ts",
         "src/lib/avatarTypes.ts",
@@ -56829,6 +56960,7 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/studyFolderContract.ts",
         "src/lib/native/tabBar.ts",
         "src/lib/navigation.ts",
         "src/lib/notificationGroups.ts",
@@ -57537,6 +57669,7 @@
         "src/lib/alleskenner/validate.ts",
         "src/lib/annotations/clientContract.ts",
         "src/lib/annotations/contract.ts",
+        "src/lib/annotations/studyFolderQuery.ts",
         "src/lib/auth.ts",
         "src/lib/baseUrl.ts",
         "src/lib/brand.ts",
@@ -57622,6 +57755,7 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/studyFolderContract.ts",
         "src/lib/native/tabBar.ts",
         "src/lib/navigation.ts",
         "src/lib/platform.ts",
@@ -58328,6 +58462,7 @@
         "src/lib/alleskenner/validate.ts",
         "src/lib/annotations/clientContract.ts",
         "src/lib/annotations/contract.ts",
+        "src/lib/annotations/studyFolderQuery.ts",
         "src/lib/artwork.ts",
         "src/lib/auth.ts",
         "src/lib/avatarAccessories.ts",
@@ -58460,6 +58595,7 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/studyFolderContract.ts",
         "src/lib/native/tabBar.ts",
         "src/lib/navigation.ts",
         "src/lib/notificationGroups.ts",
@@ -59662,6 +59798,7 @@
         "src/lib/alleskenner/validate.ts",
         "src/lib/annotations/clientContract.ts",
         "src/lib/annotations/contract.ts",
+        "src/lib/annotations/studyFolderQuery.ts",
         "src/lib/auth.ts",
         "src/lib/avatarAccessories.ts",
         "src/lib/avatarTypes.ts",
@@ -59739,6 +59876,7 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/studyFolderContract.ts",
         "src/lib/native/tabBar.ts",
         "src/lib/navigation.ts",
         "src/lib/platform.ts",
@@ -60075,6 +60213,7 @@
         "src/lib/annotations/domSelector.ts",
         "src/lib/annotations/revisionResolution.ts",
         "src/lib/annotations/studyFocus.ts",
+        "src/lib/annotations/studyFolderQuery.ts",
         "src/lib/auth.ts",
         "src/lib/backTarget.ts",
         "src/lib/baseUrl.ts",
@@ -60172,6 +60311,7 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/studyFolderContract.ts",
         "src/lib/native/tabBar.ts",
         "src/lib/navigation.ts",
         "src/lib/navigationEntry.ts",
@@ -60730,6 +60870,7 @@
         "src/lib/alleskenner/validate.ts",
         "src/lib/annotations/clientContract.ts",
         "src/lib/annotations/contract.ts",
+        "src/lib/annotations/studyFolderQuery.ts",
         "src/lib/auth.ts",
         "src/lib/avatarAccessories.ts",
         "src/lib/avatarTypes.ts",
@@ -60796,6 +60937,7 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/studyFolderContract.ts",
         "src/lib/native/tabBar.ts",
         "src/lib/navigation.ts",
         "src/lib/platform.ts",
@@ -61050,6 +61192,7 @@
         "src/lib/alleskenner/validate.ts",
         "src/lib/annotations/clientContract.ts",
         "src/lib/annotations/contract.ts",
+        "src/lib/annotations/studyFolderQuery.ts",
         "src/lib/auth.ts",
         "src/lib/avatarAccessories.ts",
         "src/lib/avatarTypes.ts",
@@ -61160,6 +61303,7 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/studyFolderContract.ts",
         "src/lib/native/tabBar.ts",
         "src/lib/navigation.ts",
         "src/lib/notificationGroups.ts",
@@ -61350,6 +61494,7 @@
         "src/lib/alleskenner/validate.ts",
         "src/lib/annotations/clientContract.ts",
         "src/lib/annotations/contract.ts",
+        "src/lib/annotations/studyFolderQuery.ts",
         "src/lib/auth.ts",
         "src/lib/avatarAccessories.ts",
         "src/lib/avatarTypes.ts",
@@ -61450,6 +61595,7 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/studyFolderContract.ts",
         "src/lib/native/tabBar.ts",
         "src/lib/navigation.ts",
         "src/lib/notificationGroups.ts",
@@ -62117,6 +62263,7 @@
         "src/lib/alleskenner/validate.ts",
         "src/lib/annotations/clientContract.ts",
         "src/lib/annotations/contract.ts",
+        "src/lib/annotations/studyFolderQuery.ts",
         "src/lib/auth.ts",
         "src/lib/avatarAccessories.ts",
         "src/lib/avatarTypes.ts",
@@ -62217,6 +62364,7 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/studyFolderContract.ts",
         "src/lib/native/tabBar.ts",
         "src/lib/navigation.ts",
         "src/lib/notificationGroups.ts",
@@ -62382,6 +62530,7 @@
         "src/lib/alleskenner/validate.ts",
         "src/lib/annotations/clientContract.ts",
         "src/lib/annotations/contract.ts",
+        "src/lib/annotations/studyFolderQuery.ts",
         "src/lib/auth.ts",
         "src/lib/avatarAccessories.ts",
         "src/lib/avatarTypes.ts",
@@ -62482,6 +62631,7 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/studyFolderContract.ts",
         "src/lib/native/tabBar.ts",
         "src/lib/navigation.ts",
         "src/lib/notificationGroups.ts",
@@ -62667,6 +62817,7 @@
         "src/lib/alleskenner/validate.ts",
         "src/lib/annotations/clientContract.ts",
         "src/lib/annotations/contract.ts",
+        "src/lib/annotations/studyFolderQuery.ts",
         "src/lib/auth.ts",
         "src/lib/avatarAccessories.ts",
         "src/lib/avatarTypes.ts",
@@ -62777,6 +62928,7 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/studyFolderContract.ts",
         "src/lib/native/tabBar.ts",
         "src/lib/navigation.ts",
         "src/lib/notificationGroups.ts",
@@ -63351,6 +63503,7 @@
         "src/lib/annotations/contract.ts",
         "src/lib/annotations/revisionResolution.ts",
         "src/lib/annotations/studyFocus.ts",
+        "src/lib/annotations/studyFolderQuery.ts",
         "src/lib/audioMirror.ts",
         "src/lib/auth.ts",
         "src/lib/avatarAccessories.ts",
@@ -63470,6 +63623,7 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/studyFolderContract.ts",
         "src/lib/native/tabBar.ts",
         "src/lib/navigation.ts",
         "src/lib/notificationGroups.ts",
@@ -63879,6 +64033,7 @@
         "src/lib/alleskenner/validate.ts",
         "src/lib/annotations/clientContract.ts",
         "src/lib/annotations/contract.ts",
+        "src/lib/annotations/studyFolderQuery.ts",
         "src/lib/auth.ts",
         "src/lib/avatarAccessories.ts",
         "src/lib/avatarTypes.ts",
@@ -63990,6 +64145,7 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/studyFolderContract.ts",
         "src/lib/native/tabBar.ts",
         "src/lib/navigation.ts",
         "src/lib/notificationGroups.ts",
@@ -69256,6 +69412,7 @@
         "src/lib/alleskenner/validate.ts",
         "src/lib/annotations/clientContract.ts",
         "src/lib/annotations/contract.ts",
+        "src/lib/annotations/studyFolderQuery.ts",
         "src/lib/auth.ts",
         "src/lib/avatarAccessories.ts",
         "src/lib/avatarUnlocks.ts",
@@ -69335,6 +69492,7 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/studyFolderContract.ts",
         "src/lib/native/tabBar.ts",
         "src/lib/navigation.ts",
         "src/lib/platform.ts",
@@ -69468,6 +69626,7 @@
         "src/lib/alleskenner/validate.ts",
         "src/lib/annotations/clientContract.ts",
         "src/lib/annotations/contract.ts",
+        "src/lib/annotations/studyFolderQuery.ts",
         "src/lib/auth.ts",
         "src/lib/avatarAccessories.ts",
         "src/lib/avatarTypes.ts",
@@ -69578,6 +69737,7 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/studyFolderContract.ts",
         "src/lib/native/tabBar.ts",
         "src/lib/navigation.ts",
         "src/lib/notificationGroups.ts",
@@ -69771,6 +69931,7 @@
         "src/lib/alleskenner/validate.ts",
         "src/lib/annotations/clientContract.ts",
         "src/lib/annotations/contract.ts",
+        "src/lib/annotations/studyFolderQuery.ts",
         "src/lib/auth.ts",
         "src/lib/avatarAccessories.ts",
         "src/lib/avatarTypes.ts",
@@ -69877,6 +70038,7 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/studyFolderContract.ts",
         "src/lib/native/tabBar.ts",
         "src/lib/navigation.ts",
         "src/lib/notificationGroups.ts",
@@ -70102,6 +70264,7 @@
         "src/lib/alleskenner/validate.ts",
         "src/lib/annotations/clientContract.ts",
         "src/lib/annotations/contract.ts",
+        "src/lib/annotations/studyFolderQuery.ts",
         "src/lib/auth.ts",
         "src/lib/avatarAccessories.ts",
         "src/lib/avatarTypes.ts",
@@ -70179,6 +70342,7 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/studyFolderContract.ts",
         "src/lib/native/tabBar.ts",
         "src/lib/navigation.ts",
         "src/lib/platform.ts",
@@ -70493,6 +70657,7 @@
         "src/lib/alleskenner/validate.ts",
         "src/lib/annotations/clientContract.ts",
         "src/lib/annotations/contract.ts",
+        "src/lib/annotations/studyFolderQuery.ts",
         "src/lib/audioMirror.ts",
         "src/lib/auth.ts",
         "src/lib/avatarAccessories.ts",
@@ -70608,6 +70773,7 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/studyFolderContract.ts",
         "src/lib/native/tabBar.ts",
         "src/lib/navigation.ts",
         "src/lib/notificationGroups.ts",
@@ -71227,6 +71393,7 @@
         "src/lib/alleskenner/validate.ts",
         "src/lib/annotations/clientContract.ts",
         "src/lib/annotations/contract.ts",
+        "src/lib/annotations/studyFolderQuery.ts",
         "src/lib/auth.ts",
         "src/lib/avatarAccessories.ts",
         "src/lib/avatarTypes.ts",
@@ -71334,6 +71501,7 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/studyFolderContract.ts",
         "src/lib/native/tabBar.ts",
         "src/lib/navigation.ts",
         "src/lib/notificationGroups.ts",
@@ -72127,6 +72295,7 @@
         "src/lib/alleskenner/validate.ts",
         "src/lib/annotations/clientContract.ts",
         "src/lib/annotations/contract.ts",
+        "src/lib/annotations/studyFolderQuery.ts",
         "src/lib/auth.ts",
         "src/lib/avatarAccessories.ts",
         "src/lib/avatarTypes.ts",
@@ -72227,6 +72396,7 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/studyFolderContract.ts",
         "src/lib/native/tabBar.ts",
         "src/lib/navigation.ts",
         "src/lib/notificationGroups.ts",
@@ -72308,10 +72478,10 @@
     },
     {
       "file": "src/app/study-folder/page.tsx",
-      "sha256": "7d1a2406dca3c539b0e9589dc082855fa7f4382f0d65056a5a7797c99a21dcb8",
+      "sha256": "58ae9bfb647bff88dbc65c3519357cab621e33b89ee3b506174edffa8d4f9a58",
       "boundary": "context-dependent",
       "imports": [
-        "@/components/study-folder/StudyFolderClient",
+        "@/components/study-folder/WebStudyFolder",
         "@/lib/session",
         "next/navigation",
         "react"
@@ -72335,7 +72505,9 @@
         "src/components/annotations/AnnotationActionsView.tsx",
         "src/components/annotations/AnnotationTransport.tsx",
         "src/components/annotations/MarkSwatch.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/study-folder/StudyFolderClient.tsx",
+        "src/components/study-folder/WebStudyFolder.tsx",
         "src/components/versado/PageIntro.tsx",
         "src/components/versado/styles.ts",
         "src/lib/alleskenner/content.ts",
@@ -72410,7 +72582,7 @@
         "src/lib/wordSearch/generator.ts"
       ],
       "directModules": [
-        "src/components/study-folder/StudyFolderClient.tsx",
+        "src/components/study-folder/WebStudyFolder.tsx",
         "src/lib/session.ts"
       ],
       "clientBoundaries": [
@@ -72418,7 +72590,9 @@
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/annotations/AnnotationActionsView.tsx",
         "src/components/annotations/AnnotationTransport.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/study-folder/StudyFolderClient.tsx",
+        "src/components/study-folder/WebStudyFolder.tsx",
         "src/lib/data/client.ts",
         "src/lib/data/hooks.ts",
         "src/lib/data/mutation.ts",
@@ -72429,18 +72603,15 @@
       "requestEvidence": [
         "/api/annotations",
         "/api/annotations?view=reader&targetKey=${encodeURIComponent(await clientTargetKey(target))}",
-        "/api/study-folder?${apiQuery(filters, { cursor: nextCursor })}",
-        "/api/study-folder?${filterKey}",
-        "/api/study-folder?item=${encodeURIComponent(itemParam)}",
-        "/api/study-folder?view=sources"
+        "/api/study-folder?${query}"
       ],
       "authEvidence": [
         "getCurrentUser"
       ],
       "iosCoverage": {
-        "status": "ontbreekt",
-        "native": null,
-        "reason": "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent"
+        "status": "gedeeltelijk",
+        "native": "/study-folder",
+        "reason": "Gedeelde accountbrede studiemap via study-folder-v1: zoeken, filters, paginering, eigen notities/markeringen/bladwijzers beheren. Exacte bofm-passage-uitstap zonder bronwissel; OTB/studielezers en fysieke toestelacceptatie blijven open (reviews/NATIVE-STUDY-FOLDER.md)"
       }
     },
     {
@@ -73167,6 +73338,7 @@
         "src/lib/alleskenner/validate.ts",
         "src/lib/annotations/clientContract.ts",
         "src/lib/annotations/contract.ts",
+        "src/lib/annotations/studyFolderQuery.ts",
         "src/lib/auth.ts",
         "src/lib/avatarAccessories.ts",
         "src/lib/avatarTypes.ts",
@@ -73282,6 +73454,7 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/studyFolderContract.ts",
         "src/lib/native/tabBar.ts",
         "src/lib/navigation.ts",
         "src/lib/notificationGroups.ts",
@@ -74600,6 +74773,7 @@
         "src/lib/alleskenner/validate.ts",
         "src/lib/annotations/clientContract.ts",
         "src/lib/annotations/contract.ts",
+        "src/lib/annotations/studyFolderQuery.ts",
         "src/lib/auth.ts",
         "src/lib/avatarAccessories.ts",
         "src/lib/avatarTypes.ts",
@@ -74707,6 +74881,7 @@
         "src/lib/native/navigation.ts",
         "src/lib/native/origin.ts",
         "src/lib/native/readerContract.ts",
+        "src/lib/native/studyFolderContract.ts",
         "src/lib/native/tabBar.ts",
         "src/lib/navigation.ts",
         "src/lib/notificationGroups.ts",
@@ -77765,10 +77940,10 @@
     },
     {
       "file": "src/app/study-folder/page.tsx",
-      "sha256": "7d1a2406dca3c539b0e9589dc082855fa7f4382f0d65056a5a7797c99a21dcb8",
+      "sha256": "58ae9bfb647bff88dbc65c3519357cab621e33b89ee3b506174edffa8d4f9a58",
       "boundary": "context-dependent",
       "imports": [
-        "@/components/study-folder/StudyFolderClient",
+        "@/components/study-folder/WebStudyFolder",
         "@/lib/session",
         "next/navigation",
         "react"
@@ -81521,7 +81696,7 @@
     },
     {
       "file": "src/components/annotations/AnnotationActionsView.tsx",
-      "sha256": "e7f68b09318ccca697de43d9f2991867c4ad72de50d34e9aeb72686d7f23c07b",
+      "sha256": "c973aa9cedb621fc28b7d7a39591ed3a49069af07158c9eebd1809e58c25ae62",
       "boundary": "client",
       "imports": [
         "./MarkSwatch",
@@ -82704,7 +82879,7 @@
     },
     {
       "file": "src/components/native/NativeContentPicker.tsx",
-      "sha256": "215efceade348da0bb2fc6efcf216aa995d6b001701e75868f1dab76901f9e86",
+      "sha256": "26d8b97866171110ce114c4863cafa9ce9805f7452a16e9ef5c766b1ca9b9338",
       "boundary": "client",
       "imports": [
         "@/components/content/ContentPickerView",
@@ -82745,7 +82920,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "c15ef713b6f6e43853dea6b55d41f36204691f88e6b9bb30bbc9690981d93b95",
+      "sha256": "1761ac000f673df1ff056a129114bc38ffb3676511691b5159379399c027b771",
       "boundary": "client",
       "imports": [
         "./NativeContentPicker",
@@ -82758,6 +82933,7 @@
         "./NativeProfileView",
         "./NativeProgressView",
         "./NativeShellHeader",
+        "./NativeStudyFolder",
         "./NativeTabBarSync",
         "./NativeTodayView",
         "@/components/I18nProvider",
@@ -83182,6 +83358,34 @@
       "checks": [],
       "exports": [
         "NativeShellHeader"
+      ]
+    },
+    {
+      "file": "src/components/native/NativeStudyFolder.tsx",
+      "sha256": "ddb54d39612eb3ca986b828a76356af3f05733062eb757a0d5e327eed5b6fbba",
+      "boundary": "client",
+      "imports": [
+        "@/components/ConfirmProvider",
+        "@/components/I18nProvider",
+        "@/components/annotations/AnnotationActionsView",
+        "@/components/navigation/AppNavigation",
+        "@/components/reading/ScriptureReaderView",
+        "@/components/study-folder/StudyFolderClient",
+        "@/components/versado/styles",
+        "@/lib/annotations/clientContract",
+        "@/lib/annotations/studyFolder",
+        "@/lib/data/nativeHooks",
+        "@/lib/native/client",
+        "@/lib/native/studyFolderContract",
+        "@/lib/navigationEntry",
+        "@/lib/scrollRestore",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NativeStudyFolder"
       ]
     },
     {
@@ -84647,35 +84851,47 @@
     },
     {
       "file": "src/components/study-folder/StudyFolderClient.tsx",
-      "sha256": "8fd4c113f77fa6abca72fd20b12a38877fb84b9e628eebb6e590f14fd022d682",
+      "sha256": "6cfff698c1210a4de0e042b57c0bcb53a0ac52593e7fd1e6003690e69ea90744",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
-        "@/components/annotations/AnnotationActions",
         "@/components/annotations/MarkSwatch",
+        "@/components/navigation/AppNavigation",
         "@/components/versado/PageIntro",
         "@/components/versado/styles",
         "@/lib/annotations/clientContract",
         "@/lib/annotations/contract",
         "@/lib/annotations/studyFolder",
-        "@/lib/data/fetchJson",
         "@/lib/data/hooks",
         "@/lib/languages",
         "lucide-react",
-        "next/link",
-        "next/navigation",
         "react"
       ],
       "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "StudyFolderClient",
+        "restoreFolderFocus"
+      ]
+    },
+    {
+      "file": "src/components/study-folder/WebStudyFolder.tsx",
+      "sha256": "31a97f4fa0248ead1463234a0e80180530949d1e16ed2e8253954900bc0f586d",
+      "boundary": "client",
+      "imports": [
+        "./StudyFolderClient",
+        "@/components/annotations/AnnotationActions",
+        "@/lib/data/fetchJson",
+        "next/navigation"
+      ],
+      "methods": [],
       "requests": [
-        "/api/study-folder?${apiQuery(filters, { cursor: nextCursor })}",
-        "/api/study-folder?${filterKey}",
-        "/api/study-folder?item=${encodeURIComponent(itemParam)}",
-        "/api/study-folder?view=sources"
+        "/api/study-folder?${query}"
       ],
       "checks": [],
       "exports": [
-        "StudyFolderClient"
+        "WebStudyFolder"
       ]
     },
     {
@@ -86365,6 +86581,9 @@
     "tests/native-study-courses.browser.mjs",
     "tests/native-study-courses.integration.test.ts",
     "tests/native-study-courses.test.tsx",
+    "tests/native-study-folder.browser.mjs",
+    "tests/native-study-folder.integration.test.mjs",
+    "tests/native-study-folder.test.mjs",
     "tests/native-study-media.browser.mjs",
     "tests/native-study-media.integration.test.ts",
     "tests/native-study-media.test.ts",

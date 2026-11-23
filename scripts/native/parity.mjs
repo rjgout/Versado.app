@@ -79,6 +79,7 @@ export function iosCoverageFor(route) {
   if (complete.has(route)) return { status: "volledig", native: route, reason: "Gedeelde lokale inhoud/formulieren en bestaande services; fysieke heracceptatie apart" };
   if (route.startsWith("/profile?view=")) return { status: "gedeeltelijk", native: route, reason: "Gedeelde profielweergave; totale instelling-/bestemmingspariteit en fysieke acceptatie nog open (NATIVE-PROFILE.md)" };
   const partial = new Map([
+    ["/study-folder", "Gedeelde accountbrede studiemap via study-folder-v1: zoeken, filters, paginering, eigen notities/markeringen/bladwijzers beheren. Exacte bofm-passage-uitstap zonder bronwissel; OTB/studielezers en fysieke toestelacceptatie blijven open (reviews/NATIVE-STUDY-FOLDER.md)"],
     ["/dashboard", "Gedeelde Vandaag en bevestigde acties; overige activiteiten, beloningen en sociale doelen ontbreken"],
     ["/profile", "Gedeeld volledig profieloverzicht; push, stem-preview, tijdzonesync en enkele doelroutes ontbreken"],
     ["/content", "Gedeelde veilige bron-/taalkeuze; niet alle bronpreviews en vervolgactiviteiten lokaal beschikbaar"],
