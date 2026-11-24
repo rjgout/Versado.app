@@ -1,3 +1,4 @@
+import {cfmDynamicMediaBinding} from "./cfmSources";
 import { StudyMediaError, mediaDiagnosticText } from "./mediaDiagnostic";
 import { createHash } from "node:crypto";
 import type { PrismaClient } from "@/generated/prisma/client";
@@ -157,10 +158,11 @@ async function reviewLesson(
     const figure = inventory.figures.find((f) => f.mediaKey === key)!;
     const binding = revision.media.find((m) => m.mediaKey === key);
     let diagnostic: string | undefined;
-    let ok = Boolean(binding && binding.media.status === "READY" && binding.media.width === figure.width && binding.media.height === figure.height);
+    let ok = Boolean(binding && binding.media.status === "READY");
     if (ok && binding) {
       const pin = content.sourceMetadata.mediaManifest?.find((m) => m.mediaKey === key);
-      ok = Boolean(pin && pin.checksum === binding.media.checksum && pin.mimeType === binding.media.mimeType && pin.rightsHash === studyObjectHash(binding.media.rightsMetadata));
+      const dynamic=Boolean(pin&&cfmDynamicMediaBinding(edition.workKey,pin.checksum,binding.media.sourceMetadata,binding.media.checksum));
+      ok = Boolean(pin && (dynamic || binding.media.width === figure.width && binding.media.height === figure.height) && (dynamic || pin.checksum === binding.media.checksum) && (dynamic || pin.mimeType === binding.media.mimeType) && pin.rightsHash === studyObjectHash(binding.media.rightsMetadata));
       if (ok) {
         try {
           validateStudyMediaMetadata(binding.media);

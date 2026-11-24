@@ -205,9 +205,9 @@ jobs:
         run: |
           node tests/native-audio-player.browser.mjs
           npx tsx tests/native-learning-flow.browser.mjs
-      - name: CFM-herstel zonder externe downloads (bestaande geïsoleerde runner en webbuild)
+      - name: CFM-afbeeldingen, rollback en bronrechten zonder externe downloads
         run: |
-          npx tsx --test tests/cfm-recovery.test.ts
+          npx tsx --test tests/cfm-recovery.test.ts tests/cfm-image-refresh.test.mjs
           node scripts/content-architecture/test-access-isolated.mjs --focused --cfm-suite=cfm-recovery.integration.test.ts --browser
       - name: Bestaande Audio V2-webregressies op eigen database, dezelfde webbuild
         run: npm run test:audio:browser

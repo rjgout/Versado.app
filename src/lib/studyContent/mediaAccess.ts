@@ -1,3 +1,4 @@
+import { cfmDynamicMediaBinding } from "./cfmSources";
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { readingAccessWhere } from "@/lib/contentAccess";
@@ -38,7 +39,9 @@ export async function authorizeStudyMedia(
       where: { mediaId: media.id, revision: accessible },
       orderBy: { revisionId: "asc" },
       take: 5,
-      include: { revision: true },
+      include: {
+        revision: { include: { edition: { select: { workKey: true } } } },
+      },
     });
     const valid = candidates.some((binding) => {
       try {
@@ -46,16 +49,25 @@ export async function authorizeStudyMedia(
           pin = content.sourceMetadata.mediaManifest?.find(
             (m) => m.mediaKey === binding.mediaKey,
           );
+        const dynamic = Boolean(
+          pin &&
+          cfmDynamicMediaBinding(
+            binding.revision.edition.workKey,
+            pin.checksum,
+            media.sourceMetadata,
+            media.checksum,
+          ),
+        );
         return (
           !!pin &&
-          pin.checksum === media.checksum &&
-          pin.mimeType === media.mimeType &&
+          (pin.checksum === media.checksum || dynamic) &&
+          (pin.mimeType === media.mimeType || dynamic) &&
           pin.rightsHash === studyObjectHash(media.rightsMetadata) &&
           studyDocumentInventory(content.body).figures.some(
             (f) =>
               f.mediaKey === binding.mediaKey &&
-              f.width === media.width &&
-              f.height === media.height,
+              (dynamic ||
+                (f.width === media.width && f.height === media.height)),
           )
         );
       } catch {
@@ -69,7 +81,11 @@ export async function authorizeStudyMedia(
 }
 
 /** Dezelfde rechtencontrole voor web en native; opslag is uitsluitend intern. */
-export async function authorizedStudyMedia(actor: StudyAdmin, mediaId: string, preview = false) {
+export async function authorizedStudyMedia(
+  actor: StudyAdmin,
+  mediaId: string,
+  preview = false,
+) {
   const media = await authorizeStudyMedia(actor, mediaId, preview);
   const bytes = await readStudyMedia(media);
   return {

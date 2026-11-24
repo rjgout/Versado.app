@@ -81,17 +81,17 @@ try {
       await page.addStyleTag({ content: "html{font-size:200% !important}" });
     await control
       .getByRole("button", {
-        name: "1. Herstelplan bekijken (alleen lezen)",
+        name: "1. Bestaande afbeeldingen controleren",
         exact: true,
       })
       .click();
-    await control.locator("li").nth(6).waitFor();
-    assert.equal(await control.locator("li").count(), 7);
+    await control.getByRole("status").waitFor();
+    assert.equal(await control.getByRole("checkbox").count(),0);
     const prepare = control.getByRole("button", {
-      name: "2. Originelen herstellen en concepten voorbereiden",
+      name: "2. Afbeeldingen opnieuw downloaden",
       exact: true,
     });
-    assert.equal(await prepare.isEnabled(), false);
+    assert.equal(await prepare.isEnabled(), true);
     assert.equal(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth + 1,
@@ -102,7 +102,6 @@ try {
     await control.screenshot({
       path: `${output}/cfm-herstelplan-${width}-${scheme}-${scale}.png`,
     });
-    await control.getByRole("checkbox").check();
     assert.equal(await prepare.isEnabled(), true);
     await prepare.click();
     await page
@@ -139,19 +138,19 @@ try {
     assert.equal(posts.length, 1);
     assert.equal(posts[0].action, "cfm-prepare");
     assert.equal(posts[0].confirmDraftsOnly, true);
-    assert.equal(posts[0].confirmReviewedMedia, true);
+    assert.equal(posts[0].confirmReviewedMedia, false);
     assert.match(posts[0].planHash, /^[a-f0-9]{64}$/);
     assert.equal(
       await snapshot(),
       before,
-      "Geen echte import, bestandherstel of publicatie vanuit deze browsertest",
+      "Geen echte import, mediavernieuwing of publicatie vanuit deze browsertest",
     );
     results.push({
       width,
       scheme,
       textPercent: scale,
       readOnlyPlan: true,
-      explicitReview: true,
+      explicitConfirmation: true,
       cancelNoWrite: true,
       doubleClickOneRequest: true,
       productionMutation: false,

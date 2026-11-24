@@ -426,7 +426,7 @@ test("52 officiële CFM-concepten: echte OTB-doelen, persistente media, idempote
     const duplicate=await start();assert.equal((await duplicate.json()).started,false);
     let status;
     for(let n=0;n<180;n++){status=(await (await fetch(base+"/api/admin/reseed",{headers:{cookie:f.admin.cookie}})).json()).job;if(status.status!=="running")break;await delay(500);}
-    assert.equal(status.status,"error");assert.match(status.error,/SYNTHETIC_LEGACY_BOUNDARY/);assert.ok(!status.error.includes("SCRIPTURE_WRITTEN_BY_RESEED"));assert.equal(status.progress.current,52);assert.equal(status.progress.work,"cfm-old-testament-2026");
+    assert.equal(status.status,"error");assert.match(status.error,/SYNTHETIC_LEGACY_BOUNDARY/);assert.ok(status.logs.some(line=>/^CFM-afbeeldingen: [1-9][0-9]* gecontroleerd, 0 behouden na fout[.]$/.test(line)),"alle bestaande CFM-afbeeldingen zijn via de echte gecontroleerde downloader verwerkt; geen verborgen mediafouten");assert.ok(!status.error.includes("SCRIPTURE_WRITTEN_BY_RESEED"));assert.equal(status.progress.current,52);assert.equal(status.progress.work,"cfm-old-testament-2026");
   } finally {
     await prisma.$executeRawUnsafe(`DROP TRIGGER IF EXISTS "testCfmSeedBoundary" ON "Podcast"`);await prisma.$executeRawUnsafe(`DROP FUNCTION IF EXISTS "testCfmSeedBoundary"()`);
     await prisma.$executeRawUnsafe(`DROP TRIGGER IF EXISTS "testCfmSeedCourse" ON "Course"`);await prisma.$executeRawUnsafe(`DROP FUNCTION IF EXISTS "testCfmSeedCourse"()`);

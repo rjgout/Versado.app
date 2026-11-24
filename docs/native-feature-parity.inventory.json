@@ -11714,7 +11714,7 @@
     },
     {
       "file": "src/components/admin/CfmRecoveryControl.tsx",
-      "sha256": "0e1f146342b7bcd248b533193e242a3bb7d2665a619dd67848efedb9b4e7fa52",
+      "sha256": "0276e25e3ebd2d26f985df22e4f7733f575b06c1ceb9a5b9438f2c699967e84e",
       "boundary": "client",
       "imports": [
         "@/components/ConfirmProvider",
@@ -20767,7 +20767,7 @@
     },
     {
       "file": "src/lib/i18n/messages/de.ts",
-      "sha256": "a8483cf939c68cd9eabe86d7e1c439fa8b976ea9e1f7d4b0e1295dc5d201295b",
+      "sha256": "8e122f4031913fc2fa581829d6d82a847e2fefe98e7bb32fc1a190d518116a77",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -20782,7 +20782,7 @@
     },
     {
       "file": "src/lib/i18n/messages/en.ts",
-      "sha256": "62d08a09b042ab9a16d3cf6b86de433914fcd132418c1570c622aef3c8da52db",
+      "sha256": "d1bcd4f6f02de655e4e6d8b3638cb57b2d496581bc0b9de1d54e608a92008a70",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -20797,7 +20797,7 @@
     },
     {
       "file": "src/lib/i18n/messages/es.ts",
-      "sha256": "95a0be15d09c451a880ccf4381ff92710f5a1f569521eda3b088575aa7fb4a50",
+      "sha256": "25e0dea2fbea0139c8dbe6a477cdb3c90d3802d1029d2aa206af1a66e2409a0d",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -20812,7 +20812,7 @@
     },
     {
       "file": "src/lib/i18n/messages/fr.ts",
-      "sha256": "13a31b2a20f26138489ef39dadc20bdab184a7993f1bcd4fdf113914bb18c08e",
+      "sha256": "e34fd26478744d64d66b18230570d2bc20547b9f61da5b7acc8472ac938a8609",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -20895,7 +20895,7 @@
     },
     {
       "file": "src/lib/i18n/messages/nl.ts",
-      "sha256": "e60203b3ef5ccfc87fdf49f2bae693296da95572e608d7d6c8dc404a60850be6",
+      "sha256": "b81d161a6910889e6da6b3a03e3845aa63cd81954548eb89db8c13656acc7a7c",
       "boundary": "context-dependent",
       "imports": [
         "./kompas/nl"
@@ -25878,7 +25878,7 @@
     },
     {
       "file": "src/lib/reseedJob.ts",
-      "sha256": "371b0ce3f90e8a12b80079b4356c78de930a7a13c7dc17423e5c6d035e651cda",
+      "sha256": "e8c2b4f9a1bf328848f7c051c244fe9609c73136cbf45be9a8625f5d16c2bb3c",
       "boundary": "context-dependent",
       "imports": [
         "../../scripts/otb/import-core",
@@ -25895,7 +25895,6 @@
         "@/lib/studyContent/cfmSources",
         "@/lib/studyContent/mediaDiagnostic",
         "@/lib/studyContent/policy",
-        "@/lib/studyContent/programReview",
         "@/lib/studyContent/sourceApproval"
       ],
       "methods": [],
@@ -27452,7 +27451,7 @@
     },
     {
       "file": "src/lib/studyContent/cfm2026Import.ts",
-      "sha256": "654a2f4168f9c6424413bc66b9f074c147d92edf06a68b05c3f64fe4e4fef54f",
+      "sha256": "6c608635abbd7f027af7187db361ce30e25cdc8461f36725e14acd5361af29ef",
       "boundary": "context-dependent",
       "imports": [
         "./cfm2026Adapter",
@@ -27573,7 +27572,7 @@
     },
     {
       "file": "src/lib/studyContent/cfmMedia.ts",
-      "sha256": "46bea7518b2f3181ec340350dd6eab83de1cf0bc07b773c5172a740197b7e00d",
+      "sha256": "7350c5d22bc179954ffe8bfcb6ff780d8a4ca21c8b32b534ca8079fbb0478b48",
       "boundary": "context-dependent",
       "imports": [
         "../../../data/study-content/cfm-2026-nl/media-revision-candidates.json",
@@ -27583,14 +27582,19 @@
         "./originalMedia",
         "./policy",
         "./storage",
-        "@/generated/prisma/client"
+        "@/generated/prisma/client",
+        "@/lib/realtime"
       ],
       "methods": [],
       "requests": [],
-      "checks": [],
+      "checks": [
+        "requireStudyAdmin"
+      ],
       "exports": [
         "CFM_MEDIA_CANDIDATES",
         "CFM_MEDIA_DRAFT_VERSION",
+        "currentCfmImage",
+        "refreshCfmImages",
         "resolveCfmMedia"
       ]
     },
@@ -27642,13 +27646,11 @@
     },
     {
       "file": "src/lib/studyContent/cfmRecovery.ts",
-      "sha256": "366d039f84387480bac2f5176397f0f951c34a8c8262ebddad942334cdbc1448",
+      "sha256": "763e6a89d4113aaa063b14e5c7682338a18ec3bc559d9dffeed2f0d0f1ab9ccc",
       "boundary": "context-dependent",
       "imports": [
-        "./cfm2026Import",
         "./cfmMedia",
         "./cfmSources",
-        "./originalMedia",
         "./policy",
         "./sourceApproval",
         "./storage",
@@ -27720,7 +27722,7 @@
     },
     {
       "file": "src/lib/studyContent/cfmSources.ts",
-      "sha256": "f7ab64c3ad0a7c6cf7a574ebb30b788f2f8cafa5498ea6d2d77a7f408e2b11fc",
+      "sha256": "8f815d7f6d1b92fdc2fc7bb011a6c1cb5b454f3aa725a88079d663f234fdd379",
       "boundary": "context-dependent",
       "imports": [
         "../../../data/study-content/cfm-2026-nl/media-lock.json",
@@ -27741,6 +27743,8 @@
         "CFM_SOURCES",
         "CFM_SOURCE_2026",
         "CFM_SOURCE_2027",
+        "cfmDynamicMediaBinding",
+        "cfmMediaSourceRegistered",
         "cfmSourceOfAdapter",
         "cfmSourceOfCollection",
         "cfmSourceOfWork",
@@ -27803,7 +27807,7 @@
     },
     {
       "file": "src/lib/studyContent/download.ts",
-      "sha256": "2749d9b687f229995e6637d3da0d0197c40c15ff0bcca3423672471deefa1841",
+      "sha256": "4c75b97cee1391575b25891dee3990ebd0862bb61732ad06e3f95bef814ccb0a",
       "boundary": "context-dependent",
       "imports": [
         "./mediaDiagnostic",
@@ -28003,9 +28007,10 @@
     },
     {
       "file": "src/lib/studyContent/mediaAccess.ts",
-      "sha256": "5007401ba9558712cd6edd30829e6a30fa3a09ba1dfd3260205ebb3e7611f624",
+      "sha256": "6953b92fbed82bbca63cc2ba39257be2d0196c34726744bcee8cdab334e4f723",
       "boundary": "context-dependent",
       "imports": [
+        "./cfmSources",
         "./fixtureAdapter",
         "./policy",
         "./publication",
@@ -28296,7 +28301,7 @@
     },
     {
       "file": "src/lib/studyContent/programReview.ts",
-      "sha256": "393ce391a808836438e28bdda995a42a7f108afc980875d71ba284cc423cd52f",
+      "sha256": "3475c616d2be1ddebbb34754c8641d54ad1f10843bf9a9e7ae25aec24e578bed",
       "boundary": "context-dependent",
       "imports": [
         "./cfm2026Manifest",
@@ -28326,7 +28331,7 @@
     },
     {
       "file": "src/lib/studyContent/publication.ts",
-      "sha256": "923810c78cf230ce6811eb0888cf4e5e5c89158e40848ffec37909f4cee7b7df",
+      "sha256": "05293e40d3a20d64c25febe8d1848d134b96943bec020ce77a0ce52710941383",
       "boundary": "context-dependent",
       "imports": [
         "./cfmReview",
@@ -28584,9 +28589,10 @@
     },
     {
       "file": "src/lib/studyContent/storage.ts",
-      "sha256": "97237c04ae8b1c8a2fc2a52184a3cc8a9f863c220f1af1349b620d908eb4c9b3",
+      "sha256": "62ddf1919a0d33562da22341072df949aea44f3f047853c48ef5d64e673fd2b0",
       "boundary": "context-dependent",
       "imports": [
+        "./cfmSources",
         "./mediaDiagnostic",
         "./policy",
         "./revisions",
@@ -31439,7 +31445,6 @@
         "src/lib/contentUpdate.ts",
         "src/lib/contentUpdateRun.ts",
         "src/lib/courseIntegrity.ts",
-        "src/lib/courseText.ts",
         "src/lib/courses.ts",
         "src/lib/crypto.ts",
         "src/lib/data/applicationRuntime.ts",
@@ -31465,13 +31470,6 @@
         "src/lib/games/requestIdentity.server.ts",
         "src/lib/hymnAvailability.ts",
         "src/lib/hymns/access.ts",
-        "src/lib/hymns/library/server.ts",
-        "src/lib/hymns/notation/decode.ts",
-        "src/lib/hymns/notation/lyrics.ts",
-        "src/lib/hymns/notation/musicxml.ts",
-        "src/lib/hymns/notation/types.ts",
-        "src/lib/hymns/score/melody.ts",
-        "src/lib/hymns/types.ts",
         "src/lib/i18n/core.ts",
         "src/lib/i18n/index.ts",
         "src/lib/i18n/messages/de.ts",
@@ -31529,13 +31527,8 @@
         "src/lib/puzzle/puzzleNotify.ts",
         "src/lib/readingCourses.ts",
         "src/lib/realtime.ts",
-        "src/lib/references/bible.ts",
-        "src/lib/references/contract.ts",
         "src/lib/references/evidence.ts",
-        "src/lib/references/hymns.ts",
         "src/lib/references/otb.ts",
-        "src/lib/references/resolver.ts",
-        "src/lib/references/standardWorks.ts",
         "src/lib/scriptureSources.ts",
         "src/lib/scriptureUpdateJob.ts",
         "src/lib/session.ts",
@@ -31543,10 +31536,8 @@
         "src/lib/streak.ts",
         "src/lib/streakContinuation.ts",
         "src/lib/studyContent/cfm2026Adapter.ts",
-        "src/lib/studyContent/cfm2026Import.ts",
         "src/lib/studyContent/cfm2026Manifest.ts",
         "src/lib/studyContent/cfm2027Manifest.ts",
-        "src/lib/studyContent/cfmCourses.ts",
         "src/lib/studyContent/cfmMedia.ts",
         "src/lib/studyContent/cfmPersonalFixture.ts",
         "src/lib/studyContent/cfmProgramme.ts",
@@ -31559,7 +31550,6 @@
         "src/lib/studyContent/exercisePlan.ts",
         "src/lib/studyContent/exerciseSource.ts",
         "src/lib/studyContent/fixtureAdapter.ts",
-        "src/lib/studyContent/imports.ts",
         "src/lib/studyContent/manifest.ts",
         "src/lib/studyContent/mediaDiagnostic.ts",
         "src/lib/studyContent/originalMedia.ts",
@@ -31570,9 +31560,7 @@
         "src/lib/studyContent/pilotReadings.ts",
         "src/lib/studyContent/policy.ts",
         "src/lib/studyContent/readStatus.ts",
-        "src/lib/studyContent/readingPosition.ts",
         "src/lib/studyContent/readingPositionContract.ts",
-        "src/lib/studyContent/readingVisitProof.ts",
         "src/lib/studyContent/revisions.ts",
         "src/lib/studyContent/schema.ts",
         "src/lib/studyContent/sourceApproval.ts",
@@ -81411,7 +81399,7 @@
     },
     {
       "file": "src/components/admin/CfmRecoveryControl.tsx",
-      "sha256": "0e1f146342b7bcd248b533193e242a3bb7d2665a619dd67848efedb9b4e7fa52",
+      "sha256": "0276e25e3ebd2d26f985df22e4f7733f575b06c1ceb9a5b9438f2c699967e84e",
       "boundary": "client",
       "imports": [
         "@/components/ConfirmProvider",
@@ -86393,6 +86381,7 @@
     "tests/cfm-exercises.browser.mjs",
     "tests/cfm-exercises.integration.test.ts",
     "tests/cfm-exercises.test.ts",
+    "tests/cfm-image-refresh.test.mjs",
     "tests/cfm-managed.test.ts",
     "tests/cfm-participation.test.ts",
     "tests/cfm-personal-preference.test.ts",

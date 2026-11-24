@@ -4112,26 +4112,19 @@ export const es: PartialMessages = {
     }
   },
   cfmRecovery: {
-    "title": "Restaurar CFM 2026 con seguridad",
-    "description": "La comprobación es de solo lectura. Las instantáneas de importación validadas tienen prioridad para los originales. La preparación solo puede restaurar esos archivos originales y crear borradores. Se conservan las publicaciones y el progreso.",
-    "check": "1. Ver plan de restauración (solo lectura)",
-    "published": "Publicado",
     "source": "Ver fuente oficial",
-    "original": "Huella original",
-    "candidate": "Sustitución revisada",
-    "snapshot": "Instantánea original de importación",
-    "ORIGINAL_VALID": "Original válido en el volumen",
-    "ORIGINAL_SNAPSHOT": "Original en instantánea validada",
-    "REVIEW_REQUIRED": "Original no encontrado — revisión de medios necesaria",
-    "review": "He revisado imágenes oficiales, vínculos con las lecciones, sumas de comprobación y dimensiones. Apruebo solo estos medios de sustitución como borradores. Sin los archivos antiguos no se puede demostrar igualdad de píxeles.",
-    "prepare": "2. Restaurar originales y preparar borradores",
-    "confirm": "¿Ejecutar el plan de restauración de CFM 2026? Se pueden restaurar medios originales; las sustituciones solo se registran como borradores. No se publica ni se hace visible nada.",
-    "after": "Después, comprueba los borradores en Publicaciones de lecciones de estudio. Publicar, habilitar la colección y hacerla visible son acciones separadas. Un error puede dejar borradores parciales; actualiza el plan antes de reanudar manualmente.",
-    "publications": "Abrir Publicaciones de lecciones de estudio"
+    "title": "Actualizar imágenes de CFM",
+    "description": "La comprobación solo lee archivos existentes. Actualizar descarga las imágenes actuales de la fuente oficial. Solo las descargas válidas sustituyen los enlaces existentes. Lecciones, publicaciones y progreso no cambian.",
+    "check": "1. Comprobar imágenes existentes",
+    "current": "Imágenes guardadas válidas",
+    "DOWNLOAD_REQUIRED": "Se necesita descargar",
+    "prepare": "2. Descargar las imágenes de nuevo",
+    "confirm": "¿Descargar de nuevo las imágenes CFM existentes? Las imágenes oficiales válidas pueden sustituir las anteriores. Las descargas fallidas conservan los archivos existentes. No se importarán ni publicarán lecciones.",
+    "after": "El registro informa por separado de imágenes actualizadas y conservadas. Puedes reintentarlo manualmente; lecciones, textos, publicaciones y progreso no cambian."
 },
   "adminReseed": {
     "title": "Obtener contenido nuevo",
-    text: "Obtiene nuevos pódcasts, contenido FSY y otras novedades. CFM solo añade lecciones que faltan; las completas no cambian. Las nuevas lecciones oficiales pueden publicarse automáticamente tras validarse si está habilitado. La restauración de medios y las revisiones requieren la revisión separada de abajo. Los textos, ejercicios y audio de capítulos usan Actualizar fuentes de las Escrituras. Se conservan usuarios y progreso.",
+    text: "Obtiene nuevos pódcasts, FSY y otros contenidos. CFM añade las lecciones que faltan y actualiza las imágenes de la fuente oficial; las descargas fallidas conservan los archivos. Las nuevas lecciones pueden publicarse tras validarse si el ajuste existente está activo. Abajo se pueden actualizar solo las imágenes sin importar ni publicar lecciones. Textos, ejercicios y audio de capítulos usan Actualizar fuentes. Se conservan usuarios y progreso.",
     "failed": "Error al obtener el contenido nuevo.",
     "done": "Listo: se obtuvo el contenido nuevo."
   },

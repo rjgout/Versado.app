@@ -132,7 +132,7 @@ export function studyHttpsTransport(
 export async function downloadStudyImage(
   source: string,
   options: StudyDownloadOptions,
-  expectedChecksum: string,
+  expectedChecksum: string | undefined,
 ) {
   const store = await studyStorage();
   const controller = new AbortController(),

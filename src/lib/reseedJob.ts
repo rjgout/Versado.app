@@ -1,11 +1,9 @@
-import { studyProgramReview } from "@/lib/studyContent/programReview";
 import { withContentUpdateRun } from "@/lib/contentUpdateRun";
 import {
   importAllCfmDrafts,
-  importCfmDrafts,
 } from "@/lib/studyContent/cfm2026Import";
 import { autoPublishCfmVolume } from "@/lib/studyContent/cfmAutoPublish";
-import { CFM_SOURCES, CFM_SOURCE_2026 } from "@/lib/studyContent/cfmSources";
+import { CFM_SOURCES } from "@/lib/studyContent/cfmSources";
 import { requireCfmApproval } from "@/lib/studyContent/sourceApproval";
 import {
   StudyPublishingError,
@@ -109,40 +107,9 @@ export function startReseedJob(
               study.recovery.planHash,
               study.recovery.reviewedMedia,
             );
-            await restoreCfmOriginals(actor, prisma, plan, (line) =>
-              logStudy(line),
-            );
-            const result = await importCfmDrafts(actor, CFM_SOURCE_2026, {
-              client: prisma,
-              mode: "append-only",
-              recovery: true,
-              reviewedMedia: study.recovery.reviewedMedia,
-              revisionKeys: plan.revisionKeys,
-              progress: (current, total, label) => {
-                currentJob.progress = {
-                  current,
-                  total,
-                  label,
-                  language: "nl",
-                  work: CFM_SOURCE_2026.manifest.workKey,
-                };
-              },
-            });
-            const review = await studyProgramReview(
-              actor,
-              CFM_SOURCE_2026.volume.collectionId,
-              prisma,
-            );
-            publicationPartial = review.blocked > 0 || review.missing > 0;
-            for (const lesson of review.lessons)
-              for (const issue of lesson.issues)
-                if (issue.diagnostic) logStudy(issue.diagnostic);
-            logStudy(
-              `CFM 2026 voorcontrole: ${review.published} gepubliceerd, ${review.ready} gereed als concept, ${review.blocked} geblokkeerd, ${review.missing} ontbrekend.`,
-            );
-            logStudy(
-              `CFM 2026: ${result.importedLessons} lessen aanwezig, ${result.skippedLessons} ongewijzigd overgeslagen. Alleen concepten voorbereid; niets gepubliceerd of zichtbaar gemaakt. Controleer en publiceer afzonderlijk via Studielespublicaties.`,
-            );
+            const report=await restoreCfmOriginals(actor,prisma,plan,logStudy);
+            publicationPartial=report.some(r=>r.status==="retained");
+            logStudy("Alleen CFM-afbeeldingen vernieuwd; geen lessen geïmporteerd, revisies gewijzigd of inhoud gepubliceerd. Mislukte downloads behouden hun bestaande koppelingen en bestanden.");
             return;
           }
           // Alle geregistreerde jaargangen, chronologisch en idempotent; daarna per jaargang de automatische publicatie van
@@ -150,6 +117,8 @@ export function startReseedJob(
           // mislukte jaargang stopt de volgende niet en laat reeds gepubliceerde lessen ongemoeid.
           let workKey = CFM_SOURCES[0].manifest.workKey;
           const results = await importAllCfmDrafts(study.actor, {
+            refreshImages:true,
+            mediaRefreshReport:report=>{publicationPartial||=report.some(r=>r.status==="retained");logStudy(`CFM-afbeeldingen: ${report.filter(r=>r.status==="updated").length} gecontroleerd, ${report.filter(r=>r.status==="retained").length} behouden na fout.`);},
             client: prisma,
             mode: "append-only",
             onVolume: (volume) => {
@@ -178,7 +147,7 @@ export function startReseedJob(
             partialResult = true;
             if (result.report.allPublished) {
               logStudy(
-                `CFM ${result.year}: ${result.report.skippedLessons} reeds gepubliceerde lessen ongewijzigd overgeslagen; geen downloads, herimport of publicatie.`,
+                `CFM ${result.year}: ${result.report.skippedLessons} reeds gepubliceerde lessen ongewijzigd overgeslagen; geen herimport van lessen of nieuwe publicatie.`,
               );
               continue;
             }

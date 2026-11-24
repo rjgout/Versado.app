@@ -115,7 +115,7 @@ verschijnen of verdwijnen van een jaargang en het archief deze rijen niet wijzig
 2. **Bron** (`cfmSources.ts`): een `CfmVolumeSource` met het manifest (officiële weekdatums, `cfmXXXXManifest.ts`), de
    adapteridentiteit (`cfm-<jaar>-<taal>-v1`), de gegevensmap `data/study-content/cfm-<jaar>-<taal>/` (gepinde `source/*.json`,
    `source-lock.json`, `media-lock.json`), het schriftuurprofiel (of `null`, zie §7) en de goedkeuringsbestanden.
-3. Er is geen datamodelmigratie, geen nieuwe cursus en geen nieuwe kiezerkeuze nodig. De collectie blijft standaard
+3. Er is geen nieuw datamodel, nieuwe cursus of kiezerkeuze nodig. Breid voor dynamische afbeeldingen ook expliciet de bestaande database-allowlist van CFM-jaargangen uit. De collectie blijft standaard
    verborgen (`visibleToUsers=false`, `DRAFT`) tot beheer haar zichtbaar maakt (docs/CONTENT-AVAILABILITY.md).
 4. Importeren en publiceren gaat via **Adminbackend → Content opnieuw laden** (zie §8); nooit via de terminal als normale
    beheerworkflow.
@@ -291,7 +291,7 @@ Nederlandse pagina. Ondertitels zijn niet beschikbaar in de MP4-bronnen.
 ## 12. Back-up en herstel
 
 Voor de uitrol: back-up van de database (`docs/DEPLOY-SYNOLOGY.md`, *Back-ups*) en de studiemediamap (`STUDY_MEDIA_DIR`).
-*Content opnieuw laden* wijzigt geen gebruikersgegevens en maakt alleen nieuwe, onveranderlijke revisies; een rollback van de
+*Content opnieuw laden* wijzigt geen gebruikersgegevens en maakt voor lesinhoud alleen nieuwe, onveranderlijke revisies; afbeeldingen volgen de hieronder beschreven afzonderlijke vervangingsregels. een rollback van de
 applicatie laat gepubliceerde revisies staan (publicatiepointers zijn terug te zetten met de bestaande `ROLLBACK`-actie per les).
 Archiveren verwijdert niets: het is een weergavegrens op datum.
 
@@ -305,9 +305,13 @@ Archiveren verwijdert niets: het is een weergavegrens op datum.
 - Er is geen globale CSP (§11).
 - De 2026-integratietest met echte server (`test:cfm-2026:integration`) is hier niet lokaal te draaien; CI is de uitslag.
 
-### Gerichte mediareparatie en append-only updates
+### Dynamische afbeeldingen en append-only lesupdates
 
-Zie [CFM veilig herstellen](CFM-VEILIG-HERSTEL.md). De gewone beheerupdate voegt ontbrekende lessen toe en slaat
-complete bestaande lessen over. Bestaande publicaties worden niet automatisch door nieuwe conceptrevisies vervangen;
-voorbereide herstelconcepten vereisen altijd afzonderlijke beoordeling en publicatie. Dit verandert geen lesidentiteit,
-archiefgrens of persoonlijke studievoortgang. De actieve bronpins worden niet automatisch bijgewerkt.
+Zie [CFM-afbeeldingen vernieuwen](CFM-VEILIG-HERSTEL.md). Volgens het eigenaarbesluit
+van 24 november 2026 mogen actuele, geldige officiële afbeeldingen bij downloaden
+worden vervangen. Historische afbeeldingsbytes terugvinden is geen voorwaarde meer.
+De bestaande aparte beheeractie kan uitsluitend afbeeldingen vernieuwen, zonder
+lesimport of publicatie. De gewone beheerupdate voegt ontbrekende lessen toe en
+vernieuwt afbeeldingen; complete lesteksten, revisies en gebruikersvoortgang blijven
+behouden. OTB- en CFM-tekstintegriteit blijven exact gecontroleerd. Normale CI gebruikt
+synthetische afbeeldingen; echte download/vervanging worden afzonderlijk getest.

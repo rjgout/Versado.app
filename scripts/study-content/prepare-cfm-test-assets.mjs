@@ -1,4 +1,6 @@
-// Alleen gepinde publieke testbronbestanden; geen database of productie-import.
+// Synthetische CFM-afbeeldingen en exact gepinde OTB-teksten; geen database of productie-import.
+import {cfmTestImage} from "../../tests/fixtures/cfm-test-image.mjs";
+import {randomUUID} from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { createHash } from "node:crypto";
@@ -17,12 +19,6 @@ const index = JSON.parse(
   await fs.readFile("data/study-content/cfm-2026-nl/otb-index.json", "utf8"),
 );
 const entries = [
-  ...media.map((a) => ({
-    file: "media/" + a.file,
-    url: a.url,
-    sha: a.checksum,
-    git: false,
-  })),
   ...index.chapters.map((c) => ({
     file: "otb/" + c.sourceFile,
     url: `https://raw.githubusercontent.com/OpenTranslationBible/open-bible/${index.upstreamCommit}/lang/nl-NL/${encodeURI(c.sourceFile)}`,
@@ -60,6 +56,15 @@ async function pinnedResponse(source) {
   throw Error("CFM_TEST_REDIRECT_LIMIT");
 }
 await fs.mkdir(root, { recursive: true });
+await fs.mkdir(path.join(root,"media"),{recursive:true});
+for(const asset of media) {
+  if(!/^[A-Za-z0-9_.-]+$/.test(asset.file))throw Error("CFM_FIXTURE_PATH");
+  const temporary=path.join(root,"media",`.fixture-${randomUUID()}.part`);
+  try {
+    await fs.writeFile(temporary,await cfmTestImage(asset),{flag:"wx",mode:0o600});
+    await fs.rename(temporary,path.join(root,"media",asset.file));
+  } finally {await fs.unlink(temporary).catch(()=>{});}
+}
 let next = 0;
 // Alle afwijkingen worden verzameld en met bestand, bron en hashes gemeld: de
 // integriteitscontrole blijft streng, maar een bronwijziging is zo in één run
@@ -115,7 +120,7 @@ if (failures.length) {
 }
 console.log(
   JSON.stringify({
-    pinnedMedia: media.length,
+    syntheticMedia: media.length,
     pinnedOtbChapters: index.chapters.length,
     productionTouched: false,
   }),
