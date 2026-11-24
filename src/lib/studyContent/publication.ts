@@ -1,3 +1,4 @@
+import { cfmDynamicMediaBinding } from "./cfmSources";
 import { requireFsyPublicationSource } from "./fsyConversion";
 import { z } from "zod";
 import { cfmDisplayOnlyKeys } from "./cfmReview";
@@ -142,7 +143,8 @@ export async function publishStudyRevision(
         currentRun.validatedItems !== currentRun.foundItems
       )
         throw new StudyPublishingError("INCOMPLETE");
-      if (run.adapterName === "fsy-legacy-v1") await requireFsyPublicationSource(db, currentRun, edition.id);
+      if (run.adapterName === "fsy-legacy-v1")
+        await requireFsyPublicationSource(db, currentRun, edition.id);
       const snapshot = currentRun.snapshot as unknown as StudySnapshot;
       if (
         snapshotIdentity(snapshot) !== currentRun.sourceHash ||
@@ -181,19 +183,18 @@ export async function publishStudyRevision(
             kind: "PUBLISH_DISPLAY_ONLY",
           },
         }));
-      const displayOnly =
-        isCfmAdapter(run.adapterName)
-          ? historicDisplayOnly
-            ? revision.references
-                .filter((r) => r.diagnosis === "UNRESOLVED")
-                .map((r) => r.occurrenceKey)
-            : await cfmDisplayOnlyKeys(
-                source.sourceKey,
-                content,
-                snapshot.sourceVersion,
-                cfmSourceOfAdapter(run.adapterName),
-              )
-          : [];
+      const displayOnly = isCfmAdapter(run.adapterName)
+        ? historicDisplayOnly
+          ? revision.references
+              .filter((r) => r.diagnosis === "UNRESOLVED")
+              .map((r) => r.occurrenceKey)
+          : await cfmDisplayOnlyKeys(
+              source.sourceKey,
+              content,
+              snapshot.sourceVersion,
+              cfmSourceOfAdapter(run.adapterName),
+            )
+        : [];
       const inventory = studyDocumentInventory(content.body);
       // Een bron kan zonder alttekst als concept worden behouden, maar niet
       // zonder afzonderlijke inhoudelijke beoordeling worden gepubliceerd.
@@ -209,20 +210,27 @@ export async function publishStudyRevision(
         const binding = revision.media.find(
           (m) => m.mediaKey === figure.mediaKey,
         );
-        if (
-          !binding ||
-          binding.media.status !== "READY" ||
-          binding.media.width !== figure.width ||
-          binding.media.height !== figure.height
-        )
+        if (!binding || binding.media.status !== "READY")
           throw new StudyPublishingError("MEDIA");
         const pin = content.sourceMetadata.mediaManifest?.find(
           (m) => m.mediaKey === figure.mediaKey,
         );
+        const dynamic = Boolean(
+          pin &&
+          cfmDynamicMediaBinding(
+            edition.workKey,
+            pin.checksum,
+            binding.media.sourceMetadata,
+            binding.media.checksum,
+          ),
+        );
         if (
           !pin ||
-          pin.checksum !== binding.media.checksum ||
-          pin.mimeType !== binding.media.mimeType ||
+          (!dynamic &&
+            (binding.media.width !== figure.width ||
+              binding.media.height !== figure.height)) ||
+          (pin.checksum !== binding.media.checksum && !dynamic) ||
+          (pin.mimeType !== binding.media.mimeType && !dynamic) ||
           pin.rightsHash !== studyObjectHash(binding.media.rightsMetadata)
         )
           throw new StudyPublishingError("MEDIA");

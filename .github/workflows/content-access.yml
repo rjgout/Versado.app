@@ -503,7 +503,7 @@ jobs:
           npx tsc --noEmit
           npm run test:cfm-2026
           npm run build
-      - name: Gepinde publieke OTB- en mediabestanden voorbereiden
+      - name: Synthetische CFM-afbeeldingen en gepinde OTB-teksten voorbereiden
         run: node scripts/study-content/prepare-cfm-test-assets.mjs
       - name: Browser klaarzetten
         run: |
@@ -544,7 +544,7 @@ jobs:
       - run: npm ci
       - run: npm run db:generate
       - run: npm run build
-      - name: Gepinde publieke OTB- en mediabestanden voorbereiden
+      - name: Synthetische CFM-afbeeldingen en gepinde OTB-teksten voorbereiden
         run: node scripts/study-content/prepare-cfm-test-assets.mjs
       - name: Integratietest op eigen verse database
         run: node scripts/content-architecture/test-access-isolated.mjs --cfm-suite=${{ matrix.suite }}

@@ -84,7 +84,13 @@ export const CFM_SOURCE_2026: CfmVolumeSource = {
   mediaLock: mediaLock2026,
   referenceReview: referenceReview2026,
   scripture: OT_SCRIPTURE,
-  approvalFiles: ["source-lock.json", "media-lock.json", "otb-index.json", "reference-source-checks.json", "reference-review.json"],
+  approvalFiles: [
+    "source-lock.json",
+    "media-lock.json",
+    "otb-index.json",
+    "reference-source-checks.json",
+    "reference-review.json",
+  ],
 };
 
 /**
@@ -108,12 +114,71 @@ export const CFM_SOURCE_2027: CfmVolumeSource = {
 };
 
 /** Alle jaargangen met een gepinde officiële bron, chronologisch. Een jaargang zonder bron staat hier (nog) niet. */
-export const CFM_SOURCES: readonly CfmVolumeSource[] = [CFM_SOURCE_2026, CFM_SOURCE_2027];
+export const CFM_SOURCES: readonly CfmVolumeSource[] = [
+  CFM_SOURCE_2026,
+  CFM_SOURCE_2027,
+];
 
-export const cfmSourceOfWork = (workKey: string | null | undefined) => CFM_SOURCES.find((s) => s.manifest.workKey === workKey);
-export const cfmSourceOfAdapter = (adapter: string | null | undefined) => (adapter ? CFM_SOURCES.find((s) => s.adapter === adapter) : undefined);
+export const cfmSourceOfWork = (workKey: string | null | undefined) =>
+  CFM_SOURCES.find((s) => s.manifest.workKey === workKey);
+export const cfmSourceOfAdapter = (adapter: string | null | undefined) =>
+  adapter ? CFM_SOURCES.find((s) => s.adapter === adapter) : undefined;
 /** Is dit een geregistreerde officiële CFM-adapter? Geen naamherkenning: alleen een bekende, gepinde bron telt. */
-export const isCfmAdapter = (adapter: string | null | undefined) => cfmSourceOfAdapter(adapter) !== undefined;
+export const isCfmAdapter = (adapter: string | null | undefined) =>
+  cfmSourceOfAdapter(adapter) !== undefined;
 /** Exacte identiteit: werk, uitgavefamilie en taal moeten allemaal kloppen. */
-export const cfmSourceOfCollection = (c: { work: string | null; editionKey: string; language: string }) =>
-  CFM_SOURCES.find((s) => s.manifest.workKey === c.work && s.manifest.editionKey === c.editionKey && s.manifest.language === c.language);
+export const cfmSourceOfCollection = (c: {
+  work: string | null;
+  editionKey: string;
+  language: string;
+}) =>
+  CFM_SOURCES.find(
+    (s) =>
+      s.manifest.workKey === c.work &&
+      s.manifest.editionKey === c.editionKey &&
+      s.manifest.language === c.language,
+  );
+
+/** Historische afbeeldingshashes zijn uitsluitend bronregistratie/diagnose.
+ * Alleen expliciet geregistreerde CFM-bronnen mogen dynamische bytes leveren;
+ * tekst, rechten en alle andere programma’s blijven exact gepind. */
+export function cfmMediaSourceRegistered(
+  workKey: string,
+  metadata: unknown,
+): boolean {
+  if (!metadata || typeof metadata !== "object" || Array.isArray(metadata))
+    return false;
+  const value = metadata as Record<string, unknown>;
+  return Boolean(
+    CFM_SOURCES.find((s) => s.manifest.workKey === workKey)?.mediaLock.some(
+      (a) => a.url === value.sourceKey,
+    ) &&
+    CFM_SOURCES.find((s) => s.adapter === value.adapter)?.mediaLock.some(
+      (a) => a.url === value.sourceKey,
+    ),
+  );
+}
+export function cfmDynamicMediaBinding(
+  workKey: string,
+  pinChecksum: string,
+  metadata: unknown,
+  currentChecksum?: string,
+): boolean {
+  if (!cfmMediaSourceRegistered(workKey, metadata)) return false;
+  const value = metadata as Record<string, unknown>;
+  const source = CFM_SOURCES.find((s) => s.manifest.workKey === workKey);
+  const previous = value.cfmPreviousChecksums;
+  return Boolean(
+    pinChecksum === currentChecksum ||
+    source?.mediaLock.some(
+      (asset) =>
+        asset.url === value.sourceKey && asset.checksum === pinChecksum,
+    ) ||
+    (Array.isArray(previous) &&
+      previous.length <= 4096 &&
+      previous.every(
+        (hash) => typeof hash === "string" && /^[a-f0-9]{64}$/.test(hash),
+      ) &&
+      previous.includes(pinChecksum)),
+  );
+}

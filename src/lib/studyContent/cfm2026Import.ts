@@ -26,7 +26,7 @@ import {
   StudyPublishingError,
 } from "./policy";
 import {
-  resolveCfmMedia,
+  resolveCfmMedia,refreshCfmImages,
   CFM_MEDIA_DRAFT_VERSION,
   type CfmMediaCandidate,
 } from "./cfmMedia";
@@ -116,6 +116,8 @@ export async function ensureCfmDraftCollection(
 export interface CfmImportOptions {
   mediaBytes?: (asset: CfmMedia) => Promise<Buffer>;
   mode?: "append-only";
+  refreshImages?:boolean;
+  mediaRefreshReport?:(report:Awaited<ReturnType<typeof refreshCfmImages>>)=>void;
   recovery?: boolean;
   reviewedMedia?: boolean;
   revisionKeys?: readonly string[];
@@ -227,6 +229,7 @@ export async function importCfmDrafts(
         const old = asset.checksum;
         asset.checksum = resolved.asset.checksum;
         asset.byteSize = resolved.asset.byteSize;
+        asset.mimeType = resolved.asset.mimeType;
         cache.set(asset.checksum, resolved.bytes);
         // Bij gedeelde verwijzingen wordt dezelfde expliciete bronkeuze opnieuw gebruikt.
         if (old !== asset.checksum)
@@ -235,6 +238,7 @@ export async function importCfmDrafts(
               if (other.url === asset.url && other.checksum === old) {
                 other.checksum = asset.checksum;
                 other.byteSize = asset.byteSize;
+                other.mimeType = asset.mimeType;
               }
       }
     } catch (error) {
@@ -351,6 +355,7 @@ export async function importAllCfmDrafts(
   )) {
     options.onVolume?.(volume);
     try {
+      if(options.refreshImages){const report=await refreshCfmImages(actor,options.client??prisma,volume,options.mediaBytes);options.mediaRefreshReport?.(report);}
       results.push({
         year: volume.volume.year,
         ok: true,

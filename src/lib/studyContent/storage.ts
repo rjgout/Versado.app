@@ -1,3 +1,4 @@
+import {CFM_SOURCES,cfmMediaSourceRegistered} from "./cfmSources";
 import fs from "node:fs/promises";
 import { constants } from "node:fs";
 import path from "node:path";
@@ -283,9 +284,11 @@ export function validateStudyMediaMetadata(media: {
     z.object({
       sourceKey: studySourceKeySchema,
       adapter: z.string().min(1).max(128),
+      cfmPreviousChecksums:z.array(z.string().regex(/^[a-f0-9]{64}$/)).max(4096).optional(),
     })
       .strict()
       .parse(media.sourceMetadata);
+    if((media.sourceMetadata as {cfmPreviousChecksums?:unknown}).cfmPreviousChecksums&&!CFM_SOURCES.some(s=>cfmMediaSourceRegistered(s.manifest.workKey,media.sourceMetadata)))throw new Error();
     studyRightsMetadataSchema.parse(media.rightsMetadata);
     if (media.sourceUrl) safeStudyUrlSchema.parse(media.sourceUrl);
   } catch {
