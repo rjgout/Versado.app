@@ -14,7 +14,7 @@ import { NativeSessionClient } from "../../src/lib/native/client";
 const key = new URLSearchParams(location.search).get("device") ?? "device-a";
 const storage = `/test-keychain/${encodeURIComponent(key)}`;
 const bridged=new URLSearchParams(location.search).get("folderBridge")==="1";
-const transport=bridged?nativeDirectTransport({
+const transport:typeof fetch=bridged?nativeDirectTransport({
   async accessStatus(){return {enabled:true,configured:true};},
   async enrollAccess(){return {changed:false};},async clearAccess(){return {changed:false};},
   async accessRequest({path,method,authorization,body}){
@@ -22,7 +22,7 @@ const transport=bridged?nativeDirectTransport({
     if(!response.headers.get("Content-Type")?.startsWith("application/json"))throw new Error("access_invalid_response");
     return {status:response.status,body:await response.text()};
   },
-}):fetch;
+}):((input,init)=>fetch(input,init));
 const client = new NativeSessionClient(bridged?TEST_API_ORIGIN:location.origin, {
   async read() { return (await (await fetch(storage)).json()).value; },
   async write(value) { const res=await fetch(storage,{method:"PUT",body:value});if(!res.ok)throw Error("synthetic secure storage failure"); },
