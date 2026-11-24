@@ -60,7 +60,13 @@ const gameMediaRoutes = [
 ];
 export const gameRoutes = [...gamePageRoutes, ...gameApiRoutes, ...gameMediaRoutes];
 
+export const studyFolderRoutes = [
+  ['POST', 'study-folder/(?:query|annotations)'],
+  ['GET', `study-folder/(?:bookmark|highlight|note)/${id}/(?:annotations|passage)`],
+];
+
 export const routes = [
+  ...studyFolderRoutes,
   ['GET', '(?:capabilities|me|today|today-overview|profile|content-context|courses)'],
   ['GET', `(?:chapters|study-media)/${id}`],
   ['GET', `courses/${id}/(?:path|weeks|archive)`],

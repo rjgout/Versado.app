@@ -24,7 +24,7 @@ const front=createServer(async(req,res)=>{
   const chunks=[];for await(const chunk of req)chunks.push(chunk);const body=Buffer.concat(chunks);
   if(url.pathname.startsWith("/api/v1/native/")){
    const record={path:url.pathname,method:req.method};if(req.method==="POST"&&url.pathname.endsWith("study-folder/annotations"))record.actionId=JSON.parse(body).action.actionId;calls.push(record);
-   if(queryFailure&&url.pathname.endsWith("study-folder/query")){res.writeHead(503,{"Content-Type":"application/json"});res.end('{"error":"native_request_failed"}');return;}
+   if(queryFailure&&url.pathname.endsWith("study-folder/query")){res.writeHead(queryFailure==="edge"?404:503,{"Content-Type":queryFailure==="edge"?"text/html":"application/json"});res.end(queryFailure==="edge"?"<html>not found</html>":'{"error":"native_request_failed"}');return;}
    const response=await fetch(`${backend}${req.url}`,{method:req.method,headers:{Origin:"capacitor://localhost","X-Versado-Client":"native-v1","x-real-ip":"127.0.0.88",...(req.headers.authorization?{Authorization:req.headers.authorization}:{}),...(req.headers["content-type"]?{"Content-Type":req.headers["content-type"]}:{})},body:["GET","HEAD"].includes(req.method)?undefined:body});
    let data=await response.text();record.status=response.status;
    if(noCapability&&url.pathname.endsWith("/capabilities")){const value=JSON.parse(data);value.features=value.features.filter(v=>v!=="study-folder-v1");data=JSON.stringify(value);}
@@ -52,14 +52,25 @@ try{
   const user=await f.account(language),items=await populate(user),t=getT(language),context=await browser.newContext({viewport:{width:390,height:844},locale:language}),page=await context.newPage(),errors=[];page.on("pageerror",error=>errors.push(error.message));
   const before=await prisma.user.findUniqueOrThrow({where:{id:user.id}});
   const capabilitiesReady=page.waitForResponse(response=>response.url().endsWith("/api/v1/native/capabilities"));
-  await page.goto(`${origin}/?material=ios&accountLanguage=1&device=folder-${user.id}#/content`);
+  await page.goto(`${origin}/?material=ios&folderBridge=1&accountLanguage=1&device=folder-${user.id}#/content`);
   await capabilitiesReady;await page.getByText(t("nativeFoundation.loading"),{exact:true}).first().waitFor({state:"hidden"});
   await page.getByRole("link",{name:t("nativeFoundation.login"),exact:true}).click();await login(page,user,language);
   await page.locator('a[href="#/content"]:visible').first().click();
   const card=page.locator("[data-study-folder-entry]");await card.waitFor();assert.equal(await page.locator("[data-study-folder-link]").getAttribute("href"),"#/study-folder");
   assert.ok(await page.evaluate(()=>{const card=document.querySelector("[data-study-folder-entry]"),languages=document.querySelector("[data-content-language]");return Boolean(card.compareDocumentPosition(languages)&Node.DOCUMENT_POSITION_FOLLOWING);}));
   const selections=calls.filter(c=>c.path.endsWith("/content-context")&&c.method==="POST").length;
-  await page.locator("[data-study-folder-link]").click();await page.locator("[data-folder-item]").first().waitFor();assert.equal(calls.filter(c=>c.path.endsWith("/content-context")&&c.method==="POST").length,selections);
+  if(language==="nl")queryFailure="edge";
+  await page.locator("[data-study-folder-link]").click();
+  if(language==="nl"){
+    await page.locator("[data-folder-load-error]").waitFor();
+    assert.equal(await page.locator('[role="alert"]').count(),1,"bridge failure has one owner, no global device alert");
+    assert.equal(await page.getByRole("button",{name:t("studyFolder.retry"),exact:true}).count(),1);
+    assert.ok((await page.locator("[data-folder-load-error]").innerText()).includes(t("nativeStudyFolder.backendUnavailable")));
+    queryFailure=true;await page.getByRole("button",{name:t("studyFolder.retry"),exact:true}).click();
+    await page.waitForTimeout(350);assert.equal(await page.locator('[role="alert"]').count(),1);
+    queryFailure=false;await page.getByRole("button",{name:t("studyFolder.retry"),exact:true}).click();
+  }
+  await page.locator("[data-folder-item]").first().waitFor();assert.equal(calls.filter(c=>c.path.endsWith("/content-context")&&c.method==="POST").length,selections);
   const snapshot=await prisma.user.findUniqueOrThrow({where:{id:user.id}});for(const key of ["activeContentCollectionId","contentLanguage","contentSelectionVersion","xpTotal"])assert.equal(snapshot[key],before[key]);
   for(const width of [320,375,390,430])for(const dark of [false,true])for(const scale of [100,200]){
    await page.setViewportSize({width,height:844});await page.emulateMedia({colorScheme:dark?"dark":"light",reducedMotion:"reduce"});await page.evaluate(({dark,scale})=>{document.documentElement.classList.toggle("dark",dark);document.documentElement.style.fontSize=`${scale}%`;}, {dark,scale});
@@ -111,7 +122,7 @@ try{
    await page.locator('a[href="#/profile"]:visible').first().click();await page.locator('[data-profile-page]').waitFor();await logoutNativeProfile(page,t);await login(page,nextUser,language);
    await page.locator('a[href="#/content"]:visible').first().click();await page.locator('[data-study-folder-link]').click();await page.locator('[data-folder-empty]').waitFor();held.splice(0).forEach(finish=>finish());await page.waitForTimeout(300);assert.equal(await page.locator('[data-folder-item]').count(),0);assert.ok(!(await page.locator('body').innerText()).includes('Private study note'));
    // Old backends do not advertise an unusable entry.
-   noCapability=true;await page.goto(`${origin}/?material=ios&accountLanguage=1&device=folder-${user.id}&probe=older-backend#/content`);await page.locator('[data-content-language]').waitFor();assert.equal(await page.locator('[data-study-folder-entry]').count(),0);noCapability=false;
+   noCapability=true;await page.goto(`${origin}/?material=ios&folderBridge=1&accountLanguage=1&device=folder-${user.id}&probe=older-backend#/content`);await page.locator('[data-content-language]').waitFor();assert.equal(await page.locator('[data-study-folder-entry]').count(),0);noCapability=false;
   }
   assert.deepEqual(errors,[]);await context.close();
  }

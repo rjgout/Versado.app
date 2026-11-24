@@ -291,6 +291,7 @@ export const en: PartialMessages = {
   "active": "Active recording",
   "legacy": "Registrations; existing chapter audio is preserved."
 },
+  nativeStudyFolder: { backendUnavailable: "The study folder service returned no valid response. Try again. If this continues, ask the owner to check the backend and API proxy." },
   nativeAccess: {
   "title": "Internal device access",
   "help": "Add Cloudflare access for this test device in the secure system dialog. Replacing or clearing access signs you out of Versado.",

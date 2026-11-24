@@ -6,7 +6,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
-import { render, routes, gameRoutes } from "../scripts/native/render-test-api-proxy.mjs";
+import { render, routes, gameRoutes, studyFolderRoutes } from "../scripts/native/render-test-api-proxy.mjs";
 import { clientRequests, rejectedRequests, searchRequests } from "./fixtures/native-test-api-game-cases.mjs";
 import { accessRouteAllowed, nativeAccessTransport, TEST_API_ORIGIN } from "../src/lib/native/access";
 import { nativeGamePathAllowed } from "../src/lib/native/gamesAccess";
@@ -73,7 +73,7 @@ test("de algemene beveiliging is niet verzwakt: % blijft alleen toegestaan voor 
   assert.equal(allowed("GET", "capabilities"), true); assert.equal(allowed("GET", "%63apabilities"), false); assert.equal(allowed("GET", "capabilities?token=secret"), false);
   assert.equal(allowed("POST", "realtime/session"), true);
   // Het aantal oorspronkelijke routes is ongewijzigd; alleen gameRoutes is toegevoegd.
-  assert.equal(legacyRoutes.length, 11);
+  assert.equal(legacyRoutes.length - studyFolderRoutes.length, 11);
 });
 
 test("de proxy antwoordt voor onbekende routes met een kale 404 (geen JSON, geen CORS-header); Swift classificeert dat als access_invalid_response", () => {

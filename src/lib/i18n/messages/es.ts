@@ -311,6 +311,7 @@ export const es: PartialMessages = {
   "active": "Grabación activa",
   "legacy": "Registros; se conserva el audio de capítulo existente."
 },
+  nativeStudyFolder: { backendUnavailable: "El servicio de la carpeta de estudio no devuelve una respuesta válida. Inténtalo de nuevo. Si continúa, pide al propietario que compruebe el backend y el proxy API." },
   nativeAccess: {
   "title": "Acceso interno del dispositivo",
   "help": "Añade el acceso de Cloudflare de este dispositivo de prueba en el diálogo seguro del sistema. Reemplazarlo o borrarlo cierra tu sesión de Versado.",
