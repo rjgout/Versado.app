@@ -51,7 +51,10 @@ gewijzigd; er zijn geen nieuwe tabellen, kolommen of opslagdiensten.
 `prepare-cfm-test-assets.mjs` genereert 723 deterministische synthetische
  afbeeldingsinputs; geen externe beeldendienst in gewone CI. De 929 OTB-hoofdstukken
 blijven exact op hun gepinde Git-blobhash gecontroleerd. Media-locks en OTB-/CFM-
-bronbestanden worden niet aangepast. De echte downloader wordt afzonderlijk getest.
+bronbestanden worden niet aangepast. De echte downloader wordt afzonderlijk getest. De uitsluitend lokale testserver levert
+ook voor de echte beheer-HTTP-route gecontroleerde HTTP-input. Deze transportinjectie
+wordt buiten de expliciete synthetische testdatabase/profielcombinatie geweigerd;
+productie en de HTTPS-/SSRF-controles krijgen geen omweg.
 
 De nieuwe migratie wordt in de gefaseerde contentrunner pas na de bestaande
 studie-/publicatietabellen toegepast. De Audio V2-runner bevat deze tabellen al in

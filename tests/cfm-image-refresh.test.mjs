@@ -208,3 +208,36 @@ test("alleen geregistreerde CFM-bronidentiteit kan dynamisch zijn; rechten en ov
     }),
   );
 });
+
+test("testservertransport wordt buiten de expliciete eigen synthetische database geweigerd", async () => {
+  const previous = {
+    DATABASE_URL: process.env.DATABASE_URL,
+    STUDY_PUBLICATION_PROFILE: process.env.STUDY_PUBLICATION_PROFILE,
+  };
+  globalThis.__versadoCfmImageTestTransport = {
+    transport: async () => {
+      throw Error("must not run");
+    },
+  };
+  try {
+    for (const change of [
+      {
+        DATABASE_URL: "postgresql://test:test@db:5432/bom",
+        STUDY_PUBLICATION_PROFILE: "synthetic-test",
+      },
+      {
+        DATABASE_URL:
+          "postgresql://test:test@127.0.0.1:5432/versado_content_access_test",
+        STUDY_PUBLICATION_PROFILE: "production",
+      },
+    ]) {
+      Object.assign(process.env, change);
+      await assert.rejects(currentCfmImage(assets[0]), /INVALID/);
+    }
+  } finally {
+    delete globalThis.__versadoCfmImageTestTransport;
+    for (const [key, value] of Object.entries(previous))
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+  }
+});

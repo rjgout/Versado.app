@@ -145,7 +145,7 @@ test("echte CFM-import, vervanging, publicatie en autorisatie behouden tekst, id
     folder = await fs.mkdtemp(
       path.join(process.cwd(), "data/study-content/.cfm-refresh-test-"),
     );
-  const pin = source.mediaLock[0],
+  const pin = source.mediaLock.find(asset => /[g-zG-Z]/.test(new URL(asset.url).pathname.split("/")[2])),
     lesson = source.manifest.lessons[0];
   const make = async (quality) =>
     sharp({

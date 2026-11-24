@@ -11,7 +11,7 @@ BEGIN
  AND (to_jsonb(NEW)-'sourceMetadata')=(to_jsonb(OLD)-'sourceMetadata')
  AND (NEW."sourceMetadata"-'cfmPreviousChecksums')=(OLD."sourceMetadata"-'cfmPreviousChecksums')
  AND OLD."sourceMetadata"->>'adapter' IN ('cfm-2026-nl-v1','cfm-2027-nl-v1')
- AND OLD."sourceMetadata"->>'sourceKey' ~ '^https://www[.]churchofjesuschrist[.]org/imgs/[a-f0-9]{32,64}/'
+ AND OLD."sourceMetadata"->>'sourceKey' ~ '^https://www[.]churchofjesuschrist[.]org/imgs/[A-Za-z0-9]{40}/'
  AND jsonb_typeof(NEW."sourceMetadata"->'cfmPreviousChecksums')='array' THEN
   IF jsonb_array_length(NEW."sourceMetadata"->'cfmPreviousChecksums')<=4096
   AND COALESCE(OLD."sourceMetadata"->'cfmPreviousChecksums','[]'::jsonb) <@ (NEW."sourceMetadata"->'cfmPreviousChecksums')
@@ -40,7 +40,7 @@ BEGIN
   AND previous."sourceMetadata"->>'adapter' IN ('cfm-2026-nl-v1','cfm-2027-nl-v1')
   AND replacement."sourceMetadata"->>'adapter' IN ('cfm-2026-nl-v1','cfm-2027-nl-v1')
   AND previous."sourceMetadata"->>'sourceKey'=replacement."sourceMetadata"->>'sourceKey'
-  AND previous."sourceMetadata"->>'sourceKey' ~ '^https://www[.]churchofjesuschrist[.]org/imgs/[a-f0-9]{32,64}/'
+  AND previous."sourceMetadata"->>'sourceKey' ~ '^https://www[.]churchofjesuschrist[.]org/imgs/[A-Za-z0-9]{40}/'
   AND previous."rightsMetadata"=replacement."rightsMetadata"
   AND replacement.width>=16 AND replacement.height>=16 AND replacement.width*replacement.height<=16000000
   AND previous."volumeId"=replacement."volumeId" THEN RETURN NEW; END IF;

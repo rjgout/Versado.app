@@ -13,9 +13,10 @@ import {
   readStudyMedia,
   validateStudyImage,
 } from "./storage";
-import { downloadStudyImage } from "./download";
+import { downloadStudyImage, type StudyDownloadOptions } from "./download";
 import {
   StudyPublishingError,
+  syntheticStudyEnvironment,
   requireStudyAdmin,
   studyObjectHash,
   type StudyAdmin,
@@ -116,6 +117,16 @@ export async function currentCfmImage(
 ) {
   if (!CFM_SOURCES.some((s) => s.mediaLock.some((a) => a.url === asset.url)))
     throw new StudyPublishingError("INVALID");
+  const testTransport = (
+    globalThis as typeof globalThis & {
+      __versadoCfmImageTestTransport?: Pick<
+        StudyDownloadOptions,
+        "resolve" | "transport"
+      >;
+    }
+  ).__versadoCfmImageTestTransport;
+  if (testTransport && !syntheticStudyEnvironment())
+    throw new StudyPublishingError("INVALID");
   const result = mediaBytes
     ? await (async () => {
         const bytes = await mediaBytes(asset);
@@ -126,7 +137,7 @@ export async function currentCfmImage(
       })()
     : await downloadStudyImage(
         asset.url,
-        { allowedHosts: ["www.churchofjesuschrist.org"] },
+        { ...testTransport, allowedHosts: ["www.churchofjesuschrist.org"] },
         undefined,
       );
   if (result.image.width < 16 || result.image.height < 16)

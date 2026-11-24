@@ -27572,7 +27572,7 @@
     },
     {
       "file": "src/lib/studyContent/cfmMedia.ts",
-      "sha256": "961c4e1b1c9e05b2e480bda29a49c3af971473ad34791f4767981358f32e66a3",
+      "sha256": "7350c5d22bc179954ffe8bfcb6ff780d8a4ca21c8b32b534ca8079fbb0478b48",
       "boundary": "context-dependent",
       "imports": [
         "../../../data/study-content/cfm-2026-nl/media-revision-candidates.json",
