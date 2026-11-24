@@ -13823,7 +13823,7 @@
     },
     {
       "file": "src/components/native/NativeStudyFolder.tsx",
-      "sha256": "ddb54d39612eb3ca986b828a76356af3f05733062eb757a0d5e327eed5b6fbba",
+      "sha256": "7ff34365d0915745fd74880a19ea08fcc9a53743033d5d438b64769911003c8f",
       "boundary": "client",
       "imports": [
         "@/components/ConfirmProvider",
@@ -15403,7 +15403,7 @@
     },
     {
       "file": "src/components/study-folder/StudyFolderClient.tsx",
-      "sha256": "6cfff698c1210a4de0e042b57c0bcb53a0ac52593e7fd1e6003690e69ea90744",
+      "sha256": "44f23b48b593b8a320014acd2191e0f6d02fcb528d767921a0f01e7fd48418b0",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -20767,7 +20767,7 @@
     },
     {
       "file": "src/lib/i18n/messages/de.ts",
-      "sha256": "a8483cf939c68cd9eabe86d7e1c439fa8b976ea9e1f7d4b0e1295dc5d201295b",
+      "sha256": "7b47f937f293c81444cfed49c6254b1702f0839e4721b3ac857f3b5e809590fb",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -20782,7 +20782,7 @@
     },
     {
       "file": "src/lib/i18n/messages/en.ts",
-      "sha256": "62d08a09b042ab9a16d3cf6b86de433914fcd132418c1570c622aef3c8da52db",
+      "sha256": "3beef7860e2f643bd33385d2ead1ad47968f41be7d4118a98c6fd713ad1a9ed7",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -20797,7 +20797,7 @@
     },
     {
       "file": "src/lib/i18n/messages/es.ts",
-      "sha256": "95a0be15d09c451a880ccf4381ff92710f5a1f569521eda3b088575aa7fb4a50",
+      "sha256": "b925d5f5de6147540482e1527e867e84df02c751c32492b927282916543ffbc7",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -20812,7 +20812,7 @@
     },
     {
       "file": "src/lib/i18n/messages/fr.ts",
-      "sha256": "13a31b2a20f26138489ef39dadc20bdab184a7993f1bcd4fdf113914bb18c08e",
+      "sha256": "7d493189d36b997d02bea1876accb4454c89dcab1e5c5169b942d9233230716f",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -20895,7 +20895,7 @@
     },
     {
       "file": "src/lib/i18n/messages/nl.ts",
-      "sha256": "e60203b3ef5ccfc87fdf49f2bae693296da95572e608d7d6c8dc404a60850be6",
+      "sha256": "5c98c8f7e562c341b3523d83174f4da5b161ac849e1b0d8ba10d650a78c16843",
       "boundary": "context-dependent",
       "imports": [
         "./kompas/nl"
@@ -83362,7 +83362,7 @@
     },
     {
       "file": "src/components/native/NativeStudyFolder.tsx",
-      "sha256": "ddb54d39612eb3ca986b828a76356af3f05733062eb757a0d5e327eed5b6fbba",
+      "sha256": "7ff34365d0915745fd74880a19ea08fcc9a53743033d5d438b64769911003c8f",
       "boundary": "client",
       "imports": [
         "@/components/ConfirmProvider",
@@ -84851,7 +84851,7 @@
     },
     {
       "file": "src/components/study-folder/StudyFolderClient.tsx",
-      "sha256": "6cfff698c1210a4de0e042b57c0bcb53a0ac52593e7fd1e6003690e69ea90744",
+      "sha256": "44f23b48b593b8a320014acd2191e0f6d02fcb528d767921a0f01e7fd48418b0",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
