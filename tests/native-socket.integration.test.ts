@@ -15,6 +15,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { socketTicketKey, createSocketTicket, consumeSocketTicket, closeSocketTicketStore } from "../src/lib/native/socketTickets";
 import { NativeSessionClient } from "../src/lib/native/client";
 import { NativeSocketConnection } from "../src/lib/native/socketClient";
+import { getChapterIntro } from "../src/lib/chapterGuess";
 
 const db = new URL(process.env.NATIVE_TEST_DATABASE_URL ?? "http://invalid");
 if (db.hostname !== "127.0.0.1" || db.pathname !== "/versado_content_access_test" || db.href !== process.env.DATABASE_URL) throw Error("Alleen eigen socketdatabase");
@@ -73,7 +74,7 @@ for (const reason of ["logout", "refresh-replay", "account wissen", "wachtwoord"
       assert.equal((await api("refresh", { refreshToken: pair.refreshToken, actionId: randomUUID() })).response.status, 200);
       assert.equal((await api("refresh", { refreshToken: pair.refreshToken, actionId: randomUUID() })).response.status, 401);
     } else if (reason === "account wissen") {
-      const result = await fetch(`${a}/api/account`, { method: "DELETE", headers: { Origin: a, Cookie: `${SESSION_COOKIE}=${await createSessionToken(user.id)}` } });
+      const result = await fetch(`${a}/api/account`, { method: "DELETE", headers: { Origin: a, "Content-Type": "application/json", Cookie: `${SESSION_COOKIE}=${await createSessionToken(user.id)}` }, body: JSON.stringify({ password, confirm: "DELETE" }) });
       assert.equal(result.status, 200);
     } else if (reason === "wachtwoord") {
       assert.equal((await api("account/password", { currentPassword: password, newPassword: "Native-race-changed-43" }, pair.accessToken)).response.status, 200);
@@ -160,11 +161,21 @@ test("een buitenstaander mag niet namens een andere spellobby vrienden uitnodige
   assert.equal(await prisma.liveGameInvite.count({ where: { gameId: game.id, userId: secondFriend.id } }), 1, "Een vastgelegde deelnemer mag een eigen vriend uitnodigen");
 });
 
+test("een geldige hoofdstukintro zonder kop is geen opzoekbare hoofdstukidentiteit", async () => {
+  const text = `Synthetisch eerste vers ${randomUUID()}`;
+  const book = await prisma.book.create({ data: { slug: `socket-intro-${randomUUID()}`, name: "Synthetische introproef", order: 1, contentCollectionId: "content_bom", chapters: { create: { number: 1, order: 1, verses: { create: { number: 1, text } } } } }, include: { chapters: true } });
+  assert.equal(book.chapters[0].heading, null);
+  assert.equal(await getChapterIntro(book.chapters[0].id), text);
+  // Dit is de foutieve oude fixture-aanname, met hetzelfde P2025-faalpad als CI.
+  await assert.rejects(prisma.chapter.findFirstOrThrow({ where: { heading: text } }),
+    (error: unknown) => !!error && typeof error === "object" && "code" in error && error.code === "P2025");
+});
+
 test("dezelfde live-vraag mag over twee instanties hoogstens één hintbeloning geven", async () => {
   const user = await account(), pair = await issueNativeSession(user.id, 0);
   await prisma.book.create({ data: { slug: `socket-reward-${randomUUID()}`, name: "Synthetische beloningsproef", order: 1, contentCollectionId: "content_bom", chapters: { create: { number: 1, order: 1, heading: `Synthetische vraag ${randomUUID()}` } } } });
   const code = `REWARD${randomUUID().replaceAll("-", "").slice(0, 8).toUpperCase()}`;
-  await prisma.liveGame.create({ data: { code, hostId: user.id, mode: "CHAPTER_GUESS", level: "BEGINNER", questionCount: 1 } });
+  const createdGame = await prisma.liveGame.create({ data: { code, hostId: user.id, mode: "CHAPTER_GUESS", level: "BEGINNER", questionCount: 1 } });
   const peers = [];
   // Beide instanties laden dezelfde lobby vóór een van beide start.
   for (const base of [a, b]) {
@@ -178,10 +189,16 @@ test("dezelfde live-vraag mag over twee instanties hoogstens één hintbeloning 
   }));
   assert.deepEqual(questions.map(question => question.index), [0, 0]);
   assert.equal(questions[0].introText, questions[1].introText, "Beide instanties moeten dezelfde synthetische vraag verwerken");
+  // De echte startcommit bewaart het antwoord server-side. Introductietekst kan
+  // uit vers 1 komen of bij meerdere hoofdstukken voorkomen en is dus geen ID.
+  const stored = await prisma.liveQuizQuestion.findUniqueOrThrow({ where: { gameId_questionIndex: { gameId: createdGame.id, questionIndex: 0 } } });
+  const payload = stored.payload as unknown as QuizPayload;
+  assert.ok(payload.mode === "CHAPTER_GUESS");
+  assert.equal(payload.question.introText, questions[0].introText);
+  assert.equal(await getChapterIntro(payload.question.chapterId), questions[0].introText);
   const before = (await prisma.user.findUniqueOrThrow({ where: { id: user.id } })).hintBalance;
-  await Promise.all(peers.map(async (peer, index) => {
-    const chapter = await prisma.chapter.findFirstOrThrow({ where: { heading: questions[index].introText } });
-    const received = event(peer, "answer_received"); peer.emit("submit_answer", { given: [chapter.id] }); await received;
+  await Promise.all(peers.map(async peer => {
+    const received = event(peer, "answer_received"); peer.emit("submit_answer", { given: [payload.question.chapterId] }); await received;
   }));
   // Beide bestaande fire-and-forget writes moeten klaar zijn vóór de meting.
   await Promise.all(peers.map(peer => peer.timeout(3000).emitWithAck("native_test:reward_drain")));
@@ -285,7 +302,7 @@ test("wachtwoordwijziging en accountverwijdering sluiten gebruikersrooms over Re
   const oldTicket=await mint(pair.accessToken),endedA=event(sa.socket,"disconnect",3000),endedB=event(sb.socket,"disconnect",3000);
   assert.equal((await api("account/password",{currentPassword:password,newPassword:"Native-changed-synthetic-43"},pair.accessToken)).response.status,200);await Promise.all([endedA,endedB]);assert.equal((await open(oldTicket,b)).connected,false);
   const actor=await account(),session=await issueNativeSession(actor.id,0),joined=await open(await mint(session.accessToken),b),unused=await mint(session.accessToken),ended=event(joined.socket,"disconnect",3000);
-  const deleted=await fetch(`${a}/api/account`,{method:"DELETE",headers:{Origin:a,Cookie:`${SESSION_COOKIE}=${await createSessionToken(actor.id)}`}});assert.equal(deleted.status,200);await ended;assert.equal((await open(unused,b)).connected,false);assert.equal(await prisma.nativeSession.count({where:{userId:actor.id}}),0);
+  const deleted=await fetch(`${a}/api/account`,{method:"DELETE",headers: { Origin: a, "Content-Type": "application/json", Cookie:`${SESSION_COOKIE}=${await createSessionToken(actor.id)}`}, body: JSON.stringify({ password, confirm: "DELETE" })});assert.equal(deleted.status,200);await ended;assert.equal((await open(unused,b)).connected,false);assert.equal(await prisma.nativeSession.count({where:{userId:actor.id}}),0);
 });
 
 test("echte native client reconnect met vers bewijs behoudt actor en herhaalt geen actie; logout stopt transport meteen",async()=>{
@@ -441,7 +458,7 @@ for (const reason of ["logout", "refresh-replay", "wachtwoord", "account wissen"
   } else if (reason === "wachtwoord") {
     assert.equal((await api("account/password", { currentPassword: password, newPassword: "Native-quiz-password-44" }, f.pairs[0].accessToken)).response.status, 200);
   } else if (reason === "account wissen") {
-    assert.equal((await fetch(`${a}/api/account`, { method: "DELETE", headers: { Origin: a, Cookie: `${SESSION_COOKIE}=${await createSessionToken(f.users[0].id)}` } })).status, 200);
+    assert.equal((await fetch(`${a}/api/account`, { method: "DELETE", headers: { Origin: a, "Content-Type": "application/json", Cookie: `${SESSION_COOKIE}=${await createSessionToken(f.users[0].id)}` }, body: JSON.stringify({ password, confirm: "DELETE" }) })).status, 200);
   } else assert.equal((await api("logout", { refreshToken: f.pairs[0].refreshToken, actionId: randomUUID() })).response.status, 200);
   for (const item of pending) { await redis.lpush(`${item.key}:release`, "1"); await drained(item.id, "submit_answer"); }
   assert.equal(await prisma.liveQuizAction.count({ where: { gameId: f.game.id } }), 0);

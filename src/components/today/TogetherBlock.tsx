@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink as Link } from "@/components/navigation/AppNavigation";
 import { Check, ChevronRight, UsersRound } from "lucide-react";
 import { getT } from "@/lib/i18n";
 import SystemIcon from "@/components/versado/SystemIcon";

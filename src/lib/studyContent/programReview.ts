@@ -1,3 +1,4 @@
+import { StudyMediaError, mediaDiagnosticText } from "./mediaDiagnostic";
 import { createHash } from "node:crypto";
 import type { PrismaClient } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
@@ -17,7 +18,7 @@ import { readStudyMedia, validateStudyMediaMetadata } from "./storage";
 
 /** Codes in plaats van vrije tekst: de beheerpagina vertaalt ze, het (Nederlandse) verslag heeft een eigen tekst per code. */
 export type ReviewIssueCode = "CONTENT" | "IMPORT" | "IMPORT_CLOSED" | "SOURCE" | "MEDIA" | "ALT" | "REFERENCE_UNKNOWN" | "REFERENCE_UNPROVEN" | "REFERENCE_MISMATCH" | "CATALOGUE" | "INCOMPLETE";
-export type ReviewIssue = { code: ReviewIssueCode; ref?: string; count?: number };
+export type ReviewIssue = { code: ReviewIssueCode; ref?: string; count?: number; diagnostic?: string };
 export type LessonReviewStatus = "published" | "ready" | "blocked" | "missing";
 export type LessonReview = {
   editionId: string;
@@ -155,6 +156,7 @@ async function reviewLesson(
   for (const key of figureKeys) {
     const figure = inventory.figures.find((f) => f.mediaKey === key)!;
     const binding = revision.media.find((m) => m.mediaKey === key);
+    let diagnostic: string | undefined;
     let ok = Boolean(binding && binding.media.status === "READY" && binding.media.width === figure.width && binding.media.height === figure.height);
     if (ok && binding) {
       const pin = content.sourceMetadata.mediaManifest?.find((m) => m.mediaKey === key);
@@ -165,15 +167,27 @@ async function reviewLesson(
           // Bytes alleen bij nog te publiceren lessen: gepubliceerde lessen zijn bij hun publicatie volledig gecontroleerd
           // en de collectievrijgave controleert alle bytes opnieuw. Dat houdt een hervatting snel.
           if (pending) await readStudyMedia(binding.media, true);
-        } catch {
+        } catch (error) {
           ok = false;
+          diagnostic = mediaDiagnosticText(new StudyMediaError({
+            ...(error instanceof StudyMediaError ? error.diagnostic : {
+              stage: "MANIFEST" as const,
+              reason: error instanceof StudyPublishingError && error.code === "STORAGE" ? "STORAGE" : "METADATA",
+            }),
+            year: cfmSourceOfWork(edition.workKey)?.volume.year, lessonKey: edition.lesson.sourceKey,
+            mediaId: binding.media.id, expectedChecksum: binding.media.checksum, expectedBytes: binding.media.byteSize,
+          })) ?? undefined;
         }
       }
     }
     if (ok) result.media.ready++;
     else {
       result.media.missing++;
-      issues.push({ code: "MEDIA", ref: key });
+      issues.push({ code: "MEDIA", ref: key, diagnostic: diagnostic ?? mediaDiagnosticText(new StudyMediaError({
+        stage: "MANIFEST", reason: "BINDING_OR_METADATA", year: cfmSourceOfWork(edition.workKey)?.volume.year,
+        lessonKey: edition.lesson.sourceKey,
+        ...(binding ? { mediaId: binding.media.id, expectedChecksum: binding.media.checksum } : {}),
+      }))! });
     }
   }
   if (revision.media.length !== figureKeys.length || revision.references.length !== inventory.references.length)

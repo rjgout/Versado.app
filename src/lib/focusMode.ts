@@ -3,10 +3,12 @@
  * uitvoert. De shell gebruikt deze ene lijst zodat header en ondernavigatie
  * niet per feature met losse verberg-classes hoeven te worden beheerd.
  */
+const STUDY_FOLDER_ROUTE = /^\/study-folder(?:\/(?:bookmark|highlight|note)\/[A-Za-z0-9_-]{1,128})?$/;
 const FOCUS_ROUTES = [
+  /^\/courses\/[A-Za-z0-9_-]{1,128}\/read\/(?:steps|chapters)\/[A-Za-z0-9_-]{1,128}$/,
   /^\/content$/,
   // Mijn studiemap: accountbreed overzicht dat bij de contentkiezer hoort, geen activiteit.
-  /^\/study-folder$/,
+  STUDY_FOLDER_ROUTE,
   // Het leerpad van Stap voor stap (READING_LESSONS): een eigen route, want /courses/<id> is van alle cursustypes.
   // Een overzicht om uit te kiezen, geen activiteit (zie isActivityRoute).
   /^\/courses\/[^/]+\/pad$/,
@@ -95,6 +97,6 @@ export function resolveShellMode(routeMode: ShellMode, immersiveRequested: boole
  * resultaatkaart van de activiteit nooit wordt verdrongen.
  */
 export function isActivityRoute(pathname: string): boolean {
-  if (pathname === "/content" || pathname === "/study-folder" || /^\/courses\/[^/]+\/(?:pad|archief)$/.test(pathname)) return false;
+  if (pathname === "/content" || STUDY_FOLDER_ROUTE.test(pathname) || /^\/courses\/[^/]+\/(?:pad|archief)$/.test(pathname)) return false;
   return isFocusRoute(pathname) || isImmersiveRoute(pathname) || ACTIVITY_IN_NORMAL_SHELL.some((pattern) => pattern.test(pathname));
 }

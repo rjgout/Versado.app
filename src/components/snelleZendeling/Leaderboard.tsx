@@ -1,4 +1,6 @@
 "use client";
+import {applicationFetch} from "@/lib/data/applicationRuntime";
+
 
 import { useEffect, useState } from "react";
 import UserAvatar from "@/components/UserAvatar";
@@ -26,7 +28,7 @@ export default function QuickMissionaryLeaderboard({ compact = false }: { compac
   const duo = useLiveQuery<{ entries: QuickMissionaryDuoEntry[] }>(["quick-missionary-duo"], () => fetchJson("/api/snelle-zendeling/leaderboard?type=duo&board=all-time"), { scopes: ["games"], staleTime: 1_000 });
   useEffect(() => {
     if (kind !== "solo") return;
-    fetch(`/api/snelle-zendeling/leaderboard?board=${board}`, { cache: "no-store" })
+    applicationFetch(`/api/snelle-zendeling/leaderboard?board=${board}`, { cache: "no-store" })
       .then((response) => (response.ok ? response.json() : Promise.reject()))
       .then((data: { entries: Entry[] }) => setEntries(data.entries))
       .catch(() => setEntries([]));

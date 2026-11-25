@@ -21,9 +21,9 @@ export function maxContentBaseXp(total: number): number {
 }
 
 export interface RewardState {
-  /** Verschillende vragen van deze inhoud die de gebruiker ooit maakte (max N). */
+  /** Verschillende vragen van deze inhoud die de gebruiker ooit maakte (historisch maximum blijft bij lager N). */
   answered: number;
-  /** Verschillende vragen die goed zijn beantwoord en al XP opleverden (max N). */
+  /** Verschillende vragen die goed zijn beantwoord en al XP opleverden (historisch maximum blijft bij lager N). */
   rewardCorrect: number;
   bonusAwarded: boolean;
 }
@@ -47,8 +47,10 @@ export interface RewardOutcome {
 }
 
 export function applyAttempt(state: RewardState, total: number, attempt: AttemptCounts): RewardOutcome {
-  const answered = Math.min(total, state.answered + Math.max(0, attempt.newAnswered));
-  const rewardCorrect = Math.min(total, state.rewardCorrect + Math.max(0, attempt.newCorrect));
+  // Een contentrevisie kan N verlagen. Historisch verdiende credits mogen
+  // daardoor nooit verdwijnen of later opnieuw basis-XP opleveren.
+  const answered = Math.max(state.answered, Math.min(total, state.answered + Math.max(0, attempt.newAnswered)));
+  const rewardCorrect = Math.max(state.rewardCorrect, Math.min(total, state.rewardCorrect + Math.max(0, attempt.newCorrect)));
   const baseXp = (rewardCorrect - state.rewardCorrect) * XP_PER_CORRECT;
   const bonusXp = !state.bonusAwarded && total > 0 && rewardCorrect >= total ? COMPLETION_BONUS : 0;
   const repeatXp = baseXp + bonusXp === 0 ? applyRepeatDiscount(Math.max(0, attempt.correct) * XP_PER_CORRECT) : 0;

@@ -1,4 +1,5 @@
 "use client";
+import ReadingCompletionSummary from "@/components/learning/ReadingCompletionSummary";
 
 import SystemIcon from "@/components/versado/SystemIcon";
 import AchievementIcon from "@/components/versado/AchievementIcon";
@@ -184,21 +185,7 @@ export default function ReadingLessonFlow({
   if (phase === "summary" && result) {
     const effectiveNextLessonId = result.nextLessonId ?? nextLessonId;
     if (result.readOnly) {
-      return (
-        <FocusLayout className="max-w-2xl items-center gap-4 py-4 text-center animate-pop sm:py-8">
-          <p className="text-xs font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">
-            {t("readingLesson.stepDone", { n: lessonNumber })}
-          </p>
-          <h2 className="text-2xl font-extrabold text-brand-800 dark:text-brand-300">{t("progress.stepRead")}</h2>
-          <p className="text-sm text-vs-fg-2">{t("progress.stepReadText")}</p>
-          <div className="flex flex-wrap justify-center gap-3 mt-2">
-            <Link href="/courses" className="btn-secondary">{t("readingLesson.stop")}</Link>
-            {effectiveNextLessonId && (
-              <Link href={`/reading-lesson/${effectiveNextLessonId}`} className="btn-primary">{t("readingLesson.nextStep")}</Link>
-            )}
-          </div>
-        </FocusLayout>
-      );
+      return <ReadingCompletionSummary lessonNumber={lessonNumber} nextHref={effectiveNextLessonId ? `/reading-lesson/${effectiveNextLessonId}` : null} />;
     }
     return (
       <FocusLayout className="max-w-2xl items-center gap-4 py-4 text-center animate-pop sm:py-8">

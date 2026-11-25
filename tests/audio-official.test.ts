@@ -85,3 +85,31 @@ test("conversie heeft precies drie vaste lengtes en kan gewone bescherming of re
  assert.deepEqual(samples.map(s=>s.verses),[6,26,77]);assert.ok(samples[0].duration<90&&samples[2].duration>1200);
  for(const source of samples){assert.doesNotThrow(()=>assertLegacySource(source));for(const changed of [{...source,legacyProtected:false},{...source,language:"en"},{...source,work:"pgp"},{...source,quality:"NEEDS_REVIEW"},{...source,id:"f".repeat(64)}])assert.throws(()=>assertLegacySource(changed),/SOURCE_PROTECTED/);}
 });
+
+test("gedeelde testbesturing: een truncate-tussenstand veroorzaakt aantoonbaar de generieke workerfout",async()=>{
+ const {mockOfficialNetwork,writeOfficialControl}=await import("./fixtures/audio/official-network");
+ const {officialErrorCode}=await import("../src/lib/audio/officialJobs");
+ const root=await fs.mkdtemp(path.join(tmpdir(),"official-control-truncate-")),file=path.join(root,"audio.bin"),controlFile=path.join(root,"control.json"),url="https://example.invalid/audio.mp3";
+ try {
+  await fs.writeFile(file,"synthetic bytes");await writeOfficialControl(controlFile,{pauseUrl:url});
+  const response=await mockOfficialNetwork({sources:[],pages:{},audio:{[url]:file},logFile:path.join(root,"requests.log"),controlFile}).transport!(new URL(url),{address:"8.8.8.8",family:4},new AbortController().signal);
+  const stream=response.body[Symbol.asyncIterator]();assert.equal((await stream.next()).value.length,1);
+  // Deterministisch de open/truncate-fase van de oude fs.writeFile-uitgever.
+  await fs.writeFile(controlFile,"");
+  await assert.rejects(stream.next(),error=>error instanceof SyntaxError&&officialErrorCode(error)==="AUDIO_TASK_FAILED");
+ } finally {await fs.rm(root,{recursive:true,force:true});}
+});
+test("atomische testbesturing laat een gepauzeerde worker alleen complete JSON lezen",async()=>{
+ const {mockOfficialNetwork,writeOfficialControl}=await import("./fixtures/audio/official-network");
+ const root=await fs.mkdtemp(path.join(tmpdir(),"official-control-atomic-")),file=path.join(root,"audio.bin"),controlFile=path.join(root,"control.json"),url="https://example.invalid/audio.mp3",bytes=Buffer.from("synthetic bytes");
+ try {
+  await fs.writeFile(file,bytes);await writeOfficialControl(controlFile,{pauseUrl:url});
+  const response=await mockOfficialNetwork({sources:[],pages:{},audio:{[url]:file},logFile:path.join(root,"requests.log"),controlFile}).transport!(new URL(url),{address:"8.8.8.8",family:4},new AbortController().signal);
+  const stream=response.body[Symbol.asyncIterator]();assert.equal((await stream.next()).value.length,1);
+  const remaining=stream.next();
+  for(let i=0;i<100;i++)await writeOfficialControl(controlFile,{pauseUrl:url,failUrl:"x".repeat(32768)+i});
+  await writeOfficialControl(controlFile,{});
+  const tail=await remaining;assert.equal(tail.done,false);assert.deepEqual(Buffer.from(tail.value),bytes.subarray(1));
+  assert.equal((await stream.next()).done,true);
+ } finally {await fs.rm(root,{recursive:true,force:true});}
+});

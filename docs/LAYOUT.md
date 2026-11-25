@@ -45,8 +45,15 @@ zet op `<html>`:
 | `data-header-tall` | de balk is bij zeer grote tekst > 34% van het scherm en scrolt mee | CSS in `globals.css` |
 | `data-keyboard` | schermtoetsenbord open: onderbalk verdwijnt | CSS in `globals.css` |
 
+
+Op iOS 26+ staat de echte systeemtabbalk over de WebView; de React-onderbalk is dan een onzichtbare ruimtehouder (`html[data-vs-native-tabbar]`, hoogte uit `--vs-native-tabbar-height`), zodat `--nav-height` en alle bestaande onderruimte gelijk blijven. Zie `docs/NATIVE-LIQUID-GLASS.md` (Stap 2).
+
 Vóór de eerste meting gelden `--header-default` en `--nav-default` (in
-`globals.css`, per shellmodus), zodat de inhoud niet verspringt. Pure regels
+`globals.css`, per shellmodus), zodat de inhoud niet verspringt. Actieve native voorleesbediening mag bij grote tekst vast blijven zolang de
+hele balk maximaal 80% van de viewport inneemt (`data-shell-persistent-controls`).
+De webspeler zet die marker niet; voor een hogere balk geldt de scrollende
+fallback. De native speler staat net als web na de terugbalk, zodat Focus de
+veilige bovenrand vóór alle bediening vrijhoudt. Pure regels
 staan in `src/lib/shellMetrics.ts` (getest). Geen component meet of zet deze
 variabelen zelf (`tests/shell-layout.test.ts` controleert dat).
 

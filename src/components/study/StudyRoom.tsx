@@ -1,12 +1,14 @@
 "use client";
+import {applicationFetch} from "@/lib/data/applicationRuntime";
+
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
+import {AppLink as Link} from "@/components/navigation/AppNavigation";
 import { BookOpen, CheckCircle2, Crown, Headphones, LogOut, Play, SkipForward, Square, Trophy, Users } from "lucide-react";
 import { getSocket } from "@/lib/socketClient";
 import { useT } from "@/components/I18nProvider";
 import { useConfirm } from "@/components/ConfirmProvider";
-import { ExerciseCard, ReaderView, type Exercise } from "@/components/LessonFlow";
+import { ExerciseCard, ReaderView, type Exercise } from "@/components/learning/SharedLessonFlow";
 import LobbyInviteCard from "@/components/LobbyInviteCard";
 import LobbyClosedNotice from "@/components/LobbyClosedNotice";
 import UserAvatar from "@/components/UserAvatar";
@@ -145,7 +147,7 @@ export default function StudyRoom({ code, myUserId, courseName }: { code: string
   }, [code, socket]);
 
   useEffect(() => {
-    fetch("/api/friends")
+    applicationFetch("/api/friends")
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => setFriends((d?.friends ?? []).map((entry: { user: { id: string; handle: string } }) => entry.user)))
       .catch(() => {});
@@ -536,7 +538,7 @@ function StepPicker({ code, roundsPlayed, soloHint, onStart }: { code: string; r
   useEffect(() => {
     let cancelled = false;
     setStarting(false);
-    fetch(`/api/study/${code}/units`)
+    applicationFetch(`/api/study/${code}/units`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d: { groups: UnitGroup[]; suggested: string | null } | null) => {
         if (cancelled || !d) return;

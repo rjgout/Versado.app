@@ -1,8 +1,10 @@
 "use client";
+import {applicationFetch} from "@/lib/data/applicationRuntime";
+
 
 import { useEffect, useState, type FormEvent } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import {AppLink as Link} from "@/components/navigation/AppNavigation";
+import {useGameRouter as useRouter} from "@/components/games/GameNavigation";
 import { useT } from "@/components/I18nProvider";
 import ToggleSwitch from "@/components/versado/ToggleSwitch";
 
@@ -28,7 +30,7 @@ export default function SeasonListClient() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/alleskenner/seasons")
+    applicationFetch("/api/alleskenner/seasons")
       .then((r) => r.json())
       .then((d) => setSeasons(d.seasons ?? []))
       .catch(() => setSeasons([]));
@@ -38,7 +40,7 @@ export default function SeasonListClient() {
     event.preventDefault();
     setBusy(true);
     setError(null);
-    const res = await fetch("/api/alleskenner/seasons", {
+    const res = await applicationFetch("/api/alleskenner/seasons", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ name, joinAsPlayer }),

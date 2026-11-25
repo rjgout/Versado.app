@@ -43,13 +43,14 @@ test("route: focusroute met terugbalk, geen activiteit, onderdeel van Leren, con
 });
 
 test("contentkiezer: kaart staat vóór de taalkeuze, is een gewone link en roept geen selectie aan", () => {
-  const picker = read("src/components/content/FullscreenContentPicker.tsx");
+  const picker = read("src/components/content/ContentPickerView.tsx");
   const card = picker.indexOf("data-study-folder-entry");
   assert.ok(card > picker.lastIndexOf("data-content-group"), "na de contentgroepen");
   assert.ok(card < picker.indexOf("<section data-content-language"), "vóór de taalkeuze");
   assert.ok(card > picker.indexOf("data-content-group={group}"), "na de groepen-loop");
   const block = picker.slice(card, picker.indexOf("<section data-content-language"));
-  assert.match(block, /<Link data-study-folder-link href="\/study-folder"/);
+  assert.match(block, /<AppLink data-study-folder-link href=\{links\.studyFolder\}/);
+  assert.match(read("src/components/content/FullscreenContentPicker.tsx"), /studyFolder: "\/study-folder"/);
   assert.doesNotMatch(block, /choose\(|select\(|onClick|works\./);
 });
 
@@ -72,9 +73,10 @@ test("de API gebruikt alleen de ingelogde gebruiker en geen client-userId", () =
 
 test("studiemap gebruikt de live-datalaag accountbreed, zonder contentScoped", () => {
   const client = read("src/components/study-folder/StudyFolderClient.tsx");
-  assert.match(client, /scopes: \["annotations"\]/);
+  assert.match(client, /scopes:\["annotations","content"\]/);
   assert.doesNotMatch(client, /contentScoped/);
-  assert.match(client, /AnnotationActions/);
+  assert.match(client, /renderEditor/);
+  assert.match(read("src/components/study-folder/WebStudyFolder.tsx"), /AnnotationActions/);
   assert.doesNotMatch(client, /setInterval|visibilitychange|window\.location\.reload/);
 });
 
@@ -105,6 +107,6 @@ test("kleurweergave: tokens voor licht en donker, swatch en niet-kleurkenmerken 
   assert.match(css, /\[data-annotation-color\] \{[^}]*linear-gradient/, "kleurbalk als niet-kleurkenmerk");
   assert.match(read("src/components/annotations/StudyAnnotations.tsx"), /text-decoration:underline/);
   assert.match(read("src/components/annotations/MarkSwatch.tsx"), /aria-hidden/);
-  assert.match(read("src/components/annotations/AnnotationActions.tsx"), /<MarkSwatch color=\{color\} checked=/);
+  assert.match(read("src/components/annotations/AnnotationActionsView.tsx"), /<MarkSwatch color=\{color\} checked=/);
   assert.match(read("src/components/study-folder/StudyFolderClient.tsx"), /data-folder-color=/);
 });

@@ -99,3 +99,14 @@ export function continuationView(user: ContinuationState, now: Date): StreakCont
     studiedToday: !interrupted && gap.gap !== null && gap.gap <= 0,
   };
 }
+
+/** Dezelfde gemiste-dagenregels als settleStreakDays, zonder writes bij een read-only overzicht. */
+export function previewStreakContinuation(user: ContinuationState, now: Date): StreakContinuationView {
+  const plan = missedDayPlan(user, now);
+  return continuationView({ ...user,
+    freezeCount: user.freezeCount - plan.freezes,
+    ...(plan.freezes > 0 ? { lastStudyDate: plan.frozenDays.at(-1)!,
+      lastStudyTimeZone: user.streakGraceDay && (!user.lastStudyDate || user.streakGraceDay > user.lastStudyDate) ? resolveTimeZone(user.timeZone) : user.lastStudyTimeZone } : {}),
+    ...(plan.interruptedDay ? { streakInterruptedDay: plan.interruptedDay, streakReturnDay: null, streakReturnTimeZone: null, streakReturnCount: 0, streakReturnRequired: 0 } : {}),
+  }, now);
+}

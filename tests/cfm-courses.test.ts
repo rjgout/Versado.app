@@ -43,7 +43,7 @@ test("de migraties voegen alleen enumwaarden toe en maken de cursussen aan zonde
 test("het cursusoverzicht gebruikt voor CFM dezelfde kaarten, hetzelfde toevoegen en verbergen als de leescursussen", () => {
   const page = readFileSync("src/app/courses/page.tsx", "utf8");
   assert.match(page, /lesson\.personal\) \|\| data\.archivedCount > 0\) return <CoursesClient \/>/, "ook als alle weken gearchiveerd zijn blijft de cursuskaart de ingang");
-  const client = readFileSync("src/components/CoursesClient.tsx", "utf8");
+  const client = readFileSync("src/components/CoursesView.tsx", "utf8");
   assert.match(client, /STUDY_STEPS: "courses\.types\.studySteps"/);
   // Geen tweede cursussysteem: de weekkaarten komen uit dezelfde bouwstenen als de leespaden.
   const week = readFileSync("src/components/study/CfmWeekPath.tsx", "utf8");
@@ -76,7 +76,9 @@ test("de archiefingang staat vóór de eerste weekkaart; Spelen bevat geen studi
   const { createElement } = await import("react");
   const { renderToStaticMarkup } = await import("react-dom/server");
   const { default: CfmCourseView } = await import("../src/components/study/CfmCourseView");
-  const html = renderToStaticMarkup(createElement(CfmCourseView, { courseName: "Kom dan en volg Mij", mode: "STEPS", weeks: [{ id: "fixture-week", lessonId: "l", collectionId: "c", lessonKey: "k", title: "Eerste les", startsOn: "2027-01-04", endsOnExclusive: "2027-01-11", read: false, stepsDone: 0, imageMediaId: null }], activeWeekId: null, resumeReason: null, sessionKey: "fixture", contexts: {}, archiveHref: "/archief" }));
+  const { AppNavigationProvider } = await import("../src/components/navigation/AppNavigation");
+  const Link = ({replace,prefetch,onNavigate,...props}: import("../src/components/navigation/AppNavigation").AppLinkProps) => {void replace;void prefetch;void onNavigate;return createElement("a",props);};
+  const html = renderToStaticMarkup(createElement(AppNavigationProvider, {adapter:{pathname:"/courses",Link,push(){},replace(){},back(){},refresh(){},canGoBack:()=>false},children:createElement(CfmCourseView, { courseName: "Kom dan en volg Mij", mode: "STEPS", weeks: [{ id: "fixture-week", lessonId: "l", collectionId: "c", lessonKey: "k", title: "Eerste les", startsOn: "2027-01-04", endsOnExclusive: "2027-01-11", read: false, stepsDone: 0, imageMediaId: null }], activeWeekId: null, resumeReason: null, sessionKey: "fixture", archiveHref: "/archief" })}));
   assert.ok(html.includes("data-cfm-archive-link"));
   assert.ok(html.includes("data-cfm-week-path"));
   assert.ok(html.indexOf("data-cfm-archive-link") < html.indexOf("data-cfm-week-path"));

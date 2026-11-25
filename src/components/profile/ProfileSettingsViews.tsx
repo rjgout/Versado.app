@@ -1,26 +1,26 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useId, useState, useSyncExternalStore } from "react";
-import { Bell, BellRing, CalendarClock, Mail, RotateCcw, Smartphone, Sparkles, Volume2 } from "lucide-react";
 import AppSelect from "@/components/AppSelect";
-import { useT, useUiLanguage } from "@/components/I18nProvider";
-import { getLanguage } from "@/lib/languages";
-import { formatTag } from "@/lib/handle";
-import { isPushSupported } from "@/lib/pushClient";
-import { FEEDBACK_CHANGE_EVENT, puzzleFeedback, type FeedbackKind } from "@/lib/puzzle/feedback";
+import { useT,useUiLanguage } from "@/components/I18nProvider";
+import { AppLink as Link } from "@/components/navigation/AppNavigation";
+import type { ProfileData,ProfileToggleField } from "@/components/profile/profileData";
 import {
-  ProfileCard,
-  SettingsActions,
-  SettingsButton,
-  SettingsField,
-  SettingsSection,
-  SettingsStatus,
-  SettingsToggleRow,
-  settingsFieldClass,
-  settingsInlineFieldClass,
+ProfileCard,
+SettingsActions,
+SettingsButton,
+SettingsField,
+SettingsSection,
+SettingsStatus,
+SettingsToggleRow,
+settingsFieldClass,
+settingsInlineFieldClass,
 } from "@/components/profile/settings";
-import type { ProfileData, ProfileToggleField } from "@/components/profile/profileData";
+import { formatTag } from "@/lib/handle";
+import { getLanguage } from "@/lib/languages";
+import { isPushSupported } from "@/lib/pushClient";
+import { FEEDBACK_CHANGE_EVENT,puzzleFeedback,type FeedbackKind } from "@/lib/puzzle/feedback";
+import { Bell,BellRing,CalendarClock,Mail,RotateCcw,Smartphone,Sparkles,Volume2 } from "lucide-react";
+import { useEffect,useId,useState,useSyncExternalStore } from "react";
 
 // De instellingenonderdelen van het profiel (/profile?view=...). Alleen
 // weergave: de gegevens en het opslaan blijven in ProfileClient, zodat er
@@ -57,14 +57,16 @@ export function ReadAloudView({
   onVoice,
   onSpeed,
   onTest,
+  previewAvailable = true,
 }: {
-  voices: SpeechSynthesisVoice[];
+  voices: Pick<SpeechSynthesisVoice,"voiceURI"|"name">[];
   selectedVoice: string;
   speed: number;
   testing: boolean;
   onVoice: (value: string) => void;
   onSpeed: (value: number) => void;
-  onTest: () => void;
+  onTest?: () => void;
+  previewAvailable?: boolean;
 }) {
   const t = useT();
   return (
@@ -90,10 +92,10 @@ export function ReadAloudView({
             />
           </SettingsField>
           <SettingsActions>
-            <SettingsButton disabled={testing} onClick={onTest}>
+            {previewAvailable && <SettingsButton disabled={testing} onClick={onTest}>
               <Volume2 className="h-4 w-4" aria-hidden />
               {testing ? t("profile.samplePlaying") : t("profile.listenVoiceLabel")}
-            </SettingsButton>
+            </SettingsButton>}
             <span className="text-xs text-vs-fg-3">{t("profile.savedOnDevice")}</span>
           </SettingsActions>
         </>
@@ -168,6 +170,8 @@ export function NotificationsView({
   onDailyTextSource,
   dailyTextSourceError,
   onPodcast,
+  pushAvailable,
+  pushUnavailableMessage,
 }: {
   data: ProfileData;
   saving: boolean;
@@ -184,13 +188,15 @@ export function NotificationsView({
   onDailyTextSource: (value: string) => void;
   dailyTextSourceError: string | null;
   onPodcast: (podcastId: string) => void;
+  pushAvailable?: boolean;
+  pushUnavailableMessage?:string;
 }) {
   const t = useT();
   const dailyTextTimeId = useId();
   const reminderTimeId = useId();
   // Pas na het laden bekend: op de server bestaat er geen Notification-API.
   const [pushSupported, setPushSupported] = useState(true);
-  useEffect(() => setPushSupported(isPushSupported()), []);
+  useEffect(() => setPushSupported(pushAvailable ?? isPushSupported()), [pushAvailable]);
 
   const kind = (field: ProfileToggleField, label: string, description?: string) => (
     <SettingsToggleRow label={label} description={description} checked={data[field]} busy={saving} onChange={() => onCategory(field)} />
@@ -210,7 +216,7 @@ export function NotificationsView({
         <SettingsToggleRow
           icon={<BellRing className="h-5 w-5 text-vs-accent" aria-hidden />}
           label={t("profile.pushLabel")}
-          description={pushSupported ? t("profile.pushHint") : t("profile.pushUnsupported")}
+          description={pushSupported ? t("profile.pushHint") : pushUnavailableMessage ?? t("profile.pushUnsupported")}
           checked={data.pushNotificationsEnabled}
           disabled={!pushSupported}
           busy={saving}
@@ -223,7 +229,7 @@ export function NotificationsView({
         )}
         {data.pushNotificationsEnabled && (
           <SettingsActions>
-            <SettingsButton disabled={testingPush} onClick={onTest}>
+            <SettingsButton disabled={testingPush || !pushSupported} onClick={onTest}>
               <Bell className="h-4 w-4" aria-hidden />
               {pushCountdown !== null ? t("profile.pushIn", { n: pushCountdown }) : testingPush ? t("courses.busy") : t("profile.sendTestPush")}
             </SettingsButton>
@@ -290,7 +296,7 @@ export function NotificationsView({
   );
 }
 
-export function PrivacyView({ data, saving, onToggleSearchable, onToggleAchievements, onTogglePuzzleRecords, onToggleVillage, villageError }: { data: ProfileData; saving: boolean; onToggleSearchable: () => void; onToggleAchievements: () => void; onTogglePuzzleRecords: () => void; onToggleVillage: () => void; villageError?: string|null }) {
+export function PrivacyView({ data, saving, onToggleSearchable, onToggleAchievements, onTogglePuzzleRecords, onToggleVillage, villageError, recordsHref = "/jigsaw/records" }: { recordsHref?:string|null; data: ProfileData; saving: boolean; onToggleSearchable: () => void; onToggleAchievements: () => void; onTogglePuzzleRecords: () => void; onToggleVillage: () => void; villageError?: string|null }) {
   const t = useT();
   return (
     <SettingsSection>
@@ -317,7 +323,7 @@ export function PrivacyView({ data, saving, onToggleSearchable, onToggleAchievem
       />
       <SettingsToggleRow label={t("dorp2.shareLabel")} description={t("dorp2.shareHelp")} checked={data.shareVillageWithFriends} busy={saving} onChange={onToggleVillage} />
       {villageError && <p role="alert" className="px-4 text-sm text-vs-danger">{villageError}</p>}
-      <Link href="/jigsaw/records" className="block min-h-11 px-4 py-3 text-sm font-semibold text-vs-accent underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vs-accent">{t("puzzleRecords.mine")}</Link>
+      {recordsHref && <Link href={recordsHref} className="block min-h-11 px-4 py-3 text-sm font-semibold text-vs-accent underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vs-accent">{t("puzzleRecords.mine")}</Link>}
     </SettingsSection>
   );
 }
@@ -384,7 +390,7 @@ export function PresenceView({
   );
 }
 
-interface ChangelogEntryView {
+export interface ChangelogEntryView {
   id: string;
   title: string;
   body: string;
@@ -396,19 +402,9 @@ interface ChangelogEntryView {
  * lijst. Openen telt als gezien, net als "Gelezen" in de pop-up
  * (ChangelogPopup.tsx).
  */
-export function WhatsNewView({ enabled, saving, onToggle }: { enabled: boolean; saving: boolean; onToggle: () => void }) {
+export function WhatsNewView({ enabled, saving, onToggle, entries }: { enabled:boolean; saving:boolean; onToggle:()=>void; entries:ChangelogEntryView[]|null }) {
   const t = useT();
   const intlLocale = getLanguage(useUiLanguage()).intlLocale;
-  const [entries, setEntries] = useState<ChangelogEntryView[] | null>(null);
-
-  useEffect(() => {
-    fetch("/api/changelog")
-      .then((res) => (res.ok ? res.json() : { entries: [] }))
-      .then((body) => setEntries(body.entries ?? []))
-      .catch(() => setEntries([]));
-    fetch("/api/changelog/seen", { method: "POST" }).catch(() => {});
-  }, []);
-
   return (
     <>
       <SettingsSection>

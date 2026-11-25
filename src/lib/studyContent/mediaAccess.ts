@@ -7,7 +7,7 @@ import { studyObjectHash } from "./policy";
 import { studyDocumentInventory } from "./fixtureAdapter";
 import { type StudyAdmin, StudyPublishingError } from "./policy";
 
-export async function authorizedStudyMedia(
+export async function authorizeStudyMedia(
   actor: StudyAdmin,
   mediaId: string,
   preview = false,
@@ -65,6 +65,12 @@ export async function authorizedStudyMedia(
     if (!valid) throw new StudyPublishingError("UNAVAILABLE");
   }
   validateStudyMediaMetadata(media);
+  return media;
+}
+
+/** Dezelfde rechtencontrole voor web en native; opslag is uitsluitend intern. */
+export async function authorizedStudyMedia(actor: StudyAdmin, mediaId: string, preview = false) {
+  const media = await authorizeStudyMedia(actor, mediaId, preview);
   const bytes = await readStudyMedia(media);
   return {
     bytes,

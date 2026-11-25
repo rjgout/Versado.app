@@ -1,4 +1,6 @@
 "use client";
+import {applicationFetch} from "@/lib/data/applicationRuntime";
+
 
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
@@ -30,7 +32,7 @@ export default function ExerciseFeedbackSheet({
     setSubmitting(true);
     const requestId = crypto.randomUUID();
     try {
-      const res = await fetch("/api/feedback/exercise", {
+      const res = await applicationFetch("/api/feedback/exercise", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...context, category, requestId }),

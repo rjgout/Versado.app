@@ -57,7 +57,7 @@ export default function DivisionScroller({ current, highest }: { current: League
   return (
     <div
       ref={scroller}
-      className="relative w-full overflow-x-auto snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [mask-image:linear-gradient(to_right,transparent,black_18%,black_82%,transparent)]"
+      className="relative w-full min-w-0 max-w-full overflow-x-auto snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [mask-image:linear-gradient(to_right,transparent,black_18%,black_82%,transparent)]"
     >
       {/* Opvulling van een halve containerbreedte (procenten van padding
           rekenen tegen de scrollcontainer), zodat ook de eerste en laatste

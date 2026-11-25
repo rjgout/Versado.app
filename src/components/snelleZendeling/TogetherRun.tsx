@@ -1,8 +1,10 @@
 "use client";
+import {applicationFetch} from "@/lib/data/applicationRuntime";
+
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import {AppLink as Link} from "@/components/navigation/AppNavigation";
+import {useGameRouter as useRouter} from "@/components/games/GameNavigation";
 import type { Socket } from "socket.io-client";
 import ImmersiveLayout from "@/components/versado/ImmersiveLayout";
 import UserAvatar from "@/components/UserAvatar";
@@ -192,7 +194,7 @@ export default function TogetherRun({ match, myUserId, character, socket }: { ma
   useEffect(() => {
     if (!runId) return;
     let cancelled = false;
-    fetch(`/api/snelle-zendeling/runs/${runId}`, { cache: "no-store" })
+    applicationFetch(`/api/snelle-zendeling/runs/${runId}`, { cache: "no-store" })
       .then((response) => (response.ok ? response.json() : Promise.reject()))
       .then((data: RunView) => {
         if (cancelled) return;
@@ -219,13 +221,13 @@ export default function TogetherRun({ match, myUserId, character, socket }: { ma
   // --- Dood, Genees, opgeven (allemaal via de server) -----------------------------------
   const refreshView = useCallback(async () => {
     if (!runId) return;
-    const response = await fetch(`/api/snelle-zendeling/runs/${runId}`, { cache: "no-store" });
+    const response = await applicationFetch(`/api/snelle-zendeling/runs/${runId}`, { cache: "no-store" });
     if (response.ok) setView(await response.json());
   }, [runId]);
 
   const finishFromDeath = useCallback(async () => {
     if (!runId) return;
-    const response = await fetch(`/api/snelle-zendeling/runs/${runId}/finish`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ score: scoreRef.current }) });
+    const response = await applicationFetch(`/api/snelle-zendeling/runs/${runId}/finish`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ score: scoreRef.current }) });
     if (!response.ok) setError(true);
     await refreshView();
     socket.emit("qm:sync");
@@ -235,7 +237,7 @@ export default function TogetherRun({ match, myUserId, character, socket }: { ma
     if (phaseRef.current !== "running" || !runId) return;
     setView(null);
     setLocalPhase("dead");
-    const response = await fetch(`/api/snelle-zendeling/runs/${runId}/death`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ score: scoreRef.current }) });
+    const response = await applicationFetch(`/api/snelle-zendeling/runs/${runId}/death`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ score: scoreRef.current }) });
     if (!response.ok) {
       setError(true);
       return;
@@ -252,7 +254,7 @@ export default function TogetherRun({ match, myUserId, character, socket }: { ma
 
   const resume = useCallback(async () => {
     if (!runId || phaseRef.current !== "revive-ready") return;
-    const response = await fetch(`/api/snelle-zendeling/runs/${runId}/resume`, { method: "POST" });
+    const response = await applicationFetch(`/api/snelle-zendeling/runs/${runId}/resume`, { method: "POST" });
     if (!response.ok) return;
     const timeline = (Date.now() + (clockOffsetRef.current ?? 0) - startsAtRef.current) / 1000;
     enterRunning(timeline, scoreRef.current);
@@ -281,7 +283,7 @@ export default function TogetherRun({ match, myUserId, character, socket }: { ma
     setGeneesBusy(true);
     setGeneesError(null);
     try {
-      const response = await fetch(`/api/snelle-zendeling/runs/${runId}/revive`, { method: "POST" });
+      const response = await applicationFetch(`/api/snelle-zendeling/runs/${runId}/revive`, { method: "POST" });
       if (response.ok) {
         setView(await response.json());
         setLocalPhase("revive-question");
@@ -298,7 +300,7 @@ export default function TogetherRun({ match, myUserId, character, socket }: { ma
     setGeneesBusy(true);
     setGeneesError(null);
     try {
-      const response = await fetch(`/api/snelle-zendeling/runs/${runId}/genees`, { method: "POST" });
+      const response = await applicationFetch(`/api/snelle-zendeling/runs/${runId}/genees`, { method: "POST" });
       const body = await response.json().catch(() => ({}));
       if (!response.ok) {
         setGeneesError(typeof body.error === "string" ? body.error : t("quickMissionary.healBuyFailed"));
@@ -329,7 +331,7 @@ export default function TogetherRun({ match, myUserId, character, socket }: { ma
 
   async function answer(optionId: string) {
     if (!runId || !view?.reviveQuestion) return;
-    const response = await fetch(`/api/snelle-zendeling/runs/${runId}/revive/answer`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ exerciseId: view.reviveQuestion.exerciseId, optionId }) });
+    const response = await applicationFetch(`/api/snelle-zendeling/runs/${runId}/revive/answer`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ exerciseId: view.reviveQuestion.exerciseId, optionId }) });
     if (!response.ok) {
       // Bv. de run is intussen afgesloten: de stand van de server beslist.
       await refreshView();
@@ -441,7 +443,7 @@ export default function TogetherRun({ match, myUserId, character, socket }: { ma
 
   // De stap "Opnieuw samen vliegen": een nieuwe lobby.
   async function playAgain() {
-    const response = await fetch("/api/snelle-zendeling/together", { method: "POST" });
+    const response = await applicationFetch("/api/snelle-zendeling/together", { method: "POST" });
     const data = await response.json().catch(() => ({}));
     if (response.ok && typeof data.code === "string") router.replace(`/live/${data.code}`);
   }

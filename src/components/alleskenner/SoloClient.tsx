@@ -1,7 +1,9 @@
 "use client";
+import {applicationFetch} from "@/lib/data/applicationRuntime";
+
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import {useGameRouter as useRouter} from "@/components/games/GameNavigation";
 import type { SoloLeaderboardEntry, SoloOverview } from "@/lib/alleskenner/solo";
 import UserTag from "@/components/UserTag";
 import UserAvatar from "@/components/UserAvatar";
@@ -27,7 +29,7 @@ export default function SoloClient({ myUserId, allowStarts = true }: { myUserId:
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/alleskenner/solo", { cache: "no-store" })
+    applicationFetch("/api/alleskenner/solo", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then(setOverview)
       .catch(() => setLoadError(true));
@@ -36,7 +38,7 @@ export default function SoloClient({ myUserId, allowStarts = true }: { myUserId:
   async function start(mode: "DAILY" | "PRACTICE") {
     setBusy(mode);
     setError(null);
-    const res = await fetch("/api/alleskenner/solo", {
+    const res = await applicationFetch("/api/alleskenner/solo", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ mode }),

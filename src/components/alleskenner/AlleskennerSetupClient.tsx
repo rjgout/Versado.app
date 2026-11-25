@@ -1,8 +1,10 @@
 "use client";
+import {applicationFetch} from "@/lib/data/applicationRuntime";
+
 
 import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import {AppLink as Link} from "@/components/navigation/AppNavigation";
+import {useGameRouter as useRouter} from "@/components/games/GameNavigation";
 import { useT } from "@/components/I18nProvider";
 
 const ROUNDS = [
@@ -23,7 +25,7 @@ export default function AlleskennerSetupClient() {
   async function create() {
     setBusy(true);
     setError(null);
-    const res = await fetch("/api/live/create-alleskenner", { method: "POST" });
+    const res = await applicationFetch("/api/live/create-alleskenner", { method: "POST" });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
       setBusy(false);

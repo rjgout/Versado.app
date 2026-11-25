@@ -1,10 +1,11 @@
 import { redirect } from "next/navigation";
 import FriendProfileClient from "@/components/FriendProfileClient";
+import FriendVillagePreview from "@/components/dorp/FriendVillagePreview";
 import { getCurrentUser } from "@/lib/session";
 
 export default async function FriendProfilePage({ params }: { params: Promise<{ userId: string }> }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
   const { userId } = await params;
-  return <FriendProfileClient userId={userId} viewerId={user.id} />;
+  return <FriendProfileClient userId={userId} viewerId={user.id} villagePreview={<FriendVillagePreview userId={userId} viewerId={user.id} />} />;
 }

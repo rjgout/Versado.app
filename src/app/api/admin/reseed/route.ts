@@ -11,6 +11,11 @@ import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/db";
 import { getReseedJob, startReseedJob } from "@/lib/reseedJob";
 import { apiError } from "@/lib/apiError";
+import {
+  cfmRecoveryPlan,
+  validateCfmRecoveryPlan,
+} from "@/lib/studyContent/cfmRecovery";
+import { StudyPublishingError } from "@/lib/studyContent/policy";
 
 async function requireAdmin() {
   const user = await getCurrentUser();
@@ -46,6 +51,15 @@ export async function POST(req: Request) {
           confirmDraftsOnly: z.literal(true),
         })
         .strict(),
+      z
+        .object({
+          action: z.literal("cfm-prepare"),
+          approvedSnapshot: z.string().regex(/^[a-f0-9]{64}$/),
+          planHash: z.string().regex(/^[a-f0-9]{64}$/),
+          confirmDraftsOnly: z.literal(true),
+          confirmReviewedMedia: z.boolean(),
+        })
+        .strict(),
     ])
     .safeParse(
       raw
@@ -64,10 +78,36 @@ export async function POST(req: Request) {
       return await apiError("studyPublishing.errors.CONFLICT", 409);
     }
   }
+  if ("action" in parsed.data) {
+    try {
+      await validateCfmRecoveryPlan(
+        user,
+        prisma,
+        parsed.data.planHash,
+        parsed.data.confirmReviewedMedia,
+      );
+    } catch (e) {
+      return await apiError(
+        `studyPublishing.errors.${e instanceof StudyPublishingError ? e.code : "INCOMPLETE"}`,
+        e instanceof StudyPublishingError && e.code === "CONFLICT" ? 409 : 422,
+      );
+    }
+  }
   const { started, job } = startReseedJob(
     prisma,
     "approvedSnapshot" in parsed.data
-      ? { actor: user, approvedSnapshot: parsed.data.approvedSnapshot }
+      ? {
+          actor: user,
+          approvedSnapshot: parsed.data.approvedSnapshot,
+          ...("action" in parsed.data
+            ? {
+                recovery: {
+                  planHash: parsed.data.planHash,
+                  reviewedMedia: parsed.data.confirmReviewedMedia,
+                },
+              }
+            : {}),
+        }
       : undefined,
   );
   return NextResponse.json(
@@ -76,9 +116,24 @@ export async function POST(req: Request) {
   );
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   const forbidden = await requireAdmin();
   if (forbidden) return forbidden;
+
+  if (new URL(req.url).searchParams.get("cfmRecovery") === "1") {
+    const user = await getCurrentUser();
+    if (!user?.isAdmin) return await apiError("apiErrors.forbidden", 403);
+    try {
+      return NextResponse.json(await cfmRecoveryPlan(user, prisma), {
+        headers: { "Cache-Control": "no-store, private" },
+      });
+    } catch (e) {
+      return await apiError(
+        `studyPublishing.errors.${e instanceof StudyPublishingError ? e.code : "INCOMPLETE"}`,
+        422,
+      );
+    }
+  }
 
   let studySource = null;
   try {
@@ -88,7 +143,11 @@ export async function GET() {
       await studyStorage();
       storageReady = true;
     } catch {}
-    studySource = { snapshot, lessons: CFM_SOURCES.reduce((n, s) => n + s.manifest.lessons.length, 0), storageReady };
+    studySource = {
+      snapshot,
+      lessons: CFM_SOURCES.reduce((n, s) => n + s.manifest.lessons.length, 0),
+      storageReady,
+    };
   } catch {}
   return NextResponse.json(
     { job: getReseedJob(), studySource },

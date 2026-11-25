@@ -4,7 +4,7 @@ import { userDayKey } from "@/lib/timeZone";
 import { canAccessCollection } from "@/lib/contentAccess";
 import { readingAccessWhere } from "@/lib/contentAccess";
 import { isPersonalStudyWork } from "./personalStudyOverrides";
-import { completedStepCounts } from "./stepProgress";
+import { completedStepCounts, readOnlyCompletedStepCounts } from "./stepProgress";
 import { calendarWeekOf } from "./weekSelection";
 import { CFM_PROGRAMME_NAME, cfmProgrammeCollectionIds, cfmVolumeOfCollection, cfmVolumeOfWork, splitByArchive } from "./cfmProgramme";
 import type { StudyContextView } from "@/lib/studyContextContract";
@@ -63,7 +63,7 @@ const MAX_LESSONS = 600;
 export async function getStudyCatalogue(actor: {
   id: string;
   isAdmin: boolean;
-}, now = new Date(), options: { collectionId?: string; scope?: "current" | "archive" } = {}) {
+}, now = new Date(), options: { collectionId?: string; scope?: "current" | "archive"; readOnlySteps?: boolean } = {}) {
   const user = await prisma.user.findUnique({
     where: { id: actor.id },
     select: { activeContentCollectionId: true, timeZone: true, personalStudyMode: true, activeContentCollection: { include: { contentWork: { select: { kind: true } } } } },
@@ -107,7 +107,7 @@ export async function getStudyCatalogue(actor: {
   const progress = await prisma.contentProgress.findMany({where:{userId:actor.id,contentKey:{in:safe.map(e=>`study:${e.workKey}:${e.lesson.periodId}:${e.lesson.sourceKey}`)}},select:{contentKey:true,readStatus:true,readAt:true}});
   const images = await lessonImageMedia(safe.map(e=>e.publishedRevisionId!));
   const lastStudied = await lastStudiedByEdition(actor.id, safe.map(e=>({id:e.id,contentKey:`study:${e.workKey}:${e.lesson.periodId}:${e.lesson.sourceKey}`})),progress);
-  const stepCounts = await completedStepCounts(actor, safe.map(e=>({editionId:e.id,revisionId:e.publishedRevisionId!})));
+  const stepCounts = await (options.readOnlySteps ? readOnlyCompletedStepCounts : completedStepCounts)(actor, safe.map(e=>({editionId:e.id,revisionId:e.publishedRevisionId!,workKey:e.workKey})));
   const result = safe.map(e=>({ id:e.id,lessonId:e.lessonId,collectionId:e.collectionId,title:e.publishedRevision!.title,lessonKey:`study:${e.lessonId}`,workKey:e.workKey,
     order:e.lesson.order,revisionId:e.publishedRevisionId!, legacyKey:e.legacyFsyLesson ? `fsy:${e.legacyFsyLesson.id}` : null,year:e.lesson.period.year,month:e.lesson.month,category:e.lesson.categoryKey,
     startsOn:e.lesson.startsOn?.toISOString().slice(0,10)??null,endsOnExclusive:e.lesson.endsOnExclusive?.toISOString().slice(0,10)??null,

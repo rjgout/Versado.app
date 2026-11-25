@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink as Link } from "@/components/navigation/AppNavigation";
 import { getT } from "@/lib/i18n";
 import MediaArtwork from "@/components/versado/MediaArtwork";
 import SectionHeader from "@/components/today/SectionHeader";

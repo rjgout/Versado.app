@@ -57,6 +57,7 @@
     "test:streak-return": "tsx --test tests/streak-return.test.ts tests/streak-return.integration.test.ts tests/streak-celebration.integration.test.ts tests/streak-celebration-deferral.test.ts tests/streak-banner.test.ts",
     "test:activity-reactions": "tsx --test tests/activity-reactions.test.ts tests/activity-reactions.integration.test.ts",
     "test:social": "tsx --test tests/social-rules.test.ts tests/social.integration.test.ts tests/social-links.integration.test.ts",
+    "test:friend-abuse": "tsx --test tests/friend-abuse.test.ts tests/friend-request-race.integration.test.ts",
     "test:time": "tsx --test tests/timeZone.test.ts tests/wordGameTime.test.ts tests/streakTravel.integration.test.ts tests/wordGame.integration.test.ts",
     "test:companion": "tsx --test tests/companion.integration.test.ts",
     "test:hymns": "tsx --test tests/hymns-library.test.ts tests/hymns-library-full.test.ts tests/hymns-recognition-library.test.ts tests/hymns-stanzas.test.ts tests/hymns-score-following.test.ts tests/hymns-session.test.ts tests/hymns-phase.test.ts tests/hymns-live.test.ts tests/hymns-ui.test.ts tests/hymns-reading.test.ts tests/hymns-recognition.test.ts tests/hymns-privacy.test.ts tests/hymns-live-regression.test.ts tests/proxy-headers.test.ts tests/hymns-sheet.test.ts tests/hymns-availability.test.ts tests/hymns-sunday.test.ts tests/hymns-voice.test.ts tests/hymns-v3-follow.test.ts",
@@ -104,9 +105,10 @@
     "test:fsy-conversion:integration": "node scripts/content-architecture/test-access-isolated.mjs --focused --fsy-conversion --browser",
     "native:build": "tsx scripts/native/build.ts",
     "native:verify": "node scripts/native/verify-distribution.mjs",
-    "test:native": "tsx --test tests/native-foundation.test.ts tests/native-navigation.test.ts tests/native-socket.test.ts tests/native-distribution.test.ts",
+    "test:native": "tsx --test tests/native-study-folder.test.mjs tests/learning-rules.test.ts tests/native-learning.test.ts tests/native-learning-flow.test.ts tests/native-audio-player.test.ts tests/native-reader.test.ts tests/native-audio.test.ts tests/native-annotations.test.ts tests/native-foundation.test.ts tests/native-appearance.test.ts tests/native-tabbar.test.ts tests/native-test-api-games.test.ts tests/native-account-deletion.test.ts tests/native-shell.test.tsx tests/native-navigation.test.ts tests/native-socket.test.ts tests/native-distribution.test.ts tests/native-access.test.ts tests/native-token-lifetime.test.ts tests/native-friends.test.ts tests/native-progress.test.ts tests/native-course-management.test.ts tests/native-audio-diagnostics.test.ts tests/synthetic-test-accounts.test.ts tests/native-back-navigation.test.ts tests/native-today.test.ts tests/native-today-view.test.tsx tests/native-today-actions.test.ts tests/native-profile.test.tsx tests/native-study-media.test.ts tests/native-courses.test.tsx tests/native-study-courses.test.tsx tests/native-game-*.test.mjs && npm run test:native:data",
+    "test:native:data": "tsx --test tests/native-data.test.ts tests/live-data.test.ts tests/live-data-architecture.test.ts tests/live-data-migration.test.ts tests/content-switch.test.ts",
     "test:native:integration": "node scripts/native/test-isolated.mjs",
-    "test:security": "tsx --test tests/security-policy.test.ts",
+    "test:security": "tsx --test tests/security-policy.test.ts && node --test tests/prisma-effect-security.test.mjs",
     "test:security:integration": "node scripts/security/test-isolated.mjs",
     "native:parity:update": "node scripts/native/parity.mjs --write",
     "native:parity:check": "node scripts/native/parity.mjs --check",
@@ -114,9 +116,11 @@
     "native:store-readiness": "node scripts/native/store-readiness.mjs",
     "test:nas-stack": "node --test tests/nas-test-stack.test.mjs",
     "native:check-test-backend": "node scripts/native/check-test-backend.mjs",
+    "privacy:inventory": "node scripts/privacy/personal-data-inventory.mjs",
+    "test:privacy": "node --test tests/personal-data-inventory.test.mjs",
     "test:native:store-readiness": "node --test tests/native-store-readiness.test.mjs",
     "test:native:android-release": "node --test tests/native-android-release.test.mjs",
-    "test:native:ios-release": "node --test tests/native-ios-release.test.mjs",
+    "test:native:ios-release": "node --test tests/native-ios-release.test.mjs tests/native-ios-signing.test.mjs",
     "audio:inventory": "python3 scripts/audio/official_inventory.py --download",
     "audio:align": "python3 scripts/audio/align_official.py",
     "audio:import-official": "tsx scripts/audio/import-official.ts",
@@ -125,7 +129,8 @@
     "test:audio:browser": "node scripts/audio/test-isolated.mjs --browser",
     "test:daily-text": "tsx --test tests/daily-text.test.ts",
     "test:daily-text:integration": "node scripts/content-architecture/test-access-isolated.mjs --focused --daily-text --browser",
-    "test:cfm-content:integration": "node scripts/content-architecture/test-access-isolated.mjs --focused --cfm-content --browser"
+    "test:cfm-content:integration": "node scripts/content-architecture/test-access-isolated.mjs --focused --cfm-content --browser",
+    "test:native:focus": "tsx --test tests/native-responsive-css.test.ts && node tests/native-route-focus.browser.mjs && node --import tsx tests/native-progress-layout.browser.mjs"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.2",
@@ -146,7 +151,7 @@
     "jose": "6.2.12",
     "lucide-react": "1.51.0",
     "nanoid": "6.0.1",
-    "next": "16.4.2",
+    "next": "16.4.5",
     "nodemailer": "10.2.1",
     "opensheetmusicdisplay": "^2.2.1",
     "parse5": "8.0.0",
@@ -166,7 +171,7 @@
   },
   "devDependencies": {
     "@capacitor/android": "^8.5.2",
-    "@capacitor/cli": "^8.5.2",
+    "@capacitor/cli": "^8.6.0",
     "@capacitor/ios": "^8.5.2",
     "@types/node": "24.19.1",
     "@types/nodemailer": "^8.0.2",
@@ -176,7 +181,7 @@
     "autoprefixer": "10.6.1",
     "esbuild": "^0.28.2",
     "eslint": "^9.39.5",
-    "eslint-config-next": "^16.4.2",
+    "eslint-config-next": "16.4.5",
     "postcss": "8.5.28",
     "tailwindcss": "3.4.19",
     "typescript": "^6.0.2"
@@ -184,6 +189,9 @@
   "overrides": {
     "deepmerge-ts": "8.0.2",
     "mysql2": "3.24.5",
-    "source-map-js": "1.2.2"
+    "source-map-js": "1.2.2",
+    "@prisma/config@7.10.0": {
+      "effect": "3.22.1"
+    }
   }
 }

@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "upstreamCommit": "31d411ac1c2d277242a3bd85697f354eaa11526b",
+  "sourceLockHash": "a07ad39f7d72e0f2beb312d1d43a2eb68b3f0cdb08a3857e65d1b09b06ee51d2",
+  "licenseSha256": "f5a550e6124bab4e3d1681750e8bcc1fbb6a104d4d25771f7631bf0e060dab66",
+  "editions": [
+    {
+      "id": "content_old_testament_otb_nl",
+      "work": "old-testament",
+      "language": "nl",
+      "books": 39,
+      "chapters": 929,
+      "verses": 23145,
+      "sha256": "e5956645a5c27fa3f0adf0f716588d2fcb259eeb33763c27c726d02d9dc11cf2"
+    },
+    {
+      "id": "content_old_testament_otb_en",
+      "work": "old-testament",
+      "language": "en",
+      "books": 39,
+      "chapters": 929,
+      "verses": 23145,
+      "sha256": "21e81ab8a96104a18494691ef1c9edbf9b39f06527792457c0de2c36059da30d"
+    },
+    {
+      "id": "content_old_testament_otb_es",
+      "work": "old-testament",
+      "language": "es",
+      "books": 39,
+      "chapters": 929,
+      "verses": 23145,
+      "sha256": "08a91be0d27d78a700d515dc5aef7ae4d5829f5980f838c8e7b28fd240fdb738"
+    },
+    {
+      "id": "content_old_testament_otb_fr",
+      "work": "old-testament",
+      "language": "fr",
+      "books": 39,
+      "chapters": 929,
+      "verses": 23145,
+      "sha256": "ccc6ef371972352bff2e597ceeccbdf7bc2ebad69f3ab2be08dd1956ee1795ff"
+    },
+    {
+      "id": "content_old_testament_otb_de",
+      "work": "old-testament",
+      "language": "de",
+      "books": 39,
+      "chapters": 929,
+      "verses": 23145,
+      "sha256": "e2d4ff1c1a481085cb90f1dcc61e16d2137ebffdbd229d2b30bd9cf5d891e21c"
+    },
+    {
+      "id": "content_new_testament_otb_nl",
+      "work": "new-testament",
+      "language": "nl",
+      "books": 27,
+      "chapters": 260,
+      "verses": 7958,
+      "sha256": "8ade48f5cb833e53fd695ef4b5f8ffa376f4b400fb76cc0c5f104a6b4b9e2a0f"
+    },
+    {
+      "id": "content_new_testament_otb_en",
+      "work": "new-testament",
+      "language": "en",
+      "books": 27,
+      "chapters": 260,
+      "verses": 7958,
+      "sha256": "4748a01df92a9fe43c14df7063a3f654ccc1e723018348be63ba35618ad6192f"
+    },
+    {
+      "id": "content_new_testament_otb_es",
+      "work": "new-testament",
+      "language": "es",
+      "books": 27,
+      "chapters": 260,
+      "verses": 7958,
+      "sha256": "934906b82a187a1c3f3e5882cfde0d9f15d9b7cea2d03f6753b48d8ef9663b0d"
+    },
+    {
+      "id": "content_new_testament_otb_fr",
+      "work": "new-testament",
+      "language": "fr",
+      "books": 27,
+      "chapters": 260,
+      "verses": 7958,
+      "sha256": "b5406251407bd72d99d91a183cf4f66d6350cfa82bf920945ae5d5cf4f16caf2"
+    },
+    {
+      "id": "content_new_testament_otb_de",
+      "work": "new-testament",
+      "language": "de",
+      "books": 27,
+      "chapters": 260,
+      "verses": 7958,
+      "sha256": "f01d1790ac66971e92ba026cf1871ff4f952342896aadb2e7d39427e797a689f"
+    }
+  ]
+}

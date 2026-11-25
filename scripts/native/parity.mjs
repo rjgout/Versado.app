@@ -4,6 +4,7 @@ import { resolve, relative, dirname, join } from "node:path";
 import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
+import {GAME_PAGE_ROUTES} from "../../src/lib/native/gamesPagesRoutes.ts";
 
 const HTTP = new Set(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]);
 export function filesIn(root) {
@@ -35,7 +36,7 @@ export function inspectModule(file, source) {
       if (call === "import" && node.arguments[0] && ts.isStringLiteral(node.arguments[0])) imports.add(node.arguments[0].text);
       if (/^(getCurrentUser(Id)?|require\w*|assert\w*|can\w*|nativeUser|nativeApi|verify\w*|get\w*Access)$/.test(call)) checks.add(call);
       const input = node.arguments[0];
-      if (input && /(?:fetch|fetchJson|jsonMutation|\.api|\.publicRequest)$/.test(call)) {
+      if (input && /(?:fetch|applicationFetch|fetchJson|jsonMutation|\.api|\.publicRequest)$/.test(call)) {
         if (ts.isStringLiteral(input) || ts.isNoSubstitutionTemplateLiteral(input)) requests.add(input.text);
         else if (ts.isTemplateExpression(input)) requests.add(input.getText(ast).slice(1, -1));
       }
@@ -58,7 +59,7 @@ export function inspectModule(file, source) {
 }
 export function domainFor(route) {
   if (/^\/(api\/)?admin/.test(route)) return "beheer";
-  if (/^\/(api\/)?(auth|account|profile|avatar|onboarding|login|register|forgot-password|reset-password|change-password|verify-email|two-factor)(\/|$)/.test(route)) return "account";
+  if (/^\/(api\/)?(auth|account|account-verwijderen|profile|avatar|onboarding|login|register|forgot-password|reset-password|change-password|verify-email|two-factor)(\/|$)/.test(route)) return "account";
   if (/^\/api\/v1\/native(\/|$)/.test(route)) return "native-kern";
   if (/^\/(api\/)?(dorp|dev\/versado-dorp)(\/|$)/.test(route)) return "dorp";
   if (/^\/(api\/)?(live|scrabble|word-game|word-search|jigsaw|alleskenner|chapter-guess|gezinsavond|snelle-zendeling|mysteries)(\/|$)/.test(route)) return "spelen";
@@ -67,6 +68,39 @@ export function domainFor(route) {
   if (/^\/(api\/)?(audio|podcast|search|tools|hymns|dev\/lofzangen)(\/|$)/.test(route)) return "media-hulpmiddelen";
   if (/^\/(api\/)?(privacy|cookies|disclaimer|contact|uitschrijven|feedback|kompas)(\/|$)/.test(route)) return "hulp-juridisch";
   return "overig-vandaag";
+}
+/** Technische routebeoordeling, geen router-allowlist of fysieke acceptatie.
+ * Volledig betekent dezelfde aanwezige schermfuncties; ontbrekende doelroutes
+ * en platformfuncties maken een rij gedeeltelijk. Nieuwe routes vallen dicht. */
+export function iosCoverageFor(route) {
+  if(GAME_PAGE_ROUTES.some(row=>row.path===route))return {status:"gedeeltelijk",native:route,reason:"Canonieke spel-/lees-/actiepresentatie lokaal via games-v1; gezamenlijke spel- en platformacceptatie nog open (NATIVE-GAMES.md)"};
+  if(route==="/kompas/[topicId]")return {status:"gedeeltelijk",native:"/kompas/play en alle play.<spel>-uitleg",reason:"Gedeelde volledige speluitleg en tour; overige Kompas-onderwerpen nog niet lokaal aangesloten"};
+  const complete = new Set(["/privacy", "/cookies", "/disclaimer", "/profile/avatar", "/change-password", "/reset-password", "/verify-email", "/account-verwijderen"]);
+  if (complete.has(route)) return { status: "volledig", native: route, reason: "Gedeelde lokale inhoud/formulieren en bestaande services; fysieke heracceptatie apart" };
+  if (route.startsWith("/profile?view=")) return { status: "gedeeltelijk", native: route, reason: "Gedeelde profielweergave; totale instelling-/bestemmingspariteit en fysieke acceptatie nog open (NATIVE-PROFILE.md)" };
+  const partial = new Map([
+    ["/study-folder", "Gedeelde accountbrede studiemap via study-folder-v1: zoeken, filters, paginering, eigen notities/markeringen/bladwijzers beheren. Exacte bofm-passage-uitstap zonder bronwissel; OTB/studielezers en fysieke toestelacceptatie blijven open (reviews/NATIVE-STUDY-FOLDER.md)"],
+    ["/dashboard", "Gedeelde Vandaag en bevestigde acties; overige activiteiten, beloningen en sociale doelen ontbreken"],
+    ["/profile", "Gedeeld volledig profieloverzicht; push, stem-preview, tijdzonesync en enkele doelroutes ontbreken"],
+    ["/content", "Gedeelde veilige bron-/taalkeuze; niet alle bronpreviews en vervolgactiviteiten lokaal beschikbaar"],
+    ["/login", "Native auth/2FA werkt; Apple-vrijgave, web-onboarding en alle vervolgflows nog niet volledig gelijk"],
+    ["/register", "Native registratie en bevestiging; volledige onboarding-/vervolgervaring nog open"],
+    ["/forgot-password", "Native resetaanvraag werkt; platform-/Apple-herstelverschillen blijven apart getoetst"],
+    ["/contact", "Gedeelde contactinhoud; lokale feedbackbestemming ontbreekt"],
+    ["/courses", "Gedeeld cursusoverzicht met beheer (volgen/toevoegen, verbergen, eigen volgorde) via de spelbrug; fysieke toestelacceptatie en alle cursustypen/acties nog niet gelijk"],
+    ["/courses/[courseId]", "Bestaande cursuscontext; volledige webdetails/acties nog niet lokaal gelijk"],
+    ["/courses/[courseId]/pad", "Drie schriftelijke leespaden en CFM-weken; overige cursus-/vraag-/afrondingsflows ontbreken"],
+    ["/courses/[courseId]/archief", "Gedeeld CFM-archief; daadwerkelijke studie-/vragenflow ontbreekt"],
+    ["/streak", "Gedeelde reeksweergave (kalender, bevriezingen) via de spelbrug (games-v1); aanvullende viering/herstelpaden en toestelacceptatie nog open (NATIVE-MOBIEL-COMPLEET.md)"],
+    ["/xp", "Gedeelde XP-geschiedenis via de spelbrug (games-v1); de XP-gids (Hulpmiddelen) is er in de app nog niet en wordt daar verborgen; toestelacceptatie open"],
+    ["/competition", "Gedeelde competitie (divisie, ranglijst, landelijk/vrienden) via de spelbrug (games-v1); toestelacceptatie open"],
+    ["/friends", "Gedeelde vriendenlijst, zoeken, verzoek sturen/annuleren, verwijderen, seintjes, vriendenreeksen en bevriezers lokaal via de spelbrug (friends-v1); uitnodigingslink en groepen (fase C), tabbalk-/toestelacceptatie nog open (NATIVE-VRIENDEN.md)"],
+    ["/friends/[userId]", "Gedeeld vriendenprofiel (privacy server-side); dorpvoorbeeld en groepslinks nog niet lokaal, toestelacceptatie open (NATIVE-VRIENDEN.md)"],
+  ]);
+  if (partial.has(route)) return { status: "gedeeltelijk", native: route, reason: partial.get(route) };
+  const reader = ["/lesson/[chapterId]", "/reading-lesson/[lessonId]", "/courses/[courseId]/chapter/[chapterId]"];
+  if (reader.includes(route)) return { status: "ontbreekt", native: "Reader bestaat alleen met bewezen cursuscontext via /courses/:id/read/(steps|chapters)/:id", reason: "Directe webbestemming en volledige acties niet overgezet; legacy-melding telt niet als beschikbaar scherm" };
+  return { status: "ontbreekt", native: null, reason: route.startsWith("/adminbackend") ? "Geen lokale beheerflow; bestaande rol-/2FA-gates blijven vereist" : "Geen volledige lokale scherm-/actiestroom; geen remote WebView of placeholder als equivalent" };
 }
 export function collectParity(root = process.cwd()) {
   const paths = filesIn(join(root, "src")).filter(file => /\.[jt]sx?$/.test(file));
@@ -91,6 +125,7 @@ export function collectParity(root = process.cwd()) {
       directModules: direct, clientBoundaries: dependencyFiles.filter(file => byFile.get(file)?.boundary === "client"),
       requestEvidence: [...new Set(dependencyFiles.flatMap(file => byFile.get(file)?.requests ?? []))].sort(),
       authEvidence: module.checks,
+      ...( /\/page\./.test(module.file) ? { iosCoverage: iosCoverageFor(route) } : {} ),
     };
   }).sort((a, b) => a.route.localeCompare(b.route, "en"));
   const components = modules.filter(module => /\.[jt]sx$/.test(module.file) && !/\/api\//.test(module.file));
@@ -101,7 +136,7 @@ export function collectParity(root = process.cwd()) {
   const socketSource = readFileSync(join(root, "src/server/gameServer.ts"), "utf8");
   const socketEvents = [...new Set([...socketSource.matchAll(/socket\.(?:on|once)\("([^"]+)"/g)].map(match => match[1]))].sort();
   const tests = filesIn(join(root, "tests")).map(path => relative(root, path).replaceAll("\\", "/")).filter(path => /\.(test\.[cm]?[jt]sx?|browser\.mjs|socket\.mjs)$/.test(path));
-  return { schemaVersion: 1, modules, routes, components, metadata, profileViews, socketEvents, tests };
+  return { schemaVersion: 1, modules, routes, components, metadata, profileViews, iosProfileViews: profileViews.map(route => ({ route, ...iosCoverageFor(route) })), socketEvents, tests };
 }
 const cell = value => String(value).replaceAll("|", "\\|").replaceAll("\n", " ");
 const link = file => `[${file}](../${file})`;
@@ -110,14 +145,11 @@ export function renderInventory(inventory) {
   const lines = ["<!-- BEGIN NATIVE PARITY INVENTORY -->", "## Volledige broninventaris (gegenereerd)", "",
     `Gevonden: **${pages.length} pagina's**, **${apis.length} fysieke routehandlers**, **${inventory.components.length} JSX-modules**, **${inventory.profileViews.length} profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.`, "",
     "De JSON-bijlage bevat per route alle transitief bereikbare lokale modules, clientgrenzen en statische requestpaden. Dat is een afhankelijkheidsinventaris, geen autorisatiebewijs; voorwaarden per HTTP-methode blijven apart te controleren. Een Client Component kan via een gedeelde helper nog een serverafhankelijkheid hebben. Een module zonder eigen `use client` is contextafhankelijk, niet automatisch browsergeschikt.", "",
-    "### Iedere webpagina", "", "Route | Bron / rendergrens | Domeinbeleid | Native scherm / status | Data- en authbewijs in bron | Testbewijs", "--- | --- | --- | --- | --- | ---"];
+    "### Iedere webpagina", "", "Technische iOS-dekking: **volledig**, **gedeeltelijk** of **ontbreekt**. Dit beoordeelt aanwezige schermfuncties, niet fysieke apparaatacceptatie. Registratie van een route/melding is geen implementatie. Liquid Glass verandert in deze stap geen functiedekking. De overige expliciete platformhiaten blijven open.", "", "Route | Bron / rendergrens | Domeinbeleid | iOS-dekking en reden | Data- en authbewijs in bron | Testbewijs", "--- | --- | --- | --- | --- | ---"];
   for (const row of pages) {
-    const partial = /^\/(login|register|forgot-password|dashboard|profile|lesson\/\[chapterId\])$/.test(row.route);
-    const legal = ["/privacy", "/cookies", "/disclaimer", "/contact"].includes(row.route);
-    const password = ["/change-password", "/reset-password"].includes(row.route);
-    const confirmation = row.route === "/verify-email";
+    const coverage = row.iosCoverage ?? iosCoverageFor(row.route);
     lines.push([`\`${row.route}\``, `${link(row.file)}; ${row.boundary === "client" ? "expliciete clientgrens" : "Server Component-entry"}`, row.domain,
-      legal ? "Lokale gedeelde inhoud; apparaatbewijs open" : password ? "Lokale gedeelde wachtwoordflow; apparaatbewijs open" : confirmation ? "Lokale gedeelde bevestigingsflow; apparaatbewijs open" : partial ? "Lokale route; Foundation gedeeltelijk, geen volledige functiepariteit" : "Zelfde doel-URL; ontbreekt in lokale router",
+      `**${coverage.status}** — ${coverage.reason}; native: ${coverage.native ?? "geen"}`,
       [...row.authEvidence, ...row.directModules.filter(file => file.startsWith("src/lib/"))].map(cell).join("; ") || "Zie bron en rootlayout; nog expliciet beoordelen",
       "Webtests: JSON-index; native: geen volledig route-/apparaatbewijs",
     ].map(cell).join(" | "));
@@ -129,7 +161,7 @@ export function renderInventory(inventory) {
   lines.push("", "### Alle JSX-modules en expliciete clientgrenzen", "", "Module | Eigen grens | Geëxporteerde namen", "--- | --- | ---");
   for (const row of inventory.components) lines.push([link(row.file), row.boundary === "client" ? "use client" : "contextafhankelijk / server-entry waar page/layout", row.exports.join(", ") || "default/locale declaratie; zie bron"].map(cell).join(" | "));
   lines.push("", "### Aanvullende routes en gebeurtenissen", "", ...inventory.metadata.map(row => `- Metadata: ${link(row.file)}.`), "- Rewrite: `/manifest.webmanifest` → `/api/branding/manifest` (`next.config.js`).", "",
-    ...inventory.profileViews.map(route => `- Profielscherm: \`${route}\` — ontbreekt als volwaardig lokaal scherm.`), "", "Socket-events (web; native handshake nog niet aanwezig):", "", ...inventory.socketEvents.map(event => `- \`${event}\``), "", "<!-- END NATIVE PARITY INVENTORY -->");
+    ...inventory.profileViews.map(route => `- **${iosCoverageFor(route).status}** — Profielscherm: \`${route}\` — gedeelde lokale renderer via \`profile-settings-v1\`; fysieke acceptatie en expliciete hiaten in NATIVE-PROFILE.md blijven open.`), "", "Socket-events (web; native tickettransport bestaat, volledige domeinschermen nog open):", "", ...inventory.socketEvents.map(event => `- \`${event}\``), "", "<!-- END NATIVE PARITY INVENTORY -->");
   return lines.join("\n");
 }
 export function updateDocument(source, generated) {

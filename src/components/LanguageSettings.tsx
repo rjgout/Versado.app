@@ -1,10 +1,8 @@
 "use client";
+import LanguageSettingsView from "@/components/profile/LanguageSettingsView";
 
-import { useEffect, useState } from "react";
-import { LANGUAGES, getLanguage } from "@/lib/languages";
 import { useT } from "@/components/I18nProvider";
-import AppSelect from "@/components/AppSelect";
-import { SettingsField, SettingsSection, SettingsStatus, settingsFieldClass } from "@/components/profile/settings";
+import { useEffect,useState } from "react";
 
 // Twee losse keuzes (zie User.uiLanguage / contentLanguage): de taal van de
 // app en de taal waarin je de Schriften leest en speelt. Een taal staat
@@ -29,9 +27,6 @@ export default function LanguageSettings({ uiLanguage, isAdmin }: { uiLanguage: 
       .catch(() => {});
   }, []);
 
-  const uiChoices = LANGUAGES.filter((language) => language.uiReady || isAdmin || language.code === uiLanguage);
-  const contentChoices = LANGUAGES.filter((language) => contentLanguages.includes(language.code));
-
   // Een volledige herlaadbeurt: menu's, cursussen en teksten komen van de server.
   async function save(url: string, method: "PATCH" | "PUT", body: object) {
     setSaving(true);
@@ -53,45 +48,6 @@ export default function LanguageSettings({ uiLanguage, isAdmin }: { uiLanguage: 
     }
   }
 
-  return (
-    <SettingsSection>
-      <SettingsField label={t("languageSettings.appLanguage")} description={t("languageSettings.appLanguageHint")}>
-        {uiChoices.length > 1 ? (
-          <AppSelect
-            className={settingsFieldClass}
-            value={uiLanguage}
-            disabled={saving}
-            onChange={(value) => save("/api/account", "PATCH", { uiLanguage: value })}
-            ariaLabel={t("languageSettings.appLanguage")}
-            options={uiChoices.map((language) => ({ value: language.code, label: `${language.nativeName}${language.uiReady ? "" : ` ${t("languageSettings.inDevelopment")}`}` }))}
-          />
-        ) : (
-          <p className="text-sm text-vs-fg-2">{t("languageSettings.moreFollow", { language: getLanguage(uiLanguage).nativeName })}</p>
-        )}
-      </SettingsField>
-
-      <SettingsField label={t("languageSettings.textLanguage")} description={t("languageSettings.textLanguageHint")}>
-        {contentLanguage === null ? (
-          <p className="text-sm text-vs-fg-3">{t("common.loading")}</p>
-        ) : contentChoices.length > 1 ? (
-          <AppSelect
-            className={settingsFieldClass}
-            value={contentLanguage}
-            disabled={saving}
-            onChange={(value) => save("/api/content-context", "PUT", { contentLanguage: value })}
-            ariaLabel={t("languageSettings.textLanguage")}
-            options={contentChoices.map((language) => ({ value: language.code, label: language.nativeName }))}
-          />
-        ) : (
-          <p className="text-sm text-vs-fg-2">{t("languageSettings.moreFollow", { language: getLanguage(contentLanguage).nativeName })}</p>
-        )}
-      </SettingsField>
-
-      {error && (
-        <div className="px-2 py-3">
-          <SettingsStatus kind="error">{error}</SettingsStatus>
-        </div>
-      )}
-    </SettingsSection>
-  );
+  return <LanguageSettingsView uiLanguage={uiLanguage} isAdmin={isAdmin} contentLanguage={contentLanguage} contentLanguages={contentLanguages} saving={saving} error={error}
+    onUiLanguage={value => void save("/api/account","PATCH",{uiLanguage:value})} onContentLanguage={value => void save("/api/content-context","PUT",{contentLanguage:value})}/>;
 }

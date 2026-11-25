@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { getCurrentUser } from "@/lib/session";
 import { apiError } from "@/lib/apiError";
+import { loadProfileChangelog } from "@/lib/profile/changelog";
+import { getCurrentUser } from "@/lib/session";
+import { NextResponse } from "next/server";
 
 // Voor zowel de volledige lijst op het profiel als de "nieuw sinds je laatste
 // bezoek"-pop-up (ChangelogPopup.tsx): één plek die bepaalt wat "nieuw" is,
@@ -13,8 +13,8 @@ export async function GET() {
   const user = await getCurrentUser();
   if (!user) return await apiError("apiErrors.notLoggedIn", 401);
 
-  const entries = await prisma.changelogEntry.findMany({ orderBy: { createdAt: "desc" } });
-  const hasUnseen = user.changelogEnabled && entries.some((e) => e.createdAt > user.changelogSeenAt);
+  const entries = await loadProfileChangelog();
+  const hasUnseen = user.changelogEnabled && entries.some((e) => new Date(e.createdAt) > user.changelogSeenAt);
 
   return NextResponse.json({
     entries: entries.map((e) => ({ id: e.id, title: e.title, body: e.body, createdAt: e.createdAt })),

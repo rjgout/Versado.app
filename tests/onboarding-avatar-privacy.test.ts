@@ -24,7 +24,7 @@ test("bestaande accounts zonder personage krijgen geen volledige onboardinglus",
 });
 
 test("vrijwillige productuitleg herhaalt geen accountonboarding of instellingen", () => {
-  const profile = read("src/components/ProfileClient.tsx");
+  const profile = read("src/components/ProfileClient.tsx") + read("src/components/profile/ProfileOverview.tsx");
   const page = read("src/app/onboarding/page.tsx");
   const kompas = read("src/lib/i18n/messages/kompas/nl.ts");
   assert.match(profile, /label=\{t\("kompas\.entry\.title"\)\} href="\/kompas"/);
@@ -48,7 +48,7 @@ test("onboardingprivacy gebruikt bestaande serverprivacy en volledige serverbesc
 });
 
 test("emoji-keuze is uit de editor verwijderd, legacy opslag blijft in het schema", () => {
-  const editor = read("src/components/AvatarEditorClient.tsx");
+  const editor = read("src/components/AvatarEditorClient.tsx") + read("src/components/profile/AvatarEditorView.tsx");
   const schema = read("prisma/schema.prisma");
   const messages = read("src/lib/i18n/messages/nl.ts");
   assert.doesNotMatch(editor, /avatarEmojiHint|avatarCustomEmoji|avatarUseEmoji/);

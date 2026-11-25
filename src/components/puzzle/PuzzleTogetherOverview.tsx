@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import {AppLink as Link} from "@/components/navigation/AppNavigation";
+import {useGameRouter as useRouter} from "@/components/games/GameNavigation";
 import { useState } from "react";
 import { useT } from "@/components/I18nProvider";
 import FinishedPuzzleRow from "@/components/puzzle/FinishedPuzzleRow";

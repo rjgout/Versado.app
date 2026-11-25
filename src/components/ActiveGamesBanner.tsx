@@ -1,7 +1,10 @@
 "use client";
+import {applicationFetch,applicationRuntime} from "@/lib/data/applicationRuntime";
 
+
+import {useAppNavigation} from "@/components/navigation/AppNavigation";
 import { type MouseEvent } from "react";
-import Link from "next/link";
+import {AppLink as Link} from "@/components/navigation/AppNavigation";
 import { ArrowRight, Gamepad2 } from "lucide-react";
 import UserAvatar from "@/components/UserAvatar";
 import { useT } from "@/components/I18nProvider";
@@ -39,6 +42,7 @@ interface ActivityStatus {
 // te dupliceren.
 export default function ActiveGamesBanner() {
   const t = useT();
+  const navigation=useAppNavigation();
 
   // Lopende spellen en uitnodigingen veranderen buiten deze pagina om (de ander accepteert, een
   // beurt, een ingetrokken uitnodiging). De server meldt dat via de bestaande socket-gebeurtenissen
@@ -65,7 +69,9 @@ export default function ActiveGamesBanner() {
     if (!item.contentCollectionId || item.contentCollectionId === status?.activeContentCollectionId) return;
 
     event.preventDefault();
-    const response = await fetch("/api/content-context", {
+    const platform=applicationRuntime();
+    if(platform?.selectGameContent){await platform.selectGameContent(item.contentCollectionId,item.link);navigation.push(item.link);return;}
+    const response = await applicationFetch("/api/content-context", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ contentCollectionId: item.contentCollectionId }),

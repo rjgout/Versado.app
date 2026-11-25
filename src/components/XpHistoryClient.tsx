@@ -3,7 +3,7 @@
 import { useState, type ReactNode } from "react";
 import { useLiveQuery } from "@/lib/data/hooks";
 import { fetchJson } from "@/lib/data/fetchJson";
-import Link from "next/link";
+import { AppLink } from "@/components/navigation/AppNavigation";
 import { useT, useUiLanguage } from "@/components/I18nProvider";
 import { getLanguage } from "@/lib/languages";
 import { HeartPulse, Gift } from "lucide-react";
@@ -126,7 +126,8 @@ function formatRowTime(iso: string, bucket: Bucket, locale: string): string {
   return new Intl.DateTimeFormat(locale, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(d);
 }
 
-export default function XpHistoryClient() {
+/** `showGuide` is uit in de native app zolang "Hulpmiddelen" daar nog geen scherm heeft: geen knop die niets doet. */
+export default function XpHistoryClient({ showGuide = true }: { showGuide?: boolean } = {}) {
   const t = useT();
   const intlLocale = getLanguage(useUiLanguage()).intlLocale;
   const [loadingMore, setLoadingMore] = useState(false);
@@ -164,9 +165,9 @@ export default function XpHistoryClient() {
     return (
       <div className="max-w-md mx-auto card text-center flex flex-col gap-3">
         <p className="text-red-600 dark:text-red-400 font-semibold">{error}</p>
-        <Link href="/dashboard" className="btn-secondary self-center">
+        <AppLink href="/dashboard" className="btn-secondary self-center">
           {t("wordOfTheDay.back")}
-        </Link>
+        </AppLink>
       </div>
     );
   }
@@ -178,7 +179,7 @@ export default function XpHistoryClient() {
   const groups = groupTransactions(transactions);
 
   return (
-    <div className="max-w-3xl mx-auto flex flex-col gap-4 sm:gap-5">
+    <div className="w-full min-w-0 max-w-3xl mx-auto flex flex-col gap-4 sm:gap-5">
       <h1 className="text-2xl font-extrabold text-brand-800 dark:text-brand-300">{t("xpHistory.title")}</h1>
 
       <div className="card bg-gradient-to-br from-brand-500 to-brand-700 dark:from-brand-600 dark:to-brand-900 text-white !border-brand-300/30 dark:!border-brand-400/20 !shadow-md dark:!shadow-none flex flex-col items-center gap-1 !py-8">
@@ -243,7 +244,8 @@ export default function XpHistoryClient() {
         )}
       </div>
 
-      <Link
+      {showGuide && (
+      <AppLink
         href="/tools/xp-guide"
         className="card !bg-vs-subtle dark:!bg-vs-surface !border-vs-line flex items-center gap-3 !py-3 hover:ring-2 hover:ring-vs-accent-soft"
       >
@@ -254,7 +256,8 @@ export default function XpHistoryClient() {
           <p className="font-extrabold text-sm text-vs-fg">{t("xpHistory.whatEarns")}</p>
           <p className="text-xs font-semibold text-vs-accent">{t("xpHistory.overview")}</p>
         </div>
-      </Link>
+      </AppLink>
+      )}
     </div>
   );
 }

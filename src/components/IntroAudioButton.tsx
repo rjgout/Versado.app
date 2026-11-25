@@ -1,4 +1,6 @@
 "use client";
+import {useGameMedia} from "@/components/games/GameMediaContext";
+import type {NativeGameAudioInput} from "@/lib/native/gamesAudioContract";
 
 import { useEffect, useRef, useState } from "react";
 import { useT } from "@/components/I18nProvider";
@@ -14,7 +16,12 @@ interface IntroAudio {
  * stuk uit de audio van het hele hoofdstuk (zie Chapter.audioHeadingStart).
  * Stopt vanzelf aan het eind van de kop, en bij een volgende vraag.
  */
-export default function IntroAudioButton({ audio }: { audio: IntroAudio | null | undefined }) {
+type Props={audio:IntroAudio|null|undefined;nativeTarget?:Exclude<NativeGameAudioInput,{kind:"reading"}>;text?:string};
+export default function IntroAudioButton(props:Props){
+ const media=useGameMedia();if(media){const Intro=media.Intro;return <Intro {...props}/>;}
+ return <WebIntroAudioButton audio={props.audio}/>;
+}
+function WebIntroAudioButton({audio}:Props){
   const t = useT();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [playing, setPlaying] = useState(false);

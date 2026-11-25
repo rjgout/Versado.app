@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import NextImage from "next/image";
+import {useGameRouter as useRouter} from "@/components/games/GameNavigation";
+import {AppImage as NextImage} from "@/components/navigation/AppNavigation";
 import FocusLayout from "@/components/versado/FocusLayout";
 import { Puzzle, type MatchContext } from "@/components/JigsawV2Client";
 import { useT } from "@/components/I18nProvider";

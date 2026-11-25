@@ -69,9 +69,9 @@ test("achievement-slugs gebruiken vaste families en systeembeelden blijven behou
 test("de aangewezen publieke plekken gebruiken de centrale V2-componenten", () => {
   const sources = [
     ["src/components/FriendInviteCard.tsx", "asset=\"invite\""],
-    ["src/components/CoursesClient.tsx", "asset=\"tools\""],
+    ["src/components/CoursesView.tsx", "asset=\"tools\""],
     ["src/components/NotificationCenter.tsx", "asset=\"notifications-empty\""],
-    ["src/components/kompas/KompasEntryCard.tsx", "asset=\"kompas\""],
+    ["src/components/kompas/KompasEntryCardView.tsx", "asset=\"kompas\""],
     ["src/components/versado/RankMedal.tsx", "podiumAssetForRank"],
   ] as const;
   for (const [relativePath, expected] of sources) {

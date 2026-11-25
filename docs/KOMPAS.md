@@ -280,3 +280,15 @@ uitnodiging.
 - Uitnodigingen staan per overzichtspagina (`routes`), niet per willekeurig element.
 - Scripturen-specifieke uitleg is nu voor `bofm`, `dc-testament` en `pgp`
   (Leren); andere bronnen krijgen de algemene uitleg.
+
+## Rondleidingen met de native tabbalk (iOS 26+)
+
+Met de systeemtabbalk (`docs/NATIVE-LIQUID-GLASS.md`) is de React-onderbalk een onzichtbare
+ruimtehouder; de bestemmingen zijn systeem-UI die een rondleiding in de WebView niet kan markeren.
+Bewuste keuze: de stappen `nav-learn`, `nav-play` en `nav-friends` vallen dan weg via de bestaande
+`findTarget`/`planTour` (geen onzichtbare markering, geen niet-werkende overlay, geen tweede
+rondleidingsmotor). Tijdens een rondleiding of modaal paneel is de native balk verborgen
+(`src/lib/native/modalSelector.ts`, ook `[data-kompas-tour]` in de beginfase), zodat hij nooit
+bediening van de overlay afvangt. Bewaakt door `tests/native-tabbar.test.ts` en
+`tests/native-tabbar.browser.mjs`. Een eigen native stap (uitleg van de tabbalk zelf) is een
+vervolgstap en vraagt een nieuw Kompas-doeltype.

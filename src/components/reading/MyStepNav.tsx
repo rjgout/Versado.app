@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
 import { primaryButton } from "@/components/versado/styles";
-import { currentEntryKey } from "@/lib/navigationHistory";
+import { currentEntryKey } from "@/lib/navigationEntry";
 import { requestScrollRestore } from "@/lib/scrollRestore";
 import { myStepDirection, pathScrollTarget, type MyStepDirection } from "@/lib/readingPath";
 

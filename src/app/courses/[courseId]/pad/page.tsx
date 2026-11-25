@@ -16,7 +16,7 @@ import { loadChapterPath } from "@/lib/chapterPathData";
 import { isReadingPathType, isStudyCourseType, modeOfStudyCourse } from "@/lib/readingCourses";
 import { getStudyCatalogue } from "@/lib/studyContent/catalogue";
 import { resolveWeekSelection } from "@/lib/studyContent/weekSelection";
-import CfmCourseView from "@/components/study/CfmCourseView";
+import CfmCourseView from "@/components/study/WebCfmCourseView";
 import { navigationSessionKey } from "@/lib/session";
 import { courseTypeMatchesContent } from "@/lib/courseContent";
 
@@ -56,6 +56,7 @@ export default async function ReadingPathPage({ params }: { params: Promise<{ co
         <LiveRefresh scopes={["courses", "progress", "studySteps", "studyContext", "studyContent"]} token={data.token} />
         <CfmCourseView
           courseName={courseTitle}
+          truncated={data.truncated}
           mode={modeOfStudyCourse(course.type)}
           weeks={weeks}
           activeWeekId={activeWeek?.id ?? null}

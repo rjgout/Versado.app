@@ -1,7 +1,9 @@
 "use client";
+import {applicationFetch} from "@/lib/data/applicationRuntime";
 
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+
+import {AppLink as Link} from "@/components/navigation/AppNavigation";
+import {useGameRouter as useRouter, useGameSearchParams as useSearchParams} from "@/components/games/GameNavigation";
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { Check, CheckCircle2, Eraser, Lightbulb, Undo2, X } from "lucide-react";
 import FocusLayout from "@/components/versado/FocusLayout";
@@ -87,7 +89,7 @@ export function MysteryClient({ userId, initialAttempt, initialProgress, readerH
 
   useEffect(() => {
     let cancelled = false;
-    fetch(MYSTERY_001A.assets.manifest, { cache: "force-cache" })
+    applicationFetch(MYSTERY_001A.assets.manifest, { cache: "force-cache" })
       .then((response) => {
         if (!response.ok) throw new Error("manifest");
         return response.json();

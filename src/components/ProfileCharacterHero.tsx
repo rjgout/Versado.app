@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { getCharacterAsset } from "@/lib/characterAssets";
-import { profileFrameFor } from "@/lib/profileCharacterFraming";
-import { profileCameraOriginX, profileCameraOriginY } from "@/lib/profileCamera";
-import type { AvatarAppearance } from "@/lib/avatarTypes";
+import { AppLink as Link,useAppImageSource } from "@/components/navigation/AppNavigation";
 import ScriptureAvatar from "@/components/ScriptureAvatar";
+import type { AvatarAppearance } from "@/lib/avatarTypes";
+import { getCharacterAsset } from "@/lib/characterAssets";
+import { profileCameraOriginX,profileCameraOriginY } from "@/lib/profileCamera";
+import { profileFrameFor } from "@/lib/profileCharacterFraming";
+import { useState } from "react";
 
 export default function ProfileCharacterHero({ appearance, handle, zoomInLabel, zoomOutLabel, changeLabel, changeHref }: {
   appearance: AvatarAppearance;
@@ -18,6 +18,7 @@ export default function ProfileCharacterHero({ appearance, handle, zoomInLabel, 
 }) {
   const [zoomed, setZoomed] = useState(false);
   const character = getCharacterAsset(appearance.avatarCharacterId);
+  const fullBody=useAppImageSource(character?.fullBody);
   const frame = character ? profileFrameFor(character.id) : null;
   const headX = frame ? `${profileCameraOriginX(frame) * 100}%` : "50%";
   const cameraY = frame ? `${profileCameraOriginY(frame) * 100}%` : "16%";
@@ -39,7 +40,7 @@ export default function ProfileCharacterHero({ appearance, handle, zoomInLabel, 
                 bovenrand binnen beeld, ook bij hoofdbedekking. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={character.fullBody}
+              src={fullBody ?? undefined}
               alt=""
               draggable={false}
               className="h-full w-auto max-w-none select-none transition-transform duration-[360ms] ease-out motion-reduce:transition-none"
