@@ -291,6 +291,7 @@ export const de: PartialMessages = {
   "active": "Aktuelle Aufnahme",
   "legacy": "Registrierungen; bestehende Kapitelaudiodateien bleiben erhalten."
 },
+  nativeStudyFolder: { backendUnavailable: "Der Studienordnerdienst liefert keine gültige Antwort. Versuche es erneut. Falls das Problem bleibt, bitte den Betreiber, Backend und API-Proxy zu prüfen." },
   nativeAccess: {
   "title": "Interner Gerätezugang",
   "help": "Füge den Cloudflare-Zugang für dieses Testgerät im sicheren Systemdialog hinzu. Ersetzen oder Löschen meldet dich bei Versado ab.",

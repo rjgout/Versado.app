@@ -293,6 +293,7 @@ export const nl = {
   "active": "Actieve opname",
   "legacy": "Registraties; bestaande hoofdstukaudio blijft behouden."
 },
+  nativeStudyFolder: { backendUnavailable: "De studiemapdienst geeft geen geldig antwoord. Probeer opnieuw. Blijft dit gebeuren, laat de eigenaar de backend en API-proxy controleren." },
   nativeAccess: {
   "title": "Interne toesteltoegang",
   "help": "Voeg de Cloudflare-toegang voor dit testtoestel toe in het beveiligde systeemvenster. Wijzigen of wissen logt je uit bij Versado.",

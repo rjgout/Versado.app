@@ -291,6 +291,7 @@ export const fr: PartialMessages = {
   "active": "Enregistrement actif",
   "legacy": "Inscriptions ; les enregistrements de chapitre existants sont conservés."
 },
+  nativeStudyFolder: { backendUnavailable: "Le service du dossier d’étude ne renvoie pas de réponse valide. Réessayez. Si le problème persiste, demandez au propriétaire de vérifier le backend et le proxy API." },
   nativeAccess: {
   "title": "Accès interne de l’appareil",
   "help": "Ajoutez l’accès Cloudflare de cet appareil de test dans la fenêtre système sécurisée. Le remplacer ou l’effacer vous déconnecte de Versado.",

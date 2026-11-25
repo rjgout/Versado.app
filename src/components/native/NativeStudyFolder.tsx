@@ -33,7 +33,7 @@ function StudyFolder({userId,pathname,enabled,onError}:{userId:string;pathname:s
     }
   },[savedScroll]);
   const handle=useCallback((error:unknown)=>{
-    if(error instanceof NativeClientError&&(error.status===401||error.status===403||error.code.startsWith("access_")))onError(error);
+    if(error instanceof NativeClientError&&(error.status===401))onError(error);
     throw error;
   },[onError]);
   const request=useCallback(async<T,>(query:string):Promise<T>=>{
@@ -52,7 +52,7 @@ function StudyFolder({userId,pathname,enabled,onError}:{userId:string;pathname:s
   const confirmRemove=useCallback(()=>confirm(t("studyFolder.removeConfirm"),{destructive:true,native:true}),[confirm,t]);
   if(!enabled)return <section role="status" className="flex flex-col gap-3"><h1 className="text-2xl font-extrabold">{t("studyFolder.title")}</h1><p>{t("nativeContentFallback.unsupported")}</p><button className={secondaryButton} onClick={()=>navigation.back("/content")}>{t("common.back")}</button></section>;
   if(ref)return <FolderPassage key={folderRefPath(ref)} userId={userId} anchor={ref} adapter={adapterFor(ref)} confirmRemove={confirmRemove} onError={handle}/>;
-  return <StudyFolderClient discardOnRevalidate pathname="/study-folder" search={new URLSearchParams(memory.data?.query??"")} replace={href=>memory.setData(old=>({...old,query:href.split("?")[1]??""}))} onOpenItem={onOpenItem} onReady={onReady}
+  return <StudyFolderClient discardOnRevalidate renderLoadError={(error,retry)=><FolderLoadError error={error} retry={retry}/>} pathname="/study-folder" search={new URLSearchParams(memory.data?.query??"")} replace={href=>memory.setData(old=>({...old,query:href.split("?")[1]??""}))} onOpenItem={onOpenItem} onReady={onReady}
     request={request} itemHref={item=>`/study-folder/${folderRefPath(item)}`}
     renderEditor={(item,element,onClose,onChanged)=><FolderEditor key={`${item.kind}:${item.id}`} item={item} element={element} adapter={adapterFor(item)} confirmRemove={confirmRemove} onClose={onClose} onChanged={onChanged}/>}/>;
 }
@@ -69,7 +69,7 @@ function FolderPassage({userId,anchor,adapter,confirmRemove,onError}:{userId:str
   return <section data-native-folder-passage className="flex min-w-0 flex-col gap-4 pb-6">
     <h1 className="text-2xl font-extrabold">{data?.item.source.status!=="unavailable"?data?.item.source.label??t("studyFolder.title"):t("studyFolder.sourceUnavailable")}</h1>
     {query.isLoading&&<p role="status">{t("studyFolder.loading")}</p>}
-    {Boolean(query.error)&&<div role="alert"><p>{t("studyFolder.loadFailed")}</p><button className={secondaryButton} onClick={()=>void query.refetch()}>{t("studyFolder.retry")}</button></div>}
+    {Boolean(query.error)&&<FolderLoadError error={query.error} retry={()=>void query.refetch()}/>}
     {data&&destination?.status==="ready"&&<ScriptureReaderView bookName={destination.reader.bookName} chapterNumber={destination.reader.chapterNumber} verses={destination.reader.verses} language={destination.reader.language} focusVerse={destination.reader.focusVerse}
       colorForVerse={id=>data.item.target.type==="verse"&&data.item.target.verseId===id?data.item.color:undefined}/>}
     {destination&&destination.status!=="ready"&&<p role="status" className={`${surfaceCard} p-4`}>{t(destination.status==="unavailable"?"studyFolder.sourceUnavailableHelp":"studyFolder.nativeReaderUnsupported")}</p>}
@@ -79,4 +79,16 @@ function FolderPassage({userId,anchor,adapter,confirmRemove,onError}:{userId:str
     <button data-folder-return className={secondaryButton} onClick={()=>navigation.back("/study-folder")}>{t("studyFolder.title")}</button>
     {editing&&<FolderEditor item={editing.item} element={editing.element} adapter={adapter} confirmRemove={confirmRemove} onClose={()=>{setEditing(null);restoreFolderFocus(editing.item,true);}} onChanged={()=>void query.refetch()}/>}
   </section>;
+}
+
+/** Alleen gecategoriseerde fouten; nooit native details, zoektermen of annotaties. */
+function FolderLoadError({error,retry}:{error:unknown;retry():void}) {
+  const t=useT(),navigation=useAppNavigation();
+  const code=error instanceof NativeClientError?error.code:"";
+  const device=["access_missing","access_denied","access_disabled","access_storage_unavailable"].includes(code);
+  const key=device?(code==="access_missing"?"nativeAccess.missing":code==="access_denied"?"nativeAccess.denied":code==="access_disabled"?"nativeAccess.disabled":"nativeFoundation.storageUnavailable"):
+    ["network_unavailable","access_network_unavailable","access_busy"].includes(code)?"nativeFoundation.offline":
+    code==="session_changed"||code==="session_expired"?"nativeFoundation.sessionExpired":"nativeStudyFolder.backendUnavailable";
+  return <div role="alert" data-folder-load-error className={`${surfaceCard} p-3`}><p>{t(key)}</p>
+    <button className={`${secondaryButton} mt-2`} onClick={()=>device?navigation.push("/diagnostics"):retry()}>{t(device?"nativeDiagnostics.open":"studyFolder.retry")}</button></div>;
 }

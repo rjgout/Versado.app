@@ -26,6 +26,7 @@ type RememberedPages = Record<string, number>;
 export interface StudyFolderPresentation {
   pathname: string; search: URLSearchParams;
   discardOnRevalidate?:boolean;
+  renderLoadError?(error:unknown,retry:()=>void):ReactNode;
   replace(href:string,options:{scroll:false}):void;
   request<T>(query:string):Promise<T>;
   itemHref?(item:StudyFolderItem):string;
@@ -46,7 +47,7 @@ function apiQuery(filters: Filters, extra: Record<string, string> = {}) {
   return params.toString();
 }
 
-export default function StudyFolderClient({pathname,search,replace,request,itemHref,onOpenItem,onReady,renderEditor,discardOnRevalidate=false}:StudyFolderPresentation) {
+export default function StudyFolderClient({pathname,search,replace,request,itemHref,onOpenItem,onReady,renderEditor,discardOnRevalidate=false,renderLoadError}:StudyFolderPresentation) {
   const t = useT();
   const language = useUiLanguage();
   const urlQ = search.get("q") ?? "";
@@ -223,7 +224,7 @@ export default function StudyFolderClient({pathname,search,replace,request,itemH
 
       <section aria-label={t("studyFolder.listLabel")} className="flex flex-col gap-3">
         {first.isLoading && <p role="status" className="flex items-center gap-2 text-sm font-semibold text-vs-fg-2"><LoaderCircle className="h-5 w-5 animate-spin motion-reduce:animate-none" aria-hidden />{t("studyFolder.loading")}</p>}
-        {Boolean(first.error) && !first.data && (
+        {renderLoadError && Boolean(first.error ?? sources.error) ? renderLoadError(first.error ?? sources.error,()=>{void first.refetch();void sources.refetch();}) : Boolean(first.error) && !first.data && (
           <div role="alert" className="rounded-2xl border border-vs-line bg-vs-elevated p-3 text-sm text-vs-fg">
             <p>{t("studyFolder.loadFailed")}</p>
             <button type="button" className={`${secondaryButton} mt-2 min-h-11`} onClick={() => void first.refetch()}>{t("studyFolder.retry")}</button>

@@ -68,6 +68,15 @@ try {
   assert.deepEqual(JSON.parse(r.body),{cookie:'',cf:'',authorization:'Bearer synthetic',range:'bytes=0-9',host:TEST_API_HOST});assert.equal(r.headers['set-cookie'],undefined);
   await check('/socket.io/?EIO=4&transport=websocket',200);
   await check('/socket.io/?EIO=4&transport=polling',404);
+  // Studymap: beide queryvarianten lopen over hetzelfde POST-endpoint; bewerken
+  // heeft een aparte begrensde route. De proxy laat de body en Bearer aan de backend.
+  for (const [method, uri] of [['POST','study-folder/query'],['POST','study-folder/annotations'],
+    ...['bookmark','highlight','note'].flatMap(kind => ['annotations','passage'].map(part => ['GET',`study-folder/${kind}/own_1/${part}`]))]) {
+    await check('/api/v1/native/'+uri,200,method);
+    await check('/api/v1/native/'+uri,200,'OPTIONS');
+  }
+  for (const [method, uri] of [['GET','study-folder/query'],['PUT','study-folder/annotations'],['DELETE','study-folder/note/own_1/annotations'],['POST','study-folder/query?userId=other'],['GET','study-folder/admin/own_1/passage'],['GET','study-folder/note/x%2Fy/passage'],['GET','study-folder/note/own_1/passage/extra']]) await check('/api/v1/native/'+uri,404,method);
+  await check('/api/v1/native/study-folder/query',403,'POST',{Origin:'https://untrusted.invalid'});
   // Spelen (store-test): alles wat de native Spelen-client kan sturen komt door; verkeerde methoden, extra/dubbele
   // parameters, verdachte coderingen en traversal blijven 404. Dezelfde gevallen als tests/native-test-api-games.test.ts.
   for(const [method,uri] of clientRequests())await check('/api/v1/native/'+uri,200,method);
