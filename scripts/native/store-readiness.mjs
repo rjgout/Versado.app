@@ -159,7 +159,7 @@ export const BLOCKERS = [
     check: (fs) => ({ ok: /signingConfigs\s*\{/.test(fs.read("android/app/build.gradle")) && /VERSADO_UPLOAD_KEYSTORE_PATH/.test(fs.read("android/app/build.gradle")), evidence: "android/app/build.gradle" }) },
   { id: "android-ci-bundle", area: "Android", wp: "WP0", title: "CI bewijst een Android App Bundle-release-build (bundleRelease)",
     check: (fs) => ({ ok: workflows(fs).some((text) => /bundleRelease/.test(text)), evidence: ".github/workflows/*.yml" }) },
-  { id: "android-play-test-workflow", area: "Android", wp: "WP3", title: "Beschermde handmatige workflow die een getekende Play-testbundel bouwt (geen upload, alleen vanaf main, omgeving android-play-test)",
+  { id: "android-play-test-workflow", area: "Android", wp: "WP3", title: "Beschermde handmatige workflow die een getekende Play-testbundel bouwt (geen upload, alleen vanaf main of develop, omgeving android-play-test)",
     check: (fs) => { const text = fs.read(".github/workflows/native-android-release.yml"); return { ok: /workflow_dispatch/.test(text) && /environment:\s*android-play-test/.test(text) && /refs\/heads\/main/.test(text) && /bundleRelease/.test(text), evidence: ".github/workflows/native-android-release.yml" }; } },
   { id: "android-app-links", area: "Android", wp: "WP7", title: "Android App Links: intent-filter met autoVerify voor de Versado-origin",
     check: (fs) => ({ ok: /android:autoVerify="true"/.test(fs.read("android/app/src/main/AndroidManifest.xml")), evidence: "AndroidManifest.xml" }) },

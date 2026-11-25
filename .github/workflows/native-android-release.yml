@@ -1,6 +1,7 @@
 name: Android Play-testbundel (handmatig, beschermd)
-# WP3: ondertekent een Android App Bundle voor de interne/gesloten Play-test. Alleen handmatig te starten vanaf main,
-# in de beschermde GitHub-omgeving "android-play-test" (de eigenaar stelt vereiste goedkeurders en de secrets in).
+# WP3: ondertekent een Android App Bundle voor de interne/gesloten Play-test. Alleen handmatig te starten vanaf main of
+# develop (develop zoals de iOS-TestFlight-workflow; nooit vanaf een featurebranch), in de beschermde GitHub-omgeving
+# "android-play-test" (de eigenaar stelt vereiste goedkeurders, de toegestane branches en de secrets in).
 # Deze workflow uploadt NIETS naar Google Play: de eigenaar plaatst het artifact zelf in de Play Console.
 # Compileproef-bundels (compileProbe:true) worden nooit ondertekend; publieke release blijft geblokkeerd.
 on:
@@ -17,7 +18,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   play-test-bundle:
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
     timeout-minutes: 40
     environment: android-play-test
